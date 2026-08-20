@@ -574,9 +574,8 @@ part of the engineering and proof-identity gap.
    dispatcher result. This history wrapper does not construct that ready head;
    the following structural classifier identifies the exact shape when it is
    absent, and the following debt and continuation-exit layers give conditional
-   completion reductions. The first gate before dispatcher progress is now a
-   direct history-compatible debt law, a Wait-compatible drained, temporal, or
-   cross-component weakening, or another sufficient completion law. Later-state
+   completion reductions. The first gate before dispatcher progress is now the
+   exact reset-aware history-tail law described below. Later-state
    totality, recursive-fallback removal,
    faithful token-age scheduling, whole-program linearity, and Figure-7
    pure-worklist completeness remain open maturity gates; no global raw seam or
@@ -607,6 +606,22 @@ part of the engineering and proof-identity gap.
    non-global vertex in the exact ready tail. Presence only detects vacuity.
    Canonical history supplies none of these debt witnesses, so progress,
    terminality, totality, and completeness remain open.
+   `SequentialFigure7ActiveTopDebtQueueTail.lean` sharpens the Nop and Wait
+   residuals further. Under the prior debt and input `SchedulerInvariant`, each
+   post-step debt proposition is equivalent to the prepared `remainingTop`
+   containing a non-global vertex. This is an exact normalization, not a proof
+   that any correct, historical, or reachable state contains such a vertex.
+   `SequentialFigure7ActiveTopDebtHistoryTail.lean` collects the exact current
+   obligations in `CanonicalTagHistory.ActiveTopDebtTailLaw`. Concl, Nop, and
+   Wait recurse; Nop and Wait additionally require their non-global
+   `remainingTop` witness. New resets, while Forward and UnifyPayload reset recursion and
+   retain only their exact current non-global-created or global-created-tail
+   obligation. The law plus the matching canonical tag history implies endpoint
+   debt. The law remains an explicit assumed carrier and is not derived from
+   correctness, canonical history, or reachability. Consequently unconditional
+   `allMarked`, progress, termination, totality, and completeness remain open.
+   The next readiness gate is correctness plus `CanonicalTagHistory` implying
+   `ActiveTopDebtTailLaw`.
    `SequentialFigure7ContinuationCredit.lean` and its preservation module now
    close a weaker full-history invariant. The two carriers assign each marked
    nonconclusion one of three receipts: an unmarked mate, future conclusion
@@ -640,9 +655,10 @@ part of the engineering and proof-identity gap.
    proves neither that the output is drained nor that a reachable Wait exists,
    and it does not refute direct debt or a Wait-compatible drained, temporal, or
    cross-component weakening. The concrete `native_decide` trace remains
-   research-only and outside the public theorem. The readiness gate pivots to
-   one of those routes or another sufficient completion law; unconditional
-   progress, completion, terminality, and totality still do not follow.
+   research-only and outside the public theorem. The reset-aware history-tail
+   carrier records a Wait-compatible route, but does not establish its own
+   history-level premise; unconditional progress, completion, termination,
+   and totality still do not follow.
    `SequentialFigure7PriorityEnabled.lean` now gives that dispatcher an exact
    branch-indexed applicability correspondence whose six positive fields and
    stored earlier-branch negations are input-only. Each executor has an

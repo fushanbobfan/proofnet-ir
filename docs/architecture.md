@@ -970,9 +970,10 @@ construct a ready head; the following structural module classifies the exact
 shape of its absence, and the subsequent debt and continuation-exit layers give
 conditional semantic reductions. The endpoint-locality obstruction below rules
 out the unrestricted locality law as a full-history invariant across successful
-Wait transitions. Direct history-compatible debt, a Wait-compatible drained,
-temporal, or cross-component weakening, or another sufficient completion law is
-the next proof gate before dispatcher progress or later-state totality; global
+Wait transitions. The queue-tail and history-tail layers then isolate the exact
+replacement carrier. Deriving that carrier from declarative correctness plus
+canonical tag history is the next proof gate before dispatcher progress or
+later-state totality; global
 raw seams, fallback removal, faithful scheduling, pure-worklist completeness,
 sequentialization, and whole-program linearity remain separate.
 
@@ -1010,6 +1011,30 @@ UnifyPayload, the prior complete scheduler invariant makes post-debt equivalent
 to marked-nonconclusion presence implying a non-global vertex in the exact
 ready tail. Presence only detects vacuity. Canonical history derives neither
 witness, so full debt preservation and downstream progress remain open.
+
+`SequentialFigure7ActiveTopDebtQueueTail.lean` normalizes the selected-away
+boundary without introducing another public predicate. Given the prior debt and
+the input `SchedulerInvariant`, both Nop and Wait post-debt are equivalent to an
+exact existential: `prepared.stackResult.remainingTop` contains a vertex that
+is not a global conclusion. The reverse direction reconstructs the prepared
+selected-away witness from ready-bucket/frontier exactness; the forward
+direction extracts that tail vertex from the same exactness and ready-bucket
+nodup. Neither theorem creates a tail witness from correctness, history, or
+reachability.
+
+`SequentialFigure7ActiveTopDebtHistoryTail.lean` packages those local
+obligations as the reset-aware `CanonicalTagHistory.ActiveTopDebtTailLaw`.
+Concl recurses unchanged. Nop and Wait require the current non-global
+`remainingTop` witness and recurse to the prior law. New resets the obligation.
+Forward and UnifyPayload also reset history recursion and retain only their
+current exact alternative: a non-global created conclusion, or the existing
+global-created ready-tail implication. Given a matching `CanonicalTagHistory`
+and this law, the endpoint theorem derives
+`ActiveTopMarkedNonconclusionDebt`. The law itself is an ordinary assumption;
+the module does not derive it from declarative correctness, canonical history,
+or reachability. In particular it gives no unconditional all-marked result,
+progress, termination, totality, or completeness theorem. The exact next gate
+is correctness plus `CanonicalTagHistory` implying `ActiveTopDebtTailLaw`.
 
 `SequentialFigure7ContinuationCredit.lean` and
 `SequentialFigure7ContinuationCreditPreservation.lean` close a deliberately
@@ -1057,9 +1082,9 @@ it supplies no progress or existence result. It also does not refute direct
 active-top debt or a Wait-compatible drained, temporal, or cross-component
 weakening. The concrete `native_decide` trace used during research remains
 outside the production theorem and public trust surface. Unconditional
-progress, completion, terminality, and totality remain open; the next gate is
-direct history-compatible debt, one of those weakened laws, or another
-sufficient completion route through the drained residual.
+progress, completion, terminality, and totality remain open. The subsequent
+history-tail carrier is compatible with Wait, but remains assumed; the next
+gate is to derive it from correctness plus `CanonicalTagHistory`.
 
 `SequentialFigure7CrossRepresentativeNewPreservation.lean` isolates the New
 branch's two genuinely new effects. Every output work occurrence is either

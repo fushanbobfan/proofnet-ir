@@ -23,27 +23,21 @@ latest research surface and are prepared for documented development changes.
 <!-- ROLLING_MAIN_SUMMARY_START -->
 ### Rolling-main summary
 
-The rolling branch now turns history-preserved continuation credit into a
-finite, strictly formula-complexity-increasing continuation exit. Each marked
-nonconclusion reaches an unmarked raw mate, scheduled future-conclusion work,
-or a concretely marked global conclusion.
+The rolling branch now reduces post-Nop and post-Wait active-top debt exactly to
+the existence of a non-global vertex in the prepared remaining ready tail,
+assuming the prior debt and scheduler invariant. A reset-aware history carrier
+threads those tail obligations through Concl, Nop, and Wait. New clears the
+prior obligation; Forward and UnifyPayload replace it with their exact current
+created-head alternatives. When supplied with a canonical tag history, the
+carrier yields endpoint debt.
 
-A separate endpoint-bound locality condition retains only the open raw-mate and
-future-conclusion exits and binds their endpoint to the active component. This
-condition remains sufficient: with structural well-formedness and queued
-vertices unmarked it yields active-top marked-nonconclusion debt; with
-declarative correctness, the full scheduler invariant, and a drained active top
-it yields all formula occurrences marked.
+That carrier remains an explicit assumption: correctness, canonical history,
+and reachability do not yet derive it. The earlier Wait result still refutes
+unrestricted endpoint locality, but does not refute direct debt.
 
-Every successful typed Wait step from a scheduler-invariant input refutes
-unrestricted locality at its output, so the law is not preserved across such
-a transition. This does not establish a reachable Wait, nor refute conditional
-results, direct debt, or a compatible drained, temporal, or cross-component law.
-
-This checkpoint proves no arbitrary history or locality existence,
-unconditional progress, completion, terminality, or totality. The next gate is
-direct history-compatible debt, a suitable weakened locality law, or another
-sufficient completion route.
+This checkpoint proves no unconditional all-marked result, progress,
+completion, termination, or totality. The next gate is to derive the tail
+carrier from correctness plus canonical tag history.
 [Current status](docs/current-status.md) owns exact revision, verification receipt, and gates.
 <!-- ROLLING_MAIN_SUMMARY_END -->
 

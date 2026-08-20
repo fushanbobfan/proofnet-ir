@@ -814,6 +814,22 @@ is deliberately absent from the production module, consumer, and public axiom
 audit. The pending combined audit is expected to cover 947 declarations: 657
 full-classical, 25 axiom-free, 127 `propext`-only, and 138
 `propext`/`Quot.sound` boundaries.
+`SequentialFigure7ActiveTopDebtQueueTail.lean` adds no witness, history, or
+progress oracle. Its two public iff theorems take prior debt and the ordinary
+input `SchedulerInvariant`; they only normalize post-Nop and post-Wait debt to
+the existence of a non-global vertex in the exact prepared `remainingTop`.
+`SequentialFigure7ActiveTopDebtHistoryTail.lean` adds a recursive proposition,
+not an axiom. `ActiveTopDebtTailLaw` is an explicit caller-supplied carrier:
+Concl, Nop, and Wait recurse; New resets; Forward and UnifyPayload retain only
+their exact current branch obligations. The endpoint theorem consumes both the
+matching `CanonicalTagHistory` and that carrier to derive debt. It does not
+derive the carrier from correctness, canonical history, or reachability. The
+pending proof-commit audit is expected to cover 950 declarations: 660
+full-classical, 25 axiom-free, 127 `propext`-only, and 138
+`propext`/`Quot.sound` boundaries. Unconditional `allMarked`, progress,
+termination, totality, and completeness therefore remain outside the trusted
+surface; the next gate is correctness plus `CanonicalTagHistory` implying
+`ActiveTopDebtTailLaw`.
 `SequentialFigure7CrossRepresentativeWaitPreservation.lean` adds no hidden
 source-region oracle. Its output-work classification follows only from the
 typed destination's exact waiting prepend and unchanged ready/sigma fields;

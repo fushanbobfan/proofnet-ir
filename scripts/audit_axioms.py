@@ -168,6 +168,12 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "activeTopMarkedNonconclusionDebt_iff_tailLaw_of_created_conclusion",
     "ProofNetIR.SequentialFigure7.UnifyPayloadStep."
     "activeTopMarkedNonconclusionDebt_iff_tailLaw_of_created_conclusion",
+    "ProofNetIR.SequentialFigure7.NopStep."
+    "activeTopMarkedNonconclusionDebt_iff_readyTailNonconclusion",
+    "ProofNetIR.SequentialFigure7.WaitStep."
+    "activeTopMarkedNonconclusionDebt_iff_readyTailNonconclusion",
+    "ProofNetIR.SequentialFigure7.CanonicalTagHistory."
+    "activeTopMarkedNonconclusionDebt_of_tailLaw",
     "ProofNetIR.SequentialFigure7.InitialReservationStep."
     "markedNonconclusionContinuation",
     "ProofNetIR.SequentialFigure7.NopStep.selectedContinuationCredit",

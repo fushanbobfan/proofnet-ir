@@ -9773,6 +9773,73 @@ ProofNetIR.SequentialFigure7.UnifyPayloadStep.activeTopMarkedNonconclusionDebt_i
               ¬pending ∈ certificate.conclusions)
 ```
 
+## Active-top debt ready-tail normalization
+
+### `ProofNetIR.SequentialFigure7.NopStep.activeTopMarkedNonconclusionDebt_iff_readyTailNonconclusion`
+
+Kind: theorem.
+
+Under prior debt, post-`nop` debt is exactly the existence of a non-global
+vertex in the prepared step's remaining ready tail.
+
+```lean
+ProofNetIR.SequentialFigure7.NopStep.activeTopMarkedNonconclusionDebt_iff_readyTailNonconclusion : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.NopStep certificate before after),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+    ProofNetIR.SequentialFigure7.ActiveTopMarkedNonconclusionDebt certificate before →
+      (ProofNetIR.SequentialFigure7.ActiveTopMarkedNonconclusionDebt certificate after ↔
+        ∃ pending, pending ∈ step.prepared.stackResult.remainingTop ∧ ¬pending ∈ certificate.conclusions)
+```
+
+### `ProofNetIR.SequentialFigure7.WaitStep.activeTopMarkedNonconclusionDebt_iff_readyTailNonconclusion`
+
+Kind: theorem.
+
+Under prior debt, post-`wait` debt is exactly the existence of a non-global
+vertex in the prepared step's remaining ready tail.
+
+```lean
+ProofNetIR.SequentialFigure7.WaitStep.activeTopMarkedNonconclusionDebt_iff_readyTailNonconclusion : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.WaitStep certificate before after),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+    ProofNetIR.SequentialFigure7.ActiveTopMarkedNonconclusionDebt certificate before →
+      (ProofNetIR.SequentialFigure7.ActiveTopMarkedNonconclusionDebt certificate after ↔
+        ∃ pending, pending ∈ step.prepared.stackResult.remainingTop ∧ ¬pending ∈ certificate.conclusions)
+```
+
+## Active-top debt history-tail law
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.ActiveTopDebtTailLaw`
+
+Kind: definition.
+
+Reset-aware active-top debt law expressed by exact ready-tail obligations.
+`concl` recurses. `nop` and `wait` require the current non-global
+`remainingTop` witness and recurse. `new` resets to `True`. `forward` and
+`unifyPayload` stop recursion and retain only their exact current created-head
+alternative.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.ActiveTopDebtTailLaw : {certificate : ProofNetIR.Certificate} →
+  {state : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+    {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state} →
+      ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.activeTopMarkedNonconclusionDebt_of_tailLaw`
+
+Kind: theorem.
+
+The exact reset-aware history-tail law suffices for active-top
+marked-nonconclusion debt at the history endpoint.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.activeTopMarkedNonconclusionDebt_of_tailLaw : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  tagHistory.ActiveTopDebtTailLaw → ProofNetIR.SequentialFigure7.ActiveTopMarkedNonconclusionDebt certificate state
+```
+
 ## Branch-local continuation credit
 
 ### `ProofNetIR.SequentialFigure7.ContinuationCredit`

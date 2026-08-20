@@ -359,10 +359,23 @@ not refute direct debt or a Wait-compatible drained, temporal, or
 cross-component weakening, and the earlier conditional implications remain
 valid. A concrete `native_decide` trace remains research-only and outside the
 public theorem.
+`SequentialFigure7ActiveTopDebtQueueTail.lean` and
+`SequentialFigure7ActiveTopDebtHistoryTail.lean` are further kernel-checked
+code consequences and add no source reading. Under prior debt and the complete
+scheduler invariant, the Nop and Wait post-debt propositions are each exactly
+equivalent to a non-global vertex in the prepared `remainingTop`. The
+reset-aware `ActiveTopDebtTailLaw` retains the prior obligation through Concl,
+Nop, and Wait, requires that exact witness for Nop and Wait, and resets at New,
+Forward, and UnifyPayload to the exact current branch obligation. The law plus
+the matching canonical tag history yields endpoint debt. The law is supplied,
+not derived from correctness, canonical history, or reachability; therefore no
+unconditional all-marked, progress, termination, totality, or completeness
+claim follows. The next code-level gate is correctness plus
+`CanonicalTagHistory` implying `ActiveTopDebtTailLaw`.
 Global preservation of the mate-region and older-raw-mark invariants through
 candidate-creating rules remains open, as do queue origin, created-candidate raw
-seams, direct history-compatible debt, a Wait-compatible weakened law or other
-sufficient completion route, unconditional active-top completion, progress,
+seams, the correctness-and-history proof of `ActiveTopDebtTailLaw`,
+unconditional active-top completion, progress,
 later-state totality,
 fallback removal,
 sequentialization, faithful token-age scheduling, and whole-program linearity.

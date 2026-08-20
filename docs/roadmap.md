@@ -1032,11 +1032,16 @@
     the output is drained, that a reachable Wait exists, or that direct debt or
     a Wait-compatible drained, temporal, or cross-component weakening fails.
     Keep the concrete `native_decide` trace research-only.
-  - [ ] Derive `ActiveTopMarkedNonconclusionDebt` directly through complete
-    canonical histories, formulate and preserve a Wait-compatible drained,
-    temporal, or cross-component weakening, or prove another sufficient
-    completion law. The finite continuation exit does not itself establish any
-    of those alternatives or arbitrary history existence. Only after this gate
+  - [x] Normalize the Nop and Wait selected-away obligations to exact
+    non-global `remainingTop` witnesses under prior debt and the complete
+    scheduler invariant. Package all six branches as the reset-aware
+    `ActiveTopDebtTailLaw`: Concl, Nop, and Wait recurse; New resets; Forward and
+    UnifyPayload reset recursion to their exact current branch obligations.
+    Prove that the law plus its canonical tag history yields endpoint debt.
+    Keep the law explicit: it is not derived from correctness, canonical
+    history, or reachability.
+  - [ ] Derive `ActiveTopDebtTailLaw` from correctness plus
+    `CanonicalTagHistory`. Only after this gate
     may the residual dichotomy
     combine with marking incompleteness to yield unconditional dispatcher
     progress. Keep unconditional completion, terminality, later-state totality,
@@ -1308,10 +1313,11 @@
     completion when supplied, but every successful typed Wait from a
     scheduler-invariant input refutes that unrestricted law at its output. This
     does not make the output drained or establish reachable-Wait existence.
-    Derive debt directly, preserve a Wait-compatible drained, temporal, or
-    cross-component weakening, or establish another sufficient route before
-    claiming exhaustive progress on incomplete, correct, certified-reachable
-    states.
+    The exact Nop/Wait `remainingTop` normalizers and reset-aware
+    `ActiveTopDebtTailLaw` now give a Wait-compatible assumed carrier and derive
+    endpoint debt when it is supplied. Next derive that law from correctness
+    plus `CanonicalTagHistory` before claiming exhaustive progress on
+    incomplete, correct, certified-reachable states.
     Exact source-left complexity descent, last-step decomposition, and
     recursive visited-route separation from the selected head are now proved.
     Reference-switching geometry now also excludes a terminal axiom partner

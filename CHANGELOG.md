@@ -2,6 +2,25 @@
 
 ## Unreleased
 
+- added `SequentialFigure7ActiveTopDebtQueueTail.lean` and
+  `SequentialFigure7ActiveTopDebtHistoryTail.lean`. The two public queue-tail
+  theorems normalize the Nop and Wait residuals: under the prior
+  `ActiveTopMarkedNonconclusionDebt` and `SchedulerInvariant`, post-step debt
+  holds exactly when the prepared `remainingTop` contains a vertex outside the
+  global conclusions. The reset-aware
+  `CanonicalTagHistory.ActiveTopDebtTailLaw` recursively retains the prior law
+  through Concl, requires that exact tail witness through Nop and Wait, resets
+  at New, and records only the current exact branch obligation at Forward and
+  UnifyPayload. Supplying that law with the matching canonical tag history
+  yields endpoint debt. These are four public declarations; the standalone
+  consumer exercises both iff directions, every history branch, and the final
+  implication. The law is an ordinary assumed carrier, not a consequence yet
+  of correctness, canonical history, or reachability. Therefore this checkpoint
+  proves no unconditional `allMarked`, progress, termination, totality, or
+  completeness result. The next gate is to derive `ActiveTopDebtTailLaw` from
+  correctness plus `CanonicalTagHistory`. The pending proof-commit audit is
+  expected to cover 950 declarations: 660 full-classical, 25 axiom-free, 127
+  `propext`-only, and 138 `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7EndpointLocalityObstruction.lean`. For every
   successful typed `WaitStep` whose input satisfies `SchedulerInvariant`,
   `WaitStep.not_activeTopContinuationExitLocalized` proves that the output

@@ -357,6 +357,12 @@ expansion.
   SequentialFigure7.ForwardStep.activeTopMarkedNonconclusionDebt_iff_tailLaw_of_created_conclusion
 #print axioms
   SequentialFigure7.UnifyPayloadStep.activeTopMarkedNonconclusionDebt_iff_tailLaw_of_created_conclusion
+#print axioms
+  SequentialFigure7.NopStep.activeTopMarkedNonconclusionDebt_iff_readyTailNonconclusion
+#print axioms
+  SequentialFigure7.WaitStep.activeTopMarkedNonconclusionDebt_iff_readyTailNonconclusion
+#print axioms
+  SequentialFigure7.CanonicalTagHistory.activeTopMarkedNonconclusionDebt_of_tailLaw
 #print axioms SequentialFigure7.empty_markedNonconclusionContinuation
 #print axioms
   SequentialFigure7.InitialReservationStep.markedNonconclusionContinuation

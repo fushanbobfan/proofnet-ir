@@ -899,6 +899,24 @@ def sections : List Section := [
     ]
   },
   {
+    title := "Active-top debt ready-tail normalization"
+    declarations := [
+      Name.str
+        `ProofNetIR.SequentialFigure7.NopStep
+        "activeTopMarkedNonconclusionDebt_iff_readyTailNonconclusion",
+      Name.str
+        `ProofNetIR.SequentialFigure7.WaitStep
+        "activeTopMarkedNonconclusionDebt_iff_readyTailNonconclusion"
+    ]
+  },
+  {
+    title := "Active-top debt history-tail law"
+    declarations := [
+      `ProofNetIR.SequentialFigure7.CanonicalTagHistory.ActiveTopDebtTailLaw,
+      `ProofNetIR.SequentialFigure7.CanonicalTagHistory.activeTopMarkedNonconclusionDebt_of_tailLaw
+    ]
+  },
+  {
     title := "Branch-local continuation credit"
     declarations := [
       `ProofNetIR.SequentialFigure7.ContinuationCredit,
