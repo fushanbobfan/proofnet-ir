@@ -871,6 +871,18 @@ invariants, not a new oracle. The verified combined audit covers 956 theorems: 6
 standard-three, 25 axiom-free, 127 `propext`-only, and 138
 `propext`/`Quot.sound` boundaries. The outcome is
 not a tail witness, terminal state, history law, or progress result.
+`SequentialFigure7ActiveTopDebtParentExternalTemporalOutcome.lean` adds one
+inductive carrier and three theorems. The carrier and its forgetful theorem are
+on the `propext`-only boundary; the Nop and Wait failure wrappers remain within
+the standard-three boundary. Those wrappers consume an actual typed step,
+input `SchedulerInvariant`, declarative correctness, matching canonical
+history, and the explicit negated ready-tail witness. They use the Nop
+unmarked-mate guard or Wait strict mate-age order to exclude only the selected
+raw endpoint. The verified combined audit covers 959 theorems: 668
+standard-three, 25 axiom-free, 128 `propext`-only, and 138
+`propext`/`Quot.sound` boundaries. No re-entry, ready-tail witness,
+`ActiveTopDebtTailLaw`, progress, completion, termination, totality, or
+completeness result is trusted here.
 `SequentialFigure7CrossRepresentativeWaitPreservation.lean` adds no hidden
 source-region oracle. Its output-work classification follows only from the
 typed destination's exact waiting prepend and unchanged ready/sigma fields;

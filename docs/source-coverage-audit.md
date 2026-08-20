@@ -402,9 +402,16 @@ older-marked outcome. The future and marked parent conclusions stay outside
 the active carrier and strictly older than its raw boundary; the raw sibling
 is selected or external. This remains a residual reduction, not a tail or
 history theorem.
+`SequentialFigure7ActiveTopDebtParentExternalTemporalOutcome.lean` adds no
+source reading. For actual Nop and Wait failures, typed mate facts eliminate
+the selected raw case from that common outcome. The remaining endpoint is raw
+and outside the active owned carrier, or it is an outside future/marked parent
+at a strictly older boundary or representative. No endpoint is shown to
+re-enter the active frontier, so no ready-tail witness or history-tail law is
+derived.
 Global preservation of the mate-region and older-raw-mark invariants through
 candidate-creating rules remains open, as do queue origin, created-candidate raw
-seams, elimination of the unified failure-conditioned temporal outcome,
+seams, first re-entry of the external-only temporal outcome,
 unconditional active-top completion, progress,
 later-state totality,
 fallback removal,

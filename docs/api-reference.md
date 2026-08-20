@@ -10099,6 +10099,84 @@ ProofNetIR.SequentialFigure7.ActiveCarrierParentTemporalResidual.temporalOutcome
           owned
 ```
 
+## Active-top debt parent external temporal outcome
+
+### `ProofNetIR.SequentialFigure7.ActiveCarrierParentExternalTemporalOutcome`
+
+Kind: inductive type.
+
+A parent temporal outcome whose raw endpoint is known to lie outside the
+active occurrence carrier.
+
+```lean
+ProofNetIR.SequentialFigure7.ActiveCarrierParentExternalTemporalOutcome : ProofNetIR.Certificate →
+  ProofNetIR.SequentialSchedulerBridge.ReservationState →
+    ProofNetIR.SequentialSchedulerState.RawTokenAge → List ProofNetIR.Vertex → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.ActiveCarrierParentExternalTemporalOutcome.temporalOutcome`
+
+Kind: theorem.
+
+Forget the strengthened external-raw conclusion while retaining the
+endpoint-level temporal trichotomy.
+
+```lean
+ProofNetIR.SequentialFigure7.ActiveCarrierParentExternalTemporalOutcome.temporalOutcome : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {activeRawAge : ProofNetIR.SequentialSchedulerState.RawTokenAge} {owned : List ProofNetIR.Vertex},
+  ProofNetIR.SequentialFigure7.ActiveCarrierParentExternalTemporalOutcome certificate state activeRawAge owned →
+    ∀ (selected : ProofNetIR.Vertex),
+      ProofNetIR.SequentialFigure7.ActiveCarrierParentTemporalOutcome certificate state activeRawAge selected owned
+```
+
+### `ProofNetIR.SequentialFigure7.NopStep.externalParentTemporalOutcome_of_no_readyTail`
+
+Kind: theorem.
+
+A failed Nop ready-tail obligation reduces to an external temporal parent
+endpoint; its raw case cannot be the selected head.
+
+```lean
+ProofNetIR.SequentialFigure7.NopStep.externalParentTemporalOutcome_of_no_readyTail : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  certificate.DeclarativelyCorrect →
+    ∀ (step : ProofNetIR.SequentialFigure7.NopStep certificate before after),
+      ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+        (¬∃ pending, pending ∈ step.prepared.stackResult.remainingTop ∧ ¬pending ∈ certificate.conclusions) →
+          ∃ component usedLinks owned,
+            before.core.components[step.prepared.stackResult.rawAge]? = some (some component) ∧
+              certificate.ComponentOccurrenceWitness component usedLinks owned ∧
+                ProofNetIR.Certificate.OwnedOccurrenceAccounted before.core step.prepared.stackResult.rawAge component
+                    owned ∧
+                  ProofNetIR.SequentialFigure7.ActiveCarrierParentExternalTemporalOutcome certificate before
+                    step.prepared.stackResult.rawAge owned
+```
+
+### `ProofNetIR.SequentialFigure7.WaitStep.externalParentTemporalOutcome_of_no_readyTail`
+
+Kind: theorem.
+
+A failed Wait ready-tail obligation reduces to an external temporal parent
+endpoint; its raw case cannot be the selected head.
+
+```lean
+ProofNetIR.SequentialFigure7.WaitStep.externalParentTemporalOutcome_of_no_readyTail : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  certificate.DeclarativelyCorrect →
+    ∀ (step : ProofNetIR.SequentialFigure7.WaitStep certificate before after),
+      ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+        (¬∃ pending, pending ∈ step.prepared.stackResult.remainingTop ∧ ¬pending ∈ certificate.conclusions) →
+          ∃ component usedLinks owned,
+            before.core.components[step.prepared.stackResult.rawAge]? = some (some component) ∧
+              certificate.ComponentOccurrenceWitness component usedLinks owned ∧
+                ProofNetIR.Certificate.OwnedOccurrenceAccounted before.core step.prepared.stackResult.rawAge component
+                    owned ∧
+                  ProofNetIR.SequentialFigure7.ActiveCarrierParentExternalTemporalOutcome certificate before
+                    step.prepared.stackResult.rawAge owned
+```
+
 ## Branch-local continuation credit
 
 ### `ProofNetIR.SequentialFigure7.ContinuationCredit`

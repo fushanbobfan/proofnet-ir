@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+- added `SequentialFigure7ActiveTopDebtParentExternalTemporalOutcome.lean`.
+  For an actual Nop or Wait with no non-global prepared ready-tail vertex, the
+  typed step guards eliminate the selected-head raw case from the normalized
+  parent escape. The remaining public carrier records an unmarked raw endpoint
+  outside the active owned carrier, future parent work outside it at a strictly
+  older boundary, or a marked parent conclusion outside it at a strictly older
+  representative. A forgetful theorem returns the prior common temporal
+  outcome. The checkpoint does not prove re-entry, manufacture a ready-tail
+  witness, derive `ActiveTopDebtTailLaw`, or establish progress, completion,
+  termination, totality, or completeness. The verified combined audit covers
+  959 theorems: 668 standard-three, 25 axiom-free, 128 `propext`-only, and 138
+  `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7ActiveTopDebtParentTemporalOutcome.lean`. Canonical
   continuation credit now turns the tensor same-boundary residual into the
   same endpoint trichotomy already carried by par, and the source-generic

@@ -62,6 +62,7 @@ defaultTargets = [
   "proofnet_ir_active_top_debt_parent_escape_tests",
   "proofnet_ir_active_top_debt_parent_escape_temporal_tests",
   "proofnet_ir_active_top_debt_parent_temporal_outcome_tests",
+  "proofnet_ir_active_top_debt_parent_external_temporal_outcome_tests",
   "proofnet_ir_continuation_credit_preservation_tests",
   "proofnet_ir_continuation_exit_tests",
   "proofnet_ir_endpoint_locality_obstruction_tests",
@@ -322,6 +323,10 @@ root = "ProofNetIRActiveTopDebtParentEscapeTemporalTests"
 [[lean_exe]]
 name = "proofnet_ir_active_top_debt_parent_temporal_outcome_tests"
 root = "ProofNetIRActiveTopDebtParentTemporalOutcomeTests"
+
+[[lean_exe]]
+name = "proofnet_ir_active_top_debt_parent_external_temporal_outcome_tests"
+root = "ProofNetIRActiveTopDebtParentExternalTemporalOutcomeTests"
 
 [[lean_exe]]
 name = "proofnet_ir_continuation_credit_preservation_tests"

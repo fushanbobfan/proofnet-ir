@@ -1078,6 +1078,17 @@ chain, so “outcome” does not mean terminal exit. This theorem is a common
 temporal reduction target; it still supplies no distinct ready-tail payer
 and proves no history tail law or residual impossibility.
 
+`SequentialFigure7ActiveTopDebtParentExternalTemporalOutcome.lean` specializes
+that target to actual Nop and Wait failures. Given the typed step, complete
+input invariant, correctness, matching canonical history, and explicit absence
+of a non-global prepared tail, the step guards eliminate the selected raw
+endpoint. What remains is external raw work, external future work at a strictly
+older boundary, or an external marked parent at a strictly older
+representative. Here “external” means outside the active occurrence carrier;
+the theorem does not return that endpoint to the ready tail. It proves no
+re-entry, tail law, progress, completion, termination, totality, or
+completeness result.
+
 `SequentialFigure7ContinuationCredit.lean` and
 `SequentialFigure7ContinuationCreditPreservation.lean` close a deliberately
 weaker history invariant. `ContinuationCredit` records an unmarked connective

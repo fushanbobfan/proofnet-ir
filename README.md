@@ -23,25 +23,23 @@ latest research surface and are prepared for documented development changes.
 <!-- ROLLING_MAIN_SUMMARY_START -->
 ### Rolling-main summary
 
-For a correct selected `par`, an explicit ready-head input and
-`SchedulerInvariant` now reduce the first active-carrier boundary to two
-alternatives with no exclusivity claim: a non-global ready-tail vertex or an
-`ActiveCarrierParentEscape` whose submitted parent leaves the active carrier.
-If no such tail vertex exists, the escape is forced.
+For a correct selected `par`, a ready-head input and `SchedulerInvariant`
+reduce the first active-carrier boundary to a non-global ready-tail vertex or
+an `ActiveCarrierParentEscape` whose submitted parent leaves the carrier. If
+no such tail vertex exists, the escape is forced.
 
-Given a matching `CanonicalTagHistory`, the no-tail escape now has an exact
-temporal normal form. A par source has an anchored raw sibling or a strictly
-older queued/marked parent continuation. For a tensor source, the escaped mark
-resolves to the active representative while its sibling and parent lie outside
-the carrier. Canonical continuation credit now maps both source cases to one
-`ActiveCarrierParentTemporalOutcome`: a raw sibling at the selected head or
-outside the carrier, or an outside queued/marked parent at a strictly older
-boundary. This remains a residual reduction; it neither manufactures a tail
-nor derives `ActiveTopDebtTailLaw`.
+With matching `CanonicalTagHistory`, the no-tail escape has an exact temporal
+normal form. Par has an anchored raw sibling or older parent continuation;
+tensor has an active-representative mark with sibling and parent outside the
+carrier. Continuation credit maps both to `ActiveCarrierParentTemporalOutcome`.
+For actual no-tail Nop and Wait steps, typed guards eliminate the selected raw
+case. Only external raw work or strictly older external future/marked work
+remains. This proves neither re-entry nor a ready-tail witness and does not
+derive `ActiveTopDebtTailLaw`.
 
 This checkpoint proves no unconditional all-marked result, progress,
 completion, termination, totality, or completeness. The next gate is to turn
-the unified temporal outcome into a distinct ready-tail payer and derive the
+the external-only outcome into a distinct ready-tail payer and derive the
 still-open global-created tail obligations.
 [Current status](docs/current-status.md) owns exact revision, verification receipt, and gates.
 <!-- ROLLING_MAIN_SUMMARY_END -->

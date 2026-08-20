@@ -375,6 +375,12 @@ expansion.
   SequentialFigure7.CanonicalTagHistory.ActiveCarrierTensorSameBoundaryResidual.temporalOutcome
 #print axioms
   SequentialFigure7.ActiveCarrierParentTemporalResidual.temporalOutcome
+#print axioms
+  SequentialFigure7.ActiveCarrierParentExternalTemporalOutcome.temporalOutcome
+#print axioms
+  SequentialFigure7.NopStep.externalParentTemporalOutcome_of_no_readyTail
+#print axioms
+  SequentialFigure7.WaitStep.externalParentTemporalOutcome_of_no_readyTail
 #print axioms SequentialFigure7.empty_markedNonconclusionContinuation
 #print axioms
   SequentialFigure7.InitialReservationStep.markedNonconclusionContinuation

@@ -659,6 +659,14 @@ part of the engineering and proof-identity gap.
    case is not declared terminal. This improves the induction interface but
    does not establish a ready-tail witness, `ActiveTopDebtTailLaw`, residual
    elimination, or progress.
+   `SequentialFigure7ActiveTopDebtParentExternalTemporalOutcome.lean` now
+   applies that interface to actual no-tail Nop and Wait steps. The Nop
+   unmarked-mate guard and Wait strict mate-age order eliminate the selected raw
+   endpoint. The resulting external-only carrier retains raw work outside the
+   active owned carrier, older external future work, or an older external
+   marked parent. It does not prove that any endpoint re-enters the active
+   frontier, so the tail witness, history law, progress, completion,
+   termination, totality, and completeness gates remain open.
    `SequentialFigure7ContinuationCredit.lean` and its preservation module now
    close a weaker full-history invariant. The two carriers assign each marked
    nonconclusion one of three receipts: an unmarked mate, future conclusion

@@ -186,6 +186,10 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "ActiveCarrierTensorSameBoundaryResidual.temporalOutcome",
     "ProofNetIR.SequentialFigure7.ActiveCarrierParentTemporalResidual."
     "temporalOutcome",
+    "ProofNetIR.SequentialFigure7.NopStep."
+    "externalParentTemporalOutcome_of_no_readyTail",
+    "ProofNetIR.SequentialFigure7.WaitStep."
+    "externalParentTemporalOutcome_of_no_readyTail",
     "ProofNetIR.SequentialFigure7.InitialReservationStep."
     "markedNonconclusionContinuation",
     "ProofNetIR.SequentialFigure7.NopStep.selectedContinuationCredit",
@@ -809,6 +813,8 @@ EXPECTED_PROPEXT_ONLY_THEOREMS = {
     "ProofNetIR.SequentialFigure7.empty_activeTopMarkedNonconclusionDebt",
     "ProofNetIR.SequentialFigure7.empty_markedNonconclusionContinuation",
     "ProofNetIR.SequentialFigure7.LocalizedContinuationExit.continuationExit",
+    "ProofNetIR.SequentialFigure7.ActiveCarrierParentExternalTemporalOutcome."
+    "temporalOutcome",
     "ProofNetIR.SequentialFigure7.PreparedStep."
     "activeTopMarkedNonconclusionDebt_iff_selectedAway",
     "ProofNetIR.SequentialUnification.SourceLeftChain.reachable_to_last_of_mem",

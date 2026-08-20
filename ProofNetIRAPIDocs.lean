@@ -959,6 +959,21 @@ def sections : List Section := [
     ]
   },
   {
+    title := "Active-top debt parent external temporal outcome"
+    declarations := [
+      `ProofNetIR.SequentialFigure7.ActiveCarrierParentExternalTemporalOutcome,
+      Name.str
+        `ProofNetIR.SequentialFigure7.ActiveCarrierParentExternalTemporalOutcome
+        "temporalOutcome",
+      Name.str
+        `ProofNetIR.SequentialFigure7.NopStep
+        "externalParentTemporalOutcome_of_no_readyTail",
+      Name.str
+        `ProofNetIR.SequentialFigure7.WaitStep
+        "externalParentTemporalOutcome_of_no_readyTail"
+    ]
+  },
+  {
     title := "Branch-local continuation credit"
     declarations := [
       `ProofNetIR.SequentialFigure7.ContinuationCredit,

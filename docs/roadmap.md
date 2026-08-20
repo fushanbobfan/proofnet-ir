@@ -1058,7 +1058,12 @@
     residuals into one `ActiveCarrierParentTemporalOutcome`: a selected or
     external raw sibling, or an external queued/marked parent at a strictly
     older boundary. This is not a terminality claim.
-  - [ ] Convert the unified temporal outcome into a distinct ready-tail payer,
+  - [x] For actual no-tail Nop and Wait steps, use their typed guards to remove
+    the selected raw case. Retain only an external raw endpoint, external
+    future work at a strictly older boundary, or an external marked parent at a
+    strictly older representative. Do not call this re-entry or a tail witness.
+  - [ ] Prove a first-reentry or ownership law that converts an external-only
+    temporal outcome into a distinct ready-tail payer,
     or otherwise eliminate the failure-conditioned residual. Do not infer
     unconditional dispatcher progress, completion, terminality, later-state
     totality, global raw seams, fallback removal, Figure-7 pure-worklist
@@ -1340,8 +1345,10 @@
     is now further normalized: par yields an authentic anchor plus a raw or
     strictly older continuation, while tensor continuation credit yields the
     same endpoint trichotomy. Both branches now map to one temporal-outcome
-    carrier, but neither is eliminated. Next turn that outcome into a distinct
-    ready-tail payer before claiming exhaustive progress on incomplete,
+    carrier. For actual Nop and Wait failures, the selected raw endpoint is now
+    eliminated, leaving only external raw work or strictly older external
+    future/marked work. Next prove re-entry or otherwise turn that external
+    outcome into a distinct ready-tail payer before claiming exhaustive progress on incomplete,
     correct, certified-reachable states.
     Exact source-left complexity descent, last-step decomposition, and
     recursive visited-route separation from the selected head are now proved.
