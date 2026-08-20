@@ -9931,6 +9931,116 @@ ProofNetIR.SequentialFigure7.ReadyHeadInput.parentEscape_of_no_readyTail : ∀ {
                       input.vertex
 ```
 
+## Active-top debt parent-escape temporal residual
+
+### `ProofNetIR.SequentialFigure7.ActiveRawMarkReservationAnchor`
+
+Kind: definition.
+
+The exact reservation event behind a raw mark, aligned to the current
+active occurrence carrier.
+
+```lean
+ProofNetIR.SequentialFigure7.ActiveRawMarkReservationAnchor : {certificate : ProofNetIR.Certificate} →
+  {state : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+    {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state} →
+      ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history →
+        ProofNetIR.UnificationComponent →
+          List ProofNetIR.Vertex → ProofNetIR.Vertex → ProofNetIR.SequentialSchedulerState.RawTokenAge → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.ActiveParParentContinuation`
+
+Kind: inductive type.
+
+The current continuation of an escaped par premise is forced into one of
+three temporal forms. The raw sibling is either the selected head or outside
+the active carrier; queued or marked conclusions live strictly below the
+active raw boundary.
+
+```lean
+ProofNetIR.SequentialFigure7.ActiveParParentContinuation : ProofNetIR.Certificate →
+  ProofNetIR.SequentialSchedulerBridge.ReservationState →
+    ProofNetIR.SequentialSchedulerState.RawTokenAge →
+      ProofNetIR.Vertex → List ProofNetIR.Vertex → ProofNetIR.Vertex → Nat → ProofNetIR.Vertex → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.ActiveParCarrierTemporalResidual`
+
+Kind: definition.
+
+Failure-conditioned temporal normal form for a par carrier escape.
+
+```lean
+ProofNetIR.SequentialFigure7.ActiveParCarrierTemporalResidual : {certificate : ProofNetIR.Certificate} →
+  {state : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+    {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state} →
+      ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history →
+        ProofNetIR.SequentialFigure7.ReadyHeadInput state →
+          ProofNetIR.UnificationComponent → List ProofNetIR.Vertex → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.ActiveCarrierTensorSameBoundaryResidual`
+
+Kind: definition.
+
+Exact tensor-specific residue after occurrence geometry and raw-mark
+history have been exhausted. The escaped source is anchored inside the
+active carrier, while both its tensor sibling and its tensor conclusion are
+outside.  Its concrete raw age resolves to the active sigma boundary, so the
+strict-older premise of `OlderMarkedTensorPredecessorInvariant` is unavailable
+for this occurrence.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.ActiveCarrierTensorSameBoundaryResidual : {certificate : ProofNetIR.Certificate} →
+  {state : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+    {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state} →
+      ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history →
+        ProofNetIR.SequentialFigure7.ReadyHeadInput state →
+          ProofNetIR.UnificationComponent → List ProofNetIR.Vertex → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.ActiveCarrierParentTemporalResidual`
+
+Kind: inductive type.
+
+The exact failure-conditioned temporal normal form of an active-carrier
+parent escape. The tensor branch retains the canonical older marked-tensor
+invariant without fabricating its strict-order trigger.
+
+```lean
+ProofNetIR.SequentialFigure7.ActiveCarrierParentTemporalResidual : {certificate : ProofNetIR.Certificate} →
+  {state : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+    {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state} →
+      ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history →
+        ProofNetIR.SequentialFigure7.ReadyHeadInput state →
+          ProofNetIR.UnificationComponent → List ProofNetIR.Vertex → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.ActiveCarrierParentEscape.temporalResidual_of_no_readyTail`
+
+Kind: theorem.
+
+Normalize an exact no-tail parent escape by the submitted source kind.
+The result is a par temporal continuation or the tensor same-boundary
+external-sibling residual. This theorem does not eliminate either branch.
+
+```lean
+ProofNetIR.SequentialFigure7.ActiveCarrierParentEscape.temporalResidual_of_no_readyTail : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  certificate.DeclarativelyCorrect →
+    ∀ (input : ProofNetIR.SequentialFigure7.ReadyHeadInput state),
+      ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+        ∀ {component : ProofNetIR.UnificationComponent} {usedLinks owned : List Nat},
+          state.core.components[input.rawAge]? = some (some component) →
+            certificate.ComponentOccurrenceWitness component usedLinks owned →
+              ProofNetIR.Certificate.OwnedOccurrenceAccounted state.core input.rawAge component owned →
+                ProofNetIR.SequentialFigure7.ActiveCarrierParentEscape certificate state component owned input.vertex →
+                  (¬∃ pending, pending ∈ input.readyTail ∧ ¬pending ∈ certificate.conclusions) →
+                    ProofNetIR.SequentialFigure7.ActiveCarrierParentTemporalResidual tagHistory input component owned
+```
+
 ## Branch-local continuation credit
 
 ### `ProofNetIR.SequentialFigure7.ContinuationCredit`

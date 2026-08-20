@@ -369,6 +369,8 @@ expansion.
   SequentialFigure7.ReadyHeadInput.readyTail_nonconclusion_or_parentEscape
 #print axioms
   SequentialFigure7.ReadyHeadInput.parentEscape_of_no_readyTail
+#print axioms
+  SequentialFigure7.ActiveCarrierParentEscape.temporalResidual_of_no_readyTail
 #print axioms SequentialFigure7.empty_markedNonconclusionContinuation
 #print axioms
   SequentialFigure7.InitialReservationStep.markedNonconclusionContinuation

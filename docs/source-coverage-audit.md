@@ -385,10 +385,19 @@ prepared-selection event. This layer neither assumes nor derives
 `ActiveTopDebtTailLaw`, and it contains no computational coexistence receipt.
 The next code-level gate is a failure-conditioned distinct-payer/re-entry law,
 split between `par` and `tensor`.
+`SequentialFigure7ActiveTopDebtParentEscapeTemporal.lean` is another
+kernel-checked code consequence and adds no source reading. With a matching
+canonical tag history, correctness, scheduler invariant, active
+occurrence/accounting data, and no-tail escape, it gives an exact source split.
+Par has an authentic reservation anchor and a raw-sibling or strictly older
+future/marked continuation. In the tensor branch, the escaped mark resolves to
+the active representative while its sibling and conclusion lie outside the
+carrier; the branch retains the older marked-tensor predecessor
+invariant. The theorem neither supplies the missing tail nor eliminates either
+residual, and it does not assume or derive `ActiveTopDebtTailLaw`.
 Global preservation of the mate-region and older-raw-mark invariants through
 candidate-creating rules remains open, as do queue origin, created-candidate raw
-seams, the failure-conditioned distinct-payer/re-entry laws for `par` and
-`tensor`,
+seams, elimination of the failure-conditioned par/tensor temporal residual,
 unconditional active-top completion, progress,
 later-state totality,
 fallback removal,

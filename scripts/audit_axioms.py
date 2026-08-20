@@ -180,6 +180,8 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "readyTail_nonconclusion_or_parentEscape",
     "ProofNetIR.SequentialFigure7.ReadyHeadInput."
     "parentEscape_of_no_readyTail",
+    "ProofNetIR.SequentialFigure7.ActiveCarrierParentEscape."
+    "temporalResidual_of_no_readyTail",
     "ProofNetIR.SequentialFigure7.InitialReservationStep."
     "markedNonconclusionContinuation",
     "ProofNetIR.SequentialFigure7.NopStep.selectedContinuationCredit",

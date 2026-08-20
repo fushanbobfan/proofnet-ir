@@ -932,6 +932,21 @@ def sections : List Section := [
     ]
   },
   {
+    title := "Active-top debt parent-escape temporal residual"
+    declarations := [
+      `ProofNetIR.SequentialFigure7.ActiveRawMarkReservationAnchor,
+      `ProofNetIR.SequentialFigure7.ActiveParParentContinuation,
+      `ProofNetIR.SequentialFigure7.ActiveParCarrierTemporalResidual,
+      Name.str
+        `ProofNetIR.SequentialFigure7.CanonicalTagHistory
+        "ActiveCarrierTensorSameBoundaryResidual",
+      `ProofNetIR.SequentialFigure7.ActiveCarrierParentTemporalResidual,
+      Name.str
+        `ProofNetIR.SequentialFigure7.ActiveCarrierParentEscape
+        "temporalResidual_of_no_readyTail"
+    ]
+  },
+  {
     title := "Branch-local continuation credit"
     declarations := [
       `ProofNetIR.SequentialFigure7.ContinuationCredit,

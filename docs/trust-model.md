@@ -851,6 +851,18 @@ axiom audit, or standard-axiom checkpoint. The next trusted-surface gate is
 a failure-conditioned distinct-payer/re-entry law, split between `par` and
 `tensor`; no unconditional progress, completion, termination, totality, or
 completeness conclusion follows.
+`SequentialFigure7ActiveTopDebtParentEscapeTemporal.lean` adds no tail,
+history, progress, or residual-impossibility oracle. Its six public boundaries
+are ordinary definitions, inductives, and one theorem. The theorem consumes a
+supplied no-tail escape, matching canonical tag history, correctness, scheduler
+invariant, and exact occurrence/accounting receipts. It returns a par temporal
+continuation or tensor same-boundary external-sibling residual; it does not
+eliminate either. Local axiom prints place `ActiveParParentContinuation` on the
+`propext`-only boundary and all other carriers plus the theorem within the
+standard-three boundary. The verified combined audit covers 954 theorems: 664
+standard-three, 25 axiom-free, 127 `propext`-only, and 138
+`propext`/`Quot.sound` boundaries. No `ActiveTopDebtTailLaw`, tail witness,
+progress, completion, termination, totality, or completeness proof is added.
 `SequentialFigure7CrossRepresentativeWaitPreservation.lean` adds no hidden
 source-region oracle. Its output-work classification follows only from the
 typed destination's exact waiting prepend and unchanged ready/sigma fields;

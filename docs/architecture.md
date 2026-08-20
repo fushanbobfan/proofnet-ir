@@ -1056,6 +1056,18 @@ next proof gate is a failure-conditioned distinct-payer/re-entry law, stated sep
 `par` and `tensor`; unconditional progress, completion, termination, totality,
 and completeness remain open.
 
+`SequentialFigure7ActiveTopDebtParentEscapeTemporal.lean` now normalizes that
+failure-conditioned escape without assuming the tail law. With a matching
+canonical tag history and the existing correctness/invariant receipts, the
+par source is aligned to its authentic reservation event and its parent
+continuation is raw-sibling, strictly older future work, or a strictly older
+marked conclusion. The tensor source is aligned to the active representative,
+while its sibling and conclusion are outside the active carrier; the existing
+older marked-tensor predecessor invariant is retained, but its strict-order
+trigger is not invented. The combined residual is an exact case split, not a
+tail witness or an impossibility theorem. Eliminating these temporal residuals
+and closing the global-created tail alternatives remain the next debt gates.
+
 `SequentialFigure7ContinuationCredit.lean` and
 `SequentialFigure7ContinuationCreditPreservation.lean` close a deliberately
 weaker history invariant. `ContinuationCredit` records an unmarked connective

@@ -30,14 +30,17 @@ alternatives, with no exclusivity claim: a non-global vertex in the ready tail, 
 submitted connective parent outside the active owned carrier. If no such tail
 vertex exists, the escape is forced.
 
-`CanonicalTagHistory` only authenticates that concrete mark as an earlier
-prepared-selection event. The reduction neither assumes nor derives
-`ActiveTopDebtTailLaw`; it does not assert that tail and escape are exclusive.
+Given a matching `CanonicalTagHistory`, the no-tail escape now has an exact
+temporal normal form. A par source has an anchored raw sibling or a strictly
+older queued/marked parent continuation. For a tensor source, the escaped mark
+resolves to the active representative while its sibling and parent lie outside
+the carrier. The reduction does not
+eliminate either residual, manufacture a tail, or derive `ActiveTopDebtTailLaw`.
 
 This checkpoint proves no unconditional all-marked result, progress,
-completion, termination, totality, or completeness. The next gate is a
-failure-conditioned distinct-payer/re-entry law, with `par` and `tensor`
-handled separately.
+completion, termination, totality, or completeness. The next gate is to rule
+out the remaining failure-conditioned par/tensor temporal residual and derive
+the still-open global-created tail obligations.
 [Current status](docs/current-status.md) owns exact revision, verification receipt, and gates.
 <!-- ROLLING_MAIN_SUMMARY_END -->
 

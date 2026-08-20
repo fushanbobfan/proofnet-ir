@@ -2,6 +2,23 @@
 
 ## Unreleased
 
+- added `SequentialFigure7ActiveTopDebtParentEscapeTemporal.lean`. Given a
+  matching `CanonicalTagHistory`, declarative correctness, the scheduler
+  invariant, exact active occurrence/accounting data, and a no-tail
+  `ActiveCarrierParentEscape`, the public normalizer splits on the escaped
+  source kind. The par branch authenticates the raw-mark reservation anchor
+  and classifies the parent continuation as an exposed raw sibling, strictly
+  older queued work, or a strictly older marked conclusion. The tensor branch
+  records the escaped premise at the active representative, with its sibling
+  and conclusion outside the active carrier, and retains the existing older
+  marked-tensor predecessor invariant without fabricating its strict-order
+  trigger. These six public carrier/theorem boundaries neither manufacture a
+  ready-tail witness nor eliminate either residual; they assume and derive no
+  `ActiveTopDebtTailLaw`, progress, completion, termination, totality, or
+  completeness result. The standalone consumer reconstructs every carrier,
+  invokes the normalizer, and checks the public axiom boundary. The verified
+  combined audit covers 954 theorems: 664 standard-three, 25 axiom-free, 127
+  `propext`-only, and 138 `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7ActiveTopDebtParentEscape.lean`. For an explicit
   `ReadyHeadInput` selecting a `par`, declarative correctness and
   `SchedulerInvariant` now return the active component occurrence/accounting

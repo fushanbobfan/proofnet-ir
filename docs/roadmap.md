@@ -1047,8 +1047,15 @@
     use `CanonicalTagHistory` only to authenticate the escape's concrete mark.
     Do not assume or derive `ActiveTopDebtTailLaw`, and do not assert that the
     two outcomes are exclusive.
-  - [ ] Derive a failure-conditioned distinct-payer/re-entry law from the
-    remaining escape, with separate `par` and `tensor` statements. Do not infer
+  - [x] Normalize a supplied no-tail parent escape by its submitted source.
+    The par branch has an authentic reservation anchor and a raw-sibling or
+    strictly older parent continuation. In the tensor branch, the escaped mark
+    resolves to the active representative while its sibling and parent remain
+    outside the carrier; the older marked-tensor predecessor invariant is
+    retained without inventing its trigger.
+    This classification neither manufactures a tail nor eliminates a residual.
+  - [ ] Eliminate the failure-conditioned par/tensor temporal residual, or
+    derive the distinct-payer/re-entry law that supplies the missing tail. Do not infer
     unconditional dispatcher progress, completion, terminality, later-state
     totality, global raw seams, fallback removal, Figure-7 pure-worklist
     completeness, sequentialization, faithful token-age scheduling, or
@@ -1325,8 +1332,12 @@
     `ActiveCarrierParentEscape`, and no-tail forces escape. The theorem does not
     assert that the outcomes are exclusive; `CanonicalTagHistory` only
     authenticates the concrete mark, and
-    the reduction neither assumes nor derives the tail law. Next prove a
-    failure-conditioned distinct-payer/re-entry law separately for `par` and
+    the reduction neither assumes nor derives the tail law. The no-tail escape
+    is now further normalized: par yields an authentic anchor plus a raw or
+    strictly older continuation, while in the tensor branch the escaped mark
+    resolves to the active boundary and its sibling/parent remain outside the
+    carrier. Neither branch is eliminated. Next close
+    this failure-conditioned temporal residual separately for `par` and
     `tensor` before claiming exhaustive progress on incomplete, correct,
     certified-reachable states.
     Exact source-left complexity descent, last-step decomposition, and

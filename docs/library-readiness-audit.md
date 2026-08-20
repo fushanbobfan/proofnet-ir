@@ -640,6 +640,17 @@ part of the engineering and proof-identity gap.
    failure-conditioned distinct-payer/re-entry law, split between `par` and
    `tensor`; progress, completion, termination, totality, and completeness
    remain open.
+   `SequentialFigure7ActiveTopDebtParentEscapeTemporal.lean` sharpens that
+   residual without closing it. Under the matching canonical history,
+   correctness, scheduler invariant, exact active occurrence/accounting data,
+   and no-tail escape, the source is classified as par or tensor. The par
+   branch returns an authentic reservation anchor and a raw-sibling or strictly
+   older parent continuation. In the tensor branch, the escaped mark resolves
+   to the active boundary while its sibling and parent lie outside the carrier;
+   the branch also returns the already-proved older marked-tensor
+   predecessor invariant. No branch supplies the missing ready-tail vertex or
+   proves its residual impossible. The tail law, global-created alternatives,
+   progress, completion, termination, totality, and completeness remain open.
    `SequentialFigure7ContinuationCredit.lean` and its preservation module now
    close a weaker full-history invariant. The two carriers assign each marked
    nonconclusion one of three receipts: an unmarked mate, future conclusion
