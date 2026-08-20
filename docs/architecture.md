@@ -1089,6 +1089,14 @@ the theorem does not return that endpoint to the ready tail. It proves no
 re-entry, tail law, progress, completion, termination, totality, or
 completeness result.
 
+`SequentialFigure7ActiveTopDebtParentExternalCommitmentOutcome.lean` locates
+the two strictly older branches on the retained `sigma` stack. It records the
+last adjacent predecessor-to-active edge and the exact canonical commitment
+reference path carried by that edge. The external raw branch is preserved
+without inventing a boundary. This does not connect the external endpoint to
+the commitment path, prove first re-entry, return a distinct ready-tail payer,
+derive the history-tail law, or establish progress or completion.
+
 `SequentialFigure7ContinuationCredit.lean` and
 `SequentialFigure7ContinuationCreditPreservation.lean` close a deliberately
 weaker history invariant. `ContinuationCredit` records an unmarked connective

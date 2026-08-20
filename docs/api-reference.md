@@ -10177,6 +10177,73 @@ ProofNetIR.SequentialFigure7.WaitStep.externalParentTemporalOutcome_of_no_readyT
                     step.prepared.stackResult.rawAge owned
 ```
 
+## Active-top debt parent external commitment outcome
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.StrictOlderCommitmentSplit`
+
+Kind: definition.
+
+A strictly older retained boundary together with the exact final
+commitment edge and its canonical reference path into the active top.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.StrictOlderCommitmentSplit : {certificate : ProofNetIR.Certificate} →
+  {state : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+    {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state} →
+      ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history →
+        ProofNetIR.SequentialSchedulerState.RawTokenAge → ProofNetIR.SequentialSchedulerState.RawTokenAge → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.strictOlderCommitmentSplit_to_top`
+
+Kind: theorem.
+
+Every strictly older retained boundary yields a commitment split whose
+final adjacent edge carries the canonical reservation-to-reservation path.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.strictOlderCommitmentSplit_to_top : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+    ∀ {first active : ProofNetIR.SequentialSchedulerState.RawTokenAge},
+      first ∈ state.stack.sigma →
+        state.stack.sigma.getLast? = some active → first < active → tagHistory.StrictOlderCommitmentSplit first active
+```
+
+### `ProofNetIR.SequentialFigure7.ActiveCarrierParentExternalCommitmentOutcome`
+
+Kind: inductive type.
+
+An external parent temporal outcome whose older branches retain the exact
+final canonical commitment edge into the active boundary.
+
+```lean
+ProofNetIR.SequentialFigure7.ActiveCarrierParentExternalCommitmentOutcome : {certificate : ProofNetIR.Certificate} →
+  {state : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+    {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state} →
+      ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history →
+        ProofNetIR.SequentialSchedulerState.RawTokenAge → List ProofNetIR.Vertex → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.ActiveCarrierParentExternalTemporalOutcome.commitmentOutcome`
+
+Kind: theorem.
+
+Locate both older temporal branches on an exact retained interval and
+retain the final canonical commitment edge into the active top boundary.
+
+```lean
+ProofNetIR.SequentialFigure7.ActiveCarrierParentExternalTemporalOutcome.commitmentOutcome : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {activeRawAge : ProofNetIR.SequentialSchedulerState.RawTokenAge} {owned : List ProofNetIR.Vertex},
+  ProofNetIR.SequentialFigure7.ActiveCarrierParentExternalTemporalOutcome certificate state activeRawAge owned →
+    ∀ {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+      (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+      ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+        state.stack.sigma.getLast? = some activeRawAge →
+          ProofNetIR.SequentialFigure7.ActiveCarrierParentExternalCommitmentOutcome tagHistory activeRawAge owned
+```
+
 ## Branch-local continuation credit
 
 ### `ProofNetIR.SequentialFigure7.ContinuationCredit`

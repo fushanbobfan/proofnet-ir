@@ -883,6 +883,16 @@ standard-three, 25 axiom-free, 128 `propext`-only, and 138
 `propext`/`Quot.sound` boundaries. No re-entry, ready-tail witness,
 `ActiveTopDebtTailLaw`, progress, completion, termination, totality, or
 completeness result is trusted here.
+`SequentialFigure7ActiveTopDebtParentExternalCommitmentOutcome.lean` adds one
+split predicate, one carrier, and two theorems. The generic theorem uses the
+complete scheduler invariant and canonical history to locate the final
+retained `sigma` edge and apply the existing kernel-checked commitment-path
+construction; the normalizer applies it to the two older external branches.
+No oracle or computational receipt is introduced. The verified combined audit
+covers 961 theorems: 670 standard-three, 25 axiom-free, 128 `propext`-only,
+and 138 `propext`/`Quot.sound` boundaries. No
+endpoint-to-edge path, re-entry, ready-tail witness, tail law, progress, or
+completion result is trusted here.
 `SequentialFigure7CrossRepresentativeWaitPreservation.lean` adds no hidden
 source-region oracle. Its output-work classification follows only from the
 typed destination's exact waiting prepend and unchanged ready/sigma fields;

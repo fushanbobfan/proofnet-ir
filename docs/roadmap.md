@@ -1062,8 +1062,12 @@
     the selected raw case. Retain only an external raw endpoint, external
     future work at a strictly older boundary, or an external marked parent at a
     strictly older representative. Do not call this re-entry or a tail witness.
-  - [ ] Prove a first-reentry or ownership law that converts an external-only
-    temporal outcome into a distinct ready-tail payer,
+  - [x] For both strictly older external branches, locate the exact retained
+    `sigma` interval and attach the final canonical commitment edge into the
+    active top. Preserve the external raw branch unchanged. Do not claim a path
+    from the external endpoint to that edge or a ready-tail witness.
+  - [ ] Connect the external endpoint to the retained commitment edge and prove
+    a first-reentry or ownership law that yields a distinct ready-tail payer,
     or otherwise eliminate the failure-conditioned residual. Do not infer
     unconditional dispatcher progress, completion, terminality, later-state
     totality, global raw seams, fallback removal, Figure-7 pure-worklist
@@ -1347,8 +1351,10 @@
     same endpoint trichotomy. Both branches now map to one temporal-outcome
     carrier. For actual Nop and Wait failures, the selected raw endpoint is now
     eliminated, leaving only external raw work or strictly older external
-    future/marked work. Next prove re-entry or otherwise turn that external
-    outcome into a distinct ready-tail payer before claiming exhaustive progress on incomplete,
+    future/marked work. The two older cases now retain their final canonical
+    commitment edge into the active top. Next connect each external endpoint to
+    that edge and prove re-entry, or otherwise turn the outcome into a distinct
+    ready-tail payer before claiming exhaustive progress on incomplete,
     correct, certified-reachable states.
     Exact source-left complexity descent, last-step decomposition, and
     recursive visited-route separation from the selected head are now proved.

@@ -111,6 +111,8 @@ jobs:
           ~/.elan/bin/lake exe \
             proofnet_ir_active_top_debt_parent_external_temporal_outcome_tests
           ~/.elan/bin/lake exe \
+            proofnet_ir_active_top_debt_parent_external_commitment_outcome_tests
+          ~/.elan/bin/lake exe \
             proofnet_ir_continuation_credit_preservation_tests
           ~/.elan/bin/lake exe proofnet_ir_continuation_exit_tests
           ~/.elan/bin/lake exe proofnet_ir_endpoint_locality_obstruction_tests

@@ -974,6 +974,21 @@ def sections : List Section := [
     ]
   },
   {
+    title := "Active-top debt parent external commitment outcome"
+    declarations := [
+      Name.str
+        `ProofNetIR.SequentialFigure7.CanonicalTagHistory
+        "StrictOlderCommitmentSplit",
+      Name.str
+        `ProofNetIR.SequentialFigure7.CanonicalTagHistory
+        "strictOlderCommitmentSplit_to_top",
+      `ProofNetIR.SequentialFigure7.ActiveCarrierParentExternalCommitmentOutcome,
+      Name.str
+        `ProofNetIR.SequentialFigure7.ActiveCarrierParentExternalTemporalOutcome
+        "commitmentOutcome"
+    ]
+  },
+  {
     title := "Branch-local continuation credit"
     declarations := [
       `ProofNetIR.SequentialFigure7.ContinuationCredit,

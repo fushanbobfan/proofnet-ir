@@ -667,6 +667,12 @@ part of the engineering and proof-identity gap.
    marked parent. It does not prove that any endpoint re-enters the active
    frontier, so the tail witness, history law, progress, completion,
    termination, totality, and completeness gates remain open.
+   `SequentialFigure7ActiveTopDebtParentExternalCommitmentOutcome.lean`
+   strengthens the older future and older marked branches with an exact
+   retained `sigma` split. The final adjacent edge into the active top carries
+   its canonical commitment reference path. The raw external branch stays
+   unchanged, and no theorem yet connects any external endpoint to that path
+   or turns it into a distinct ready-tail payer.
    `SequentialFigure7ContinuationCredit.lean` and its preservation module now
    close a weaker full-history invariant. The two carriers assign each marked
    nonconclusion one of three receipts: an unmarked mate, future conclusion

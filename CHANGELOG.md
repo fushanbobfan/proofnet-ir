@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- added `SequentialFigure7ActiveTopDebtParentExternalCommitmentOutcome.lean`.
+  Every strictly older future or marked endpoint in the external temporal
+  outcome is now located on a retained `sigma` interval whose final adjacent
+  edge into the active top carries the canonical commitment reference path.
+  The external raw branch remains unchanged. This is an exact ownership-aware
+  reduction, not a path from the endpoint to that edge, a re-entry theorem, a
+  ready-tail witness, `ActiveTopDebtTailLaw`, or progress/completion. The
+  verified combined audit covers 961 theorems: 670 standard-three, 25
+  axiom-free, 128 `propext`-only, and 138
+  `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7ActiveTopDebtParentExternalTemporalOutcome.lean`.
   For an actual Nop or Wait with no non-global prepared ready-tail vertex, the
   typed step guards eliminate the selected-head raw case from the normalized

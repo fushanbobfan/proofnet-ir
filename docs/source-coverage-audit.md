@@ -409,9 +409,15 @@ and outside the active owned carrier, or it is an outside future/marked parent
 at a strictly older boundary or representative. No endpoint is shown to
 re-enter the active frontier, so no ready-tail witness or history-tail law is
 derived.
+`SequentialFigure7ActiveTopDebtParentExternalCommitmentOutcome.lean` adds no
+new source reading. It uses retained `sigma` order and the canonical
+commitment-edge path API to attach the final predecessor-to-active edge to the
+older future and older marked branches. It preserves the external raw branch
+and proves no endpoint-to-edge path, re-entry, tail witness, or tail law.
 Global preservation of the mate-region and older-raw-mark invariants through
 candidate-creating rules remains open, as do queue origin, created-candidate raw
-seams, first re-entry of the external-only temporal outcome,
+seams, endpoint-to-commitment connection and first re-entry of the
+external-only temporal outcome,
 unconditional active-top completion, progress,
 later-state totality,
 fallback removal,

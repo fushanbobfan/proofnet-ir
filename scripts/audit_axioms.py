@@ -190,6 +190,10 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "externalParentTemporalOutcome_of_no_readyTail",
     "ProofNetIR.SequentialFigure7.WaitStep."
     "externalParentTemporalOutcome_of_no_readyTail",
+    "ProofNetIR.SequentialFigure7.CanonicalTagHistory."
+    "strictOlderCommitmentSplit_to_top",
+    "ProofNetIR.SequentialFigure7.ActiveCarrierParentExternalTemporalOutcome."
+    "commitmentOutcome",
     "ProofNetIR.SequentialFigure7.InitialReservationStep."
     "markedNonconclusionContinuation",
     "ProofNetIR.SequentialFigure7.NopStep.selectedContinuationCredit",

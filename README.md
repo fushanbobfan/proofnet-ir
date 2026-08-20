@@ -34,13 +34,15 @@ tensor has an active-representative mark with sibling and parent outside the
 carrier. Continuation credit maps both to `ActiveCarrierParentTemporalOutcome`.
 For actual no-tail Nop and Wait steps, typed guards eliminate the selected raw
 case. Only external raw work or strictly older external future/marked work
-remains. This proves neither re-entry nor a ready-tail witness and does not
-derive `ActiveTopDebtTailLaw`.
+remains. The two older branches now retain the exact final `sigma` commitment
+edge into the active top and its canonical reference path; the external raw
+branch is unchanged. No path from the external endpoint to that edge, re-entry,
+ready-tail witness, or `ActiveTopDebtTailLaw` follows.
 
 This checkpoint proves no unconditional all-marked result, progress,
-completion, termination, totality, or completeness. The next gate is to turn
-the external-only outcome into a distinct ready-tail payer and derive the
-still-open global-created tail obligations.
+completion, termination, totality, or completeness. The next gate is to connect
+the external endpoint to the retained commitment edge, obtain a distinct
+ready-tail payer, and derive the still-open global-created tail obligations.
 [Current status](docs/current-status.md) owns exact revision, verification receipt, and gates.
 <!-- ROLLING_MAIN_SUMMARY_END -->
 

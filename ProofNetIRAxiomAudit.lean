@@ -381,6 +381,10 @@ expansion.
   SequentialFigure7.NopStep.externalParentTemporalOutcome_of_no_readyTail
 #print axioms
   SequentialFigure7.WaitStep.externalParentTemporalOutcome_of_no_readyTail
+#print axioms
+  SequentialFigure7.CanonicalTagHistory.strictOlderCommitmentSplit_to_top
+#print axioms
+  SequentialFigure7.ActiveCarrierParentExternalTemporalOutcome.commitmentOutcome
 #print axioms SequentialFigure7.empty_markedNonconclusionContinuation
 #print axioms
   SequentialFigure7.InitialReservationStep.markedNonconclusionContinuation
