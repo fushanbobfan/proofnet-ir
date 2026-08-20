@@ -444,9 +444,11 @@ selected/mate trace; the child is strictly before or equal to the final
 boundary. Active-carrier localization excludes strictly older traces to the
 selected head or an active-owned mate, leaving only a stored-right trace to an
 external mate. Equal-final selected/mate traces and the inclusive outer split
-remain. The modules do not localize the external mate further, eliminate the
-equal-final cases, or produce a distinct raw payer, tail law, or progress
-theorem.
+remain. Typed Nop identifies the older external mate as raw-unmarked; typed
+Wait identifies its exact concrete mark and strictly older representative.
+The modules do not return those external endpoints to the active frontier,
+eliminate the equal-final cases, or produce a distinct payer, tail law, or
+progress theorem.
 Global preservation of the mate-region and older-raw-mark invariants through
 candidate-creating rules remains open, as do queue origin, created-candidate raw
 seams, derivation of the re-entry avoidance premise, marked-history descent,

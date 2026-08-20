@@ -38,13 +38,14 @@ An adjacent commitment edge gets that avoidance from an explicit child-event
 untouched law. Across a complete positive interval, local paths compose or one
 exact child edge fails with an authentic selected/mate trace.
 
-A strictly older failure can only be stored-right and trace to a mate outside
-the active owned carrier. Equal-final failures retain both trace directions;
+A strictly older failure can only trace to an external stored-right mate. For
+actual Nop it is raw-unmarked; for Wait it is concretely marked with a strictly
+older representative. Equal-final failures retain both trace directions, and
 the outer alternatives remain inclusive.
 
 This proves no unconditional all-marked, progress, completion, termination,
-totality, or completeness result. Equal-final traces and the external older
-mate remain open. Next derive a distinct payer and discharge global-created tails.
+totality, or completeness result. Equal-final traces and return of the external
+raw/marked endpoints remain open. Next derive a payer and global-created tails.
 [Current status](docs/current-status.md) owns exact revision, verification receipt, and gates.
 <!-- ROLLING_MAIN_SUMMARY_END -->
 

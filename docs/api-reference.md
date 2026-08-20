@@ -9106,6 +9106,76 @@ ProofNetIR.SequentialFigure7.CanonicalTagHistory.commitmentInterval_parConclusio
                                                   beforeTrace ++ consumer.conclusion :: consumer.mate :: afterTrace)
 ```
 
+## Commitment-interval par-guard outcome
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.CommitmentIntervalParTraceOutcome`
+
+Kind: inductive type.
+
+A positive commitment-interval par classification whose strictly older
+mate branch carries a caller-selected exact status.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.CommitmentIntervalParTraceOutcome : {certificate : ProofNetIR.Certificate} →
+  {state : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+    {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state} →
+      ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history →
+        (input : ProofNetIR.SequentialFigure7.ReadyHeadInput state) →
+          ProofNetIR.ConnectiveBelow certificate input.vertex →
+            Nat → Nat → ProofNetIR.SequentialSchedulerState.RawTokenAge → Prop → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.NopStep.commitmentInterval_parTraceOutcome`
+
+Kind: theorem.
+
+For Nop, a strictly older failed interval trace ends at an unmarked raw
+mate outside the active occurrence carrier.
+
+```lean
+ProofNetIR.SequentialFigure7.NopStep.commitmentInterval_parTraceOutcome : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+    ∀ (step : ProofNetIR.SequentialFigure7.NopStep certificate before after)
+      {component : ProofNetIR.UnificationComponent} {usedLinks owned : List Nat},
+      before.core.components[step.prepared.stackResult.rawAge]? = some (some component) →
+        certificate.ComponentOccurrenceWitness component usedLinks owned →
+          ∀ {position edgeCount : Nat} {first : ProofNetIR.SequentialSchedulerState.RawTokenAge},
+            0 < edgeCount →
+              before.stack.sigma[position]? = some first →
+                before.stack.sigma[position + edgeCount]? = some step.prepared.stackResult.rawAge →
+                  tagHistory.CommitmentIntervalParTraceOutcome step.prepared.readyHeadInput step.consumer position
+                    edgeCount first (¬step.consumer.mate ∈ owned ∧ before.core.marks[step.consumer.mate]? = some none)
+```
+
+### `ProofNetIR.SequentialFigure7.WaitStep.commitmentInterval_parTraceOutcome`
+
+Kind: theorem.
+
+For Wait, a strictly older failed interval trace ends at an external mate
+whose concrete mark has a strictly older representative.
+
+```lean
+ProofNetIR.SequentialFigure7.WaitStep.commitmentInterval_parTraceOutcome : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+    ∀ (step : ProofNetIR.SequentialFigure7.WaitStep certificate before after)
+      {component : ProofNetIR.UnificationComponent} {usedLinks owned : List Nat},
+      before.core.components[step.prepared.stackResult.rawAge]? = some (some component) →
+        certificate.ComponentOccurrenceWitness component usedLinks owned →
+          ∀ {position edgeCount : Nat} {first : ProofNetIR.SequentialSchedulerState.RawTokenAge},
+            0 < edgeCount →
+              before.stack.sigma[position]? = some first →
+                before.stack.sigma[position + edgeCount]? = some step.prepared.stackResult.rawAge →
+                  tagHistory.CommitmentIntervalParTraceOutcome step.prepared.readyHeadInput step.consumer position
+                    edgeCount first
+                    (¬step.consumer.mate ∈ owned ∧
+                      before.core.marks[step.consumer.mate]? = some (some step.mateRawAge) ∧
+                        before.core.representative step.mateRawAge < step.prepared.stackResult.rawAge)
+```
+
 ## Commitment blocker advance
 
 ### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.strictOlder_commitmentPath_or_advance_or_equalCallbackFailure`

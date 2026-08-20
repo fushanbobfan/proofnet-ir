@@ -1117,6 +1117,13 @@ part of the engineering and proof-identity gap.
    Equal-final failures retain both selected/mate trace orientations, and the
    outer alternatives remain inclusive. The external mate, equal-final cases,
    distinct payer, history-tail law, and progress remain open.
+   `SequentialFigure7CommitmentIntervalParGuardOutcome.lean` gives the actual
+   Nop and Wait specializations. Its common four-case carrier keeps avoidance,
+   both equal-final trace orientations, and the strictly older stored-right
+   mate. Nop makes the older mate external and raw-unmarked; Wait makes it
+   external, concretely marked at its exact age, and strictly older at the
+   representative. No branch returns that endpoint to a distinct payer, and
+   the equal-final, history-tail, and progress gates remain open.
    `SequentialFigure7CommitmentBlockerAdvance.lean` now combines the global
    queued-head law, strict split, and equal-boundary result. Under declarative
    correctness and the complete scheduler invariant, for a supplied canonical

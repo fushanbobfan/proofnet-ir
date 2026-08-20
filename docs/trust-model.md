@@ -927,11 +927,13 @@ one exact failed edge with an authentic child-age selected/mate trace; the
 outer outcomes remain inclusive. Active-carrier trace localization adds one
 standard-three theorem: strictly older failures can only be stored-right and
 end at an external mate, while equal-final selected/mate traces remain. The
-verified combined audit covers 977 theorems: 685 standard-three,
+typed Nop and Wait specializations add two standard-three theorems and classify
+that mate as exact raw-unmarked or exact older-representative marked work. The
+verified combined audit covers 979 theorems: 687 standard-three,
 25 axiom-free, 128 `propext`-only, and 139 `propext`/`Quot.sound` boundaries.
-The proofs do not localize the external mate further, eliminate the
-equal-final trace branches, turn the remaining historical mark into a distinct
-raw payer, derive a tail law, or add any oracle or computational receipt.
+The proofs do not return either external endpoint to a distinct payer,
+eliminate the equal-final trace branches, derive a tail law, or add any oracle
+or computational receipt.
 `SequentialFigure7CrossRepresentativeWaitPreservation.lean` adds no hidden
 source-region oracle. Its output-work classification follows only from the
 typed destination's exact waiting prepend and unchanged ready/sigma fields;

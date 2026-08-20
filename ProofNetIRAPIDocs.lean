@@ -752,6 +752,20 @@ def sections : List Section := [
     ]
   },
   {
+    title := "Commitment-interval par-guard outcome"
+    declarations := [
+      Name.str
+        `ProofNetIR.SequentialFigure7.CanonicalTagHistory
+        "CommitmentIntervalParTraceOutcome",
+      Name.str
+        `ProofNetIR.SequentialFigure7.NopStep
+        "commitmentInterval_parTraceOutcome",
+      Name.str
+        `ProofNetIR.SequentialFigure7.WaitStep
+        "commitmentInterval_parTraceOutcome"
+    ]
+  },
+  {
     title := "Commitment blocker advance"
     declarations := [
       Name.str

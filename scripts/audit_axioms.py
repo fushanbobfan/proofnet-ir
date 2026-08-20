@@ -91,6 +91,10 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "commitmentInterval_parConclusion_dichotomy",
     "ProofNetIR.SequentialFigure7.CanonicalTagHistory."
     "commitmentInterval_parConclusion_localizedDichotomy",
+    "ProofNetIR.SequentialFigure7.NopStep."
+    "commitmentInterval_parTraceOutcome",
+    "ProofNetIR.SequentialFigure7.WaitStep."
+    "commitmentInterval_parTraceOutcome",
     "ProofNetIR.SequentialFigure7.CanonicalTagHistory."
     "strictOlder_commitmentPath_or_advance_or_equalCallbackFailure",
     "ProofNetIR.SequentialFigure7.CanonicalTagHistory."

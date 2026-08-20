@@ -282,6 +282,10 @@ expansion.
 #print axioms
   SequentialFigure7.CanonicalTagHistory.commitmentInterval_parConclusion_localizedDichotomy
 #print axioms
+  SequentialFigure7.NopStep.commitmentInterval_parTraceOutcome
+#print axioms
+  SequentialFigure7.WaitStep.commitmentInterval_parTraceOutcome
+#print axioms
   SequentialFigure7.CanonicalTagHistory.strictOlder_commitmentPath_or_advance_or_equalCallbackFailure
 #print axioms
   SequentialFigure7.CanonicalTagHistory.strictOlder_commitmentPath_or_equalCallbackFailure

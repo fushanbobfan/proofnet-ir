@@ -1494,6 +1494,15 @@ outer alternatives are still inclusive; the theorem does not localize the
 external mate further, eliminate the equal-final cases, derive a distinct
 payer or tail law, or prove progress.
 
+`SequentialFigure7CommitmentIntervalParGuardOutcome.lean` specializes the
+localized interval to actual Nop and Wait steps. Its four-case carrier retains
+the avoiding path, equal-final selected trace, equal-final mate trace, and the
+strictly older stored-right mate. In the Nop theorem that mate is outside the
+active carrier and raw-unmarked. In the Wait theorem it is outside, concretely
+marked at the exact mate age, and has a representative strictly below the
+active boundary. These are exact branch statuses, not a distinct payer or
+history-tail result; the equal-final and inclusive alternatives remain.
+
 `SequentialFigure7CommitmentBlockerAdvance.lean` joins the global queued-head
 law, the strict `sigma` split, the strict-edge avoiding adapter, and the final
 equal-boundary classification. Under declarative correctness and the complete

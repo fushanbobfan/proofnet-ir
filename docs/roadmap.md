@@ -1377,10 +1377,11 @@
     paths now compose or one exact child edge lacks such a path and carries an
     authentic selected/mate trace. Active-carrier localization rules out the
     strictly older selected and active-owned-mate cases: the only older trace
-    is stored-right to a mate outside the active owned carrier. Equal-final
-    selected/mate traces and the inclusive outer split remain. Next connect
-    the external older mate to the temporal outcomes, eliminate equal-final
-    traces, and turn the marked history into a distinct ready-tail payer before claiming
+    is stored-right to a mate outside the active owned carrier. For actual Nop
+    that endpoint is raw-unmarked; for Wait it is concretely marked with a
+    strictly older representative. Equal-final selected/mate traces and the
+    inclusive outer split remain. Next return the external raw/marked endpoint
+    to a distinct payer, eliminate equal-final traces, and close the tail law before claiming
     exhaustive progress on incomplete, correct, certified-reachable states.
     Exact source-left complexity descent, last-step decomposition, and
     recursive visited-route separation from the selected head are now proved.

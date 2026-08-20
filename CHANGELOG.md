@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- specialized the localized commitment-interval par outcome to actual Nop and
+  Wait guards. The four-case carrier keeps the avoiding endpoint path, both
+  equal-final trace orientations, and one strictly older stored-right mate.
+  Nop identifies that mate as outside the active carrier and raw-unmarked;
+  Wait identifies it as outside, concretely marked, and represented strictly
+  below the active boundary. The inclusive split and equal-final cases remain,
+  and the theorems do not return either external endpoint to a distinct payer,
+  derive the history-tail law, or prove progress. The verified combined audit
+  covers 979 theorems: 687 standard-three, 25 axiom-free, 128 `propext`-only,
+  and 139 `propext`/`Quot.sound` boundaries;
 - localized the failed branch of the complete positive commitment-interval
   par-conclusion dichotomy against the active occurrence carrier. A strictly
   older trace can no longer end at the selected head or an active-owned mate;
