@@ -31,16 +31,16 @@ positive retained `sigma` interval returns older endpoints through re-entry.
 Re-entry reverses a submitted parent edge. Supplied connectedness classifies
 its target as selected raw, ready-tail raw, or a prior concrete mark.
 Under exact no-tail failure, a strictly older stored-right branch cannot target
-the selected head. Its target is a distinct authenticated concrete mark
-represented at the active boundary. Nop keeps an external raw-unmarked mate;
-Wait keeps an external marked mate with a strictly older representative.
+the selected head. Its target is a distinct authenticated mark at the active
+boundary. Nop keeps an external raw-unmarked mate; Wait keeps an older marked mate.
 The retained path separates that target from the current mate. Its exact raw
 return splices a retained switching prefix with a forward continuation tail.
-Complete cancellation is localized to the exact junction of the two
-nonbacktracking segments; a surviving omitted-right tail edge starts at a marked nonconclusion.
+Complete cancellation has one of two oriented endpoint junctions; each prefix edge
+is backward with its exact reverse in the forward tail, and reaches a concrete
+marked nonconclusion. A surviving omitted-right edge has the same source law.
 This proves no unconditional all-marked, progress, completion, termination,
-totality, or completeness result. Cancellation and par-pair residuals,
-other finite exits, equal-final traces, and global tails remain open.
+totality, or completeness result. Ordering or eliminating the paired
+cancellation and par-pair residuals, other exits, and equal-final traces remains open.
 [Current status](docs/current-status.md) owns exact revision, verification receipt, and gates.
 <!-- ROLLING_MAIN_SUMMARY_END -->
 

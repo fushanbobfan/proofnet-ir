@@ -11,8 +11,9 @@ import ProofNetIR.SequentialFigure7MarkedTargetRawReturnCyclicReduction
 
 This compile-time consumer exercises the generic raw-return reduction and its
 integration with the marked target continuation exit. It also destructs both
-cyclic outcomes, including the exact splice-junction cancellation and the
-marked/nonconclusion source of a retained/omitted par pair.
+cyclic outcomes, including the exact oriented endpoint cancellation, complete
+cross-segment pairing, and the marked/nonconclusion source of a retained or
+omitted par pair.
 -/
 
 namespace ProofNetIR
@@ -91,11 +92,39 @@ private theorem observeCyclicJunctionOutcome
       rw [prefixEmpty] at allKept
       rw [tailEmpty] at allForward tailTargetsNodup
       exact True.intro
-    · rcases junction with ⟨prefixNonempty, tailNonempty, reverse⟩
+    · rcases junction with
+        ⟨prefixNonempty, tailNonempty, cancellationSite, pairing⟩
       have _prefixNonempty := prefixNonempty
       have _tailNonempty := tailNonempty
-      have _junctionReverse := reverse
-      exact True.intro
+      rcases pairing with
+        ⟨prefixIndicesNodup, tailIndicesNodup, prefixPairs, tailPairs⟩
+      rcases cancellationSite with sourceJunction | baseJunction
+      · rcases sourceJunction with
+          ⟨prefixLast, tailHead, prefixLastLookup, tailHeadLookup,
+            reversed, prefixBackward, tailForward⟩
+        have _prefixLastLookup := prefixLastLookup
+        have _tailHeadLookup := tailHeadLookup
+        have _reversed := reversed
+        have _prefixBackward := prefixBackward
+        have _tailForward := tailForward
+        have _prefixIndicesNodup := prefixIndicesNodup
+        have _tailIndicesNodup := tailIndicesNodup
+        have _prefixPairs := prefixPairs
+        have _tailPairs := tailPairs
+        exact True.intro
+      · rcases baseJunction with
+          ⟨prefixHead, tailLast, prefixHeadLookup, tailLastLookup,
+            reversed, prefixBackward, tailForward⟩
+        have _prefixHeadLookup := prefixHeadLookup
+        have _tailLastLookup := tailLastLookup
+        have _reversed := reversed
+        have _prefixBackward := prefixBackward
+        have _tailForward := tailForward
+        have _prefixIndicesNodup := prefixIndicesNodup
+        have _tailIndicesNodup := tailIndicesNodup
+        have _prefixPairs := prefixPairs
+        have _tailPairs := tailPairs
+        exact True.intro
   · rcases paired with
       ⟨before, left, right, conclusion, after,
         leftOccurrence, rightOccurrence, linksEq,
@@ -184,6 +213,8 @@ example
 
 #print axioms MarkedConclusionRawReturnCyclicOutcome
 #print axioms MarkedConclusionChain.rawReturnCyclicReduction
+#print axioms MarkedConclusionRawReturnCyclicCancellationSite
+#print axioms MarkedConclusionRawReturnCompleteCancellationPairing
 #print axioms MarkedConclusionRawReturnCyclicJunctionOutcome
 #print axioms MarkedConclusionChain.rawReturnCyclicJunctionReduction
 #print axioms ActiveCarrierExternalReentryMarkedMateSeparatedContinuationCyclicReductionTarget

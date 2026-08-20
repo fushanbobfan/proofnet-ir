@@ -1090,12 +1090,16 @@
     current selected/mate pair, older future work, or an older marked global
     conclusion.
   - [x] Splice the exact raw return into a full-graph closed walk. Cyclic
-    normalization localizes nontrivial complete cancellation to the junction
-    of its individually nonbacktracking prefix and tail. A surviving par-pair
+    normalization localizes nontrivial complete cancellation to one of the two
+    oriented endpoint junctions of its individually nonbacktracking prefix and
+    tail. The segments have unique occurrence indices; every prefix occurrence
+    is backward, has its exact reverse in the tail, and reaches a concrete
+    marked nonconclusion. A surviving par-pair
     residual keeps one occurrence in the switching prefix; its omitted-right
     tail occurrence starts at a concrete marked nonconclusion.
-  - [ ] Eliminate the cancellation/par-pair residuals, the other finite exits,
-    and the equal-final traces, or recover a distinct ready-tail payer. Do not infer
+  - [ ] Order or eliminate the paired cancellation/par-pair residuals, the
+    other finite exits, and the equal-final traces, or recover a distinct
+    ready-tail payer. Do not infer
     unconditional dispatcher progress, completion, terminality, later-state
     totality, global raw seams, fallback removal, Figure-7 pure-worklist
     completeness, sequentialization, faithful token-age scheduling, or

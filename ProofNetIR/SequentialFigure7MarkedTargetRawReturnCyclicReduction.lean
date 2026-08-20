@@ -12,16 +12,20 @@ import ProofNetIR.SequentialFigure7CommitmentIntervalParGuardReentryMarkedTarget
 An exact raw return splices a retained reference-switching prefix with the
 strictly forward tail of its finite marked-conclusion chain. Cyclic immediate-
 reverse normalization either removes the splice completely, exposing an exact
-cyclic-segment junction when its two nonbacktracking parts were nonempty, or
-leaves a nonbacktracking cycle.
+oriented endpoint junction when its two nonbacktracking parts were nonempty,
+or leaves a nonbacktracking cycle. In the nonempty complete-cancellation case,
+every retained-prefix occurrence is backward and pairs with its exact reverse
+in the continuation tail; the tail ledger therefore marks every reached
+prefix vertex as a nonconclusion.
 Correctness forces every nonempty remainder to contain both premise-edge
 occurrences of a par: the kept occurrence lies in the switching prefix, while
 the omitted occurrence lies forward in the continuation tail and is sourced
 at a concrete marked nonconclusion.
 
 This module refines only the exact raw-return branch of the prior continuation
-exit. It does not eliminate the empty/cancellation or par-pair residual, derive
-a ready-tail witness or the history-tail law, or prove progress.
+exit. It does not eliminate the empty/cancellation or par-pair residual, order
+the paired occurrences into reverse traversals, derive a ready-tail witness or
+the history-tail law, or prove progress.
 -/
 
 namespace ProofNetIR
@@ -226,6 +230,7 @@ private theorem MarkedConclusionChain.rawReturnClosedWalk_exists
             (retainedPrefix ++ continuationTail) base ∧
           (∀ candidate ∈ retainedPrefix,
             certificate.referenceSwitchingMask[candidate.index]? = some true) ∧
+            (retainedPrefix.map Graph.DirectedEdge.index).Nodup ∧
             (∀ candidate ∈ continuationTail, candidate.forward = true) ∧
               (continuationTail.map Graph.DirectedEdge.target).Nodup ∧
                 (∀ candidate ∈ continuationTail,
@@ -259,15 +264,23 @@ private theorem MarkedConclusionChain.rawReturnClosedWalk_exists
     simpa [Certificate.referenceSwitchingGraph] using prefixWalk
   rcases retainedPrefixWalk.inflateRetained aligned with
     ⟨fullPrefix, fullPrefixWalk, indexEquation, _targets, allKept⟩
+  have compactNodup :
+      (fullPrefix.map (fun candidate =>
+        Graph.retainedIndex certificate.referenceSwitchingMask
+          candidate.index)).Nodup := by
+    rw [indexEquation]
+    rw [← prefixTraversed]
+    exact initialPath.edgeIndicesNodup
+  have fullPrefixIndexNodup :
+      (fullPrefix.map Graph.DirectedEdge.index).Nodup := by
+    rw [List.nodup_iff_pairwise_ne, List.pairwise_map] at compactNodup ⊢
+    apply compactNodup.imp
+    intro first second different sameIndex
+    apply different
+    exact congrArg
+      (Graph.retainedIndex certificate.referenceSwitchingMask) sameIndex
   have fullPrefixReduced :
       Graph.EdgeWalk.NoImmediateReverse fullPrefix := by
-    have compactNodup :
-        (fullPrefix.map (fun candidate =>
-          Graph.retainedIndex certificate.referenceSwitchingMask
-            candidate.index)).Nodup := by
-      rw [indexEquation]
-      rw [← prefixTraversed]
-      exact initialPath.edgeIndicesNodup
     exact Graph.EdgeWalk.NoImmediateReverse.of_map_nodup
       (fun candidate =>
         Graph.retainedIndex certificate.referenceSwitchingMask
@@ -348,7 +361,8 @@ private theorem MarkedConclusionChain.rawReturnClosedWalk_exists
             rw [endpoints, lastTarget] at strict
             exact False.elim (Nat.lt_irrefl _ strict)
       exact ⟨fullPrefix, fullTail, fullPrefixWalk', fullTailWalk',
-        fullPrefixWalk'.trans fullTailWalk', allKept, allForward,
+        fullPrefixWalk'.trans fullTailWalk', allKept, fullPrefixIndexNodup,
+        allForward,
         tailTargetNodup, tailSources, fullPrefixReduced, fullTailReduced,
         fullPrefixEmpty, fullTailEmpty⟩
 
@@ -425,7 +439,7 @@ theorem MarkedConclusionChain.rawReturnCyclicReduction
   rcases chain.rawReturnClosedWalk_exists path pathStart directed
       directedMembership targetConsumer sourceConsumer originNeBase with
     ⟨retainedPrefix, continuationTail, prefixWalk, tailWalk, closedWalk,
-      allKept, allForward, tailTargetNodup, _tailSources,
+      allKept, _prefixIndexNodup, allForward, tailTargetNodup, _tailSources,
       _prefixReduced, _tailReduced,
       _prefixEmpty, _tailEmpty⟩
   let traversed := retainedPrefix ++ continuationTail
@@ -479,8 +493,213 @@ theorem MarkedConclusionChain.rawReturnCyclicReduction
       rightMembership, rightIndex, rightEdge, rightOmitted,
       leftInPrefix, rightInTail, allForward rightOccurrence rightInTail⟩
 
+/-- The only two oriented cancellation sites between a retained switching
+prefix and a forward continuation tail. The first alternative is the source
+junction; the second is the cyclic base junction. -/
+def MarkedConclusionRawReturnCyclicCancellationSite
+    {certificate : Certificate}
+    (retainedPrefix continuationTail :
+      List certificate.fullGraph.DirectedEdge) : Prop :=
+  (∃ prefixLast tailHead,
+    retainedPrefix.getLast? = some prefixLast ∧
+      continuationTail.head? = some tailHead ∧
+        tailHead = prefixLast.reverse ∧
+          prefixLast.forward = false ∧
+            tailHead.forward = true) ∨
+    ∃ prefixHead tailLast,
+      retainedPrefix.head? = some prefixHead ∧
+        continuationTail.getLast? = some tailLast ∧
+          prefixHead = tailLast.reverse ∧
+            prefixHead.forward = false ∧
+              tailLast.forward = true
+
+/-- Exact cross-segment pairing forced by complete cyclic cancellation. Every
+retained-prefix occurrence is backward, its reverse occurs in the continuation
+tail, and its reached vertex is a concretely marked nonconclusion. Every tail
+occurrence has its reverse in the retained prefix. -/
+def MarkedConclusionRawReturnCompleteCancellationPairing
+    {certificate : Certificate} (state : ReservationState)
+    (retainedPrefix continuationTail :
+      List certificate.fullGraph.DirectedEdge) : Prop :=
+  (retainedPrefix.map Graph.DirectedEdge.index).Nodup ∧
+    (continuationTail.map Graph.DirectedEdge.index).Nodup ∧
+      (∀ directed ∈ retainedPrefix,
+        directed.forward = false ∧
+          directed.reverse ∈ continuationTail ∧
+            ∃ rawAge,
+              state.core.marks[directed.target]? = some (some rawAge) ∧
+                directed.target ∉ certificate.conclusions) ∧
+        ∀ directed ∈ continuationTail,
+          directed.reverse ∈ retainedPrefix
+
+private theorem twoSegmentJunction_cases
+    {graph : Graph}
+    {first second : List graph.DirectedEdge}
+    (junction :
+      Graph.EdgeWalk.CyclicSegmentJunctionReverse [first, second]) :
+    (∃ firstLast secondHead,
+      first.getLast? = some firstLast ∧
+        second.head? = some secondHead ∧
+          secondHead = firstLast.reverse) ∨
+      ∃ firstHead secondLast,
+        first.head? = some firstHead ∧
+          second.getLast? = some secondLast ∧
+            firstHead = secondLast.reverse := by
+  rcases junction with adjacent | closing
+  · rcases adjacent with
+      ⟨familyBefore, firstSegment, secondSegment, familyAfter,
+        firstLast, secondHead, familyEquation,
+        firstLastLookup, secondHeadLookup, reversed⟩
+    have lengthEquation := congrArg List.length familyEquation
+    have beforeLength : familyBefore.length = 0 := by
+      simp only [List.length_cons, List.length_append,
+        List.length_nil] at lengthEquation
+      omega
+    have afterLength : familyAfter.length = 0 := by
+      simp only [List.length_cons, List.length_append,
+        List.length_nil] at lengthEquation
+      omega
+    have beforeEmpty : familyBefore = [] :=
+      List.eq_nil_of_length_eq_zero beforeLength
+    have afterEmpty : familyAfter = [] :=
+      List.eq_nil_of_length_eq_zero afterLength
+    subst familyBefore
+    subst familyAfter
+    simp only [List.nil_append, List.cons.injEq] at familyEquation
+    rcases familyEquation with ⟨firstEq, secondEq, _empty⟩
+    subst firstSegment
+    subst secondSegment
+    exact Or.inl ⟨firstLast, secondHead,
+      firstLastLookup, secondHeadLookup, reversed⟩
+  · rcases closing with
+      ⟨firstSegment, lastSegment, firstHead, secondLast,
+        firstFamilyHead, lastFamilyLast,
+        firstHeadLookup, secondLastLookup, reversed⟩
+    have firstEq : firstSegment = first := by
+      simpa using (Option.some.inj firstFamilyHead).symm
+    have lastEq : lastSegment = second := by
+      simpa using (Option.some.inj lastFamilyLast).symm
+    subst firstSegment
+    subst lastSegment
+    exact Or.inr ⟨firstHead, secondLast,
+      firstHeadLookup, secondLastLookup, reversed⟩
+
+private theorem cyclicCancellationSite_of_junction
+    {certificate : Certificate}
+    {retainedPrefix continuationTail :
+      List certificate.fullGraph.DirectedEdge}
+    (tailForward :
+      ∀ directed ∈ continuationTail, directed.forward = true)
+    (junction :
+      Graph.EdgeWalk.CyclicSegmentJunctionReverse
+        [retainedPrefix, continuationTail]) :
+    MarkedConclusionRawReturnCyclicCancellationSite
+      retainedPrefix continuationTail := by
+  rcases twoSegmentJunction_cases junction with
+    ⟨prefixLast, tailHead, prefixLastLookup, tailHeadLookup, reversed⟩ |
+      ⟨prefixHead, tailLast, prefixHeadLookup, tailLastLookup, reversed⟩
+  · have tailHeadMembership : tailHead ∈ continuationTail :=
+      List.mem_of_head? tailHeadLookup
+    have tailHeadForward := tailForward tailHead tailHeadMembership
+    have prefixLastForward : prefixLast.forward = false := by
+      rw [reversed] at tailHeadForward
+      simpa [Graph.DirectedEdge.reverse] using tailHeadForward
+    exact Or.inl ⟨prefixLast, tailHead, prefixLastLookup,
+      tailHeadLookup, reversed, prefixLastForward, tailHeadForward⟩
+  · have tailLastMembership : tailLast ∈ continuationTail :=
+      List.mem_of_getLast? tailLastLookup
+    have tailLastForward := tailForward tailLast tailLastMembership
+    have prefixHeadForward : prefixHead.forward = false := by
+      rw [reversed]
+      simp [Graph.DirectedEdge.reverse, tailLastForward]
+    exact Or.inr ⟨prefixHead, tailLast, prefixHeadLookup,
+      tailLastLookup, reversed, prefixHeadForward, tailLastForward⟩
+
+private theorem directedIndexNodup_of_targetNodup_of_forward
+    {graph : Graph} {traversed : List graph.DirectedEdge}
+    (targetNodup : (traversed.map Graph.DirectedEdge.target).Nodup)
+    (allForward : ∀ directed ∈ traversed, directed.forward = true) :
+    (traversed.map Graph.DirectedEdge.index).Nodup := by
+  rw [List.nodup_iff_pairwise_ne, List.pairwise_map] at targetNodup ⊢
+  apply targetNodup.imp_of_mem
+  intro first second firstMembership secondMembership targetsNe indicesEq
+  apply targetsNe
+  have firstForward := allForward first firstMembership
+  have secondForward := allForward second secondMembership
+  have directedEq := Graph.DirectedEdge.eq_of_index_eq_of_forward_eq
+    first second indicesEq (firstForward.trans secondForward.symm)
+  exact congrArg Graph.DirectedEdge.target directedEq
+
+private theorem completeCancellationPairing
+    {certificate : Certificate} {state : ReservationState}
+    {retainedPrefix continuationTail :
+      List certificate.fullGraph.DirectedEdge}
+    (prefixIndexNodup :
+      (retainedPrefix.map Graph.DirectedEdge.index).Nodup)
+    (tailIndexNodup :
+      (continuationTail.map Graph.DirectedEdge.index).Nodup)
+    (tailForward :
+      ∀ directed ∈ continuationTail, directed.forward = true)
+    (tailSources :
+      ∀ directed ∈ continuationTail,
+        ∃ rawAge,
+          state.core.marks[directed.source]? = some (some rawAge) ∧
+            directed.source ∉ certificate.conclusions)
+    (normalization :
+      Graph.EdgeWalk.CyclicImmediateReverseNormalization
+        (retainedPrefix ++ continuationTail) []) :
+    MarkedConclusionRawReturnCompleteCancellationPairing state
+      retainedPrefix continuationTail := by
+  have reverseMembership :
+      ∀ directed ∈ retainedPrefix ++ continuationTail,
+        directed.reverse ∈ retainedPrefix ++ continuationTail := by
+    intro directed membership
+    exact normalization.reverse_mem_of_normalizes_to_nil rfl directed membership
+  have prefixBackward :
+      ∀ directed ∈ retainedPrefix, directed.forward = false := by
+    intro directed membership
+    cases forwardEq : directed.forward with
+    | false => rfl
+    | true =>
+        have reversedMembership := reverseMembership directed
+          (List.mem_append.mpr (.inl membership))
+        rcases List.mem_append.mp reversedMembership with inPrefix | inTail
+        · have sameDirected :=
+            Graph.eq_of_map_eq_of_mem_of_nodup prefixIndexNodup
+              membership inPrefix (by simp [Graph.DirectedEdge.reverse])
+          exact False.elim (directed.ne_reverse sameDirected)
+        · have reverseForward := tailForward directed.reverse inTail
+          simp [Graph.DirectedEdge.reverse, forwardEq] at reverseForward
+  refine ⟨prefixIndexNodup, tailIndexNodup, ?_, ?_⟩
+  · intro directed membership
+    have directedBackward := prefixBackward directed membership
+    have reversedMembership := reverseMembership directed
+      (List.mem_append.mpr (.inl membership))
+    have inTail : directed.reverse ∈ continuationTail := by
+      rcases List.mem_append.mp reversedMembership with inPrefix | inTail
+      · have sameDirected :=
+          Graph.eq_of_map_eq_of_mem_of_nodup prefixIndexNodup
+            membership inPrefix (by simp [Graph.DirectedEdge.reverse])
+        exact False.elim (directed.ne_reverse sameDirected)
+      · exact inTail
+    rcases tailSources directed.reverse inTail with
+      ⟨rawAge, marked, notConclusion⟩
+    rw [Graph.DirectedEdge.reverse_source] at marked notConclusion
+    exact ⟨directedBackward, inTail, rawAge, marked, notConclusion⟩
+  · intro directed membership
+    have reversedMembership := reverseMembership directed
+      (List.mem_append.mpr (.inr membership))
+    rcases List.mem_append.mp reversedMembership with inPrefix | inTail
+    · exact inPrefix
+    · have sameDirected :=
+        Graph.eq_of_map_eq_of_mem_of_nodup tailIndexNodup
+          membership inTail (by simp [Graph.DirectedEdge.reverse])
+      exact False.elim (directed.ne_reverse sameDirected)
+
 /-- Cyclic normalization with the complete-cancellation branch localized to
-the exact junction of the retained prefix and forward continuation tail. -/
+the exact oriented endpoint junction of the retained prefix and forward
+continuation tail. Complete cancellation also pairs every prefix occurrence
+with its reverse tail occurrence and retains the marked-source ledger. -/
 def MarkedConclusionRawReturnCyclicJunctionOutcome
     (certificate : Certificate) (state : ReservationState)
     (base source : Vertex) : Prop :=
@@ -507,8 +726,10 @@ def MarkedConclusionRawReturnCyclicJunctionOutcome
                   ((retainedPrefix = [] ∧ continuationTail = []) ∨
                     (retainedPrefix ≠ [] ∧
                       continuationTail ≠ [] ∧
-                      Graph.EdgeWalk.CyclicSegmentJunctionReverse
-                        [retainedPrefix, continuationTail]))) ∨
+                      MarkedConclusionRawReturnCyclicCancellationSite
+                        retainedPrefix continuationTail ∧
+                      MarkedConclusionRawReturnCompleteCancellationPairing
+                        state retainedPrefix continuationTail))) ∨
             ∃ (before : List Link) (left right conclusion : Vertex)
                 (after : List Link)
                 (leftOccurrence rightOccurrence :
@@ -537,8 +758,9 @@ def MarkedConclusionRawReturnCyclicJunctionOutcome
                                           some (some rightRawAge) ∧
                                         right ∉ certificate.conclusions)
 
-/-- Refine complete raw-return cancellation to an exact cyclic junction
-between the two individually nonbacktracking splice segments. -/
+/-- Refine complete raw-return cancellation to one exact oriented endpoint
+junction and an exact reverse-occurrence pairing between the two individually
+nonbacktracking splice segments. -/
 theorem MarkedConclusionChain.rawReturnCyclicJunctionReduction
     {certificate : Certificate} {state : ReservationState}
     (correct : certificate.DeclarativelyCorrect)
@@ -556,7 +778,7 @@ theorem MarkedConclusionChain.rawReturnCyclicJunctionReduction
   rcases chain.rawReturnClosedWalk_exists path pathStart directed
       directedMembership targetConsumer sourceConsumer originNeBase with
     ⟨retainedPrefix, continuationTail, prefixWalk, tailWalk, closedWalk,
-      allKept, allForward, tailTargetNodup, tailSources,
+      allKept, prefixIndexNodup, allForward, tailTargetNodup, tailSources,
       prefixReduced, tailReduced,
       prefixEmpty, tailEmpty⟩
   let traversed := retainedPrefix ++ continuationTail
@@ -602,7 +824,25 @@ theorem MarkedConclusionChain.rawReturnCyclicJunctionReduction
           · exact prefixReduced
           · exact tailReduced
         · simpa using site
-      exact Or.inr ⟨prefixIsEmpty, tailNonempty, junction⟩
+      have cancellationSite :
+          MarkedConclusionRawReturnCyclicCancellationSite
+            retainedPrefix continuationTail :=
+        cyclicCancellationSite_of_junction allForward junction
+      have tailIndexNodup :
+          (continuationTail.map Graph.DirectedEdge.index).Nodup :=
+        directedIndexNodup_of_targetNodup_of_forward
+          tailTargetNodup allForward
+      have nilNormalization :
+          Graph.EdgeWalk.CyclicImmediateReverseNormalization
+            (retainedPrefix ++ continuationTail) [] := by
+        simpa [reducedEmpty] using normalization
+      have pairing :
+          MarkedConclusionRawReturnCompleteCancellationPairing state
+            retainedPrefix continuationTail :=
+        completeCancellationPairing prefixIndexNodup tailIndexNodup
+          allForward tailSources nilNormalization
+      exact Or.inr ⟨prefixIsEmpty, tailNonempty,
+        cancellationSite, pairing⟩
   · rcases correct.cyclicNoImmediateReverse_uses_bothParOccurrences
         reducedEmpty reducedWalk (reducedShape.resolve_left reducedEmpty) with
       ⟨before, left, right, conclusion, after,
@@ -708,9 +948,9 @@ def ActiveCarrierExternalReentryMarkedMateSeparatedContinuationCyclicReductionTa
                 state.core.representative conclusionAge < input.rawAge)
 
 /-- Refine the exact raw-return branch through the two nonbacktracking splice
-segments. Complete cancellation is localized to their cyclic junction, while
-a surviving omitted-right par occurrence is a concrete marked nonconclusion
-source in the continuation tail. -/
+segments. Complete cancellation is endpoint-localized and reverse-paired,
+while a surviving omitted-right par occurrence is a concrete marked
+nonconclusion source in the continuation tail. -/
 def ActiveCarrierExternalReentryMarkedMateSeparatedContinuationCyclicJunctionTarget
     {certificate : Certificate} {state : ReservationState}
     {history : ExecutedHistory certificate state}
@@ -811,8 +1051,8 @@ end ActiveCarrierExternalReentryMarkedMateSeparatedContinuationExitTarget
 
 namespace ActiveCarrierExternalReentryMarkedMateSeparatedContinuationCyclicReductionTarget
 
-/-- Refine the exact raw-return branch to the cyclic-junction form and retain
-the other three continuation exits unchanged. -/
+/-- Refine the exact raw-return branch to the endpoint-junction/pairing form
+and retain the other three continuation exits unchanged. -/
 theorem cyclicJunctionTarget
     {certificate : Certificate} {state : ReservationState}
     {history : ExecutedHistory certificate state}

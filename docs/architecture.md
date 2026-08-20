@@ -1556,12 +1556,16 @@ splices the exact raw return into a closed walk in the full occurrence graph.
 The prefix is lifted occurrence-for-occurrence from the reference switching;
 the continuation tail is forward with no repeated target, and both segments
 are individually nonbacktracking. Complete normalization is either the empty
-splice or cancellation at their exact cyclic junction. Otherwise correctness
-exposes both exact premises of a par, with its kept occurrence in the switching
-prefix and its omitted occurrence in the continuation tail. The latter starts
-at a concretely marked nonconclusion in the finite chain. Complete cancellation
+splice or cancellation at one of their two oriented endpoint junctions. In a
+nonempty cancellation, each segment has unique occurrence indices, every
+prefix occurrence is backward and paired with its exact reverse in the tail,
+and the tail ledger marks every reached prefix vertex as a nonconclusion.
+Otherwise correctness exposes both exact premises of a par, with its kept
+occurrence in the switching prefix and its omitted occurrence in the
+continuation tail. The latter starts at a concretely marked nonconclusion in
+the finite chain. Complete cancellation
 and the par-pair case remain residuals rather than contradictions or ready-tail
-payers.
+payers; the pairing is not yet ordered into exact reverse traversals.
 
 `SequentialFigure7CommitmentBlockerAdvance.lean` joins the global queued-head
 law, the strict `sigma` split, the strict-edge avoiding adapter, and the final

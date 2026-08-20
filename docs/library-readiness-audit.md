@@ -1166,12 +1166,16 @@ part of the engineering and proof-identity gap.
    `SequentialFigure7MarkedTargetRawReturnCyclicReduction.lean`
    then gives the exact raw return a full-graph cyclic normal form. The
    retained prefix and forward continuation tail are individually
-   nonbacktracking. Complete cancellation is empty or occurs at their exact
-   cyclic junction. A nonempty remainder has exact kept and omitted par-premise
-   occurrences in the prefix and tail respectively, and the omitted-right
+   nonbacktracking. Complete cancellation is empty or occurs at one of their
+   two oriented endpoint junctions. In the latter case, both segments have
+   unique occurrence indices, every prefix occurrence is backward and has its
+   exact reverse in the tail, and every reached prefix vertex is concretely
+   marked and non-global. A nonempty remainder has exact kept and omitted
+   par-premise occurrences in the prefix and tail respectively, and the omitted-right
    source is a concrete marked nonconclusion. Neither alternative is
-   eliminated, and the other continuation exits and equal-final branches are
-   unchanged. The verified combined audit covers 996 theorems: 704
+   eliminated or ordered into an exact reverse traversal, and the other
+   continuation exits and equal-final branches are unchanged. The verified
+   combined audit still covers 996 theorems: 704
    standard-three, 25 axiom-free, 128 `propext`-only, and 139
    `propext`/`Quot.sound` boundaries.
    `SequentialFigure7CommitmentBlockerAdvance.lean` now combines the global

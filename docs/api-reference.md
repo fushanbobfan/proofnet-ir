@@ -9666,12 +9666,42 @@ ProofNetIR.SequentialFigure7.MarkedConclusionChain.rawReturnCyclicReduction : �
                       targetConsumer.conclusion
 ```
 
+### `ProofNetIR.SequentialFigure7.MarkedConclusionRawReturnCyclicCancellationSite`
+
+Kind: definition.
+
+The only two oriented cancellation sites between a retained switching
+prefix and a forward continuation tail. The first alternative is the source
+junction; the second is the cyclic base junction.
+
+```lean
+ProofNetIR.SequentialFigure7.MarkedConclusionRawReturnCyclicCancellationSite : {certificate : ProofNetIR.Certificate} →
+  List certificate.fullGraph.DirectedEdge → List certificate.fullGraph.DirectedEdge → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.MarkedConclusionRawReturnCompleteCancellationPairing`
+
+Kind: definition.
+
+Exact cross-segment pairing forced by complete cyclic cancellation. Every
+retained-prefix occurrence is backward, its reverse occurs in the continuation
+tail, and its reached vertex is a concretely marked nonconclusion. Every tail
+occurrence has its reverse in the retained prefix.
+
+```lean
+ProofNetIR.SequentialFigure7.MarkedConclusionRawReturnCompleteCancellationPairing : {certificate : ProofNetIR.Certificate} →
+  ProofNetIR.SequentialSchedulerBridge.ReservationState →
+    List certificate.fullGraph.DirectedEdge → List certificate.fullGraph.DirectedEdge → Prop
+```
+
 ### `ProofNetIR.SequentialFigure7.MarkedConclusionRawReturnCyclicJunctionOutcome`
 
 Kind: definition.
 
 Cyclic normalization with the complete-cancellation branch localized to
-the exact junction of the retained prefix and forward continuation tail.
+the exact oriented endpoint junction of the retained prefix and forward
+continuation tail. Complete cancellation also pairs every prefix occurrence
+with its reverse tail occurrence and retains the marked-source ledger.
 
 ```lean
 ProofNetIR.SequentialFigure7.MarkedConclusionRawReturnCyclicJunctionOutcome : ProofNetIR.Certificate →
@@ -9682,8 +9712,9 @@ ProofNetIR.SequentialFigure7.MarkedConclusionRawReturnCyclicJunctionOutcome : Pr
 
 Kind: theorem.
 
-Refine complete raw-return cancellation to an exact cyclic junction
-between the two individually nonbacktracking splice segments.
+Refine complete raw-return cancellation to one exact oriented endpoint
+junction and an exact reverse-occurrence pairing between the two individually
+nonbacktracking splice segments.
 
 ```lean
 ProofNetIR.SequentialFigure7.MarkedConclusionChain.rawReturnCyclicJunctionReduction : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState},
@@ -9743,9 +9774,9 @@ ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedCont
 Kind: definition.
 
 Refine the exact raw-return branch through the two nonbacktracking splice
-segments. Complete cancellation is localized to their cyclic junction, while
-a surviving omitted-right par occurrence is a concrete marked nonconclusion
-source in the continuation tail.
+segments. Complete cancellation is endpoint-localized and reverse-paired,
+while a surviving omitted-right par occurrence is a concrete marked
+nonconclusion source in the continuation tail.
 
 ```lean
 ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedContinuationCyclicJunctionTarget : {certificate : ProofNetIR.Certificate} →
@@ -9761,8 +9792,8 @@ ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedCont
 
 Kind: theorem.
 
-Refine the exact raw-return branch to the cyclic-junction form and retain
-the other three continuation exits unchanged.
+Refine the exact raw-return branch to the endpoint-junction/pairing form
+and retain the other three continuation exits unchanged.
 
 ```lean
 ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedContinuationCyclicReductionTarget.cyclicJunctionTarget : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
