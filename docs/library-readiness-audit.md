@@ -1124,6 +1124,13 @@ part of the engineering and proof-identity gap.
    external, concretely marked at its exact age, and strictly older at the
    representative. No branch returns that endpoint to a distinct payer, and
    the equal-final, history-tail, and progress gates remain open.
+   `SequentialFigure7CommitmentIntervalParGuardReentry.lean` now connects the
+   older external mate back into the active carrier under supplied
+   reference-switching connectedness. Its exact inbound submitted-parent edge
+   targets the selected raw head, a non-global ready-tail raw occurrence, or a
+   prior concrete mark. This exposes an immediate payer branch but does not
+   eliminate the selected/marked targets or either equal-final trace, derive
+   the history-tail law, or prove progress.
    `SequentialFigure7CommitmentBlockerAdvance.lean` now combines the global
    queued-head law, strict split, and equal-boundary result. Under declarative
    correctness and the complete scheduler invariant, for a supplied canonical

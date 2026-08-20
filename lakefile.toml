@@ -35,6 +35,7 @@ defaultTargets = [
   "proofnet_ir_commitment_interval_par_conclusion_dichotomy_tests",
   "proofnet_ir_commitment_interval_par_trace_localization_tests",
   "proofnet_ir_commitment_interval_par_guard_outcome_tests",
+  "proofnet_ir_commitment_interval_par_guard_reentry_tests",
   "proofnet_ir_commitment_blocker_advance_tests",
   "proofnet_ir_commitment_blocker_maximality_tests",
   "proofnet_ir_active_region_touch_separation_tests",
@@ -222,6 +223,10 @@ root = "ProofNetIRCommitmentIntervalParTraceLocalizationTests"
 [[lean_exe]]
 name = "proofnet_ir_commitment_interval_par_guard_outcome_tests"
 root = "ProofNetIRCommitmentIntervalParGuardOutcomeTests"
+
+[[lean_exe]]
+name = "proofnet_ir_commitment_interval_par_guard_reentry_tests"
+root = "ProofNetIRCommitmentIntervalParGuardReentryTests"
 
 [[lean_exe]]
 name = "proofnet_ir_commitment_blocker_advance_tests"

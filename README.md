@@ -30,9 +30,9 @@ Canonical history normalizes par and tensor escapes into one temporal outcome.
 No-tail Nop and Wait guards leave external raw work or strictly older work. A
 positive retained `sigma` interval returns older endpoints through re-entry.
 
-Re-entry reverses a submitted parent edge and targets the selected raw head, a
-raw ready-tail occurrence, or a prior mark. History authenticates the mark; a
-path avoiding the current par conclusion excludes selected.
+Re-entry reverses a submitted parent edge. For the typed Nop/Wait older mate,
+supplied connectedness now classifies its target as selected raw, ready-tail
+raw, or a prior mark; equal-final trace branches remain.
 
 An adjacent commitment edge gets that avoidance from an explicit child-event
 untouched law. Across a complete positive interval, local paths compose or one
@@ -41,11 +41,11 @@ exact child edge fails with an authentic selected/mate trace.
 A strictly older failure can only trace to an external stored-right mate. For
 actual Nop it is raw-unmarked; for Wait it is concretely marked with a strictly
 older representative. Equal-final failures retain both trace directions, and
-the outer alternatives remain inclusive.
+the outer alternatives remain inclusive; selected/marked re-entry targets stay open.
 
 This proves no unconditional all-marked, progress, completion, termination,
 totality, or completeness result. Equal-final traces and return of the external
-raw/marked endpoints remain open. Next derive a payer and global-created tails.
+endpoints to a payer remain open. Next eliminate re-entry targets and global tails.
 [Current status](docs/current-status.md) owns exact revision, verification receipt, and gates.
 <!-- ROLLING_MAIN_SUMMARY_END -->
 

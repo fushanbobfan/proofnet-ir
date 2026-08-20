@@ -1503,6 +1503,16 @@ marked at the exact mate age, and has a representative strictly below the
 active boundary. These are exact branch statuses, not a distinct payer or
 history-tail result; the equal-final and inclusive alternatives remain.
 
+`SequentialFigure7CommitmentIntervalParGuardReentry.lean` adds supplied
+reference-switching connectedness to those typed outcomes. In the strictly
+older branch, the exact raw Nop mate or older-representative marked Wait mate
+now carries an outside-to-inside active-carrier path, one exact submitted
+parent re-entry edge, and a target classification. The target is the selected
+raw head, a non-global raw ready-tail occurrence, or a prior concrete mark.
+The theorem does not eliminate the selected/marked cases, change the
+equal-final or inclusive alternatives, derive the history-tail law, or prove
+progress.
+
 `SequentialFigure7CommitmentBlockerAdvance.lean` joins the global queued-head
 law, the strict `sigma` split, the strict-edge avoiding adapter, and the final
 equal-boundary classification. Under declarative correctness and the complete

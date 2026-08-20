@@ -1379,9 +1379,12 @@
     strictly older selected and active-owned-mate cases: the only older trace
     is stored-right to a mate outside the active owned carrier. For actual Nop
     that endpoint is raw-unmarked; for Wait it is concretely marked with a
-    strictly older representative. Equal-final selected/mate traces and the
-    inclusive outer split remain. Next return the external raw/marked endpoint
-    to a distinct payer, eliminate equal-final traces, and close the tail law before claiming
+    strictly older representative. Supplied reference-switching connectedness
+    now returns either endpoint to an exact active-carrier inbound parent edge.
+    Its target is the selected raw head, a non-global raw ready-tail occurrence,
+    or a prior concrete mark. Equal-final selected/mate traces and the inclusive
+    outer split remain. Next eliminate the selected/marked target branches and
+    equal-final traces, then close the tail law before claiming
     exhaustive progress on incomplete, correct, certified-reachable states.
     Exact source-left complexity descent, last-step decomposition, and
     recursive visited-route separation from the selected head are now proved.

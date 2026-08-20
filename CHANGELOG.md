@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- connected the strictly older external mate in the typed Nop and Wait
+  commitment-interval outcomes back into the active occurrence carrier. Under
+  supplied reference-switching connectedness, the exact re-entry target is
+  now classified as the selected raw head, a genuine non-global ready-tail raw
+  occurrence, or a prior concrete mark. The equal-final and inclusive branches
+  remain, and selected/marked targets are not eliminated. The verified
+  combined audit covers 981 theorems: 689 standard-three, 25 axiom-free,
+  128 `propext`-only, and 139 `propext`/`Quot.sound` boundaries;
 - specialized the localized commitment-interval par outcome to actual Nop and
   Wait guards. The four-case carrier keeps the avoiding endpoint path, both
   equal-final trace orientations, and one strictly older stored-right mate.

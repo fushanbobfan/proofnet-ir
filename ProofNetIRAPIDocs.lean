@@ -766,6 +766,17 @@ def sections : List Section := [
     ]
   },
   {
+    title := "Commitment-interval par-guard re-entry"
+    declarations := [
+      Name.str
+        `ProofNetIR.SequentialFigure7.NopStep
+        "commitmentInterval_parTraceReentryTargetOutcome",
+      Name.str
+        `ProofNetIR.SequentialFigure7.WaitStep
+        "commitmentInterval_parTraceReentryTargetOutcome"
+    ]
+  },
+  {
     title := "Commitment blocker advance"
     declarations := [
       Name.str

@@ -449,6 +449,12 @@ Wait identifies its exact concrete mark and strictly older representative.
 The modules do not return those external endpoints to the active frontier,
 eliminate the equal-final cases, or produce a distinct payer, tail law, or
 progress theorem.
+`SequentialFigure7CommitmentIntervalParGuardReentry.lean` adds no source
+reading. Supplied reference-switching connectedness returns the exact older
+Nop/Wait mate through one active-carrier inbound parent edge and classifies
+its target as selected raw, non-global ready-tail raw, or concretely marked.
+The selected/marked and equal-final branches remain, so this is not yet a
+tail-law or progress theorem.
 Global preservation of the mate-region and older-raw-mark invariants through
 candidate-creating rules remains open, as do queue origin, created-candidate raw
 seams, derivation of the re-entry avoidance premise, marked-history descent,
