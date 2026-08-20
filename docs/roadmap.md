@@ -1366,8 +1366,13 @@
     connective-parent edge whose target is a non-global active-frontier
     premise. Ready-bucket accounting classifies that target as the selected raw
     head, a raw ready-tail occurrence, or a prior concrete mark; under no-tail,
-    only the selected and marked cases remain. Next eliminate those failure
-    alternatives or derive a distinct ready-tail payer before claiming
+    only the selected and marked cases remain. Canonical raw-mark history now
+    authenticates the marked target at the active representative. A retained
+    path that additionally avoids the current par conclusion cannot target the
+    selected head, leaving a distinct historical mark. Next derive that path
+    avoidance for commitment returns or handle the through-current-conclusion
+    case, then turn the marked history into a distinct ready-tail payer before
+    claiming
     exhaustive progress on incomplete, correct, certified-reachable states.
     Exact source-left complexity descent, last-step decomposition, and
     recursive visited-route separation from the selected head are now proved.

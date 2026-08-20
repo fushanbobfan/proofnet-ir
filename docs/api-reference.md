@@ -10472,6 +10472,49 @@ ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryFailureTargetStatus : P
       ProofNetIR.UnificationComponent → List ProofNetIR.Vertex → ProofNetIR.Vertex → Prop
 ```
 
+### `ProofNetIR.SequentialFigure7.ActiveCarrierExternalEndpointReentryAvoiding`
+
+Kind: definition.
+
+One external endpoint path whose retained re-entry avoids a specified
+forbidden vertex.
+
+```lean
+ProofNetIR.SequentialFigure7.ActiveCarrierExternalEndpointReentryAvoiding : ProofNetIR.Certificate → List ProofNetIR.Vertex → ProofNetIR.Vertex → ProofNetIR.Vertex → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryFailureHistoricalStatus`
+
+Kind: definition.
+
+Failure-conditioned external re-entry status with exact raw-mark history
+for the marked alternative.
+
+```lean
+ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryFailureHistoricalStatus : {certificate : ProofNetIR.Certificate} →
+  {state : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+    {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state} →
+      ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history →
+        ProofNetIR.SequentialFigure7.ReadyHeadInput state →
+          ProofNetIR.UnificationComponent → List ProofNetIR.Vertex → ProofNetIR.Vertex → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedHistoricalTarget`
+
+Kind: definition.
+
+Exact marked alternative once the non-global ready tail is absent and the
+external endpoint re-entry avoids the current par conclusion.
+
+```lean
+ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedHistoricalTarget : {certificate : ProofNetIR.Certificate} →
+  {state : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+    {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state} →
+      ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history →
+        ProofNetIR.SequentialFigure7.ReadyHeadInput state →
+          ProofNetIR.UnificationComponent → List ProofNetIR.Vertex → ProofNetIR.Vertex → Prop
+```
+
 ### `ProofNetIR.SequentialFigure7.ActiveCarrierExternalEndpointReentry.targetStatus`
 
 Kind: theorem.
@@ -10515,6 +10558,59 @@ ProofNetIR.SequentialFigure7.ActiveCarrierExternalEndpointReentry.targetFailureS
                 (¬∃ pending, pending ∈ input.readyTail ∧ ¬pending ∈ certificate.conclusions) →
                   ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryFailureTargetStatus certificate state input
                     component owned endpoint
+```
+
+### `ProofNetIR.SequentialFigure7.ActiveCarrierExternalEndpointReentry.targetFailureHistoricalStatus`
+
+Kind: theorem.
+
+The selected-or-marked failure classification can be sharpened so that
+every marked target is distinct from the selected head, authentic in the
+canonical raw-mark history, and represented at the active boundary.
+
+```lean
+ProofNetIR.SequentialFigure7.ActiveCarrierExternalEndpointReentry.targetFailureHistoricalStatus : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history)
+  (input : ProofNetIR.SequentialFigure7.ReadyHeadInput state),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+    ∀ {component : ProofNetIR.UnificationComponent} {usedLinks owned : List Nat},
+      state.core.components[input.rawAge]? = some (some component) →
+        certificate.ComponentOccurrenceWitness component usedLinks owned →
+          ProofNetIR.Certificate.OwnedOccurrenceAccounted state.core input.rawAge component owned →
+            ∀ {endpoint : ProofNetIR.Vertex},
+              ProofNetIR.SequentialFigure7.ActiveCarrierExternalEndpointReentry certificate owned endpoint →
+                (¬∃ pending, pending ∈ input.readyTail ∧ ¬pending ∈ certificate.conclusions) →
+                  ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryFailureHistoricalStatus tagHistory input
+                    component owned endpoint
+```
+
+### `ProofNetIR.SequentialFigure7.ActiveCarrierExternalEndpointReentryAvoiding.markedHistoricalTarget`
+
+Kind: theorem.
+
+If the retained re-entry path avoids the current par conclusion, explicit
+ready-tail failure leaves only a distinct authentic marked target at the active
+representative. This theorem does not derive the path-avoidance premise.
+
+```lean
+ProofNetIR.SequentialFigure7.ActiveCarrierExternalEndpointReentryAvoiding.markedHistoricalTarget : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history)
+  (input : ProofNetIR.SequentialFigure7.ReadyHeadInput state),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+    ∀ (consumer : ProofNetIR.ConnectiveBelow certificate input.vertex),
+      consumer.kind = ProofNetIR.SequentialConnectiveKind.par →
+        ∀ {component : ProofNetIR.UnificationComponent} {usedLinks owned : List Nat},
+          state.core.components[input.rawAge]? = some (some component) →
+            certificate.ComponentOccurrenceWitness component usedLinks owned →
+              ProofNetIR.Certificate.OwnedOccurrenceAccounted state.core input.rawAge component owned →
+                ∀ {endpoint : ProofNetIR.Vertex},
+                  ProofNetIR.SequentialFigure7.ActiveCarrierExternalEndpointReentryAvoiding certificate owned endpoint
+                      consumer.conclusion →
+                    (¬∃ pending, pending ∈ input.readyTail ∧ ¬pending ∈ certificate.conclusions) →
+                      ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedHistoricalTarget tagHistory input
+                        component owned endpoint
 ```
 
 ## Branch-local continuation credit

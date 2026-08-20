@@ -9,9 +9,12 @@
   With a ready-head input, `SchedulerInvariant`, and exact occurrence
   accounting, that target is the selected raw head, a raw ready-tail
   occurrence, or a prior concrete mark. Explicit absence of a non-global tail
-  removes only the middle case. This does not eliminate the selected or marked
-  alternatives, derive `ActiveTopDebtTailLaw`, or establish progress or
-  completion. The verified combined audit covers 969 theorems: 677
+  removes only the middle case. Canonical raw-mark history authenticates every
+  marked alternative at the active representative. If the retained re-entry
+  path also avoids the current par conclusion, parent-link uniqueness removes
+  the selected alternative and leaves a distinct marked target. The module
+  does not derive that path-avoidance premise, `ActiveTopDebtTailLaw`, progress,
+  or completion. The verified combined audit covers 971 theorems: 679
   standard-three, 25 axiom-free, 128 `propext`-only, and 139
   `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7ActiveTopDebtParentExternalCommitmentReentry.lean`.

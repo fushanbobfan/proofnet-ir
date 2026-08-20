@@ -24,26 +24,23 @@ latest research surface and are prepared for documented development changes.
 ### Rolling-main summary
 
 For a correct selected `par`, a ready-head input and `SchedulerInvariant`
-yield a non-global ready-tail vertex or an `ActiveCarrierParentEscape` whose
-submitted parent leaves the carrier. If the tail is absent, escape is forced.
+yield a non-global ready tail or a carrier parent escape. No tail forces escape.
 
-With matching `CanonicalTagHistory`, the no-tail escape has an exact temporal
-normal form. Par has an anchored raw sibling or older parent continuation;
-tensor has an active-representative mark with sibling and parent outside the
-carrier. Continuation credit maps both to `ActiveCarrierParentTemporalOutcome`.
-Typed no-tail Nop and Wait guards leave only external raw work or strictly
-older external future/marked work. A complete positive retained `sigma`
-interval composes its commitment paths, returning ready future and marked
-external endpoints through one exact outside-to-inside edge.
+Canonical history normalizes par and tensor escapes into one temporal outcome.
+Typed no-tail Nop and Wait guards leave external raw work or strictly older
+future/marked work. A positive retained `sigma` interval composes its paths and
+returns ready future and marked endpoints through an outside-to-inside edge.
 
-That re-entry is now identified as the reverse of a submitted connective-parent
-edge. Its active-frontier premise is exactly the selected raw head, a raw
-ready-tail occurrence, or a prior concrete mark. When no non-global ready-tail
-exists, only the selected-head and marked alternatives remain.
+That edge reverses a submitted parent edge and targets the selected raw head,
+a raw ready-tail occurrence, or a prior mark. No tail leaves selected or marked.
+Raw-mark history authenticates the mark at the active representative. If the
+path avoids the current par conclusion, parent uniqueness excludes selected and
+leaves a distinct marked target.
 
 This proves no unconditional all-marked, progress, completion, termination,
-totality, or completeness result. Next eliminate the two failure alternatives
-or derive a distinct payer, then discharge the global-created tail obligations.
+totality, or completeness result. Path avoidance is not derived. Next prove it
+for commitment returns or handle the through-current-conclusion case, use the
+marked history to obtain a distinct payer, and discharge global-created tails.
 [Current status](docs/current-status.md) owns exact revision, verification receipt, and gates.
 <!-- ROLLING_MAIN_SUMMARY_END -->
 

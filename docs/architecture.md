@@ -1121,8 +1121,12 @@ submitted connective-parent edge; its target is a non-global premise on the
 active component frontier and its conclusion remains outside the occurrence
 carrier. Exact ready-bucket accounting then splits the target into the selected
 raw head, a raw ready-tail occurrence, or a prior concrete mark. Under the
-explicit negation of a non-global tail, the middle case disappears. The result
-does not distinguish or eliminate the selected and marked failure cases, derive
+explicit negation of a non-global tail, the middle case disappears. Canonical
+raw-mark history authenticates a marked target and aligns its representative
+with the active boundary. If the retained path also avoids the current par
+conclusion, parent-link uniqueness eliminates the selected target, leaving a
+distinct marked active-frontier premise. The module does not derive that path
+avoidance, convert the marked history into a distinct payer, derive
 `ActiveTopDebtTailLaw`, or prove progress or completion.
 
 `SequentialFigure7ContinuationCredit.lean` and

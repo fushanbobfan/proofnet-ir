@@ -1027,12 +1027,21 @@ def sections : List Section := [
       `ProofNetIR.SequentialFigure7.ActiveCarrierInboundParentEdge,
       `ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryTargetStatus,
       `ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryFailureTargetStatus,
+      `ProofNetIR.SequentialFigure7.ActiveCarrierExternalEndpointReentryAvoiding,
+      `ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryFailureHistoricalStatus,
+      `ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedHistoricalTarget,
       Name.str
         `ProofNetIR.SequentialFigure7.ActiveCarrierExternalEndpointReentry
         "targetStatus",
       Name.str
         `ProofNetIR.SequentialFigure7.ActiveCarrierExternalEndpointReentry
-        "targetFailureStatus"
+        "targetFailureStatus",
+      Name.str
+        `ProofNetIR.SequentialFigure7.ActiveCarrierExternalEndpointReentry
+        "targetFailureHistoricalStatus",
+      Name.str
+        `ProofNetIR.SequentialFigure7.ActiveCarrierExternalEndpointReentryAvoiding
+        "markedHistoricalTarget"
     ]
   },
   {

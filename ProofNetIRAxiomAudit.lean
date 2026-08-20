@@ -399,6 +399,10 @@ expansion.
 #print axioms SequentialFigure7.ActiveCarrierExternalEndpointReentry.targetStatus
 #print axioms
   SequentialFigure7.ActiveCarrierExternalEndpointReentry.targetFailureStatus
+#print axioms
+  SequentialFigure7.ActiveCarrierExternalEndpointReentry.targetFailureHistoricalStatus
+#print axioms
+  SequentialFigure7.ActiveCarrierExternalEndpointReentryAvoiding.markedHistoricalTarget
 #print axioms SequentialFigure7.empty_markedNonconclusionContinuation
 #print axioms
   SequentialFigure7.InitialReservationStep.markedNonconclusionContinuation

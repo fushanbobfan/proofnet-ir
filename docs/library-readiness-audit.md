@@ -684,9 +684,12 @@ part of the engineering and proof-identity gap.
    edge. Its target is a non-global active-frontier premise, and complete ready
    accounting classifies it as the selected raw head, a raw ready-tail
    occurrence, or a prior concrete mark. Explicit no-tail removes the middle
-   case but does not eliminate the selected or marked alternatives. The next
-   gate is therefore a failure-conditioned distinct-payer or residual-
-   elimination theorem, followed by the global-created tail obligations.
+   case. Canonical raw-mark history authenticates the marked alternative at the
+   active representative. If the retained path avoids the current par
+   conclusion, parent-link uniqueness removes the selected alternative and
+   leaves a distinct marked target. The checkpoint does not derive that path
+   avoidance or turn the marked history into a distinct payer. Those are the
+   next gates, followed by the global-created tail obligations.
    `SequentialFigure7ContinuationCredit.lean` and its preservation module now
    close a weaker full-history invariant. The two carriers assign each marked
    nonconclusion one of three receipts: an unmarked mate, future conclusion

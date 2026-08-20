@@ -10,8 +10,9 @@ import ProofNetIR.SequentialFigure7ActiveTopDebtParentExternalReentryTarget
 # Active-top debt external re-entry target consumer
 
 This runnable consumer calls the occurrence-carrier geometry, destructs and
-reconstructs the exact inbound parent edge, observes every target-status case,
-and audits the production declarations directly.
+reconstructs the exact inbound parent edge, observes every target-status and
+historical-mark case, consumes the conclusion-avoiding reduction, and audits
+the production declarations directly.
 -/
 
 namespace ProofNetIR
@@ -160,6 +161,113 @@ private theorem classifyFailureTarget
     (reentry.targetFailureStatus input invariant componentLookup occurrence
       accounted noTail)
 
+private theorem avoidingRoundTrip
+    {certificate : Certificate} {owned : List Vertex}
+    {endpoint forbidden : Vertex}
+    (reentry :
+      ActiveCarrierExternalEndpointReentryAvoiding certificate owned endpoint
+        forbidden) :
+    ActiveCarrierExternalEndpointReentryAvoiding certificate owned endpoint
+      forbidden := by
+  rcases reentry with
+    ⟨path, directed, pathStarts, finishOwned, directedMembership,
+      sourceOutside, targetOwned, forbiddenAvoided⟩
+  exact ⟨path, directed, pathStarts, finishOwned, directedMembership,
+    sourceOutside, targetOwned, forbiddenAvoided⟩
+
+private theorem historicalStatusRoundTrip
+    {certificate : Certificate} {state : ReservationState}
+    {history : ExecutedHistory certificate state}
+    {tagHistory : CanonicalTagHistory certificate history}
+    {input : ReadyHeadInput state} {component : UnificationComponent}
+    {owned : List Vertex} {endpoint : Vertex}
+    (status :
+      ActiveCarrierExternalReentryFailureHistoricalStatus tagHistory input
+        component owned endpoint) :
+    ActiveCarrierExternalReentryFailureHistoricalStatus tagHistory input
+      component owned endpoint := by
+  rcases status with
+    ⟨path, directed, pathStarts, finishOwned, directedMembership,
+      parentEdge, selected | marked⟩
+  · exact ⟨path, directed, pathStarts, finishOwned, directedMembership,
+      inboundParentEdgeRoundTrip parentEdge, Or.inl selected⟩
+  · rcases marked with
+      ⟨markedAge, targetNeSelected, targetMarked, authentic, representative⟩
+    exact ⟨path, directed, pathStarts, finishOwned, directedMembership,
+      inboundParentEdgeRoundTrip parentEdge,
+      Or.inr ⟨markedAge, targetNeSelected, targetMarked, authentic,
+        representative⟩⟩
+
+private theorem markedHistoricalTargetRoundTrip
+    {certificate : Certificate} {state : ReservationState}
+    {history : ExecutedHistory certificate state}
+    {tagHistory : CanonicalTagHistory certificate history}
+    {input : ReadyHeadInput state} {component : UnificationComponent}
+    {owned : List Vertex} {endpoint : Vertex}
+    (status :
+      ActiveCarrierExternalReentryMarkedHistoricalTarget tagHistory input
+        component owned endpoint) :
+    ActiveCarrierExternalReentryMarkedHistoricalTarget tagHistory input
+      component owned endpoint := by
+  rcases status with
+    ⟨path, directed, markedAge, pathStarts, finishOwned, directedMembership,
+      parentEdge, targetNeSelected, targetMarked, authentic, representative⟩
+  exact ⟨path, directed, markedAge, pathStarts, finishOwned,
+    directedMembership, inboundParentEdgeRoundTrip parentEdge, targetNeSelected,
+    targetMarked, authentic, representative⟩
+
+private theorem classifyHistoricalFailureTarget
+    {certificate : Certificate} {state : ReservationState}
+    {history : ExecutedHistory certificate state}
+    (tagHistory : CanonicalTagHistory certificate history)
+    (input : ReadyHeadInput state)
+    (invariant : SchedulerInvariant certificate state)
+    {component : UnificationComponent} {usedLinks owned : List Nat}
+    (componentLookup :
+      state.core.components[input.rawAge]? = some (some component))
+    (occurrence :
+      Certificate.ComponentOccurrenceWitness certificate component usedLinks owned)
+    (accounted :
+      Certificate.OwnedOccurrenceAccounted state.core input.rawAge component owned)
+    {endpoint : Vertex}
+    (reentry : ActiveCarrierExternalEndpointReentry certificate owned endpoint)
+    (noTail :
+      ¬ ∃ pending,
+        pending ∈ input.readyTail ∧ pending ∉ certificate.conclusions) :
+    ActiveCarrierExternalReentryFailureHistoricalStatus tagHistory input
+      component owned endpoint :=
+  historicalStatusRoundTrip
+    (reentry.targetFailureHistoricalStatus tagHistory input invariant
+      componentLookup occurrence accounted noTail)
+
+private theorem classifyAvoidingFailureTarget
+    {certificate : Certificate} {state : ReservationState}
+    {history : ExecutedHistory certificate state}
+    (tagHistory : CanonicalTagHistory certificate history)
+    (input : ReadyHeadInput state)
+    (invariant : SchedulerInvariant certificate state)
+    (consumer : ConnectiveBelow certificate input.vertex)
+    (parEq : consumer.kind = .par)
+    {component : UnificationComponent} {usedLinks owned : List Nat}
+    (componentLookup :
+      state.core.components[input.rawAge]? = some (some component))
+    (occurrence :
+      Certificate.ComponentOccurrenceWitness certificate component usedLinks owned)
+    (accounted :
+      Certificate.OwnedOccurrenceAccounted state.core input.rawAge component owned)
+    {endpoint : Vertex}
+    (reentry :
+      ActiveCarrierExternalEndpointReentryAvoiding certificate owned endpoint
+        consumer.conclusion)
+    (noTail :
+      ¬ ∃ pending,
+        pending ∈ input.readyTail ∧ pending ∉ certificate.conclusions) :
+    ActiveCarrierExternalReentryMarkedHistoricalTarget tagHistory input
+      component owned endpoint :=
+  markedHistoricalTargetRoundTrip
+    (reentry.markedHistoricalTarget tagHistory input invariant consumer parEq
+      componentLookup occurrence accounted noTail)
+
 end Consumer
 
 end SequentialFigure7
@@ -181,6 +289,16 @@ end ProofNetIR.Certificate.OccurrenceDerivation
   ProofNetIR.SequentialFigure7.ActiveCarrierExternalEndpointReentry.targetStatus
 #print axioms
   ProofNetIR.SequentialFigure7.ActiveCarrierExternalEndpointReentry.targetFailureStatus
+#print axioms
+  ProofNetIR.SequentialFigure7.ActiveCarrierExternalEndpointReentryAvoiding
+#print axioms
+  ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryFailureHistoricalStatus
+#print axioms
+  ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedHistoricalTarget
+#print axioms
+  ProofNetIR.SequentialFigure7.ActiveCarrierExternalEndpointReentry.targetFailureHistoricalStatus
+#print axioms
+  ProofNetIR.SequentialFigure7.ActiveCarrierExternalEndpointReentryAvoiding.markedHistoricalTarget
 
 def main : IO Unit :=
   IO.println "active-top debt external re-entry target: kernel-green"

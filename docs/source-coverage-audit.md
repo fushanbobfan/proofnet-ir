@@ -432,10 +432,14 @@ source reading. It proves that the re-entry is the reverse of an exact
 submitted connective-parent edge with a non-global active-frontier target.
 Exact ready-bucket accounting classifies the target as selected raw, ready-tail
 raw, or concretely marked. The no-tail wrapper removes only the ready-tail
-case. It provides no distinct payer, tail law, or progress theorem.
+case. Canonical raw-mark history authenticates a marked target at the active
+representative. A retained path that also avoids the current par conclusion
+cannot target the selected head, so only a distinct historical mark remains.
+The module does not derive that path avoidance or a distinct raw payer, tail
+law, or progress theorem.
 Global preservation of the mate-region and older-raw-mark invariants through
 candidate-creating rules remains open, as do queue origin, created-candidate raw
-seams, elimination of the selected/marked re-entry failure cases,
+seams, derivation of the re-entry avoidance premise, marked-history descent,
 unconditional active-top completion, progress,
 later-state totality,
 fallback removal,

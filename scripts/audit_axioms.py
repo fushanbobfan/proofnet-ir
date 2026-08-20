@@ -208,6 +208,10 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "targetStatus",
     "ProofNetIR.SequentialFigure7.ActiveCarrierExternalEndpointReentry."
     "targetFailureStatus",
+    "ProofNetIR.SequentialFigure7.ActiveCarrierExternalEndpointReentry."
+    "targetFailureHistoricalStatus",
+    "ProofNetIR.SequentialFigure7.ActiveCarrierExternalEndpointReentryAvoiding."
+    "markedHistoricalTarget",
     "ProofNetIR.SequentialFigure7.InitialReservationStep."
     "markedNonconclusionContinuation",
     "ProofNetIR.SequentialFigure7.NopStep.selectedContinuationCredit",
