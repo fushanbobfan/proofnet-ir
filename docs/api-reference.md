@@ -9840,6 +9840,97 @@ ProofNetIR.SequentialFigure7.CanonicalTagHistory.activeTopMarkedNonconclusionDeb
   tagHistory.ActiveTopDebtTailLaw → ProofNetIR.SequentialFigure7.ActiveTopMarkedNonconclusionDebt certificate state
 ```
 
+## Active-top debt parent escape
+
+### `ProofNetIR.SequentialFigure7.ActiveCarrierParentEscape`
+
+Kind: definition.
+
+A marked non-global frontier premise whose submitted connective parent
+leaves the active occurrence carrier. No incompatibility with a valid
+ready-tail witness is asserted.
+
+```lean
+ProofNetIR.SequentialFigure7.ActiveCarrierParentEscape : ProofNetIR.Certificate →
+  ProofNetIR.SequentialSchedulerBridge.ReservationState →
+    ProofNetIR.UnificationComponent → List ProofNetIR.Vertex → ProofNetIR.Vertex → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.ActiveCarrierParentEscape.authenticMarkedPremise`
+
+Kind: theorem.
+
+A concrete mark in the carrier escape is an authentic earlier
+prepared-selection event in any supplied canonical history for the state.
+This provenance statement does not make the escape incompatible with a tail.
+
+```lean
+ProofNetIR.SequentialFigure7.ActiveCarrierParentEscape.authenticMarkedPremise : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history)
+  {component : ProofNetIR.UnificationComponent} {owned : List ProofNetIR.Vertex} {selected : ProofNetIR.Vertex},
+  ProofNetIR.SequentialFigure7.ActiveCarrierParentEscape certificate state component owned selected →
+    ∃ premise markedAge linkIndex kind storedLeft storedRight conclusion,
+      premise ≠ selected ∧
+        premise ∈ component.frontier ∧
+          state.core.marks[premise]? = some (some markedAge) ∧
+            tagHistory.RawMarked markedAge premise ∧
+              ¬premise ∈ certificate.conclusions ∧
+                certificate.links[linkIndex]? = some (kind.asLink storedLeft storedRight conclusion) ∧
+                  premise ∈ (kind.asLink storedLeft storedRight conclusion).premises ∧ ¬conclusion ∈ owned
+```
+
+### `ProofNetIR.SequentialFigure7.ReadyHeadInput.readyTail_nonconclusion_or_parentEscape`
+
+Kind: theorem.
+
+Kernelized first-boundary reduction for a correct selected par. Either
+the active ready bucket already contains another non-global raw occurrence, or
+the selected-to-mate path exposes a previously marked non-global frontier
+premise whose exact submitted parent conclusion lies outside the active owned
+carrier. The two outcomes are not asserted to be exclusive.
+
+```lean
+ProofNetIR.SequentialFigure7.ReadyHeadInput.readyTail_nonconclusion_or_parentEscape : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (input : ProofNetIR.SequentialFigure7.ReadyHeadInput state),
+  certificate.DeclarativelyCorrect →
+    ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+      ∀ (consumer : ProofNetIR.ConnectiveBelow certificate input.vertex),
+        consumer.kind = ProofNetIR.SequentialConnectiveKind.par →
+          ∃ component usedLinks owned,
+            state.core.components[input.rawAge]? = some (some component) ∧
+              certificate.ComponentOccurrenceWitness component usedLinks owned ∧
+                ProofNetIR.Certificate.OwnedOccurrenceAccounted state.core input.rawAge component owned ∧
+                  ((∃ pending, pending ∈ input.readyTail ∧ ¬pending ∈ certificate.conclusions) ∨
+                    ProofNetIR.SequentialFigure7.ActiveCarrierParentEscape certificate state component owned
+                      input.vertex)
+```
+
+### `ProofNetIR.SequentialFigure7.ReadyHeadInput.parentEscape_of_no_readyTail`
+
+Kind: theorem.
+
+Failure-conditioned form of the exact reduction. If the requested
+non-global ready tail is absent, correctness and the scheduler invariant force
+an exact marked-parent carrier escape. This theorem neither assumes a history
+tail law nor concludes that the escape is impossible.
+
+```lean
+ProofNetIR.SequentialFigure7.ReadyHeadInput.parentEscape_of_no_readyTail : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (input : ProofNetIR.SequentialFigure7.ReadyHeadInput state),
+  certificate.DeclarativelyCorrect →
+    ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+      ∀ (consumer : ProofNetIR.ConnectiveBelow certificate input.vertex),
+        consumer.kind = ProofNetIR.SequentialConnectiveKind.par →
+          (¬∃ pending, pending ∈ input.readyTail ∧ ¬pending ∈ certificate.conclusions) →
+            ∃ component usedLinks owned,
+              state.core.components[input.rawAge]? = some (some component) ∧
+                certificate.ComponentOccurrenceWitness component usedLinks owned ∧
+                  ProofNetIR.Certificate.OwnedOccurrenceAccounted state.core input.rawAge component owned ∧
+                    ProofNetIR.SequentialFigure7.ActiveCarrierParentEscape certificate state component owned
+                      input.vertex
+```
+
 ## Branch-local continuation credit
 
 ### `ProofNetIR.SequentialFigure7.ContinuationCredit`

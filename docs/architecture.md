@@ -970,10 +970,12 @@ construct a ready head; the following structural module classifies the exact
 shape of its absence, and the subsequent debt and continuation-exit layers give
 conditional semantic reductions. The endpoint-locality obstruction below rules
 out the unrestricted locality law as a full-history invariant across successful
-Wait transitions. The queue-tail and history-tail layers then isolate the exact
-replacement carrier. Deriving that carrier from declarative correctness plus
-canonical tag history is the next proof gate before dispatcher progress or
-later-state totality; global
+Wait transitions. The queue-tail and history-tail layers then isolate one exact
+caller-supplied carrier. The first-boundary parent-escape layer below instead
+states what declarative correctness and the scheduler invariant force without
+that carrier. Its next gate is a failure-conditioned distinct-payer/re-entry
+law, split between `par` and `tensor`, before dispatcher progress or later-state
+totality; global
 raw seams, fallback removal, faithful scheduling, pure-worklist completeness,
 sequentialization, and whole-program linearity remain separate.
 
@@ -1033,8 +1035,26 @@ and this law, the endpoint theorem derives
 `ActiveTopMarkedNonconclusionDebt`. The law itself is an ordinary assumption;
 the module does not derive it from declarative correctness, canonical history,
 or reachability. In particular it gives no unconditional all-marked result,
-progress, termination, totality, or completeness theorem. The exact next gate
-is correctness plus `CanonicalTagHistory` implying `ActiveTopDebtTailLaw`.
+progress, termination, totality, or completeness theorem. The parent-escape
+reduction below neither requires nor derives this law.
+
+`SequentialFigure7ActiveTopDebtParentEscape.lean` kernelizes the next bounded
+first-boundary reduction. An explicit `ReadyHeadInput` whose
+`ConnectiveBelow` witness is a `par`, together with declarative correctness and
+`SchedulerInvariant`, exposes the active component occurrence/accounting data
+and then returns either a non-global vertex in `readyTail` or
+`ActiveCarrierParentEscape`. The latter is a marked non-global frontier premise
+distinct from the selected vertex whose exact submitted connective parent
+conclusion lies outside the active owned carrier. These outcomes are not
+exclusive. The failure-conditioned wrapper proves that absence of the tail
+witness forces the escape; it does not eliminate the escape.
+`CanonicalTagHistory` appears only in the separate provenance theorem, where it
+authenticates the escape's concrete mark as an earlier prepared-selection
+event. No theorem in this layer assumes or derives `ActiveTopDebtTailLaw`. A
+public computational coexistence receipt is not part of this checkpoint. The
+next proof gate is a failure-conditioned distinct-payer/re-entry law, stated separately for
+`par` and `tensor`; unconditional progress, completion, termination, totality,
+and completeness remain open.
 
 `SequentialFigure7ContinuationCredit.lean` and
 `SequentialFigure7ContinuationCreditPreservation.lean` close a deliberately

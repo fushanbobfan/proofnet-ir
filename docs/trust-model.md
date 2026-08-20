@@ -823,13 +823,34 @@ not an axiom. `ActiveTopDebtTailLaw` is an explicit caller-supplied carrier:
 Concl, Nop, and Wait recurse; New resets; Forward and UnifyPayload retain only
 their exact current branch obligations. The endpoint theorem consumes both the
 matching `CanonicalTagHistory` and that carrier to derive debt. It does not
-derive the carrier from correctness, canonical history, or reachability. The
-pending proof-commit audit is expected to cover 950 declarations: 660
-full-classical, 25 axiom-free, 127 `propext`-only, and 138
-`propext`/`Quot.sound` boundaries. Unconditional `allMarked`, progress,
+derive the carrier from correctness, canonical history, or reachability.
+Unconditional `allMarked`, progress,
 termination, totality, and completeness therefore remain outside the trusted
-surface; the next gate is correctness plus `CanonicalTagHistory` implying
-`ActiveTopDebtTailLaw`.
+surface. The later parent-escape reduction neither requires nor derives this
+law.
+`SequentialFigure7ActiveTopDebtParentEscape.lean` adds no tail-law, history,
+progress, or impossibility oracle. `ActiveCarrierParentEscape` is concrete
+existential data: a marked non-global active-frontier premise distinct from the
+selected vertex and an exact submitted connective parent conclusion outside
+the active owned carrier. For a correct selected `par`, the main reduction
+takes the ordinary `SchedulerInvariant` and returns that escape or a non-global
+ready-tail witness, together with the active component occurrence/accounting
+data. The theorem does not assert that the outcomes are exclusive. Its
+failure-conditioned corollary uses
+the negated tail witness only to force escape; it does not rule escape out.
+`CanonicalTagHistory` occurs only in the provenance theorem authenticating the
+escape's concrete mark as an earlier prepared-selection event.
+`ActiveTopDebtTailLaw` is neither assumed nor derived. Local `#print axioms`
+checks place the definition on the `propext`-only boundary and the three
+theorems on `[propext, Classical.choice, Quot.sound]`. The verified central
+integration audit covers 953 declarations: 663 standard-three, 25 axiom-free,
+127 `propext`-only, and 138 `propext`/`Quot.sound` boundaries. A repo-out
+bounded research receipt using `native_decide` informed the non-exclusivity
+boundary, but is not part of this repository's test target, public API, central
+axiom audit, or standard-axiom checkpoint. The next trusted-surface gate is
+a failure-conditioned distinct-payer/re-entry law, split between `par` and
+`tensor`; no unconditional progress, completion, termination, totality, or
+completeness conclusion follows.
 `SequentialFigure7CrossRepresentativeWaitPreservation.lean` adds no hidden
 source-region oracle. Its output-work classification follows only from the
 typed destination's exact waiting prepend and unchanged ready/sigma fields;

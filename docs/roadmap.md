@@ -1040,14 +1040,19 @@
     Prove that the law plus its canonical tag history yields endpoint debt.
     Keep the law explicit: it is not derived from correctness, canonical
     history, or reachability.
-  - [ ] Derive `ActiveTopDebtTailLaw` from correctness plus
-    `CanonicalTagHistory`. Only after this gate
-    may the residual dichotomy
-    combine with marking incompleteness to yield unconditional dispatcher
-    progress. Keep unconditional completion, terminality, later-state totality,
-    global raw seams, fallback removal, Figure-7 pure-worklist completeness,
-    sequentialization, faithful token-age scheduling, and whole-program
-    linearity outside this checkpoint.
+  - [x] For an explicit ready head selecting a `par`, reduce declarative
+    correctness plus `SchedulerInvariant` to a non-global ready-tail witness or
+    `ActiveCarrierParentEscape`. Do not assert that the outcomes are exclusive. Prove the
+    failure-conditioned form in which absence of the tail forces escape, and
+    use `CanonicalTagHistory` only to authenticate the escape's concrete mark.
+    Do not assume or derive `ActiveTopDebtTailLaw`, and do not assert that the
+    two outcomes are exclusive.
+  - [ ] Derive a failure-conditioned distinct-payer/re-entry law from the
+    remaining escape, with separate `par` and `tensor` statements. Do not infer
+    unconditional dispatcher progress, completion, terminality, later-state
+    totality, global raw seams, fallback removal, Figure-7 pure-worklist
+    completeness, sequentialization, faithful token-age scheduling, or
+    whole-program linearity from the current reduction.
   - [x] Isolate unused waiting storage as the history-preserved predicate
     `FutureWaitingUndefined`. Prove it for empty/initial states and preserve it
     through Prepared, all six successful rules, dispatcher steps,
@@ -1314,10 +1319,16 @@
     scheduler-invariant input refutes that unrestricted law at its output. This
     does not make the output drained or establish reachable-Wait existence.
     The exact Nop/Wait `remainingTop` normalizers and reset-aware
-    `ActiveTopDebtTailLaw` now give a Wait-compatible assumed carrier and derive
-    endpoint debt when it is supplied. Next derive that law from correctness
-    plus `CanonicalTagHistory` before claiming exhaustive progress on
-    incomplete, correct, certified-reachable states.
+    `ActiveTopDebtTailLaw` remain a Wait-compatible assumed carrier and derive
+    endpoint debt only when supplied. Separately, a correct selected `par` plus
+    `SchedulerInvariant` now yields either a non-global ready-tail witness or
+    `ActiveCarrierParentEscape`, and no-tail forces escape. The theorem does not
+    assert that the outcomes are exclusive; `CanonicalTagHistory` only
+    authenticates the concrete mark, and
+    the reduction neither assumes nor derives the tail law. Next prove a
+    failure-conditioned distinct-payer/re-entry law separately for `par` and
+    `tensor` before claiming exhaustive progress on incomplete, correct,
+    certified-reachable states.
     Exact source-left complexity descent, last-step decomposition, and
     recursive visited-route separation from the selected head are now proved.
     Reference-switching geometry now also excludes a terminal axiom partner

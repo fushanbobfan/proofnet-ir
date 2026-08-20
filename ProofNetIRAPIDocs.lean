@@ -917,6 +917,21 @@ def sections : List Section := [
     ]
   },
   {
+    title := "Active-top debt parent escape"
+    declarations := [
+      `ProofNetIR.SequentialFigure7.ActiveCarrierParentEscape,
+      Name.str
+        `ProofNetIR.SequentialFigure7.ActiveCarrierParentEscape
+        "authenticMarkedPremise",
+      Name.str
+        `ProofNetIR.SequentialFigure7.ReadyHeadInput
+        "readyTail_nonconclusion_or_parentEscape",
+      Name.str
+        `ProofNetIR.SequentialFigure7.ReadyHeadInput
+        "parentEscape_of_no_readyTail"
+    ]
+  },
+  {
     title := "Branch-local continuation credit"
     declarations := [
       `ProofNetIR.SequentialFigure7.ContinuationCredit,

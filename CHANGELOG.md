@@ -2,6 +2,26 @@
 
 ## Unreleased
 
+- added `SequentialFigure7ActiveTopDebtParentEscape.lean`. For an explicit
+  `ReadyHeadInput` selecting a `par`, declarative correctness and
+  `SchedulerInvariant` now return the active component occurrence/accounting
+  receipt together with either a non-global ready-tail vertex or
+  `ActiveCarrierParentEscape`. The escape contains a marked non-global frontier
+  premise distinct from the selected vertex whose exact submitted connective
+  parent conclusion lies outside the active owned carrier. The
+  failure-conditioned `ReadyHeadInput.parentEscape_of_no_readyTail` forces that
+  escape when the ready-tail alternative is absent. Given a matching
+  `CanonicalTagHistory`, `ActiveCarrierParentEscape.authenticMarkedPremise`
+  only authenticates the concrete mark as an earlier prepared-selection event.
+  Neither reduction theorem assumes or derives `ActiveTopDebtTailLaw`, and the
+  tail and escape outcomes are not asserted to be exclusive. This public
+  checkpoint ships no computational coexistence receipt. It proves no
+  unconditional `allMarked`, progress, completion, termination, totality, or
+  completeness result. The next gate is a failure-conditioned
+  distinct-payer/re-entry law, stated separately for `par` and `tensor`. The
+  verified central integration audit covers 953 declarations: 663
+  standard-three, 25 axiom-free, 127 `propext`-only, and 138
+  `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7ActiveTopDebtQueueTail.lean` and
   `SequentialFigure7ActiveTopDebtHistoryTail.lean`. The two public queue-tail
   theorems normalize the Nop and Wait residuals: under the prior
@@ -17,10 +37,8 @@
   implication. The law is an ordinary assumed carrier, not a consequence yet
   of correctness, canonical history, or reachability. Therefore this checkpoint
   proves no unconditional `allMarked`, progress, termination, totality, or
-  completeness result. The next gate is to derive `ActiveTopDebtTailLaw` from
-  correctness plus `CanonicalTagHistory`. The pending proof-commit audit is
-  expected to cover 950 declarations: 660 full-classical, 25 axiom-free, 127
-  `propext`-only, and 138 `propext`/`Quot.sound` boundaries;
+  completeness result. That earlier carrier checkpoint neither derived the law
+  nor made it a prerequisite of the later parent-escape reduction;
 - added `SequentialFigure7EndpointLocalityObstruction.lean`. For every
   successful typed `WaitStep` whose input satisfies `SchedulerInvariant`,
   `WaitStep.not_activeTopContinuationExitLocalized` proves that the output

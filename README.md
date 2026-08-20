@@ -23,21 +23,21 @@ latest research surface and are prepared for documented development changes.
 <!-- ROLLING_MAIN_SUMMARY_START -->
 ### Rolling-main summary
 
-The rolling branch now reduces post-Nop and post-Wait active-top debt exactly to
-the existence of a non-global vertex in the prepared remaining ready tail,
-assuming the prior debt and scheduler invariant. A reset-aware history carrier
-threads those tail obligations through Concl, Nop, and Wait. New clears the
-prior obligation; Forward and UnifyPayload replace it with their exact current
-created-head alternatives. When supplied with a canonical tag history, the
-carrier yields endpoint debt.
+For a correct selected `par`, an explicit ready-head input and
+`SchedulerInvariant` now reduce the first active-carrier boundary to two
+alternatives, with no exclusivity claim: a non-global vertex in the ready tail, or an
+`ActiveCarrierParentEscape` whose concrete marked non-global premise has a
+submitted connective parent outside the active owned carrier. If no such tail
+vertex exists, the escape is forced.
 
-That carrier remains an explicit assumption: correctness, canonical history,
-and reachability do not yet derive it. The earlier Wait result still refutes
-unrestricted endpoint locality, but does not refute direct debt.
+`CanonicalTagHistory` only authenticates that concrete mark as an earlier
+prepared-selection event. The reduction neither assumes nor derives
+`ActiveTopDebtTailLaw`; it does not assert that tail and escape are exclusive.
 
 This checkpoint proves no unconditional all-marked result, progress,
-completion, termination, or totality. The next gate is to derive the tail
-carrier from correctness plus canonical tag history.
+completion, termination, totality, or completeness. The next gate is a
+failure-conditioned distinct-payer/re-entry law, with `par` and `tensor`
+handled separately.
 [Current status](docs/current-status.md) owns exact revision, verification receipt, and gates.
 <!-- ROLLING_MAIN_SUMMARY_END -->
 

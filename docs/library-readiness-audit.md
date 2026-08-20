@@ -575,7 +575,8 @@ part of the engineering and proof-identity gap.
    the following structural classifier identifies the exact shape when it is
    absent, and the following debt and continuation-exit layers give conditional
    completion reductions. The first gate before dispatcher progress is now the
-   exact reset-aware history-tail law described below. Later-state
+   failure-conditioned distinct-payer/re-entry law described below, with
+   separate `par` and `tensor` statements. Later-state
    totality, recursive-fallback removal,
    faithful token-age scheduling, whole-program linearity, and Figure-7
    pure-worklist completeness remain open maturity gates; no global raw seam or
@@ -620,8 +621,25 @@ part of the engineering and proof-identity gap.
    debt. The law remains an explicit assumed carrier and is not derived from
    correctness, canonical history, or reachability. Consequently unconditional
    `allMarked`, progress, termination, totality, and completeness remain open.
-   The next readiness gate is correctness plus `CanonicalTagHistory` implying
-   `ActiveTopDebtTailLaw`.
+   The later parent-escape reduction neither requires nor derives this law.
+   `SequentialFigure7ActiveTopDebtParentEscape.lean` now gives that bounded
+   reduction for an explicit ready head whose selected connective is a `par`.
+   Declarative correctness plus `SchedulerInvariant` returns the active
+   component occurrence/accounting receipt and either a non-global ready-tail
+   witness or `ActiveCarrierParentEscape`. The escape records a concrete marked
+   non-global frontier premise, distinct from the selected vertex, whose exact
+   submitted connective parent conclusion is outside the active owned carrier.
+   The theorem does not assert that the outcomes are exclusive. If the tail
+   witness is denied, the
+   failure-conditioned theorem forces the escape without claiming that escape
+   is impossible. A supplied `CanonicalTagHistory` only authenticates the
+   concrete mark as an earlier prepared-selection event; it is not a premise of
+   the reduction. No `ActiveTopDebtTailLaw` is assumed or derived. No
+   computational coexistence receipt is part of this public checkpoint. The
+   next readiness gate is a
+   failure-conditioned distinct-payer/re-entry law, split between `par` and
+   `tensor`; progress, completion, termination, totality, and completeness
+   remain open.
    `SequentialFigure7ContinuationCredit.lean` and its preservation module now
    close a weaker full-history invariant. The two carriers assign each marked
    nonconclusion one of three receipts: an unmarked mate, future conclusion

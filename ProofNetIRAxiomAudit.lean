@@ -363,6 +363,12 @@ expansion.
   SequentialFigure7.WaitStep.activeTopMarkedNonconclusionDebt_iff_readyTailNonconclusion
 #print axioms
   SequentialFigure7.CanonicalTagHistory.activeTopMarkedNonconclusionDebt_of_tailLaw
+#print axioms
+  SequentialFigure7.ActiveCarrierParentEscape.authenticMarkedPremise
+#print axioms
+  SequentialFigure7.ReadyHeadInput.readyTail_nonconclusion_or_parentEscape
+#print axioms
+  SequentialFigure7.ReadyHeadInput.parentEscape_of_no_readyTail
 #print axioms SequentialFigure7.empty_markedNonconclusionContinuation
 #print axioms
   SequentialFigure7.InitialReservationStep.markedNonconclusionContinuation
