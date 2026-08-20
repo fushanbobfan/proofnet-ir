@@ -1375,10 +1375,12 @@
     same-age trace containing the exact par-conclusion step to selected or
     mate. Across a complete positive retained interval, the local avoiding
     paths now compose or one exact child edge lacks such a path and carries an
-    authentic selected/mate trace. The child lies strictly before or at the
-    final boundary, while the outer outcomes remain inclusive. Next eliminate
-    the strict-older and equal-final trace obstructions, then turn the marked
-    history into a distinct ready-tail payer before claiming
+    authentic selected/mate trace. Active-carrier localization rules out the
+    strictly older selected and active-owned-mate cases: the only older trace
+    is stored-right to a mate outside the active owned carrier. Equal-final
+    selected/mate traces and the inclusive outer split remain. Next connect
+    the external older mate to the temporal outcomes, eliminate equal-final
+    traces, and turn the marked history into a distinct ready-tail payer before claiming
     exhaustive progress on incomplete, correct, certified-reachable states.
     Exact source-left complexity descent, last-step decomposition, and
     recursive visited-route separation from the selected head are now proved.

@@ -744,6 +744,14 @@ def sections : List Section := [
     ]
   },
   {
+    title := "Commitment-interval par-trace localization"
+    declarations := [
+      Name.str
+        `ProofNetIR.SequentialFigure7.CanonicalTagHistory
+        "commitmentInterval_parConclusion_localizedDichotomy"
+    ]
+  },
+  {
     title := "Commitment blocker advance"
     declarations := [
       Name.str

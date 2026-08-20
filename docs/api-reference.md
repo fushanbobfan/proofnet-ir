@@ -9051,6 +9051,61 @@ ProofNetIR.SequentialFigure7.CanonicalTagHistory.commitmentInterval_parConclusio
                                           beforeTrace ++ consumer.conclusion :: consumer.mate :: afterTrace)
 ```
 
+## Commitment-interval par-trace localization
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.commitmentInterval_parConclusion_localizedDichotomy`
+
+Kind: theorem.
+
+A complete positive retained interval ending at the active ready boundary
+either has a par-conclusion-avoiding endpoint path, has an exact failed edge at
+the active boundary with either trace orientation, or has a strictly older
+failed edge whose stored-right trace reaches a mate outside the active owned
+carrier.
+
+The alternatives remain inclusive. The theorem does not eliminate the active
+trace or the external older mate.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.commitmentInterval_parConclusion_localizedDichotomy : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+    ∀ (input : ProofNetIR.SequentialFigure7.ReadyHeadInput state)
+      (consumer : ProofNetIR.ConnectiveBelow certificate input.vertex),
+      consumer.kind = ProofNetIR.SequentialConnectiveKind.par →
+        ∀ {component : ProofNetIR.UnificationComponent} {usedLinks owned : List Nat},
+          state.core.components[input.rawAge]? = some (some component) →
+            certificate.ComponentOccurrenceWitness component usedLinks owned →
+              ∀ {position edgeCount : Nat} {first : ProofNetIR.SequentialSchedulerState.RawTokenAge},
+                0 < edgeCount →
+                  state.stack.sigma[position]? = some first →
+                    state.stack.sigma[position + edgeCount]? = some input.rawAge →
+                      tagHistory.CommitmentEdgeTargetAvoidingPath first input.rawAge consumer.conclusion ∨
+                        ∃ offset parent child event,
+                          offset < edgeCount ∧
+                            state.stack.sigma[position + offset]? = some parent ∧
+                              state.stack.sigma[position + offset + 1]? = some child ∧
+                                ¬tagHistory.CommitmentEdgeTargetAvoidingPath parent child consumer.conclusion ∧
+                                  event ∈ tagHistory.reservationLedger ∧
+                                    event.rawAge = child ∧
+                                      (child = input.rawAge ∧
+                                          ((consumer.side = ProofNetIR.TensorPremiseSide.storedLeft ∧
+                                              ∃ beforeTrace afterTrace,
+                                                event.search.result.trace =
+                                                  beforeTrace ++ consumer.conclusion :: input.vertex :: afterTrace) ∨
+                                            consumer.side = ProofNetIR.TensorPremiseSide.storedRight ∧
+                                              ∃ beforeTrace afterTrace,
+                                                event.search.result.trace =
+                                                  beforeTrace ++ consumer.conclusion :: consumer.mate :: afterTrace) ∨
+                                        child < input.rawAge ∧
+                                          consumer.side = ProofNetIR.TensorPremiseSide.storedRight ∧
+                                            ¬consumer.mate ∈ owned ∧
+                                              ∃ beforeTrace afterTrace,
+                                                event.search.result.trace =
+                                                  beforeTrace ++ consumer.conclusion :: consumer.mate :: afterTrace)
+```
+
 ## Commitment blocker advance
 
 ### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.strictOlder_commitmentPath_or_advance_or_equalCallbackFailure`

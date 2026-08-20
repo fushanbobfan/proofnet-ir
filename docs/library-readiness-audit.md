@@ -1110,6 +1110,13 @@ part of the engineering and proof-identity gap.
    equal to the final boundary, and the outer alternatives remain inclusive.
    The failed edge, both trace branches, a distinct payer, the history-tail
    law, and progress remain open.
+   `SequentialFigure7CommitmentIntervalParTraceLocalization.lean` further
+   compares the failed branch with the active occurrence carrier. A strictly
+   older trace cannot end at the selected head or an active-owned mate, so it
+   must be stored-right and end at a mate outside the active owned carrier.
+   Equal-final failures retain both selected/mate trace orientations, and the
+   outer alternatives remain inclusive. The external mate, equal-final cases,
+   distinct payer, history-tail law, and progress remain open.
    `SequentialFigure7CommitmentBlockerAdvance.lean` now combines the global
    queued-head law, strict split, and equal-boundary result. Under declarative
    correctness and the complete scheduler invariant, for a supplied canonical

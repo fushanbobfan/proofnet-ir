@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- localized the failed branch of the complete positive commitment-interval
+  par-conclusion dichotomy against the active occurrence carrier. A strictly
+  older trace can no longer end at the selected head or an active-owned mate;
+  it must be stored-right and end at a mate outside the active owned carrier.
+  Equal-final failures retain the exact selected/mate trace split, and the
+  outer alternatives remain inclusive. The result does not localize the
+  external mate further, eliminate equal-final traces, derive a distinct payer
+  or tail law, or prove progress. The verified combined audit covers 977
+  theorems: 685 standard-three, 25 axiom-free, 128 `propext`-only, and 139
+  `propext`/`Quot.sound` boundaries;
 - classified a complete positive retained commitment interval against the
   current ready-head par conclusion. Either its local avoiding paths compose
   to one endpoint path, or one exact child edge has no such local path and an

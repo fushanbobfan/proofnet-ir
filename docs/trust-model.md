@@ -924,13 +924,14 @@ specialization and equal-boundary trace dichotomy add four standard-three
 theorems. The complete positive-interval par-conclusion dichotomy adds one
 standard-three theorem. It composes supplied local avoiding paths or returns
 one exact failed edge with an authentic child-age selected/mate trace; the
-outer outcomes remain inclusive. The verified combined audit covers 976
-theorems: 684 standard-three,
+outer outcomes remain inclusive. Active-carrier trace localization adds one
+standard-three theorem: strictly older failures can only be stored-right and
+end at an external mate, while equal-final selected/mate traces remain. The
+verified combined audit covers 977 theorems: 685 standard-three,
 25 axiom-free, 128 `propext`-only, and 139 `propext`/`Quot.sound` boundaries.
-The proofs do not discharge the localized failed edge, eliminate the
-selected/mate trace branches, turn the remaining historical mark into a
-distinct raw payer, derive a tail law, or add any oracle or computational
-receipt.
+The proofs do not localize the external mate further, eliminate the
+equal-final trace branches, turn the remaining historical mark into a distinct
+raw payer, derive a tail law, or add any oracle or computational receipt.
 `SequentialFigure7CrossRepresentativeWaitPreservation.lean` adds no hidden
 source-region oracle. Its output-work classification follows only from the
 typed destination's exact waiting prepend and unchanged ready/sigma fields;

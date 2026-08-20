@@ -35,16 +35,16 @@ raw ready-tail occurrence, or a prior mark. History authenticates the mark; a
 path avoiding the current par conclusion excludes selected.
 
 An adjacent commitment edge gets that avoidance from an explicit child-event
-untouched law. The active edge instead gives avoidance or an exact same-age
-selected/mate trace.
+untouched law. Across a complete positive interval, local paths compose or one
+exact child edge fails with an authentic selected/mate trace.
 
-Across a complete positive interval, local paths compose to an avoiding
-endpoint path or one exact child edge fails and has an authentic trace. Its
-child is before or equal to the final boundary; the outcomes remain inclusive.
+A strictly older failure can only be stored-right and trace to a mate outside
+the active owned carrier. Equal-final failures retain both trace directions;
+the outer alternatives remain inclusive.
 
 This proves no unconditional all-marked, progress, completion, termination,
-totality, or completeness result. The local failed edge and both trace branches
-remain open. Next derive a distinct payer and discharge global-created tails.
+totality, or completeness result. Equal-final traces and the external older
+mate remain open. Next derive a distinct payer and discharge global-created tails.
 [Current status](docs/current-status.md) owns exact revision, verification receipt, and gates.
 <!-- ROLLING_MAIN_SUMMARY_END -->
 

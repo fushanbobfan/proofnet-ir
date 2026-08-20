@@ -1484,6 +1484,16 @@ ordering places the child strictly before or at the final boundary. The outer
 alternatives are inclusive; the theorem neither discharges the failed edge nor
 derives a payer, tail law, reachability, progress, or complexity result.
 
+`SequentialFigure7CommitmentIntervalParTraceLocalization.lean` sharpens that
+failed branch relative to the active occurrence carrier. Live-carrier
+disjointness rules out a strictly older trace to the selected head or to an
+active-owned mate. Consequently every strictly older obstruction is
+stored-right and traces to a mate outside the active owned carrier. At the
+equal final boundary, both exact selected/mate trace orientations remain. The
+outer alternatives are still inclusive; the theorem does not localize the
+external mate further, eliminate the equal-final cases, derive a distinct
+payer or tail law, or prove progress.
+
 `SequentialFigure7CommitmentBlockerAdvance.lean` joins the global queued-head
 law, the strict `sigma` split, the strict-edge avoiding adapter, and the final
 equal-boundary classification. Under declarative correctness and the complete
