@@ -12,8 +12,8 @@ import ProofNetIR.SequentialFigure7MarkedTargetRawReturnCyclicReduction
 This compile-time consumer exercises the generic raw-return reduction and its
 integration with the marked target continuation exit. It also destructs both
 cyclic outcomes, including the exact oriented endpoint cancellation, complete
-cross-segment pairing, and the marked/nonconclusion source of a retained or
-omitted par pair.
+cross-segment pairing, the ordered reverse traversal, and the
+marked/nonconclusion source of a retained or omitted par pair.
 -/
 
 namespace ProofNetIR
@@ -93,11 +93,14 @@ private theorem observeCyclicJunctionOutcome
       rw [tailEmpty] at allForward tailTargetsNodup
       exact True.intro
     · rcases junction with
-        ⟨prefixNonempty, tailNonempty, cancellationSite, pairing⟩
+        ⟨prefixNonempty, tailNonempty, cancellationSite,
+          completeTraversal⟩
       have _prefixNonempty := prefixNonempty
       have _tailNonempty := tailNonempty
+      rcases completeTraversal with ⟨pairing, traversalEquation⟩
       rcases pairing with
         ⟨prefixIndicesNodup, tailIndicesNodup, prefixPairs, tailPairs⟩
+      have _traversalEquation := traversalEquation
       rcases cancellationSite with sourceJunction | baseJunction
       · rcases sourceJunction with
           ⟨prefixLast, tailHead, prefixLastLookup, tailHeadLookup,
@@ -215,6 +218,7 @@ example
 #print axioms MarkedConclusionChain.rawReturnCyclicReduction
 #print axioms MarkedConclusionRawReturnCyclicCancellationSite
 #print axioms MarkedConclusionRawReturnCompleteCancellationPairing
+#print axioms MarkedConclusionRawReturnCompleteCancellationTraversal
 #print axioms MarkedConclusionRawReturnCyclicJunctionOutcome
 #print axioms MarkedConclusionChain.rawReturnCyclicJunctionReduction
 #print axioms ActiveCarrierExternalReentryMarkedMateSeparatedContinuationCyclicReductionTarget

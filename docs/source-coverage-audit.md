@@ -490,11 +490,12 @@ Nontrivial complete cancellation occurs at one of their two exact oriented
 endpoint junctions. Both segments then have unique occurrence indices; every
 prefix occurrence is backward, its exact reverse occurs in the tail, and its
 reached vertex is a concrete marked non-global source in the tail ledger.
+Because the retained prefix is simple, unique outgoing sources order the tail
+as its exact reverse traversal.
 Otherwise the reduction exposes both premise occurrences of a par, placing the
 kept one in the prefix and the omitted one in the continuation tail. The
-omitted-right source is concretely marked and non-global. It does not order the
-paired occurrences into exact reverse traversals or eliminate either residual
-or any other open exit/trace branch.
+omitted-right source is concretely marked and non-global. It does not eliminate
+either residual or any other open exit/trace branch.
 Global preservation of the mate-region and older-raw-mark invariants through
 candidate-creating rules remains open, as do queue origin, created-candidate raw
 seams, derivation of the re-entry avoidance premise, marked-history descent,

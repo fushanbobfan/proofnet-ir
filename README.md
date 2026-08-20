@@ -35,12 +35,12 @@ the selected head. Its target is a distinct authenticated mark at the active
 boundary. Nop keeps an external raw-unmarked mate; Wait keeps an older marked mate.
 The retained path separates that target from the current mate. Its exact raw
 return splices a retained switching prefix with a forward continuation tail.
-Complete cancellation has one of two oriented endpoint junctions; each prefix edge
-is backward with its exact reverse in the forward tail, and reaches a concrete
-marked nonconclusion. A surviving omitted-right edge has the same source law.
+Complete cancellation has one of two oriented endpoint junctions. Each backward
+prefix edge has its exact reverse in the tail, which simple-path uniqueness orders
+as its reverse traversal; all prefix targets and the omitted-right source are marked and non-global.
 This proves no unconditional all-marked, progress, completion, termination,
-totality, or completeness result. Ordering or eliminating the paired
-cancellation and par-pair residuals, other exits, and equal-final traces remains open.
+totality, or completeness result. Eliminating the complete-cancellation and
+par-pair residuals, other exits, and equal-final traces remains open.
 [Current status](docs/current-status.md) owns exact revision, verification receipt, and gates.
 <!-- ROLLING_MAIN_SUMMARY_END -->
 

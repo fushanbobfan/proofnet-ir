@@ -843,6 +843,7 @@ def sections : List Section := [
         "rawReturnCyclicReduction",
       `ProofNetIR.SequentialFigure7.MarkedConclusionRawReturnCyclicCancellationSite,
       `ProofNetIR.SequentialFigure7.MarkedConclusionRawReturnCompleteCancellationPairing,
+      `ProofNetIR.SequentialFigure7.MarkedConclusionRawReturnCompleteCancellationTraversal,
       `ProofNetIR.SequentialFigure7.MarkedConclusionRawReturnCyclicJunctionOutcome,
       Name.str
         `ProofNetIR.SequentialFigure7.MarkedConclusionChain

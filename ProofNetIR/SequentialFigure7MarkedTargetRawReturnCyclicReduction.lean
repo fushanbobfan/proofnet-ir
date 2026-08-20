@@ -16,16 +16,17 @@ oriented endpoint junction when its two nonbacktracking parts were nonempty,
 or leaves a nonbacktracking cycle. In the nonempty complete-cancellation case,
 every retained-prefix occurrence is backward and pairs with its exact reverse
 in the continuation tail; the tail ledger therefore marks every reached
-prefix vertex as a nonconclusion.
+prefix vertex as a nonconclusion. Because the prefix comes from a simple
+switching path, source uniqueness orders the tail as its exact reverse
+traversal.
 Correctness forces every nonempty remainder to contain both premise-edge
 occurrences of a par: the kept occurrence lies in the switching prefix, while
 the omitted occurrence lies forward in the continuation tail and is sourced
 at a concrete marked nonconclusion.
 
 This module refines only the exact raw-return branch of the prior continuation
-exit. It does not eliminate the empty/cancellation or par-pair residual, order
-the paired occurrences into reverse traversals, derive a ready-tail witness or
-the history-tail law, or prove progress.
+exit. It does not eliminate the empty/cancellation or par-pair residual,
+derive a ready-tail witness or the history-tail law, or prove progress.
 -/
 
 namespace ProofNetIR
@@ -33,6 +34,93 @@ namespace SequentialFigure7
 
 open SequentialSchedulerState
 open SequentialSchedulerBridge
+
+private theorem edgeChain_eq_of_source_nodup_of_subsets
+    {graph : Graph} {all : List graph.DirectedEdge}
+    {start finish : Vertex}
+    {expected actual : List graph.DirectedEdge}
+    (sourcesNodup :
+      (all.map Graph.DirectedEdge.source).Nodup)
+    (finishNoSource :
+      ∀ directed ∈ all, directed.source ≠ finish)
+    (expectedSubset : ∀ directed ∈ expected, directed ∈ all)
+    (expectedChain : graph.EdgeChain start expected finish)
+    (actualSubset : ∀ directed ∈ actual, directed ∈ all)
+    (actualChain : graph.EdgeChain start actual finish) :
+    actual = expected := by
+  induction expectedChain generalizing actual with
+  | nil vertex =>
+      cases actualChain with
+      | nil => rfl
+      | @cons _ _ rest directed starts tail =>
+          have membership : directed ∈ all :=
+            actualSubset directed (by simp)
+          exact False.elim
+            (finishNoSource directed membership (by simpa using starts))
+  | @cons start finish rest first firstStarts expectedTail induction =>
+      cases actualChain with
+      | nil =>
+          have membership : first ∈ all :=
+            expectedSubset first (by simp)
+          exact False.elim
+            (finishNoSource first membership (by simpa using firstStarts))
+      | @cons _ _ actualRest actualFirst actualStarts actualTail =>
+          have firstMembership : first ∈ all :=
+            expectedSubset first (by simp)
+          have actualFirstMembership : actualFirst ∈ all :=
+            actualSubset actualFirst (by simp)
+          have sameFirst : first = actualFirst :=
+            Graph.eq_of_map_eq_of_mem_of_nodup sourcesNodup
+              firstMembership actualFirstMembership
+              (firstStarts.trans actualStarts.symm)
+          subst actualFirst
+          have tailEq : actualRest = rest :=
+            induction finishNoSource
+              (fun directed membership =>
+                expectedSubset directed (by
+                  simp only [List.mem_cons]
+                  exact Or.inr membership))
+              (fun directed membership =>
+                actualSubset directed (by
+                  simp only [List.mem_cons]
+                  exact Or.inr membership))
+              actualTail
+          exact congrArg (List.cons first) tailEq
+
+private theorem edgeSimplePath_traversed_eq_of_walk_subset
+    {graph : Graph} (path : graph.EdgeSimplePath)
+    {traversed : List graph.DirectedEdge}
+    (walk : graph.EdgeWalk path.start traversed path.finish)
+    (subset : ∀ directed ∈ traversed, directed ∈ path.traversed) :
+    traversed = path.traversed := by
+  by_cases empty : path.traversed = []
+  · rw [empty]
+    cases traversed with
+    | nil => rfl
+    | cons directed rest =>
+        have membership := subset directed (by simp)
+        rw [empty] at membership
+        simp at membership
+  · apply edgeChain_eq_of_source_nodup_of_subsets
+      path.sources_nodup
+      (fun directed membership =>
+        path.directed_source_ne_finish empty membership)
+      (by simp)
+      path.walk.toChain subset walk.toChain
+
+private theorem edgeSimplePath_reverseTraversal_eq_of_walk_reverse_subset
+    {graph : Graph} (path : graph.EdgeSimplePath)
+    {traversed : List graph.DirectedEdge}
+    (walk : graph.EdgeWalk path.finish traversed path.start)
+    (reverseSubset :
+      ∀ directed ∈ traversed, directed.reverse ∈ path.traversed) :
+    traversed = Graph.EdgeWalk.reverseTraversal path.traversed := by
+  apply edgeSimplePath_traversed_eq_of_walk_subset path.reverse
+  · exact walk
+  · intro directed membership
+    apply List.mem_map.mpr
+    refine ⟨directed.reverse, ?_, by simp⟩
+    simpa using reverseSubset directed membership
 
 private theorem connectiveForwardEdgeExists
     {certificate : Certificate} {vertex : Vertex}
@@ -230,6 +318,7 @@ private theorem MarkedConclusionChain.rawReturnClosedWalk_exists
             (retainedPrefix ++ continuationTail) base ∧
           (∀ candidate ∈ retainedPrefix,
             certificate.referenceSwitchingMask[candidate.index]? = some true) ∧
+            (Graph.EdgeWalk.visitedVertices base retainedPrefix).Nodup ∧
             (retainedPrefix.map Graph.DirectedEdge.index).Nodup ∧
             (∀ candidate ∈ continuationTail, candidate.forward = true) ∧
               (continuationTail.map Graph.DirectedEdge.target).Nodup ∧
@@ -263,7 +352,19 @@ private theorem MarkedConclusionChain.rawReturnClosedWalk_exists
     rw [prefixStart, prefixFinish, prefixTraversed] at prefixWalk
     simpa [Certificate.referenceSwitchingGraph] using prefixWalk
   rcases retainedPrefixWalk.inflateRetained aligned with
-    ⟨fullPrefix, fullPrefixWalk, indexEquation, _targets, allKept⟩
+    ⟨fullPrefix, fullPrefixWalk, indexEquation, targetEquation, allKept⟩
+  have fullPrefixVerticesNodup :
+      (Graph.EdgeWalk.visitedVertices base fullPrefix).Nodup := by
+    have initialNodup := initialPath.verticesNodup
+    change
+      (initialPath.start ::
+        initialPath.traversed.map Graph.DirectedEdge.target).Nodup
+        at initialNodup
+    change
+      (base :: fullPrefix.map Graph.DirectedEdge.target).Nodup
+    rw [targetEquation]
+    rw [← prefixTraversed, ← pathStart, ← prefixStart]
+    exact initialNodup
   have compactNodup :
       (fullPrefix.map (fun candidate =>
         Graph.retainedIndex certificate.referenceSwitchingMask
@@ -361,8 +462,8 @@ private theorem MarkedConclusionChain.rawReturnClosedWalk_exists
             rw [endpoints, lastTarget] at strict
             exact False.elim (Nat.lt_irrefl _ strict)
       exact ⟨fullPrefix, fullTail, fullPrefixWalk', fullTailWalk',
-        fullPrefixWalk'.trans fullTailWalk', allKept, fullPrefixIndexNodup,
-        allForward,
+        fullPrefixWalk'.trans fullTailWalk', allKept,
+        fullPrefixVerticesNodup, fullPrefixIndexNodup, allForward,
         tailTargetNodup, tailSources, fullPrefixReduced, fullTailReduced,
         fullPrefixEmpty, fullTailEmpty⟩
 
@@ -439,7 +540,8 @@ theorem MarkedConclusionChain.rawReturnCyclicReduction
   rcases chain.rawReturnClosedWalk_exists path pathStart directed
       directedMembership targetConsumer sourceConsumer originNeBase with
     ⟨retainedPrefix, continuationTail, prefixWalk, tailWalk, closedWalk,
-      allKept, _prefixIndexNodup, allForward, tailTargetNodup, _tailSources,
+      allKept, _prefixVerticesNodup, _prefixIndexNodup, allForward,
+      tailTargetNodup, _tailSources,
       _prefixReduced, _tailReduced,
       _prefixEmpty, _tailEmpty⟩
   let traversed := retainedPrefix ++ continuationTail
@@ -531,6 +633,18 @@ def MarkedConclusionRawReturnCompleteCancellationPairing
                 directed.target ∉ certificate.conclusions) ∧
         ∀ directed ∈ continuationTail,
           directed.reverse ∈ retainedPrefix
+
+/-- Complete cyclic cancellation follows the unique reverse traversal of the
+retained simple switching prefix. The accompanying pairing keeps the exact
+orientation, duplicate-freedom, and marked-source ledger for later use. -/
+def MarkedConclusionRawReturnCompleteCancellationTraversal
+    {certificate : Certificate} (state : ReservationState)
+    (retainedPrefix continuationTail :
+      List certificate.fullGraph.DirectedEdge) : Prop :=
+  MarkedConclusionRawReturnCompleteCancellationPairing state
+      retainedPrefix continuationTail ∧
+    continuationTail =
+      Graph.EdgeWalk.reverseTraversal retainedPrefix
 
 private theorem twoSegmentJunction_cases
     {graph : Graph}
@@ -699,7 +813,8 @@ private theorem completeCancellationPairing
 /-- Cyclic normalization with the complete-cancellation branch localized to
 the exact oriented endpoint junction of the retained prefix and forward
 continuation tail. Complete cancellation also pairs every prefix occurrence
-with its reverse tail occurrence and retains the marked-source ledger. -/
+with its reverse tail occurrence, orders the tail as the exact reverse
+traversal, and retains the marked-source ledger. -/
 def MarkedConclusionRawReturnCyclicJunctionOutcome
     (certificate : Certificate) (state : ReservationState)
     (base source : Vertex) : Prop :=
@@ -728,7 +843,7 @@ def MarkedConclusionRawReturnCyclicJunctionOutcome
                       continuationTail ≠ [] ∧
                       MarkedConclusionRawReturnCyclicCancellationSite
                         retainedPrefix continuationTail ∧
-                      MarkedConclusionRawReturnCompleteCancellationPairing
+                      MarkedConclusionRawReturnCompleteCancellationTraversal
                         state retainedPrefix continuationTail))) ∨
             ∃ (before : List Link) (left right conclusion : Vertex)
                 (after : List Link)
@@ -759,8 +874,8 @@ def MarkedConclusionRawReturnCyclicJunctionOutcome
                                         right ∉ certificate.conclusions)
 
 /-- Refine complete raw-return cancellation to one exact oriented endpoint
-junction and an exact reverse-occurrence pairing between the two individually
-nonbacktracking splice segments. -/
+junction and the exact reverse traversal of the retained simple switching
+prefix, together with the orientation and marked-source pairing ledger. -/
 theorem MarkedConclusionChain.rawReturnCyclicJunctionReduction
     {certificate : Certificate} {state : ReservationState}
     (correct : certificate.DeclarativelyCorrect)
@@ -778,7 +893,8 @@ theorem MarkedConclusionChain.rawReturnCyclicJunctionReduction
   rcases chain.rawReturnClosedWalk_exists path pathStart directed
       directedMembership targetConsumer sourceConsumer originNeBase with
     ⟨retainedPrefix, continuationTail, prefixWalk, tailWalk, closedWalk,
-      allKept, prefixIndexNodup, allForward, tailTargetNodup, tailSources,
+      allKept, prefixVerticesNodup, prefixIndexNodup, allForward,
+      tailTargetNodup, tailSources,
       prefixReduced, tailReduced,
       prefixEmpty, tailEmpty⟩
   let traversed := retainedPrefix ++ continuationTail
@@ -841,8 +957,23 @@ theorem MarkedConclusionChain.rawReturnCyclicJunctionReduction
             retainedPrefix continuationTail :=
         completeCancellationPairing prefixIndexNodup tailIndexNodup
           allForward tailSources nilNormalization
+      let retainedPath : certificate.fullGraph.EdgeSimplePath :=
+        { start := base
+          finish := targetConsumer.conclusion
+          traversed := retainedPrefix
+          walk := prefixWalk
+          verticesNodup := prefixVerticesNodup }
+      have traversalEquation :
+          continuationTail =
+            Graph.EdgeWalk.reverseTraversal retainedPrefix := by
+        exact edgeSimplePath_reverseTraversal_eq_of_walk_reverse_subset
+          retainedPath tailWalk pairing.2.2.2
+      have completeTraversal :
+          MarkedConclusionRawReturnCompleteCancellationTraversal state
+            retainedPrefix continuationTail :=
+        ⟨pairing, traversalEquation⟩
       exact Or.inr ⟨prefixIsEmpty, tailNonempty,
-        cancellationSite, pairing⟩
+        cancellationSite, completeTraversal⟩
   · rcases correct.cyclicNoImmediateReverse_uses_bothParOccurrences
         reducedEmpty reducedWalk (reducedShape.resolve_left reducedEmpty) with
       ⟨before, left, right, conclusion, after,

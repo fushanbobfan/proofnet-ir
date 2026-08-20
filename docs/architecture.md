@@ -1560,12 +1560,13 @@ splice or cancellation at one of their two oriented endpoint junctions. In a
 nonempty cancellation, each segment has unique occurrence indices, every
 prefix occurrence is backward and paired with its exact reverse in the tail,
 and the tail ledger marks every reached prefix vertex as a nonconclusion.
+Because the retained prefix comes from a simple path, unique outgoing sources
+order the continuation tail as its exact reverse traversal.
 Otherwise correctness exposes both exact premises of a par, with its kept
 occurrence in the switching prefix and its omitted occurrence in the
 continuation tail. The latter starts at a concretely marked nonconclusion in
-the finite chain. Complete cancellation
-and the par-pair case remain residuals rather than contradictions or ready-tail
-payers; the pairing is not yet ordered into exact reverse traversals.
+the finite chain. Complete cancellation and the par-pair case remain residuals
+rather than contradictions or ready-tail payers.
 
 `SequentialFigure7CommitmentBlockerAdvance.lean` joins the global queued-head
 law, the strict `sigma` split, the strict-edge avoiding adapter, and the final

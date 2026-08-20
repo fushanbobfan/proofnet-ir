@@ -9694,6 +9694,20 @@ ProofNetIR.SequentialFigure7.MarkedConclusionRawReturnCompleteCancellationPairin
     List certificate.fullGraph.DirectedEdge → List certificate.fullGraph.DirectedEdge → Prop
 ```
 
+### `ProofNetIR.SequentialFigure7.MarkedConclusionRawReturnCompleteCancellationTraversal`
+
+Kind: definition.
+
+Complete cyclic cancellation follows the unique reverse traversal of the
+retained simple switching prefix. The accompanying pairing keeps the exact
+orientation, duplicate-freedom, and marked-source ledger for later use.
+
+```lean
+ProofNetIR.SequentialFigure7.MarkedConclusionRawReturnCompleteCancellationTraversal : {certificate : ProofNetIR.Certificate} →
+  ProofNetIR.SequentialSchedulerBridge.ReservationState →
+    List certificate.fullGraph.DirectedEdge → List certificate.fullGraph.DirectedEdge → Prop
+```
+
 ### `ProofNetIR.SequentialFigure7.MarkedConclusionRawReturnCyclicJunctionOutcome`
 
 Kind: definition.
@@ -9701,7 +9715,8 @@ Kind: definition.
 Cyclic normalization with the complete-cancellation branch localized to
 the exact oriented endpoint junction of the retained prefix and forward
 continuation tail. Complete cancellation also pairs every prefix occurrence
-with its reverse tail occurrence and retains the marked-source ledger.
+with its reverse tail occurrence, orders the tail as the exact reverse
+traversal, and retains the marked-source ledger.
 
 ```lean
 ProofNetIR.SequentialFigure7.MarkedConclusionRawReturnCyclicJunctionOutcome : ProofNetIR.Certificate →
@@ -9713,8 +9728,8 @@ ProofNetIR.SequentialFigure7.MarkedConclusionRawReturnCyclicJunctionOutcome : Pr
 Kind: theorem.
 
 Refine complete raw-return cancellation to one exact oriented endpoint
-junction and an exact reverse-occurrence pairing between the two individually
-nonbacktracking splice segments.
+junction and the exact reverse traversal of the retained simple switching
+prefix, together with the orientation and marked-source pairing ledger.
 
 ```lean
 ProofNetIR.SequentialFigure7.MarkedConclusionChain.rawReturnCyclicJunctionReduction : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState},

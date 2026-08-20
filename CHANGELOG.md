@@ -9,12 +9,12 @@
   oriented endpoint junctions. In the nonempty cancellation case, each segment
   has unique occurrence indices, every prefix occurrence is backward and has
   its exact reverse in the tail, and every reached prefix vertex is a concrete
-  marked nonconclusion. Declarative correctness forces every nonempty
+  marked nonconclusion. Simple-path source uniqueness orders the tail as the
+  exact reverse traversal of the prefix. Declarative correctness forces every nonempty
   remainder to contain both premise occurrences of a par: the kept occurrence lies in the
   prefix, while the omitted occurrence lies forward in the tail and starts at
-  a concrete marked nonconclusion. The reduction does not order the paired
-  occurrences into reverse traversals, eliminate either residual, another
-  finite exit, or an equal-final trace, and
+  a concrete marked nonconclusion. The reduction does not eliminate either
+  residual, another finite exit, or an equal-final trace, and
   derives no payer, tail law, or progress theorem. The verified combined audit
   covers 996 theorems: 704 standard-three, 25
   axiom-free, 128 `propext`-only, and 139 `propext`/`Quot.sound` boundaries;

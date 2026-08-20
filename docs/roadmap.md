@@ -1094,11 +1094,12 @@
     oriented endpoint junctions of its individually nonbacktracking prefix and
     tail. The segments have unique occurrence indices; every prefix occurrence
     is backward, has its exact reverse in the tail, and reaches a concrete
-    marked nonconclusion. A surviving par-pair
+    marked nonconclusion. Simple-path source uniqueness orders the tail as the
+    exact reverse traversal of the prefix. A surviving par-pair
     residual keeps one occurrence in the switching prefix; its omitted-right
     tail occurrence starts at a concrete marked nonconclusion.
-  - [ ] Order or eliminate the paired cancellation/par-pair residuals, the
-    other finite exits, and the equal-final traces, or recover a distinct
+  - [ ] Eliminate the complete-cancellation/par-pair residuals, the other
+    finite exits, and the equal-final traces, or recover a distinct
     ready-tail payer. Do not infer
     unconditional dispatcher progress, completion, terminality, later-state
     totality, global raw seams, fallback removal, Figure-7 pure-worklist
