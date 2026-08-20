@@ -103,6 +103,7 @@ jobs:
           ~/.elan/bin/lake exe \
             proofnet_ir_continuation_credit_preservation_tests
           ~/.elan/bin/lake exe proofnet_ir_continuation_exit_tests
+          ~/.elan/bin/lake exe proofnet_ir_endpoint_locality_obstruction_tests
           ~/.elan/bin/lake exe \
             proofnet_ir_older_event_future_work_touch_unify_payload_preservation_tests
           ~/.elan/bin/lake exe \

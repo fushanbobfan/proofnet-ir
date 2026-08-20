@@ -197,6 +197,8 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "ProofNetIR.SequentialFigure7.ContinuationExit.elim_of_activeTopDrained",
     "ProofNetIR.SequentialFigure7.SchedulerInvariant."
     "allMarked_of_activeTopDrained_of_continuationExitLocalized",
+    "ProofNetIR.SequentialFigure7.WaitStep."
+    "not_activeTopContinuationExitLocalized",
     "ProofNetIR.SequentialFigure7.NewStep.after_representative_eq_markedMiddle",
     "ProofNetIR.SequentialFigure7.FutureWorkAt.beforeNewOrInserted",
     "ProofNetIR.SequentialFigure7.NewStep.freshEvent_not_strictly_older",

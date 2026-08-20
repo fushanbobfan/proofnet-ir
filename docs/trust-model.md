@@ -794,15 +794,26 @@ every marked non-global connective-conclusion step and the certificate's
 intrinsic complexity bound. Its `ContinuationExit` has raw-mate,
 future-conclusion, and marked-global forms. The distinct
 `LocalizedContinuationExit` has only endpoint-bound raw and future forms and no
-global constructor. The active-top locality law remains an ordinary explicit
-hypothesis: no theorem derives it from canonical history or claims it is
-necessary. Structural well-formedness plus queued vertices unmarked and that
+global constructor. The active-top locality law is an ordinary explicit
+hypothesis. Structural well-formedness plus queued vertices unmarked and that
 law imply active-top debt; declarative correctness, the complete scheduler
 invariant, `ActiveTopDrained`, and the same law imply `core.allMarked = true`.
-No arbitrary history or locality existence, unconditional progress,
-completion, terminality, or totality enters the trusted surface. The pending
-combined audit is expected to cover 946 declarations: 656 full-classical, 25
-axiom-free, 127 `propext`-only, and 138 `propext`/`Quot.sound` boundaries.
+These conditional implications remain in the trusted surface; no arbitrary
+history or locality existence, unconditional progress, completion,
+terminality, or totality follows from them.
+`SequentialFigure7EndpointLocalityObstruction.lean` adds one public theorem on
+the same standard-three boundary. From a successful typed `WaitStep` and the
+input `SchedulerInvariant`, it proves
+`¬ ActiveTopContinuationExitLocalized certificate after`. Thus the exact
+unrestricted law cannot be a full canonical-history invariant across
+successful Wait transitions. The proof adds no correctness, reachability,
+drainedness, history-existence, scheduling, or progress oracle. It does not
+refute direct debt or a Wait-compatible drained, temporal, or cross-component
+weakening. The concrete trace explored during research uses `native_decide` and
+is deliberately absent from the production module, consumer, and public axiom
+audit. The pending combined audit is expected to cover 947 declarations: 657
+full-classical, 25 axiom-free, 127 `propext`-only, and 138
+`propext`/`Quot.sound` boundaries.
 `SequentialFigure7CrossRepresentativeWaitPreservation.lean` adds no hidden
 source-region oracle. Its output-work classification follows only from the
 typed destination's exact waiting prepend and unchanged ready/sigma fields;

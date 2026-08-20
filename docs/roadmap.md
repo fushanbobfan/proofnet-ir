@@ -1024,11 +1024,20 @@
     scheduler invariant, and a drained active top, the same locality condition
     implies `core.allMarked = true`. The condition is sufficient, is not claimed
     necessary, and is not derived from canonical history.
-  - [ ] Derive endpoint-bound locality, `ActiveTopMarkedNonconclusionDebt`, or
-    another sufficient completion law through complete canonical histories.
-    The finite continuation exit does not itself bind an endpoint to the active
-    frontier or establish arbitrary history or locality existence. Only after
-    this gate may the residual dichotomy
+  - [x] Prove the Wait-output obstruction: every successful typed `WaitStep`
+    from a scheduler-invariant input refutes the unrestricted endpoint-locality
+    law at its output. The law therefore cannot be a full canonical-history
+    invariant across successful Wait transitions. Keep the prior conditional
+    locality-to-debt and locality-to-`allMarked` implications. Do not infer that
+    the output is drained, that a reachable Wait exists, or that direct debt or
+    a Wait-compatible drained, temporal, or cross-component weakening fails.
+    Keep the concrete `native_decide` trace research-only.
+  - [ ] Derive `ActiveTopMarkedNonconclusionDebt` directly through complete
+    canonical histories, formulate and preserve a Wait-compatible drained,
+    temporal, or cross-component weakening, or prove another sufficient
+    completion law. The finite continuation exit does not itself establish any
+    of those alternatives or arbitrary history existence. Only after this gate
+    may the residual dichotomy
     combine with marking incompleteness to yield unconditional dispatcher
     progress. Keep unconditional completion, terminality, later-state totality,
     global raw seams, fallback removal, Figure-7 pure-worklist completeness,
@@ -1296,10 +1305,13 @@
     Full-history continuation credit is kernelized without a correctness
     premise and now has a finite strict-complexity three-way exit. The separate
     raw/future endpoint-locality law suffices for debt and conditional marking
-    completion, but canonical history does not derive it and no necessity claim
-    is made. Derive that locality, debt itself, or another sufficient route
-    before claiming exhaustive progress on incomplete, correct,
-    certified-reachable states.
+    completion when supplied, but every successful typed Wait from a
+    scheduler-invariant input refutes that unrestricted law at its output. This
+    does not make the output drained or establish reachable-Wait existence.
+    Derive debt directly, preserve a Wait-compatible drained, temporal, or
+    cross-component weakening, or establish another sufficient route before
+    claiming exhaustive progress on incomplete, correct, certified-reachable
+    states.
     Exact source-left complexity descent, last-step decomposition, and
     recursive visited-route separation from the selected head are now proved.
     Reference-switching geometry now also excludes a terminal axiom partner

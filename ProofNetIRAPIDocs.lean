@@ -999,6 +999,14 @@ def sections : List Section := [
     ]
   },
   {
+    title := "Wait endpoint-locality obstruction"
+    declarations := [
+      Name.str
+        `ProofNetIR.SequentialFigure7.WaitStep
+        "not_activeTopContinuationExitLocalized"
+    ]
+  },
+  {
     title := "Exact-run-local region boundaries"
     declarations := [
       `ProofNetIR.SequentialFigure7.ExactFreshSourceLeftRunCarrier,

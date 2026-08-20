@@ -343,16 +343,27 @@ of marked non-global conclusions to an unmarked raw mate, future-conclusion
 work, or a marked global conclusion. A separate endpoint-bound receipt retains
 only the raw and future cases and binds the endpoint to one component frontier;
 it has no global case. This locality condition is sufficient, is not claimed
-necessary, and is not derived from canonical history. With structural
-well-formedness and queued vertices unmarked it implies active-top debt; with
-declarative correctness, the complete scheduler invariant, and
+necessary. With structural well-formedness and queued vertices unmarked it
+implies active-top debt; with declarative correctness, the complete scheduler
+invariant, and
 `ActiveTopDrained` it implies `core.allMarked = true`. These are conditional
 code consequences, not an existence, unconditional progress, completion,
 terminality, or totality theorem.
+`SequentialFigure7EndpointLocalityObstruction.lean` is a further code
+consequence and records no new source reading. Every successful typed
+`WaitStep` from a scheduler-invariant input refutes the unrestricted locality
+law at its output, so that exact law cannot be a full canonical-history
+invariant across successful Wait transitions. The theorem neither makes the
+output drained nor establishes reachable-Wait existence or progress. It does
+not refute direct debt or a Wait-compatible drained, temporal, or
+cross-component weakening, and the earlier conditional implications remain
+valid. A concrete `native_decide` trace remains research-only and outside the
+public theorem.
 Global preservation of the mate-region and older-raw-mark invariants through
 candidate-creating rules remains open, as do queue origin, created-candidate raw
-seams, history-derived endpoint locality or debt, unconditional active-top
-completion, progress, later-state totality,
+seams, direct history-compatible debt, a Wait-compatible weakened law or other
+sufficient completion route, unconditional active-top completion, progress,
+later-state totality,
 fallback removal,
 sequentialization, faithful token-age scheduling, and whole-program linearity.
 The future-head-touch invariant is

@@ -968,8 +968,10 @@ marked-tensor predecessor residual; the positive priority branch is lowered to
 one exact successful `dispatch?` result. This history theorem alone does not
 construct a ready head; the following structural module classifies the exact
 shape of its absence, and the subsequent debt and continuation-exit layers give
-conditional semantic reductions. Deriving endpoint-bound locality, active-top
-debt, or another sufficient completion law from complete canonical histories is
+conditional semantic reductions. The endpoint-locality obstruction below rules
+out the unrestricted locality law as a full-history invariant across successful
+Wait transitions. Direct history-compatible debt, a Wait-compatible drained,
+temporal, or cross-component weakening, or another sufficient completion law is
 the next proof gate before dispatcher progress or later-state totality; global
 raw seams, fallback removal, faithful scheduling, pure-worklist completeness,
 sequentialization, and whole-program linearity remain separate.
@@ -1039,14 +1041,25 @@ The same file keeps endpoint ownership separate. `LocalizedContinuationExit`
 has only raw-mate and future-conclusion cases, binds that exact endpoint to one
 component frontier, and deliberately has no marked-global case.
 `ActiveTopContinuationExitLocalized` asks for this receipt at every marked
-nonconclusion on the active frontier. The law is sufficient, is not claimed
-necessary, and is not derived from canonical history. Together with structural
-well-formedness and `QueuedVerticesUnmarked` it yields
+nonconclusion on the active frontier. Together with structural well-formedness
+and `QueuedVerticesUnmarked`, the law yields
 `ActiveTopMarkedNonconclusionDebt`; declarative correctness, the complete
 scheduler invariant, `ActiveTopDrained`, and the locality law therefore imply
-`core.allMarked = true`. Unconditional progress, completion, terminality, and
-totality remain open; the next gate is history-derived locality or debt, or a
-different sufficient route through the drained residual.
+`core.allMarked = true`. Both implications remain valid.
+
+`SequentialFigure7EndpointLocalityObstruction.lean` proves the exact limit on
+that law. Every successful typed `WaitStep` from an input satisfying
+`SchedulerInvariant` refutes `ActiveTopContinuationExitLocalized` at its output.
+The law therefore cannot be an unrestricted invariant of complete canonical
+histories across successful Wait transitions. The theorem proves neither that
+the output is drained nor that any canonical history reaches a Wait transition;
+it supplies no progress or existence result. It also does not refute direct
+active-top debt or a Wait-compatible drained, temporal, or cross-component
+weakening. The concrete `native_decide` trace used during research remains
+outside the production theorem and public trust surface. Unconditional
+progress, completion, terminality, and totality remain open; the next gate is
+direct history-compatible debt, one of those weakened laws, or another
+sufficient completion route through the drained residual.
 
 `SequentialFigure7CrossRepresentativeNewPreservation.lean` isolates the New
 branch's two genuinely new effects. Every output work occurrence is either
@@ -1430,11 +1443,14 @@ active-top classifier identifies the exact structural shape when that head is
 absent. The marked-nonconclusion debt theorem now turns that shape into
 `core.allMarked = true` when its additional state predicate holds. The
 full-history continuation-credit invariant also has a finite three-way
-normalization. A separate endpoint-bound open-exit law would imply active-top
-debt and hence close the drained branch, but the replay and canonical-history
-theorems derive neither that sufficient locality law nor debt itself. They also
-do not show that locality is necessary. Unconditional progress, completion,
-terminality, and totality therefore remain open.
+normalization. A separate endpoint-bound open-exit law conditionally implies
+active-top debt and hence closes a drained branch when supplied. Successful
+Wait, however, refutes that unrestricted same-component law at its output; the
+replay and canonical-history theorems therefore cannot preserve it unchanged.
+They derive neither direct debt nor a Wait-compatible drained, temporal, or
+cross-component weakening, and the obstruction proves no post-Wait drained or
+reachable-Wait existence fact. Unconditional progress, completion, terminality,
+and totality therefore remain open.
 
 The same executable's `--cross-representative-search` mode maintains a
 lightweight raw-age and source-start ledger that mirrors exact initialization

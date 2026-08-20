@@ -30,18 +30,21 @@ or a concretely marked global conclusion.
 
 A separate endpoint-bound locality condition retains only the open raw-mate and
 future-conclusion exits and binds their endpoint to the active component. This
-condition is sufficient, is not claimed necessary, and is not yet derived from
-canonical history. With structural well-formedness and queued vertices
-unmarked it yields active-top marked-nonconclusion debt; with declarative
-correctness, the full scheduler invariant, and a drained active top it yields
-all formula occurrences marked.
+condition remains sufficient: with structural well-formedness and queued
+vertices unmarked it yields active-top marked-nonconclusion debt; with
+declarative correctness, the full scheduler invariant, and a drained active top
+it yields all formula occurrences marked.
+
+Every successful typed Wait step from a scheduler-invariant input refutes
+unrestricted locality at its output, so the law is not preserved across such
+a transition. This does not establish a reachable Wait, nor refute conditional
+results, direct debt, or a compatible drained, temporal, or cross-component law.
 
 This checkpoint proves no arbitrary history or locality existence,
 unconditional progress, completion, terminality, or totality. The next gate is
-to derive endpoint locality, active-top debt, or another sufficient completion
-route from canonical history.
-[The replaceable current-status record](docs/current-status.md) owns exact
-revision, verification receipt, and gates.
+direct history-compatible debt, a suitable weakened locality law, or another
+sufficient completion route.
+[Current status](docs/current-status.md) owns exact revision, verification receipt, and gates.
 <!-- ROLLING_MAIN_SUMMARY_END -->
 
 ## Scope

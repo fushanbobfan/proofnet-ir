@@ -393,6 +393,8 @@ expansion.
   SequentialFigure7.activeTopMarkedNonconclusionDebt_of_continuationExitLocalized
 #print axioms
   SequentialFigure7.SchedulerInvariant.allMarked_of_activeTopDrained_of_continuationExitLocalized
+#print axioms
+  SequentialFigure7.WaitStep.not_activeTopContinuationExitLocalized
 #print axioms SequentialFigure7.NewStep.after_representative_eq_markedMiddle
 #print axioms SequentialFigure7.FutureWorkAt.beforeNewOrInserted
 #print axioms SequentialFigure7.NewStep.freshEvent_not_strictly_older

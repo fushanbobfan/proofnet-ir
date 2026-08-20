@@ -2,6 +2,25 @@
 
 ## Unreleased
 
+- added `SequentialFigure7EndpointLocalityObstruction.lean`. For every
+  successful typed `WaitStep` whose input satisfies `SchedulerInvariant`,
+  `WaitStep.not_activeTopContinuationExitLocalized` proves that the output
+  refutes `ActiveTopContinuationExitLocalized`. The unguarded same-component
+  endpoint-locality law therefore cannot serve as an unrestricted invariant
+  across full canonical histories containing a successful Wait transition.
+  This obstruction neither establishes that the output is drained nor refutes
+  direct history-compatible debt, a Wait-compatible drained, temporal, or
+  cross-component weakening, or another sufficient completion law. The prior
+  locality-to-debt and locality-to-`allMarked` implications remain valid when
+  their locality hypothesis is supplied. A concrete `native_decide` trace
+  remains research-only: it is not part of the public theorem or audited trust
+  surface, and no reachable-Wait existence or progress claim follows. The next
+  gate is direct history-compatible debt, an appropriate weakened locality law,
+  or another sufficient completion route. The standalone consumer invokes the
+  theorem, turns an assumed output-locality receipt into `False`, audits its
+  axioms, and exposes a runnable smoke test. The pending audit is expected to
+  report 947 declarations: 657 full-classical, 25 axiom-free, 127
+  `propext`-only, and 138 `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7ContinuationExit.lean`. Strict increase of formula
   complexity along marked non-global connective conclusions makes every
   supplied `MarkedNonconclusionContinuation` receipt normalize to a finite
@@ -13,16 +32,16 @@
   endpoint-bound `LocalizedContinuationExit` deliberately has only raw-mate and
   future-conclusion constructors; it has no marked-global constructor.
   `ActiveTopContinuationExitLocalized` is a sufficient locality law, not a
-  claimed necessary condition, and no canonical-history theorem currently
-  derives it. Structural well-formedness, queued vertices unmarked, and this
-  locality law imply `ActiveTopMarkedNonconclusionDebt`; declarative
-  correctness, the complete scheduler invariant, `ActiveTopDrained`, and the
+  claimed necessary condition. Structural well-formedness, queued vertices
+  unmarked, and this locality law imply `ActiveTopMarkedNonconclusionDebt`;
+  declarative correctness, the complete scheduler invariant,
+  `ActiveTopDrained`, and the
   same law imply `core.allMarked = true`. This proves neither arbitrary history
   or locality existence nor unconditional progress, completion, terminality,
-  or totality. The next gate is endpoint locality or debt derived from canonical
-  history, or another sufficient completion route. The standalone
-  consumer destructs all three carriers and exercises all six theorem
-  boundaries. The pending audit is expected to report 946 declarations: 656
+  or totality. The following obstruction checkpoint shows why the unrestricted
+  locality law cannot be promoted through successful Wait outputs. The
+  standalone consumer destructs all three carriers and exercises all six
+  theorem boundaries. The pending audit is expected to report 946 declarations: 656
   full-classical, 25 axiom-free, 127 `propext`-only, and 138
   `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7ContinuationCredit.lean` and

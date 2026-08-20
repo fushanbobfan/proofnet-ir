@@ -60,6 +60,7 @@ defaultTargets = [
   "proofnet_ir_active_top_debt_branch_residual_tests",
   "proofnet_ir_continuation_credit_preservation_tests",
   "proofnet_ir_continuation_exit_tests",
+  "proofnet_ir_endpoint_locality_obstruction_tests",
   "proofnet_ir_older_event_future_work_touch_unify_payload_preservation_tests",
   "proofnet_ir_older_event_future_work_touch_unify_payload_discharge_tests",
   "proofnet_ir_older_raw_marked_region_unify_payload_preservation_tests",
@@ -309,6 +310,10 @@ root = "ProofNetIRContinuationCreditPreservationTests"
 [[lean_exe]]
 name = "proofnet_ir_continuation_exit_tests"
 root = "ProofNetIRContinuationExitTests"
+
+[[lean_exe]]
+name = "proofnet_ir_endpoint_locality_obstruction_tests"
+root = "ProofNetIREndpointLocalityObstructionTests"
 
 [[lean_exe]]
 name = "proofnet_ir_older_event_future_work_touch_unify_payload_preservation_tests"

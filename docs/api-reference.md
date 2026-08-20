@@ -10277,6 +10277,22 @@ ProofNetIR.SequentialFigure7.SchedulerInvariant.allMarked_of_activeTopDrained_of
         ProofNetIR.SequentialFigure7.ActiveTopContinuationExitLocalized certificate state → state.core.allMarked = true
 ```
 
+## Wait endpoint-locality obstruction
+
+### `ProofNetIR.SequentialFigure7.WaitStep.not_activeTopContinuationExitLocalized`
+
+Kind: theorem.
+
+A successful `wait` from a complete scheduler-invariant state refutes the exact
+same-component endpoint-locality predicate at its output.
+
+```lean
+ProofNetIR.SequentialFigure7.WaitStep.not_activeTopContinuationExitLocalized : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.WaitStep certificate before after),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+    ¬ProofNetIR.SequentialFigure7.ActiveTopContinuationExitLocalized certificate after
+```
+
 ## Exact-run-local region boundaries
 
 ### `ProofNetIR.SequentialFigure7.ExactFreshSourceLeftRunCarrier`

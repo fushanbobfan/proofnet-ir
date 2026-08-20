@@ -574,9 +574,10 @@ part of the engineering and proof-identity gap.
    dispatcher result. This history wrapper does not construct that ready head;
    the following structural classifier identifies the exact shape when it is
    absent, and the following debt and continuation-exit layers give conditional
-   completion reductions. Deriving endpoint locality, debt, or another
-   sufficient completion law from complete history remains the first gate
-   before dispatcher progress. Later-state totality, recursive-fallback removal,
+   completion reductions. The first gate before dispatcher progress is now a
+   direct history-compatible debt law, a Wait-compatible drained, temporal, or
+   cross-component weakening, or another sufficient completion law. Later-state
+   totality, recursive-fallback removal,
    faithful token-age scheduling, whole-program linearity, and Figure-7
    pure-worklist completeness remain open maturity gates; no global raw seam or
    sequentialization result follows from this history package.
@@ -627,13 +628,21 @@ part of the engineering and proof-identity gap.
    strictly older boundary.
    The separate `LocalizedContinuationExit` carrier binds only those two open
    endpoint forms to one component frontier and has no marked-global case.
-   `ActiveTopContinuationExitLocalized` is sufficient, is not claimed
-   necessary, and is not obtained from canonical history. With structural
-   well-formedness and queued vertices unmarked it implies active-top debt; with
+   With structural well-formedness and queued vertices unmarked,
+   `ActiveTopContinuationExitLocalized` implies active-top debt; with
    declarative correctness, the complete scheduler invariant, and
-   `ActiveTopDrained` it implies `core.allMarked = true`. This remains a
-   conditional reduction: no arbitrary history or locality existence,
-   unconditional progress, completion, terminality, or totality follows.
+   `ActiveTopDrained` it implies `core.allMarked = true`. Both conditional
+   reductions remain valid.
+   `SequentialFigure7EndpointLocalityObstruction.lean` now proves that every
+   successful typed `WaitStep` from a scheduler-invariant input refutes the
+   unrestricted locality law at its output. It therefore cannot be promoted as
+   a full canonical-history invariant across successful Wait transitions. This
+   proves neither that the output is drained nor that a reachable Wait exists,
+   and it does not refute direct debt or a Wait-compatible drained, temporal, or
+   cross-component weakening. The concrete `native_decide` trace remains
+   research-only and outside the public theorem. The readiness gate pivots to
+   one of those routes or another sufficient completion law; unconditional
+   progress, completion, terminality, and totality still do not follow.
    `SequentialFigure7PriorityEnabled.lean` now gives that dispatcher an exact
    branch-indexed applicability correspondence whose six positive fields and
    stored earlier-branch negations are input-only. Each executor has an
@@ -1081,7 +1090,11 @@ part of the engineering and proof-identity gap.
    premise and normalizes through a finite strict-complexity chain to one of
    three endpoints. The separate raw/future-only endpoint-locality law is
    sufficient to recover active-top debt and the conditional all-marked result,
-   but canonical history does not yet supply it, and necessity is not claimed.
+   but every successful typed Wait from a scheduler-invariant input refutes the
+   unrestricted law at its output. Canonical history therefore cannot preserve
+   that exact law across Wait unchanged. This says neither that the output is
+   drained nor that a reachable Wait exists, and leaves direct debt and
+   Wait-compatible drained, temporal, or cross-component weakenings open.
    The library therefore still lacks unconditional branch applicability,
    progress, completion, terminality, later-state totality, global raw seams,
    fallback removal, scheduling fidelity, sequentialization, pure-worklist
