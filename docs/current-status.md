@@ -17,7 +17,7 @@ Status date: 2026-08-20
 | Track | Revision | Status | Authority |
 | --- | --- | --- | --- |
 | Stable library | `v0.9.0` / `9b7dc3d104af8f57ea9123aab2e61b42e05d2216` | Released | [v0.9.0 release audit](v0.9-release-audit.md) |
-| Rolling research | `v0.10.0-dev`; proof `c944819`; audit `1e46573` | Active | This page/commits |
+| Rolling research | `v0.10.0-dev`; proof `8265cfe`; audit `1e46573` | Active | This page/commits |
 
 Documentation-only commits may descend from the proof checkpoint without
 changing its mathematical authority. The stable release and rolling branch
@@ -178,7 +178,7 @@ lift this refinement only through the strictly older stored-right branch.
 They do not eliminate the marked target, choose its parent source kind, derive
 a ready-tail witness or history-tail law, or prove progress.
 
-The current checkpoint binds that same target to the unique submitted parent
+The preceding checkpoint binds that same target to the unique submitted parent
 represented by the inbound edge. Canonical continuation credit then gives a
 target-indexed temporal trichotomy. The target consumer's raw mate is
 raw-unmarked outside the active occurrence carrier, its parent conclusion is
@@ -189,6 +189,18 @@ the typed Nop and Wait theorems refine only the strictly older stored-right
 branch of the existing inclusive interval outcome. No trichotomy case is
 eliminated, and the avoiding and equal-final branches remain open. The result
 does not derive a ready-tail payer, `ActiveTopDebtTailLaw`, or progress.
+
+From that exact target, the current checkpoint follows each marked non-global
+parent through its finite continuation chain. Its terminal receipt is
+raw-unmarked work outside the active carrier, an exact raw return to the
+current selected/mate pair, future work at a strictly older boundary, or a
+marked global conclusion at a strictly older representative. The raw-return
+branch retains the complete chain,
+identifies the terminal consumer with the current conclusion, and proves
+strict formula-complexity growth from the marked re-entry target to the
+current mate. No terminal alternative is eliminated, and the avoiding and
+equal-final branches remain inclusive. The result derives neither a distinct
+ready-tail payer nor `ActiveTopDebtTailLaw`, completion, or progress.
 
 The preceding queue/history-tail checkpoint remains valid. For supplied typed
 Nop and Wait steps, its iff theorems identify post-step debt with the exact
@@ -204,7 +216,7 @@ from a scheduler-invariant input refutes unrestricted
 same-component locality carrier, but neither refutes direct debt nor supplies
 the required queue-tail or elimination of the classified re-entry failure.
 
-The checkpoint's accumulated public surface is exactly thirty-four declaration
+The checkpoint's accumulated public surface is exactly thirty-eight declaration
 boundaries:
 
 ```text
@@ -242,6 +254,10 @@ SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedTemporalTarget
 SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedTarget.temporalTarget
 SequentialFigure7.NopStep.commitmentInterval_parTraceReentryMarkedTemporalOutcome
 SequentialFigure7.WaitStep.commitmentInterval_parTraceReentryMarkedTemporalOutcome
+SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedContinuationExitTarget
+SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedTemporalTarget.continuationExitTarget
+SequentialFigure7.NopStep.commitmentInterval_parTraceReentryMarkedContinuationExitOutcome
+SequentialFigure7.WaitStep.commitmentInterval_parTraceReentryMarkedContinuationExitOutcome
 ```
 
 The earlier parent-escape, source-temporal, debt, history-tail,
@@ -264,11 +280,13 @@ no-tail failure and exclude the selected target only in the strictly older
 stored-right branch. They retain a distinct authenticated concrete mark at the
 active representative. The preceding theorems further separate that target
 from the current mate and rule out the current selected head as the mate of
-any exact connective view rooted at the target. The current target-indexed
+any exact connective view rooted at the target. The preceding target-indexed
 theorem binds the same target to its unique parent and normalizes that parent's
-continuation to raw work outside the carrier, strictly older queued work, or a
-strictly older marked conclusion. It does not eliminate any alternative or
-make any conditional implication unconditional.
+first continuation step. The current theorem follows every marked non-global
+parent through a finite chain and ends raw outside the carrier, at an exact raw
+return to the current pair, at strictly older queued work, or at a strictly
+older marked global conclusion. It does not eliminate any alternative or make
+any conditional implication unconditional.
 
 ### Finite ready-head boundary audit
 
@@ -311,15 +329,16 @@ Exact signatures are maintained in the generated API reference for the
 [interval par-guard re-entry failure target][reentry-failure],
 [interval par-guard re-entry mate separation][reentry-mate-separation],
 [marked re-entry target temporal reduction][target-temporal],
+[marked re-entry target finite continuation exit][target-exit],
 [branch-local continuation credit](api-reference.md#branch-local-continuation-credit),
 [continuation-credit preservation](api-reference.md#continuation-credit-preservation),
 [endpoint-localized continuation exits](api-reference.md#endpoint-localized-continuation-exits),
 and the retained
 [Wait endpoint-locality obstruction](api-reference.md#wait-endpoint-locality-obstruction).
-The first open proof step is now to discharge the target-indexed raw-outside,
-older-future, and older-marked alternatives, eliminate that target or descend
-its mark to a distinct active payer, and eliminate both equal-final trace
-orientations.
+The first open proof step is now to discharge the finite raw-outside,
+raw-return, older-future, and older-marked-global alternatives, especially the
+exact return to the current selected/mate pair, and eliminate both equal-final
+trace orientations.
 The waiting and external-raw outcome alternatives also remain unresolved.
 The remaining global-created Forward/UnifyPayload alternatives must also be
 derived.
@@ -342,11 +361,12 @@ This checkpoint does not establish any of the following:
   carrier, or that any branch supplies a distinct ready-tail payer;
 - elimination of the prior-concrete-mark target in the strictly older re-entry,
   elimination of either equal-final conclusion-to-selected or
-  conclusion-to-mate trace, elimination of the target-bound raw-outside,
-  older-future, or older-marked continuation alternatives, or conversion of
-  that target into a distinct active raw payer;
-- terminality of the temporal outcome; in particular, its marked case may
-  continue through another submitted connective;
+  conclusion-to-mate trace, elimination of the finite raw-outside, raw-return,
+  older-future, or older-marked-global continuation alternatives, or
+  conversion of that target into a distinct active raw payer;
+- a terminal scheduler state or elimination of any finite continuation exit;
+  normalization terminates the marked chain but does not discharge its
+  raw, future, or marked-global endpoint;
 - the ordered distinct-payment or history re-entry law needed to turn the
   classified failure status into the missing queue-tail result;
 - derivation of `ActiveTopDebtTailLaw` from declarative correctness,
@@ -389,12 +409,12 @@ plan is maintained in [v0.10-design.md](v0.10-design.md) and
 The exact rolling proof checkpoint is:
 
 ```text
-commit    c94481947f05cb08feabff4fea29a5e30c9a93a4
-tree      7b00322ccfcd19e0818764f6d501c97ac6fb7fc9
-parent    98884f954abb94d8b19fae45ddd6a56d6f16dbda
-stage     marked re-entry target continuation normalization
-delta     17 paths, +876/-5
-manifest  D9AC9617D33183295E24C85DF1758A5B9175BC55CC6D6F3F100F3553EB5AEF94
+commit    8265cfe57ccae8114108c6c2377c726b50d7d653
+tree      2f896de1ef2b3503b911e8b707ac7ad9309f3155
+parent    6ec983be0befbdcf5e40c0a8b7319d666488bd80
+stage     marked re-entry target finite continuation exit
+delta     17 paths, +1068/-8
+manifest  69CF93B77C5AA3B5B8A35AAA4EF2B35CAA939162D01EDB68CACE43D8FCE07E76
 ```
 
 The manifest hashes canonical
@@ -403,9 +423,9 @@ The manifest hashes canonical
 The checkpoint source receipts are:
 
 ```text
-temporal source    CFA243E580E785FAE500ADD8239473333C430BFF86EE7D9729C49C9265FDFB53
-temporal consumer  16CC5A8535EA25225E5C86E00030AD03F5E6ACA47E7A10A14943B549745C4914
-generated API      7BD4478CD421A2DD0DCFC1B8058D8BD60E4E87CD6CA53403FEAB91E640C21D1B
+exit source    5417D406F92E79278820B187A009D0C435D793F97822E6D4C06D360E6917FFAA
+exit consumer  3C2BC645AB968A22FE2BF4DB41DDC049DC4D2287199D759D3FBE60A4EFE9C5D7
+generated API  D99ACFE7EBD56FCB250BFB737E730B64D8F272CA3C532D192ABC3EAA44F62221
 ```
 
 The separately committed finite-audit evidence is:
@@ -421,15 +441,14 @@ manifest  4BBAB7FC99D03D2612459A0FD9291990313A05A184F2572A581BC93C6E49DFDD
 
 Local verification on the committed bytes:
 
-- full `lake build`: 559/559 jobs;
-- Lean source audit: zero actual `sorry`/`admit` findings across 260 Lean
+- full `lake build`: 564/564 jobs;
+- Lean source audit: zero actual `sorry`/`admit` findings across 262 Lean
   files;
-- generated API reference: current at 70 sections and 1,656 declarations;
-- the runnable target-temporal consumer called all three public theorems,
-  consumed and rebuilt every target-bound field and all three continuation
-  alternatives, and invoked both typed interval wrappers before emitting its
-  kernel-green marker;
-- public theorem audit: 989 entries total: 697 full-classical, 25
+- generated API reference: current at 71 sections and 1,660 declarations;
+- the runnable finite-exit consumer called all three public theorems, consumed
+  and rebuilt every target-bound field and all four terminal alternatives, and
+  invoked both typed interval wrappers before emitting its kernel-green marker;
+- public theorem audit: 992 entries total: 700 full-classical, 25
   axiom-free, 128 `propext`-only, and 139 `propext` plus `Quot.sound`;
 - the default, extended, and cross-variant progress audits passed with every
   incomplete visited state carrying an exact ready head and successful
@@ -442,19 +461,20 @@ Exact-head proof GitHub verification:
 
 - workflow: `Lean CI`;
 - event/ref: `push` / `main`;
-- run: [32395003585](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32395003585);
-- build job: [96509664994][proof-job];
-- exact head: `c94481947f05cb08feabff4fea29a5e30c9a93a4`;
+- run: [32400250092](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32400250092);
+- build job: [96526456523][proof-job];
+- exact head: `8265cfe57ccae8114108c6c2377c726b50d7d653`;
 - result: 36 successful steps, zero failures, and one expected release-ref-only
   skip;
-- run: `2026-08-20T16:58:31Z`-`2026-08-20T17:11:59Z` (13m28s);
-- build job: `2026-08-20T16:58:35Z`-`2026-08-20T17:11:58Z`
-  (13m23s).
+- run: `2026-08-20T17:54:49Z`-`2026-08-20T18:08:15Z` (13m26s);
+- build job: `2026-08-20T17:54:52Z`-`2026-08-20T18:08:14Z`
+  (13m22s).
 
-[proof-job]: https://github.com/fushanbobfan/proofnet-ir/actions/runs/32395003585/job/96509664994
+[proof-job]: https://github.com/fushanbobfan/proofnet-ir/actions/runs/32400250092/job/96526456523
 [reentry-failure]: api-reference.md#commitment-interval-par-guard-re-entry-failure-target
 [reentry-mate-separation]: api-reference.md#commitment-interval-par-guard-re-entry-mate-separation
 [target-temporal]: api-reference.md#commitment-interval-marked-re-entry-target-temporal-reduction
+[target-exit]: api-reference.md#marked-re-entry-target-finite-continuation-exit
 
 Exact-head finite-audit GitHub verification:
 
@@ -521,9 +541,10 @@ deployment.
 
 The project goal remains open. The principal outstanding gates are:
 
-1. discharge the mate-separated target's raw-outside, older-future, and
-   older-marked parent-continuation alternatives, eliminate that target or
-   descend its mark to a distinct active payer, and eliminate the equal-final
+1. discharge the mate-separated target's finite raw-outside, exact raw-return,
+   older-future, and older-marked-global continuation alternatives, eliminate
+   that target or descend its mark to a distinct active payer, and eliminate
+   the equal-final
    conclusion-to-selected/mate trace obstructions over the retained commitment
    interval;
    resolve the waiting/raw outcome alternatives; then derive the remaining
