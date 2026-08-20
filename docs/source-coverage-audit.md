@@ -395,9 +395,16 @@ the active representative while its sibling and conclusion lie outside the
 carrier; the branch retains the older marked-tensor predecessor
 invariant. The theorem neither supplies the missing tail nor eliminates either
 residual, and it does not assume or derive `ActiveTopDebtTailLaw`.
+`SequentialFigure7ActiveTopDebtParentTemporalOutcome.lean` adds no source
+reading. It consumes the already-proved continuation-credit and temporal
+residual APIs to map both par and tensor into a raw-sibling, older-future, or
+older-marked outcome. The future and marked parent conclusions stay outside
+the active carrier and strictly older than its raw boundary; the raw sibling
+is selected or external. This remains a residual reduction, not a tail or
+history theorem.
 Global preservation of the mate-region and older-raw-mark invariants through
 candidate-creating rules remains open, as do queue origin, created-candidate raw
-seams, elimination of the failure-conditioned par/tensor temporal residual,
+seams, elimination of the unified failure-conditioned temporal outcome,
 unconditional active-top completion, progress,
 later-state totality,
 fallback removal,

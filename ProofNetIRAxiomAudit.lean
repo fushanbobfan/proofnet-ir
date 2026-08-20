@@ -371,6 +371,10 @@ expansion.
   SequentialFigure7.ReadyHeadInput.parentEscape_of_no_readyTail
 #print axioms
   SequentialFigure7.ActiveCarrierParentEscape.temporalResidual_of_no_readyTail
+#print axioms
+  SequentialFigure7.CanonicalTagHistory.ActiveCarrierTensorSameBoundaryResidual.temporalOutcome
+#print axioms
+  SequentialFigure7.ActiveCarrierParentTemporalResidual.temporalOutcome
 #print axioms SequentialFigure7.empty_markedNonconclusionContinuation
 #print axioms
   SequentialFigure7.InitialReservationStep.markedNonconclusionContinuation

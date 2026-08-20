@@ -1054,8 +1054,12 @@
     outside the carrier; the older marked-tensor predecessor invariant is
     retained without inventing its trigger.
     This classification neither manufactures a tail nor eliminates a residual.
-  - [ ] Eliminate the failure-conditioned par/tensor temporal residual, or
-    derive the distinct-payer/re-entry law that supplies the missing tail. Do not infer
+  - [x] Use canonical continuation credit to normalize both par and tensor
+    residuals into one `ActiveCarrierParentTemporalOutcome`: a selected or
+    external raw sibling, or an external queued/marked parent at a strictly
+    older boundary. This is not a terminality claim.
+  - [ ] Convert the unified temporal outcome into a distinct ready-tail payer,
+    or otherwise eliminate the failure-conditioned residual. Do not infer
     unconditional dispatcher progress, completion, terminality, later-state
     totality, global raw seams, fallback removal, Figure-7 pure-worklist
     completeness, sequentialization, faithful token-age scheduling, or
@@ -1334,12 +1338,11 @@
     authenticates the concrete mark, and
     the reduction neither assumes nor derives the tail law. The no-tail escape
     is now further normalized: par yields an authentic anchor plus a raw or
-    strictly older continuation, while in the tensor branch the escaped mark
-    resolves to the active boundary and its sibling/parent remain outside the
-    carrier. Neither branch is eliminated. Next close
-    this failure-conditioned temporal residual separately for `par` and
-    `tensor` before claiming exhaustive progress on incomplete, correct,
-    certified-reachable states.
+    strictly older continuation, while tensor continuation credit yields the
+    same endpoint trichotomy. Both branches now map to one temporal-outcome
+    carrier, but neither is eliminated. Next turn that outcome into a distinct
+    ready-tail payer before claiming exhaustive progress on incomplete,
+    correct, certified-reachable states.
     Exact source-left complexity descent, last-step decomposition, and
     recursive visited-route separation from the selected head are now proved.
     Reference-switching geometry now also excludes a terminal axiom partner

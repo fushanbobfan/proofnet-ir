@@ -1068,6 +1068,16 @@ trigger is not invented. The combined residual is an exact case split, not a
 tail witness or an impossibility theorem. Eliminating these temporal residuals
 and closing the global-created tail alternatives remain the next debt gates.
 
+`SequentialFigure7ActiveTopDebtParentTemporalOutcome.lean` then consumes the
+canonical continuation-credit theorem in the tensor same-boundary branch and
+puts both source branches behind one endpoint-level interface. A raw sibling
+is the selected head or lies outside the active owned carrier. Future parent
+work and concretely marked parent conclusions lie outside that carrier at a
+strictly older boundary or representative. The marked case can continue the
+chain, so “outcome” does not mean terminal exit. This theorem is a common
+temporal reduction target; it still supplies no distinct ready-tail payer
+and proves no history tail law or residual impossibility.
+
 `SequentialFigure7ContinuationCredit.lean` and
 `SequentialFigure7ContinuationCreditPreservation.lean` close a deliberately
 weaker history invariant. `ContinuationCredit` records an unmarked connective

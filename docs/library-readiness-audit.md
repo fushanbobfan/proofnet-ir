@@ -651,6 +651,14 @@ part of the engineering and proof-identity gap.
    predecessor invariant. No branch supplies the missing ready-tail vertex or
    proves its residual impossible. The tail law, global-created alternatives,
    progress, completion, termination, totality, and completeness remain open.
+   `SequentialFigure7ActiveTopDebtParentTemporalOutcome.lean` adds a common
+   endpoint carrier for those two branches. Canonical continuation credit
+   resolves the tensor residual to the same raw-sibling, older-future, or
+   older-marked cases as par; future and marked parents remain outside the
+   active carrier, while raw siblings are selected or external. The marked
+   case is not declared terminal. This improves the induction interface but
+   does not establish a ready-tail witness, `ActiveTopDebtTailLaw`, residual
+   elimination, or progress.
    `SequentialFigure7ContinuationCredit.lean` and its preservation module now
    close a weaker full-history invariant. The two carriers assign each marked
    nonconclusion one of three receipts: an unmarked mate, future conclusion

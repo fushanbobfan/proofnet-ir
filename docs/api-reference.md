@@ -10041,6 +10041,64 @@ ProofNetIR.SequentialFigure7.ActiveCarrierParentEscape.temporalResidual_of_no_re
                     ProofNetIR.SequentialFigure7.ActiveCarrierParentTemporalResidual tagHistory input component owned
 ```
 
+## Active-top debt parent temporal outcome
+
+### `ProofNetIR.SequentialFigure7.ActiveCarrierParentTemporalOutcome`
+
+Kind: inductive type.
+
+Endpoint-level temporal normal form shared by par and tensor parent
+escapes. A raw endpoint is the selected head or lies outside the active
+carrier; every scheduled or marked parent endpoint is strictly older than the
+active raw boundary.
+
+```lean
+ProofNetIR.SequentialFigure7.ActiveCarrierParentTemporalOutcome : ProofNetIR.Certificate →
+  ProofNetIR.SequentialSchedulerBridge.ReservationState →
+    ProofNetIR.SequentialSchedulerState.RawTokenAge → ProofNetIR.Vertex → List ProofNetIR.Vertex → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.ActiveCarrierTensorSameBoundaryResidual.temporalOutcome`
+
+Kind: theorem.
+
+Canonical continuation credit turns a tensor same-boundary escape into the
+same endpoint-level temporal trichotomy already available for par.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.ActiveCarrierTensorSameBoundaryResidual.temporalOutcome : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  {tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history}
+  {input : ProofNetIR.SequentialFigure7.ReadyHeadInput state} {component : ProofNetIR.UnificationComponent}
+  {owned : List ProofNetIR.Vertex},
+  tagHistory.ActiveCarrierTensorSameBoundaryResidual input component owned →
+    ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+      state.core.components[input.rawAge]? = some (some component) →
+        ProofNetIR.SequentialFigure7.ActiveCarrierParentTemporalOutcome certificate state input.rawAge input.vertex
+          owned
+```
+
+### `ProofNetIR.SequentialFigure7.ActiveCarrierParentTemporalResidual.temporalOutcome`
+
+Kind: theorem.
+
+Both source branches of a normalized parent escape expose one common
+temporal endpoint. This remains a reduction, not an endpoint-locality or
+ready-tail theorem.
+
+```lean
+ProofNetIR.SequentialFigure7.ActiveCarrierParentTemporalResidual.temporalOutcome : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  {tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history}
+  {input : ProofNetIR.SequentialFigure7.ReadyHeadInput state} {component : ProofNetIR.UnificationComponent}
+  {owned : List ProofNetIR.Vertex},
+  ProofNetIR.SequentialFigure7.ActiveCarrierParentTemporalResidual tagHistory input component owned →
+    ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+      state.core.components[input.rawAge]? = some (some component) →
+        ProofNetIR.SequentialFigure7.ActiveCarrierParentTemporalOutcome certificate state input.rawAge input.vertex
+          owned
+```
+
 ## Branch-local continuation credit
 
 ### `ProofNetIR.SequentialFigure7.ContinuationCredit`

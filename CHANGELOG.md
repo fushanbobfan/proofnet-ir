@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+- added `SequentialFigure7ActiveTopDebtParentTemporalOutcome.lean`. Canonical
+  continuation credit now turns the tensor same-boundary residual into the
+  same endpoint trichotomy already carried by par, and the source-generic
+  theorem maps either branch to `ActiveCarrierParentTemporalOutcome`. The raw
+  case is the selected head or lies outside the active carrier; queued and
+  concretely marked parent conclusions lie outside that carrier at a strictly
+  older boundary or representative. This is a common reduction interface, not
+  a terminal endpoint, ready-tail witness, history-tail proof, residual
+  elimination, or progress theorem. The runnable consumer reconstructs all
+  three constructors and exercises both public normalization theorems. The
+  verified combined audit covers 956 theorems: 666
+  standard-three, 25 axiom-free, 127 `propext`-only, and 138
+  `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7ActiveTopDebtParentEscapeTemporal.lean`. Given a
   matching `CanonicalTagHistory`, declarative correctness, the scheduler
   invariant, exact active occurrence/accounting data, and a no-tail

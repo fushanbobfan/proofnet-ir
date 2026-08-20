@@ -863,6 +863,14 @@ standard-three boundary. The verified combined audit covers 954 theorems: 664
 standard-three, 25 axiom-free, 127 `propext`-only, and 138
 `propext`/`Quot.sound` boundaries. No `ActiveTopDebtTailLaw`, tail witness,
 progress, completion, termination, totality, or completeness proof is added.
+`SequentialFigure7ActiveTopDebtParentTemporalOutcome.lean` adds one inductive
+carrier and two normalization theorems. The carrier itself is `propext`-only;
+the tensor-specific and source-generic theorems stay inside the standard-three
+boundary. They consume existing canonical continuation credit and scheduler
+invariants, not a new oracle. The verified combined audit covers 956 theorems: 666
+standard-three, 25 axiom-free, 127 `propext`-only, and 138
+`propext`/`Quot.sound` boundaries. The outcome is
+not a tail witness, terminal state, history law, or progress result.
 `SequentialFigure7CrossRepresentativeWaitPreservation.lean` adds no hidden
 source-region oracle. Its output-work classification follows only from the
 typed destination's exact waiting prepend and unchanged ready/sigma fields;

@@ -25,22 +25,24 @@ latest research surface and are prepared for documented development changes.
 
 For a correct selected `par`, an explicit ready-head input and
 `SchedulerInvariant` now reduce the first active-carrier boundary to two
-alternatives, with no exclusivity claim: a non-global vertex in the ready tail, or an
-`ActiveCarrierParentEscape` whose concrete marked non-global premise has a
-submitted connective parent outside the active owned carrier. If no such tail
-vertex exists, the escape is forced.
+alternatives with no exclusivity claim: a non-global ready-tail vertex or an
+`ActiveCarrierParentEscape` whose submitted parent leaves the active carrier.
+If no such tail vertex exists, the escape is forced.
 
 Given a matching `CanonicalTagHistory`, the no-tail escape now has an exact
 temporal normal form. A par source has an anchored raw sibling or a strictly
 older queued/marked parent continuation. For a tensor source, the escaped mark
 resolves to the active representative while its sibling and parent lie outside
-the carrier. The reduction does not
-eliminate either residual, manufacture a tail, or derive `ActiveTopDebtTailLaw`.
+the carrier. Canonical continuation credit now maps both source cases to one
+`ActiveCarrierParentTemporalOutcome`: a raw sibling at the selected head or
+outside the carrier, or an outside queued/marked parent at a strictly older
+boundary. This remains a residual reduction; it neither manufactures a tail
+nor derives `ActiveTopDebtTailLaw`.
 
 This checkpoint proves no unconditional all-marked result, progress,
-completion, termination, totality, or completeness. The next gate is to rule
-out the remaining failure-conditioned par/tensor temporal residual and derive
-the still-open global-created tail obligations.
+completion, termination, totality, or completeness. The next gate is to turn
+the unified temporal outcome into a distinct ready-tail payer and derive the
+still-open global-created tail obligations.
 [Current status](docs/current-status.md) owns exact revision, verification receipt, and gates.
 <!-- ROLLING_MAIN_SUMMARY_END -->
 
