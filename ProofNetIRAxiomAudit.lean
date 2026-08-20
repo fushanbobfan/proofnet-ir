@@ -383,6 +383,16 @@ expansion.
   SequentialFigure7.DispatchTagEvidence.markedNonconclusionContinuation
 #print axioms
   SequentialFigure7.CanonicalTagHistory.markedNonconclusionContinuation
+#print axioms
+  SequentialFigure7.MarkedNonconclusionContinuation.continuationExit
+#print axioms
+  SequentialFigure7.FutureWorkAt.rawAge_lt_active_of_activeTopDrained
+#print axioms SequentialFigure7.ContinuationExit.elim_of_activeTopDrained
+#print axioms SequentialFigure7.LocalizedContinuationExit.continuationExit
+#print axioms
+  SequentialFigure7.activeTopMarkedNonconclusionDebt_of_continuationExitLocalized
+#print axioms
+  SequentialFigure7.SchedulerInvariant.allMarked_of_activeTopDrained_of_continuationExitLocalized
 #print axioms SequentialFigure7.NewStep.after_representative_eq_markedMiddle
 #print axioms SequentialFigure7.FutureWorkAt.beforeNewOrInserted
 #print axioms SequentialFigure7.NewStep.freshEvent_not_strictly_older

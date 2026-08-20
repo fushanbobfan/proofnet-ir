@@ -10117,6 +10117,166 @@ ProofNetIR.SequentialFigure7.CanonicalTagHistory.markedNonconclusionContinuation
   ProofNetIR.SequentialFigure7.MarkedNonconclusionContinuation certificate state
 ```
 
+## Endpoint-localized continuation exits
+
+### `ProofNetIR.SequentialFigure7.MarkedConclusionChain`
+
+Kind: inductive type.
+
+A finite ascent through concretely marked, non-global connective
+conclusions.
+
+```lean
+ProofNetIR.SequentialFigure7.MarkedConclusionChain : ProofNetIR.Certificate →
+  ProofNetIR.SequentialSchedulerBridge.ReservationState → ProofNetIR.Vertex → ProofNetIR.Vertex → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.ContinuationExit`
+
+Kind: inductive type.
+
+A normalized terminal receipt reached after zero or more marked,
+non-global connective conclusions.
+
+```lean
+ProofNetIR.SequentialFigure7.ContinuationExit : ProofNetIR.Certificate → ProofNetIR.SequentialSchedulerBridge.ReservationState → ProofNetIR.Vertex → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.LocalizedContinuationExit`
+
+Kind: inductive type.
+
+An endpoint-bound open continuation exit localized to one component.  The raw
+constructor binds the endpoint to `consumer.mate`; the future constructor
+binds it to `consumer.conclusion`.  There is no marked-global constructor.
+
+```lean
+ProofNetIR.SequentialFigure7.LocalizedContinuationExit : ProofNetIR.Certificate →
+  ProofNetIR.SequentialSchedulerBridge.ReservationState → ProofNetIR.Vertex → ProofNetIR.UnificationComponent → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.MarkedNonconclusionContinuation.continuationExit`
+
+Kind: theorem.
+
+Continuation credit cannot follow marked non-global conclusions forever.
+It ends at one of the three normalized receipt forms.
+
+```lean
+ProofNetIR.SequentialFigure7.MarkedNonconclusionContinuation.continuationExit : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  ProofNetIR.SequentialFigure7.MarkedNonconclusionContinuation certificate state →
+    ∀ {rawAge : ProofNetIR.SequentialSchedulerState.RawTokenAge} {vertex : ProofNetIR.Vertex},
+      state.core.marks[vertex]? = some (some rawAge) →
+        ¬vertex ∈ certificate.conclusions → ProofNetIR.SequentialFigure7.ContinuationExit certificate state vertex
+```
+
+### `ProofNetIR.SequentialFigure7.FutureWorkAt.rawAge_lt_active_of_activeTopDrained`
+
+Kind: theorem.
+
+Future work in a drained invariant state belongs to a scheduler boundary
+strictly older than the active top.
+
+```lean
+ProofNetIR.SequentialFigure7.FutureWorkAt.rawAge_lt_active_of_activeTopDrained : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {rawAge active : ProofNetIR.SequentialSchedulerState.RawTokenAge} {vertex : ProofNetIR.Vertex},
+  ProofNetIR.SequentialFigure7.FutureWorkAt state rawAge vertex →
+    ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+      ProofNetIR.SequentialFigure7.ActiveTopDrained state → state.stack.sigma.getLast? = some active → rawAge < active
+```
+
+### `ProofNetIR.SequentialFigure7.ContinuationExit.elim_of_activeTopDrained`
+
+Kind: theorem.
+
+Eliminate a normalized continuation at a drained active boundary.  The
+raw-mate handler receives a structurally non-global unmarked mate; the future
+handler receives an unmarked conclusion at a strictly older boundary.
+
+```lean
+ProofNetIR.SequentialFigure7.ContinuationExit.elim_of_activeTopDrained : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {origin : ProofNetIR.Vertex} {active : ProofNetIR.SequentialSchedulerState.RawTokenAge},
+  ProofNetIR.SequentialFigure7.ContinuationExit certificate state origin →
+    ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+      ProofNetIR.SequentialFigure7.ActiveTopDrained state →
+        state.stack.sigma.getLast? = some active →
+          ∀ {motive : Prop},
+            (∀ {terminal : ProofNetIR.Vertex},
+                ProofNetIR.SequentialFigure7.MarkedConclusionChain certificate state origin terminal →
+                  ∀ (consumer : ProofNetIR.ConnectiveBelow certificate terminal),
+                    ¬consumer.mate ∈ certificate.conclusions → state.core.marks[consumer.mate]? = some none → motive) →
+              (∀ {terminal : ProofNetIR.Vertex},
+                  ProofNetIR.SequentialFigure7.MarkedConclusionChain certificate state origin terminal →
+                    ∀ (consumer : ProofNetIR.ConnectiveBelow certificate terminal)
+                      (boundary : ProofNetIR.SequentialSchedulerState.RawTokenAge),
+                      ProofNetIR.SequentialFigure7.FutureWorkAt state boundary consumer.conclusion →
+                        boundary < active → state.core.marks[consumer.conclusion]? = some none → motive) →
+                (∀ {terminal : ProofNetIR.Vertex},
+                    ProofNetIR.SequentialFigure7.MarkedConclusionChain certificate state origin terminal →
+                      ∀ (consumer : ProofNetIR.ConnectiveBelow certificate terminal)
+                        (rawAge : ProofNetIR.SequentialSchedulerState.RawTokenAge),
+                        state.core.marks[consumer.conclusion]? = some (some rawAge) →
+                          consumer.conclusion ∈ certificate.conclusions → motive) →
+                  motive
+```
+
+### `ProofNetIR.SequentialFigure7.LocalizedContinuationExit.continuationExit`
+
+Kind: theorem.
+
+Forget component-local ownership while retaining the continuation
+branch receipt.
+
+```lean
+ProofNetIR.SequentialFigure7.LocalizedContinuationExit.continuationExit : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {origin : ProofNetIR.Vertex} {component : ProofNetIR.UnificationComponent},
+  ProofNetIR.SequentialFigure7.LocalizedContinuationExit certificate state origin component →
+    ProofNetIR.SequentialFigure7.ContinuationExit certificate state origin
+```
+
+### `ProofNetIR.SequentialFigure7.ActiveTopContinuationExitLocalized`
+
+Kind: definition.
+
+An endpoint-locality sufficient law: every active marked nonconclusion
+has a raw-mate or future-conclusion exit localized to its active component.
+This module does not derive the law or claim it is necessary.
+
+```lean
+ProofNetIR.SequentialFigure7.ActiveTopContinuationExitLocalized : ProofNetIR.Certificate → ProofNetIR.SequentialSchedulerBridge.ReservationState → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.activeTopMarkedNonconclusionDebt_of_continuationExitLocalized`
+
+Kind: theorem.
+
+Structural well-formedness, queued-vertex unmarkedness, and the
+endpoint-locality sufficient law imply active-top marked-nonconclusion debt.
+
+```lean
+ProofNetIR.SequentialFigure7.activeTopMarkedNonconclusionDebt_of_continuationExitLocalized : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  certificate.StructurallyWellFormed →
+    ProofNetIR.SequentialSchedulerBridge.QueuedVerticesUnmarked state →
+      ProofNetIR.SequentialFigure7.ActiveTopContinuationExitLocalized certificate state →
+        ProofNetIR.SequentialFigure7.ActiveTopMarkedNonconclusionDebt certificate state
+```
+
+### `ProofNetIR.SequentialFigure7.SchedulerInvariant.allMarked_of_activeTopDrained_of_continuationExitLocalized`
+
+Kind: theorem.
+
+If the endpoint-locality sufficient law holds, a declaratively correct
+invariant state with a drained active top has a concrete mark at every
+formula occurrence.
+
+```lean
+ProofNetIR.SequentialFigure7.SchedulerInvariant.allMarked_of_activeTopDrained_of_continuationExitLocalized : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  certificate.DeclarativelyCorrect →
+    ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+      ProofNetIR.SequentialFigure7.ActiveTopDrained state →
+        ProofNetIR.SequentialFigure7.ActiveTopContinuationExitLocalized certificate state → state.core.allMarked = true
+```
+
 ## Exact-run-local region boundaries
 
 ### `ProofNetIR.SequentialFigure7.ExactFreshSourceLeftRunCarrier`

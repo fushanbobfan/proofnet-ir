@@ -787,6 +787,22 @@ expected to cover 940 declarations: 653 full-classical, 25 axiom-free, 126
 `propext`-only, and 136 `propext`/`Quot.sound`. Full-history continuation credit
 does not imply active-top debt or its selected-away/exact-tail witnesses, so
 semantic completion and progress remain outside the trusted surface.
+`SequentialFigure7ContinuationExit.lean` adds no termination, endpoint
+ownership, correctness, history-existence, scheduling, or progress oracle.
+Finite normalization follows from strict formula-complexity increase along
+every marked non-global connective-conclusion step and the certificate's
+intrinsic complexity bound. Its `ContinuationExit` has raw-mate,
+future-conclusion, and marked-global forms. The distinct
+`LocalizedContinuationExit` has only endpoint-bound raw and future forms and no
+global constructor. The active-top locality law remains an ordinary explicit
+hypothesis: no theorem derives it from canonical history or claims it is
+necessary. Structural well-formedness plus queued vertices unmarked and that
+law imply active-top debt; declarative correctness, the complete scheduler
+invariant, `ActiveTopDrained`, and the same law imply `core.allMarked = true`.
+No arbitrary history or locality existence, unconditional progress,
+completion, terminality, or totality enters the trusted surface. The pending
+combined audit is expected to cover 946 declarations: 656 full-classical, 25
+axiom-free, 127 `propext`-only, and 138 `propext`/`Quot.sound` boundaries.
 `SequentialFigure7CrossRepresentativeWaitPreservation.lean` adds no hidden
 source-region oracle. Its output-work classification follows only from the
 typed destination's exact waiting prepend and unchanged ready/sigma fields;

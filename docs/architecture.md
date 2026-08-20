@@ -967,8 +967,9 @@ explicitly supplied `ReadyHeadInput`, the complete invariant rules out the
 marked-tensor predecessor residual; the positive priority branch is lowered to
 one exact successful `dispatch?` result. This history theorem alone does not
 construct a ready head; the following structural module classifies the exact
-shape of its absence, and the subsequent debt layer gives a conditional
-semantic reduction. Preserving that debt over complete canonical histories is
+shape of its absence, and the subsequent debt and continuation-exit layers give
+conditional semantic reductions. Deriving endpoint-bound locality, active-top
+debt, or another sufficient completion law from complete canonical histories is
 the next proof gate before dispatcher progress or later-state totality; global
 raw seams, fallback removal, faithful scheduling, pure-worklist completeness,
 sequentialization, and whole-program linearity remain separate.
@@ -1022,6 +1023,30 @@ the state predicate without assuming declarative correctness. A receipt need
 not be a distinct raw-unmarked occurrence on the active frontier, so this
 full-history result proves neither the selected-away/exact-tail residuals nor
 full `ActiveTopMarkedNonconclusionDebt`, semantic completion, or progress.
+
+`SequentialFigure7ContinuationExit.lean` finitely normalizes that credit.
+Every step follows a concretely marked, non-global connective conclusion and
+strictly increases formula complexity, so the exit has one of three forms: an
+unmarked raw mate, scheduled work for a future conclusion, or a concretely
+marked global conclusion. Under the complete scheduler invariant and a drained
+active top, eliminating the normalized receipt makes the raw endpoint
+non-global and unmarked, or the future endpoint unmarked at a strictly older
+boundary; the global branch retains its concrete mark. This normalization
+requires an already supplied continuation receipt and does not establish
+arbitrary history or state existence.
+
+The same file keeps endpoint ownership separate. `LocalizedContinuationExit`
+has only raw-mate and future-conclusion cases, binds that exact endpoint to one
+component frontier, and deliberately has no marked-global case.
+`ActiveTopContinuationExitLocalized` asks for this receipt at every marked
+nonconclusion on the active frontier. The law is sufficient, is not claimed
+necessary, and is not derived from canonical history. Together with structural
+well-formedness and `QueuedVerticesUnmarked` it yields
+`ActiveTopMarkedNonconclusionDebt`; declarative correctness, the complete
+scheduler invariant, `ActiveTopDrained`, and the locality law therefore imply
+`core.allMarked = true`. Unconditional progress, completion, terminality, and
+totality remain open; the next gate is history-derived locality or debt, or a
+different sufficient route through the drained residual.
 
 `SequentialFigure7CrossRepresentativeNewPreservation.lean` isolates the New
 branch's two genuinely new effects. Every output work occurrence is either
@@ -1403,11 +1428,13 @@ of the kernel theorem. The full-history invariant now eliminates the residual
 at an explicitly supplied correct canonical-history ready head, and the
 active-top classifier identifies the exact structural shape when that head is
 absent. The marked-nonconclusion debt theorem now turns that shape into
-`core.allMarked = true` when its additional state predicate holds. The replay
-does not prove that canonical histories preserve the active-top debt predicate
-through Nop, Wait, or the global-created Forward/UnifyPayload cases. The
-separately proved full-history continuation-credit invariant is weaker and does
-not discharge those cases, so unconditional progress and totality remain open.
+`core.allMarked = true` when its additional state predicate holds. The
+full-history continuation-credit invariant also has a finite three-way
+normalization. A separate endpoint-bound open-exit law would imply active-top
+debt and hence close the drained branch, but the replay and canonical-history
+theorems derive neither that sufficient locality law nor debt itself. They also
+do not show that locality is necessary. Unconditional progress, completion,
+terminality, and totality therefore remain open.
 
 The same executable's `--cross-representative-search` mode maintains a
 lightweight raw-age and source-start ledger that mirrors exact initialization

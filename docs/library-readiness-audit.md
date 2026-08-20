@@ -573,8 +573,9 @@ part of the engineering and proof-identity gap.
    invariant eliminates the residual and yields one exact successful
    dispatcher result. This history wrapper does not construct that ready head;
    the following structural classifier identifies the exact shape when it is
-   absent, and the following debt layer gives a conditional completion
-   reduction. Complete-history preservation of that debt remains the first gate
+   absent, and the following debt and continuation-exit layers give conditional
+   completion reductions. Deriving endpoint locality, debt, or another
+   sufficient completion law from complete history remains the first gate
    before dispatcher progress. Later-state totality, recursive-fallback removal,
    faithful token-age scheduling, whole-program linearity, and Figure-7
    pure-worklist completeness remain open maturity gates; no global raw seam or
@@ -616,6 +617,23 @@ part of the engineering and proof-identity gap.
    premise. None of the three receipt forms guarantees a distinct raw witness
    on the active frontier, so the selected-away and global-created exact-tail
    gates above remain open.
+   `SequentialFigure7ContinuationExit.lean` now normalizes any such supplied
+   continuation receipt through a finite chain of concretely marked non-global
+   conclusions. Formula complexity strictly increases at every chain step, and
+   the endpoint is an unmarked raw mate, scheduled future-conclusion work, or a
+   concretely marked global conclusion. Under the complete scheduler invariant
+   and a drained active top, the open endpoints become respectively a
+   structurally non-global unmarked mate or an unmarked conclusion at a
+   strictly older boundary.
+   The separate `LocalizedContinuationExit` carrier binds only those two open
+   endpoint forms to one component frontier and has no marked-global case.
+   `ActiveTopContinuationExitLocalized` is sufficient, is not claimed
+   necessary, and is not obtained from canonical history. With structural
+   well-formedness and queued vertices unmarked it implies active-top debt; with
+   declarative correctness, the complete scheduler invariant, and
+   `ActiveTopDrained` it implies `core.allMarked = true`. This remains a
+   conditional reduction: no arbitrary history or locality existence,
+   unconditional progress, completion, terminality, or totality follows.
    `SequentialFigure7PriorityEnabled.lean` now gives that dispatcher an exact
    branch-indexed applicability correspondence whose six positive fields and
    stored earlier-branch negations are input-only. Each executor has an
@@ -1060,12 +1078,14 @@ part of the engineering and proof-identity gap.
    marked-nonconclusion debt theorem turns that drained branch into
    `core.allMarked = true` when its additional state predicate is available.
    Full-history continuation credit is now available without a correctness
-   premise, but it is strictly weaker than active-top debt. The Nop/Wait
-   selected-away and global-created Forward/UnifyPayload tail residuals are
-   exact, yet that credit theorem does not supply them. The library therefore
-   still lacks unconditional branch applicability, progress, later-state
-   totality, global raw seams, fallback removal, scheduling fidelity,
-   sequentialization, pure-worklist completeness, and whole-program linearity.
+   premise and normalizes through a finite strict-complexity chain to one of
+   three endpoints. The separate raw/future-only endpoint-locality law is
+   sufficient to recover active-top debt and the conditional all-marked result,
+   but canonical history does not yet supply it, and necessity is not claimed.
+   The library therefore still lacks unconditional branch applicability,
+   progress, completion, terminality, later-state totality, global raw seams,
+   fallback removal, scheduling fidelity, sequentialization, pure-worklist
+   completeness, and whole-program linearity.
    `SequentialFigure7OlderRawMarkedRegionNewPreservation.lean` now proves the
    New preservation step under the exact residual
    `NewRetainedRawMarksSeparated` condition. The selected mark versus created

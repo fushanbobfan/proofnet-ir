@@ -1015,14 +1015,25 @@
     Nop and New additionally consume the old owner's concrete mark, while the
     dispatch-level old-credit theorem carries it uniformly. The history theorem
     itself needs no declarative-correctness premise.
-  - [ ] Preserve `ActiveTopMarkedNonconclusionDebt` through complete canonical
-    histories by deriving the selected-away and exact-tail witnesses above.
-    Full-history continuation credit is strictly weaker and supplies neither
-    kind of witness. Only after this debt gate may the residual dichotomy
+  - [x] Normalize supplied continuation credit through a finite chain of
+    strictly increasing formula complexity. The three endpoints are an
+    unmarked raw mate, future-conclusion work, or a marked global conclusion.
+    Keep the endpoint-bound locality receipt separate: it has only raw and
+    future cases, and under structural well-formedness plus queued vertices
+    unmarked it implies active-top debt. With declarative correctness, the full
+    scheduler invariant, and a drained active top, the same locality condition
+    implies `core.allMarked = true`. The condition is sufficient, is not claimed
+    necessary, and is not derived from canonical history.
+  - [ ] Derive endpoint-bound locality, `ActiveTopMarkedNonconclusionDebt`, or
+    another sufficient completion law through complete canonical histories.
+    The finite continuation exit does not itself bind an endpoint to the active
+    frontier or establish arbitrary history or locality existence. Only after
+    this gate may the residual dichotomy
     combine with marking incompleteness to yield unconditional dispatcher
-    progress. Keep later-state totality, global raw seams, fallback removal,
-    Figure-7 pure-worklist completeness, sequentialization, faithful token-age
-    scheduling, and whole-program linearity outside this checkpoint.
+    progress. Keep unconditional completion, terminality, later-state totality,
+    global raw seams, fallback removal, Figure-7 pure-worklist completeness,
+    sequentialization, faithful token-age scheduling, and whole-program
+    linearity outside this checkpoint.
   - [x] Isolate unused waiting storage as the history-preserved predicate
     `FutureWaitingUndefined`. Prove it for empty/initial states and preserve it
     through Prepared, all six successful rules, dispatcher steps,
@@ -1281,12 +1292,14 @@
     invariant available for every correct executed dispatcher history. The
     active-top residual now supplies every started reachable state with an exact
     dispatch / drained-active-component disjunction. Marked-nonconclusion debt
-    now conditionally turns the drained branch into `allMarked = true`. The
-    Full-history continuation credit is now kernelized without a correctness
-    premise, but it is weaker than active-top debt. The Nop/Wait selected-away
-    and global-created Forward/UnifyPayload exact-tail witness obligations
-    remain unproved; derive those witnesses before claiming exhaustive progress on
-    incomplete correct certified-reachable states.
+    now conditionally turns the drained branch into `allMarked = true`.
+    Full-history continuation credit is kernelized without a correctness
+    premise and now has a finite strict-complexity three-way exit. The separate
+    raw/future endpoint-locality law suffices for debt and conditional marking
+    completion, but canonical history does not derive it and no necessity claim
+    is made. Derive that locality, debt itself, or another sufficient route
+    before claiming exhaustive progress on incomplete, correct,
+    certified-reachable states.
     Exact source-left complexity descent, last-step decomposition, and
     recursive visited-route separation from the selected head are now proved.
     Reference-switching geometry now also excludes a terminal axiom partner

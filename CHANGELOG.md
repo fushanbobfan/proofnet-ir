@@ -2,6 +2,29 @@
 
 ## Unreleased
 
+- added `SequentialFigure7ContinuationExit.lean`. Strict increase of formula
+  complexity along marked non-global connective conclusions makes every
+  supplied `MarkedNonconclusionContinuation` receipt normalize to a finite
+  `ContinuationExit`: an unmarked raw mate, scheduled future-conclusion work,
+  or a concretely marked global conclusion. Under the complete scheduler
+  invariant and a drained active top, the raw endpoint is structurally
+  non-global and unmarked, while the future endpoint is unmarked at a boundary
+  strictly older than the active one. The separate
+  endpoint-bound `LocalizedContinuationExit` deliberately has only raw-mate and
+  future-conclusion constructors; it has no marked-global constructor.
+  `ActiveTopContinuationExitLocalized` is a sufficient locality law, not a
+  claimed necessary condition, and no canonical-history theorem currently
+  derives it. Structural well-formedness, queued vertices unmarked, and this
+  locality law imply `ActiveTopMarkedNonconclusionDebt`; declarative
+  correctness, the complete scheduler invariant, `ActiveTopDrained`, and the
+  same law imply `core.allMarked = true`. This proves neither arbitrary history
+  or locality existence nor unconditional progress, completion, terminality,
+  or totality. The next gate is endpoint locality or debt derived from canonical
+  history, or another sufficient completion route. The standalone
+  consumer destructs all three carriers and exercises all six theorem
+  boundaries. The pending audit is expected to report 946 declarations: 656
+  full-classical, 25 axiom-free, 127 `propext`-only, and 138
+  `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7ContinuationCredit.lean` and
   `SequentialFigure7ContinuationCreditPreservation.lean`. The two public
   carriers record one of three receipts for every concretely marked

@@ -23,17 +23,23 @@ latest research surface and are prepared for documented development changes.
 <!-- ROLLING_MAIN_SUMMARY_START -->
 ### Rolling-main summary
 
-The rolling branch now carries branch-local continuation credit through every
-exact canonical tag history. Each concretely marked nonconclusion receives an
-unmarked mate, future work for its connective conclusion, or an already marked
-conclusion. Existing credit
-crosses all six successful typed branches under structural well-formedness;
-Nop and New additionally use the old owner's concrete mark. This full-history
-invariant is strictly weaker than active-top marked-nonconclusion debt: it
-supplies neither the Nop/Wait selected-away witness nor the global-created
-Forward/Unify exact tail. Full debt preservation, progress, later-state
-totality, fallback removal, pure-worklist completeness, faithful scheduling,
-and whole-program linearity remain open.
+The rolling branch now turns history-preserved continuation credit into a
+finite, strictly formula-complexity-increasing continuation exit. Each marked
+nonconclusion reaches an unmarked raw mate, scheduled future-conclusion work,
+or a concretely marked global conclusion.
+
+A separate endpoint-bound locality condition retains only the open raw-mate and
+future-conclusion exits and binds their endpoint to the active component. This
+condition is sufficient, is not claimed necessary, and is not yet derived from
+canonical history. With structural well-formedness and queued vertices
+unmarked it yields active-top marked-nonconclusion debt; with declarative
+correctness, the full scheduler invariant, and a drained active top it yields
+all formula occurrences marked.
+
+This checkpoint proves no arbitrary history or locality existence,
+unconditional progress, completion, terminality, or totality. The next gate is
+to derive endpoint locality, active-top debt, or another sufficient completion
+route from canonical history.
 [The replaceable current-status record](docs/current-status.md) owns exact
 revision, verification receipt, and gates.
 <!-- ROLLING_MAIN_SUMMARY_END -->

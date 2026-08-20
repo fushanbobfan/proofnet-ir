@@ -336,9 +336,23 @@ old owner's mark. Exact canonical tag histories preserve the predicate without
 a correctness premise. This weaker history invariant supplies no active-frontier
 raw witness, selected-away witness, global-created exact tail, full active-top
 debt preservation, or progress theorem.
+`SequentialFigure7ContinuationExit.lean` is the next kernel-checked code
+consequence and records no new source reading. Strict increase of formula
+complexity normalizes any supplied continuation receipt through a finite chain
+of marked non-global conclusions to an unmarked raw mate, future-conclusion
+work, or a marked global conclusion. A separate endpoint-bound receipt retains
+only the raw and future cases and binds the endpoint to one component frontier;
+it has no global case. This locality condition is sufficient, is not claimed
+necessary, and is not derived from canonical history. With structural
+well-formedness and queued vertices unmarked it implies active-top debt; with
+declarative correctness, the complete scheduler invariant, and
+`ActiveTopDrained` it implies `core.allMarked = true`. These are conditional
+code consequences, not an existence, unconditional progress, completion,
+terminality, or totality theorem.
 Global preservation of the mate-region and older-raw-mark invariants through
 candidate-creating rules remains open, as do queue origin, created-candidate raw
-seams, unconditional active-top completion, progress, later-state totality,
+seams, history-derived endpoint locality or debt, unconditional active-top
+completion, progress, later-state totality,
 fallback removal,
 sequentialization, faithful token-age scheduling, and whole-program linearity.
 The future-head-touch invariant is

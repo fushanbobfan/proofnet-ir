@@ -192,6 +192,11 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "markedNonconclusionContinuation",
     "ProofNetIR.SequentialFigure7.CanonicalTagHistory."
     "markedNonconclusionContinuation",
+    "ProofNetIR.SequentialFigure7.FutureWorkAt."
+    "rawAge_lt_active_of_activeTopDrained",
+    "ProofNetIR.SequentialFigure7.ContinuationExit.elim_of_activeTopDrained",
+    "ProofNetIR.SequentialFigure7.SchedulerInvariant."
+    "allMarked_of_activeTopDrained_of_continuationExitLocalized",
     "ProofNetIR.SequentialFigure7.NewStep.after_representative_eq_markedMiddle",
     "ProofNetIR.SequentialFigure7.FutureWorkAt.beforeNewOrInserted",
     "ProofNetIR.SequentialFigure7.NewStep.freshEvent_not_strictly_older",
@@ -783,6 +788,7 @@ EXPECTED_PROPEXT_ONLY_THEOREMS = {
     "ProofNetIR.SequentialFigure7.empty_olderMarkedTensorPredecessorInvariant",
     "ProofNetIR.SequentialFigure7.empty_activeTopMarkedNonconclusionDebt",
     "ProofNetIR.SequentialFigure7.empty_markedNonconclusionContinuation",
+    "ProofNetIR.SequentialFigure7.LocalizedContinuationExit.continuationExit",
     "ProofNetIR.SequentialFigure7.PreparedStep."
     "activeTopMarkedNonconclusionDebt_iff_selectedAway",
     "ProofNetIR.SequentialUnification.SourceLeftChain.reachable_to_last_of_mem",
@@ -910,6 +916,10 @@ EXPECTED_PROPEXT_ONLY_THEOREMS = {
 EXPECTED_PROPEXT_QUOT_THEOREMS = {
     "ProofNetIR.SequentialFigure7.NewGuard.sourceLeftRegion_formulaComplexity_lt_conclusion",
     "ProofNetIR.SequentialFigure7.FutureWorkAt.afterPreparedOrSelected",
+    "ProofNetIR.SequentialFigure7.MarkedNonconclusionContinuation."
+    "continuationExit",
+    "ProofNetIR.SequentialFigure7."
+    "activeTopMarkedNonconclusionDebt_of_continuationExitLocalized",
     "ProofNetIR.SequentialFigure7.FutureWorkAt.beforePrepared",
     "ProofNetIR.SequentialFigure7.FutureNewCandidateAt.beforePrepared",
     "ProofNetIR.SequentialFigure7.FutureWorkAt.mem_queued",

@@ -972,6 +972,33 @@ def sections : List Section := [
     ]
   },
   {
+    title := "Endpoint-localized continuation exits"
+    declarations := [
+      `ProofNetIR.SequentialFigure7.MarkedConclusionChain,
+      `ProofNetIR.SequentialFigure7.ContinuationExit,
+      `ProofNetIR.SequentialFigure7.LocalizedContinuationExit,
+      Name.str
+        `ProofNetIR.SequentialFigure7.MarkedNonconclusionContinuation
+        "continuationExit",
+      Name.str
+        `ProofNetIR.SequentialFigure7.FutureWorkAt
+        "rawAge_lt_active_of_activeTopDrained",
+      Name.str
+        `ProofNetIR.SequentialFigure7.ContinuationExit
+        "elim_of_activeTopDrained",
+      Name.str
+        `ProofNetIR.SequentialFigure7.LocalizedContinuationExit
+        "continuationExit",
+      `ProofNetIR.SequentialFigure7.ActiveTopContinuationExitLocalized,
+      Name.str
+        `ProofNetIR.SequentialFigure7
+        "activeTopMarkedNonconclusionDebt_of_continuationExitLocalized",
+      Name.str
+        `ProofNetIR.SequentialFigure7.SchedulerInvariant
+        "allMarked_of_activeTopDrained_of_continuationExitLocalized"
+    ]
+  },
+  {
     title := "Exact-run-local region boundaries"
     declarations := [
       `ProofNetIR.SequentialFigure7.ExactFreshSourceLeftRunCarrier,
