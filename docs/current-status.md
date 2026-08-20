@@ -17,7 +17,7 @@ Status date: 2026-08-20
 | Track | Revision | Status | Authority |
 | --- | --- | --- | --- |
 | Stable library | `v0.9.0` / `9b7dc3d104af8f57ea9123aab2e61b42e05d2216` | Released | [v0.9.0 release audit](v0.9-release-audit.md) |
-| Rolling research | `v0.10.0-dev`; proof `093c620`; audit `1e46573` | Active | This page/commits |
+| Rolling research | `v0.10.0-dev`; proof `903440d`; audit `1e46573` | Active | This page/commits |
 
 Documentation-only commits may descend from the proof checkpoint without
 changing its mathematical authority. The stable release and rolling branch
@@ -133,7 +133,7 @@ orientations. The outer alternatives remain inclusive. The theorem does not
 localize the external older mate further, eliminate either equal-final trace,
 derive a distinct payer or history-tail law, or prove progress.
 
-The current checkpoint specializes that localized interval outcome to actual
+The preceding checkpoint specializes that localized interval outcome to actual
 Nop and Wait guards. Its common four-case carrier retains the avoiding
 endpoint path, equal-final selected trace, equal-final mate trace, and the
 strictly older stored-right mate. In the Nop theorem the older mate lies
@@ -142,6 +142,15 @@ outside, is concretely marked at the exact mate age, and has a representative
 strictly below the active boundary. The equal-final cases and inclusive outer
 alternatives remain. Neither theorem returns the external endpoint to a
 distinct payer, derives the history-tail law, or proves progress.
+
+The current checkpoint uses supplied reference-switching connectedness to
+return that strictly older external mate through the exact active-carrier
+re-entry path. Its target status is the selected raw head, a non-global raw
+ready-tail occurrence, or a prior concrete mark. Thus the ready-tail branch is
+an immediate payer, while the selected and marked targets remain unresolved.
+The equal-final selected/mate traces and inclusive outer split are unchanged.
+These theorems do not eliminate the selected or marked target, derive the
+history-tail law, or prove progress.
 
 The preceding queue/history-tail checkpoint remains valid. For supplied typed
 Nop and Wait steps, its iff theorems identify post-step debt with the exact
@@ -157,7 +166,7 @@ from a scheduler-invariant input refutes unrestricted
 same-component locality carrier, but neither refutes direct debt nor supplies
 the required queue-tail or elimination of the classified re-entry failure.
 
-The checkpoint's accumulated public surface is exactly twenty-two declaration
+The checkpoint's accumulated public surface is exactly twenty-four declaration
 boundaries:
 
 ```text
@@ -183,6 +192,8 @@ SequentialFigure7.CanonicalTagHistory.commitmentInterval_parConclusion_localized
 SequentialFigure7.CanonicalTagHistory.CommitmentIntervalParTraceOutcome
 SequentialFigure7.NopStep.commitmentInterval_parTraceOutcome
 SequentialFigure7.WaitStep.commitmentInterval_parTraceOutcome
+SequentialFigure7.NopStep.commitmentInterval_parTraceReentryTargetOutcome
+SequentialFigure7.WaitStep.commitmentInterval_parTraceReentryTargetOutcome
 ```
 
 The earlier parent-escape, source-temporal, debt, history-tail,
@@ -195,10 +206,12 @@ edge as avoidance or one exact trace step, and lift that inclusive
 classification across the complete positive interval. The preceding
 localization theorem also rules out strictly older selected and
 active-owned-mate traces, leaving only a stored-right external mate in that
-branch. The new typed-step theorems classify that mate as exact raw-unmarked
-work for Nop or exact
-older-representative marked work for Wait. They do not make any conditional
-implication unconditional.
+branch. The preceding typed-step theorems classify that mate as exact
+raw-unmarked work for Nop or exact older-representative marked work for Wait.
+The current theorems use supplied connectedness to add one exact inbound
+re-entry edge and classify its active-frontier target as selected raw work,
+non-global raw ready-tail work, or a prior concrete mark. They do not make any
+conditional implication unconditional.
 
 ### Finite ready-head boundary audit
 
@@ -237,15 +250,15 @@ Exact signatures are maintained in the generated API reference for the
 [interval par dichotomy](api-reference.md#commitment-interval-par-conclusion-dichotomy),
 [interval par-trace localization](api-reference.md#commitment-interval-par-trace-localization),
 [interval par-guard outcome](api-reference.md#commitment-interval-par-guard-outcome),
+[interval par-guard re-entry](api-reference.md#commitment-interval-par-guard-re-entry),
 [branch-local continuation credit](api-reference.md#branch-local-continuation-credit),
 [continuation-credit preservation](api-reference.md#continuation-credit-preservation),
 [endpoint-localized continuation exits](api-reference.md#endpoint-localized-continuation-exits),
 and the retained
 [Wait endpoint-locality obstruction](api-reference.md#wait-endpoint-locality-obstruction).
-The first open proof step is now to return the external raw Nop endpoint to the
-active ready tail or descend the external older-representative marked Wait
-endpoint to a distinct active payer, and to eliminate both equal-final trace
-orientations.
+The first open proof step is now to eliminate the selected-raw and
+prior-concrete-mark targets of the exact re-entry, descend any marked target to
+a distinct active payer, and eliminate both equal-final trace orientations.
 The waiting and external-raw outcome alternatives also remain unresolved.
 The remaining global-created Forward/UnifyPayload alternatives must also be
 derived.
@@ -264,12 +277,12 @@ This checkpoint does not establish any of the following:
   and a valid non-global ready-tail witness, or a proof that every escaped raw
   or waiting endpoint re-enters the active carrier;
 - elimination of `ActiveCarrierParentExternalTemporalOutcome`, including a
-  theorem that external raw or waiting work re-enters the active carrier, or
-  that any branch supplies a distinct ready-tail payer;
-- return of the exact external raw Nop endpoint or older-representative marked
-  Wait endpoint to the active frontier, elimination of either equal-final
-  conclusion-to-selected or conclusion-to-mate trace, or conversion of the
-  distinct authenticated marked target into a distinct active raw payer;
+  theorem that generic external raw or waiting work re-enters the active
+  carrier, or that any branch supplies a distinct ready-tail payer;
+- elimination of the selected-raw or prior-concrete-mark re-entry target,
+  elimination of either equal-final conclusion-to-selected or
+  conclusion-to-mate trace, or conversion of the marked target into a distinct
+  active raw payer;
 - terminality of the temporal outcome; in particular, its marked case may
   continue through another submitted connective;
 - the ordered distinct-payment or history re-entry law needed to turn the
@@ -314,12 +327,12 @@ plan is maintained in [v0.10-design.md](v0.10-design.md) and
 The exact rolling proof checkpoint is:
 
 ```text
-commit    093c620a6aa5f0b21ed2be0433cd7b37af79c7af
-tree      7ddfafd41e22364cfaef0fec89072c745415ff2d
-parent    82b614b9759d9307ae921c06e911ba9a36046a4c
-stage     commitment-interval par-guard outcome
-delta     17 paths, +503/-21
-manifest  B44A74DF169CC9BBAB9A8E57F4B7D0D2D2FC9523548C21FC46FB69354B7F104D
+commit    903440d850eb0af06d7a0c8542dba990a1c49d58
+tree      ddcf72ece17a2b584dbf2103a9766309590e652d
+parent    90a1189cc6c9a0458e1007bd2ebd2e19b7658f29
+stage     commitment-interval par-guard re-entry target
+delta     17 paths, +549/-18
+manifest  C6FFCD02A6E3DF7473D965534B52274CD24E3EC09862337F76B1C58DF4DEAC1C
 ```
 
 The manifest hashes canonical
@@ -328,9 +341,9 @@ The manifest hashes canonical
 The checkpoint source receipts are:
 
 ```text
-guard-outcome source    AB84F4F68DFE77795D85BA43B59A60A771D7D062B8F786E4FC34EDB832E44E55
-guard-outcome consumer  E6BAE380B0A4EAAA4C8AACB7C56615294E55E2B8005BEF509839F8F3483DC1DB
-generated API           1C26CC36E9349BF40889DC475C5D9DC8568D3D178BA5A3EA153BD9EA81542E12
+re-entry source    B8A622E961BB5CA0023825D3C9E967CE966378D1FAF740F828A3FB5ECA1A6128
+re-entry consumer  83AF87DD71117F86209A05330F7136C4CD97C1397F2994AEB6B716AEACADEEDD
+generated API      47A2CF69244F28F1D94F6C7B4C3EB8F6F5292EA537FCEEA612328010FFB269DA
 ```
 
 The separately committed finite-audit evidence is:
@@ -346,15 +359,15 @@ manifest  4BBAB7FC99D03D2612459A0FD9291990313A05A184F2572A581BC93C6E49DFDD
 
 Local verification on the committed bytes:
 
-- full `lake build`: 539/539 jobs;
-- Lean source audit: zero actual `sorry`/`admit` findings across 252 Lean
+- full `lake build`: 544/544 jobs;
+- Lean source audit: zero actual `sorry`/`admit` findings across 254 Lean
   files;
-- generated API reference: current at 66 sections and 1,644 declarations;
-- the runnable guard-outcome consumer called both typed-step theorems,
-  reconstructed all four carrier cases, and consumed the exact Nop raw-mate
-  and Wait older-representative marked-mate fields before emitting its
-  kernel-green marker;
-- public theorem audit: 979 entries total: 687 full-classical, 25
+- generated API reference: current at 67 sections and 1,646 declarations;
+- the runnable re-entry consumer called both typed-step theorems, reconstructed
+  every common carrier branch, and consumed and rebuilt each selected,
+  ready-tail, and marked re-entry target before emitting its kernel-green
+  marker;
+- public theorem audit: 981 entries total: 689 full-classical, 25
   axiom-free, 128 `propext`-only, and 139 `propext` plus `Quot.sound`;
 - the default, extended, and cross-variant progress audits passed with every
   incomplete visited state carrying an exact ready head and successful
@@ -367,16 +380,16 @@ Exact-head proof GitHub verification:
 
 - workflow: `Lean CI`;
 - event/ref: `push` / `main`;
-- run: [32373881611](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32373881611);
-- build job: [96440510913][proof-job];
-- exact head: `093c620a6aa5f0b21ed2be0433cd7b37af79c7af`;
+- run: [32378426507](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32378426507);
+- build job: [96455371907][proof-job];
+- exact head: `903440d850eb0af06d7a0c8542dba990a1c49d58`;
 - result: 36 successful steps, zero failures, and one expected release-ref-only
   skip;
-- run: `2026-08-20T13:22:17Z`-`2026-08-20T13:35:44Z` (13m27s);
-- build job: `2026-08-20T13:22:21Z`-`2026-08-20T13:35:43Z`
-  (13m22s).
+- run: `2026-08-20T14:09:18Z`-`2026-08-20T14:22:59Z` (13m41s);
+- build job: `2026-08-20T14:09:22Z`-`2026-08-20T14:22:58Z`
+  (13m36s).
 
-[proof-job]: https://github.com/fushanbobfan/proofnet-ir/actions/runs/32373881611/job/96440510913
+[proof-job]: https://github.com/fushanbobfan/proofnet-ir/actions/runs/32378426507/job/96455371907
 
 Exact-head finite-audit GitHub verification:
 
@@ -443,10 +456,10 @@ deployment.
 
 The project goal remains open. The principal outstanding gates are:
 
-1. return the exact external raw Nop endpoint to the active ready tail, descend
-   the older-representative marked Wait endpoint to a distinct active payer,
-   and eliminate the equal-final conclusion-to-selected/mate trace
-   obstructions over the retained commitment interval;
+1. eliminate the selected-raw and prior-concrete-mark re-entry targets, descend
+   any marked target to a distinct active payer, and eliminate the equal-final
+   conclusion-to-selected/mate trace obstructions over the retained commitment
+   interval;
    resolve the waiting/raw outcome alternatives; then derive the remaining
    global-created Forward/UnifyPayload alternatives;
    equivalently, prove that correctness plus `CanonicalTagHistory` implies
