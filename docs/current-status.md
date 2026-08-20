@@ -17,7 +17,7 @@ Status date: 2026-08-20
 | Track | Revision | Status | Authority |
 | --- | --- | --- | --- |
 | Stable library | `v0.9.0` / `9b7dc3d104af8f57ea9123aab2e61b42e05d2216` | Released | [v0.9.0 release audit](v0.9-release-audit.md) |
-| Rolling research | `v0.10.0-dev`; proof `241a822`; audit `1e46573` | Active | This page/commits |
+| Rolling research | `v0.10.0-dev`; proof `55dd6a2`; audit `1e46573` | Active | This page/commits |
 
 Documentation-only commits may descend from the proof checkpoint without
 changing its mathematical authority. The stable release and rolling branch
@@ -202,7 +202,7 @@ current mate. No terminal alternative is eliminated, and the avoiding and
 equal-final branches remain inclusive. The result derives neither a distinct
 ready-tail payer nor `ActiveTopDebtTailLaw`, completion, or progress.
 
-The current checkpoint orders that proof-relevant cyclic normal form. The
+The preceding checkpoint orders that proof-relevant cyclic normal form. The
 retained switching prefix and strictly forward continuation tail remain
 individually nonbacktracking. If cyclic normalization removes the splice
 completely, either both segments are empty or both are nonempty. In the
@@ -223,6 +223,17 @@ unchanged. The exact out-and-back traversal and marked par-pair residual are
 not eliminated. Avoiding and equal-final branches, the history-tail law, and
 progress remain open.
 
+The current checkpoint eliminates the exact raw return specifically from the
+typed Nop marked re-entry target. Every nontrivial marked-conclusion chain ends
+at a concretely marked vertex. A successful Nop instead keeps its current
+opposite premise raw-unmarked, so a nontrivial chain cannot terminate at that
+mate. The refined Nop target retains raw work outside the active occurrence
+carrier, future work at a strictly older boundary, and a marked global
+conclusion at a strictly older representative. The generic cyclic reduction
+and the corresponding Wait exact-return branch remain valid and unresolved.
+The result supplies no ready-tail witness, history-tail law, completion, or
+progress theorem.
+
 The preceding queue/history-tail checkpoint remains valid. For supplied typed
 Nop and Wait steps, its iff theorems identify post-step debt with the exact
 non-global `remainingTop` witness, assuming the input scheduler invariant and
@@ -237,7 +248,7 @@ from a scheduler-invariant input refutes unrestricted
 same-component locality carrier, but neither refutes direct debt nor supplies
 the required queue-tail or elimination of the classified re-entry failure.
 
-The checkpoint's accumulated public surface is exactly forty-nine declaration
+The checkpoint's accumulated public surface is exactly fifty-three declaration
 boundaries:
 
 ```text
@@ -292,6 +303,12 @@ SequentialFigure7.MarkedConclusionChain.rawReturnCyclicJunctionReduction
 SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedContinuationCyclicJunctionTarget
 SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedContinuationCyclicReductionTarget.
   cyclicJunctionTarget
+SequentialFigure7.MarkedConclusionChain.terminal_marked_of_ne
+SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedContinuationNoExactReturnTarget
+SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedContinuationExitTarget.
+  nopNoExactReturnTarget
+SequentialFigure7.NopStep.
+  commitmentInterval_parTraceReentryMarkedContinuationNoExactReturnOutcome
 ```
 
 The earlier parent-escape, source-temporal, debt, history-tail,
@@ -320,7 +337,7 @@ first continuation step. The preceding theorem follows every marked non-global
 parent through a finite chain and ends raw outside the carrier, at an exact raw
 return to the current pair, at strictly older queued work, or at a strictly
 older marked global conclusion. It does not eliminate any alternative or make
-any conditional implication unconditional. The current theorems refine only
+any conditional implication unconditional. The preceding theorems refine only
 that exact raw return. Complete cancellation is empty or localized to one of
 the two exact junctions of the individually nonbacktracking prefix and tail.
 In the nonempty case the two duplicate-free edge lists are mutually paired by
@@ -331,6 +348,10 @@ traversal of the retained prefix. A surviving exact par pair keeps its left
 occurrence in the prefix and its omitted-right occurrence in the continuation
 tail, whose source is a concrete marked non-global chain vertex. The theorems
 eliminate neither residual and make no conditional implication unconditional.
+The current Nop theorem then removes the exact return to the current mate by
+combining concrete terminal marking for every nontrivial chain with the typed
+Nop mate-unmarked equation. The other three continuation exits, every Wait
+residual, and all avoiding/equal-final branches remain unchanged.
 
 ### Finite ready-head boundary audit
 
@@ -374,16 +395,17 @@ Exact signatures are maintained in the generated API reference for the
 [interval par-guard re-entry mate separation][reentry-mate-separation],
 [marked re-entry target temporal reduction][target-temporal],
 [marked re-entry target finite continuation exit][target-exit],
+[marked re-entry target Nop raw-return elimination][target-nop-no-return],
 [marked re-entry target raw-return cyclic reduction][target-cycle],
 [branch-local continuation credit](api-reference.md#branch-local-continuation-credit),
 [continuation-credit preservation](api-reference.md#continuation-credit-preservation),
 [endpoint-localized continuation exits](api-reference.md#endpoint-localized-continuation-exits),
 and the retained
 [Wait endpoint-locality obstruction](api-reference.md#wait-endpoint-locality-obstruction).
-The first open proof step is now to eliminate the exact complete out-and-back
-traversal, or use its path, mark, and history uniqueness to convert it into a
-distinct payer. The surviving marked omitted-right source must likewise be
-eliminated or converted into a distinct payer. The
+The first open proof step is now to eliminate the remaining Wait/generic exact
+out-and-back traversal, or use its path, mark, and history uniqueness to
+convert it into a distinct payer. The surviving marked omitted-right source
+must likewise be eliminated or converted into a distinct payer. The
 raw-outside, older-future, and
 older-marked-global alternatives and both equal-final trace orientations also
 remain to be discharged.
@@ -409,12 +431,14 @@ This checkpoint does not establish any of the following:
   carrier, or that any branch supplies a distinct ready-tail payer;
 - elimination of the prior-concrete-mark target in the strictly older re-entry,
   elimination of either equal-final conclusion-to-selected or
-  conclusion-to-mate trace, elimination of the finite raw-outside, raw-return,
-  older-future, or older-marked-global continuation alternatives, or
+  conclusion-to-mate trace, elimination of the finite raw-outside,
+  older-future, or older-marked-global continuation alternatives, or the exact
+  raw return in Wait and generic contexts, or
   conversion of that target into a distinct active raw payer;
-- impossibility of the ordered exact out-and-back cyclic-junction traversal,
-  elimination of the surviving marked omitted-right par pair, or conversion
-  of either cyclic residual into a distinct ready-tail payer;
+- impossibility of the remaining Wait/generic ordered exact out-and-back
+  cyclic-junction traversal, elimination of the surviving marked omitted-right
+  par pair, or conversion of either cyclic residual into a distinct ready-tail
+  payer;
 - a terminal scheduler state or elimination of any finite continuation exit;
   normalization terminates the marked chain but does not discharge its
   raw, future, or marked-global endpoint;
@@ -460,12 +484,12 @@ plan is maintained in [v0.10-design.md](v0.10-design.md) and
 The exact rolling proof checkpoint is:
 
 ```text
-commit    241a822153722f868f6a9720d483369c240517c6
-tree      c55fcb15c23b1166483f5cd2428efb5055c77cef
-parent    ace5632a59d02814dff98377e3425013f23c0fd4
-stage     order complete raw-return cancellation traversal
-delta     12 paths, +203/-46
-manifest  E880C16F0B345068CDB68DA7EFB3049D75C3508D97880847EE6AC9343C725DB7
+commit    55dd6a2e52ed810d73e58357e1f44205626c8ec2
+tree      68edad0f4e037937324dd8c9f52554d34638467b
+parent    517bd68f285204c96569016447488399ef364f69
+stage     eliminate the typed Nop exact raw return
+delta     17 paths, +605/-16
+manifest  3638972CEE42C404A8355C10439CAE78687A2C00F3CEBD7EAE799ED4CB0D40A5
 ```
 
 The manifest hashes canonical
@@ -474,9 +498,9 @@ The manifest hashes canonical
 The checkpoint source receipts are:
 
 ```text
-cyclic source    97824767595302F0E1F8DBECE532C0624CC17F86A2CCF42AAC339067B100C103
-cyclic consumer  C21F4337E4C2185B53FB10FFBB22262FA539A84643B8F6D90542FBC1257E4AA0
-generated API    F754A4B193D30EAF0E1610C4686630EC492FF4CBCA29879BD5E90713CF68B00E
+Nop source      258F86F64D84851FF0E096DD2AE08A677F77D1A529DC7E63C7EA165A92066B45
+Nop consumer    E8A2C8B9573FDB4231E7BFD87F6A855CA1C76A21DDA601E96ACC6EA1FAB3BC01
+generated API   939A250159D482FAE7D01F0BEAE687438AA3EA18253355B1D85360BB6E0CB862
 ```
 
 The separately committed finite-audit evidence is:
@@ -492,20 +516,17 @@ manifest  4BBAB7FC99D03D2612459A0FD9291990313A05A184F2572A581BC93C6E49DFDD
 
 Local verification on the committed bytes:
 
-- full `lake build`: 569/569 jobs;
-- Lean source audit: zero actual `sorry`/`admit` findings across 264 Lean
+- full `lake build`: 574/574 jobs;
+- Lean source audit: zero actual `sorry`/`admit` findings across 266 Lean
   files;
-- generated API reference: current at 72 sections and 1,671 declarations;
-- the runnable cyclic-reduction consumer called all four public theorems,
-  destructed the old and junction-aware cancellation/par-pair outcomes,
-  consumed both nonbacktracking-segment facts, both exact junction
-  orientations, the two duplicate-free edge-index lists, both directions of
-  the mutual reverse pairing, the exact reverse-traversal equation, and the
-  omitted-right source mark, exercised both target-level adapters, and audited
-  all seven public proposition carriers before emitting its kernel-green
-  marker;
-- public theorem audit: 996 entries total: 704 full-classical, 25
-  axiom-free, 128 `propext`-only, and 139 `propext` plus `Quot.sound`;
+- generated API reference: current at 73 sections and 1,675 declarations;
+- the runnable Nop raw-return-elimination consumer called the terminal-mark
+  theorem, refined a supplied generic target, destructed every remaining exit,
+  applied the integrated commitment-interval theorem, cased every outer
+  outcome, and audited all four public declarations before emitting its
+  kernel-green marker;
+- public theorem audit: 999 entries total: 706 full-classical, 25
+  axiom-free, 129 `propext`-only, and 139 `propext` plus `Quot.sound`;
 - the default, extended, and cross-variant progress audits passed with every
   incomplete visited state carrying an exact ready head and successful
   dispatch, every dispatch-none stop fully marked, and zero missing-head,
@@ -517,20 +538,21 @@ Exact-head proof GitHub verification:
 
 - workflow: `Lean CI`;
 - event/ref: `push` / `main`;
-- run: [32420528506](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32420528506);
-- build job: [96591352591][proof-job];
-- exact head: `241a822153722f868f6a9720d483369c240517c6`;
+- run: [32424826209](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32424826209);
+- build job: [96604488097][proof-job];
+- exact head: `55dd6a2e52ed810d73e58357e1f44205626c8ec2`;
 - result: 36 successful steps, zero failures, and one expected release-ref-only
   skip;
-- run: `2026-08-20T21:39:53Z`-`2026-08-20T21:49:54Z` (10m01s);
-- build job: `2026-08-20T21:39:56Z`-`2026-08-20T21:49:53Z`
-  (9m57s).
+- run: `2026-08-20T22:33:55Z`-`2026-08-20T22:47:42Z` (13m47s);
+- build job: `2026-08-20T22:33:59Z`-`2026-08-20T22:47:41Z`
+  (13m42s).
 
-[proof-job]: https://github.com/fushanbobfan/proofnet-ir/actions/runs/32420528506/job/96591352591
+[proof-job]: https://github.com/fushanbobfan/proofnet-ir/actions/runs/32424826209/job/96604488097
 [reentry-failure]: api-reference.md#commitment-interval-par-guard-re-entry-failure-target
 [reentry-mate-separation]: api-reference.md#commitment-interval-par-guard-re-entry-mate-separation
 [target-temporal]: api-reference.md#commitment-interval-marked-re-entry-target-temporal-reduction
 [target-exit]: api-reference.md#marked-re-entry-target-finite-continuation-exit
+[target-nop-no-return]: api-reference.md#marked-re-entry-target-nop-raw-return-elimination
 [target-cycle]: api-reference.md#marked-re-entry-target-raw-return-cyclic-reduction
 
 Exact-head finite-audit GitHub verification:
@@ -598,8 +620,9 @@ deployment.
 
 The project goal remains open. The principal outstanding gates are:
 
-1. eliminate the exact raw return's ordered out-and-back traversal and its
-   par-pair residual; discharge the mate-separated target's
+1. eliminate the remaining Wait/generic exact raw return's ordered
+   out-and-back traversal and its par-pair residual; discharge the
+   mate-separated target's
    finite raw-outside,
    older-future, and older-marked-global continuation alternatives; eliminate
    that target or descend its mark to a distinct active payer; and eliminate the equal-final
