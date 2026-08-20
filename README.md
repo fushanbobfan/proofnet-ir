@@ -25,22 +25,22 @@ latest research surface and are prepared for documented development changes.
 
 For a correct selected `par`, a ready-head input and scheduler invariant yield
 a non-global ready tail or a carrier parent escape. No tail forces escape.
-Canonical history normalizes par and tensor escapes into temporal outcomes.
-No-tail Nop and Wait guards leave external raw work or strictly older work; a
-positive retained `sigma` interval returns older endpoints through re-entry.
+Canonical history normalizes par and tensor escapes into temporal outcomes;
+positive retained `sigma` intervals return older endpoints through re-entry.
 Re-entry reverses a submitted parent edge. Supplied connectedness classifies
 its target as selected raw, ready-tail raw, or a prior concrete mark.
-Under exact no-tail failure, a strictly older stored-right branch cannot target
-the selected head. Its target is a distinct authenticated mark at the active
-boundary. Nop keeps an external raw-unmarked mate; Wait keeps an older marked mate.
+Under exact no-tail failure, a strictly older stored-right branch targets a
+distinct authenticated mark. Nop keeps an external raw mate; Wait an older mark.
 The retained path separates that target from the current mate. Its exact raw
 return splices a retained switching prefix with a forward continuation tail.
-Complete cancellation has one of two oriented endpoint junctions. Each backward
-prefix edge has its exact reverse in the tail, which simple-path uniqueness orders
-as its reverse traversal; all prefix targets and the omitted-right source are marked and non-global.
+For a typed Nop, a nontrivial marked-conclusion chain has a concretely marked
+terminal, while the current opposite premise remains raw-unmarked. Hence the
+exact return to that premise is impossible. Raw work outside the active carrier,
+older future work, and an older marked global conclusion remain possible.
+Wait still retains the exact-return and cyclic residuals.
 This proves no unconditional all-marked, progress, completion, termination,
-totality, or completeness result. Eliminating the complete-cancellation and
-par-pair residuals, other exits, and equal-final traces remains open.
+totality, or completeness result. Eliminating the remaining exits and
+equal-final traces, including the Wait residuals, remains open.
 [Current status](docs/current-status.md) owns exact revision, verification receipt, and gates.
 <!-- ROLLING_MAIN_SUMMARY_END -->
 

@@ -1568,6 +1568,15 @@ continuation tail. The latter starts at a concretely marked nonconclusion in
 the finite chain. Complete cancellation and the par-pair case remain residuals
 rather than contradictions or ready-tail payers.
 
+`SequentialFigure7MarkedTargetNopRawReturnElimination.lean`
+removes the exact-return branch specifically for a successful typed Nop. A
+nontrivial marked-conclusion chain has a concrete terminal mark, while the Nop
+step keeps its current opposite premise raw-unmarked. The two facts contradict
+an exact return to that premise. The refined Nop target still permits raw work
+outside the active carrier, older future work, and an older marked global
+conclusion. It neither changes the generic cyclic reduction nor eliminates the
+corresponding Wait branch, and it supplies no tail law or progress result.
+
 `SequentialFigure7CommitmentBlockerAdvance.lean` joins the global queued-head
 law, the strict `sigma` split, the strict-edge avoiding adapter, and the final
 equal-boundary classification. Under declarative correctness and the complete

@@ -986,6 +986,15 @@ path orders the tail as its exact reverse traversal. The verified combined audit
 996 theorems: 704 standard-three, 25 axiom-free, 128 `propext`-only, and 139
 `propext`/`Quot.sound` boundaries. It adds no runtime witness or oracle and does
 not treat cancellation or the surviving par pair as a contradiction.
+`SequentialFigure7MarkedTargetNopRawReturnElimination.lean`
+adds one proposition carrier, one `propext`-only theorem, and two
+standard-three theorems. The elimination is kernel checked from the existing
+marked-conclusion chain and the typed Nop mate-unmarked equation; it adds no
+runtime witness or oracle. It removes only the exact raw return to the current
+mate in the Nop branch. The other three finite exits and the Wait residuals are
+unchanged. The verified combined audit covers 999 theorems: 706
+standard-three, 25 axiom-free, 129 `propext`-only, and 139
+`propext`/`Quot.sound` boundaries.
 `SequentialFigure7CrossRepresentativeWaitPreservation.lean` adds no hidden
 source-region oracle. Its output-work classification follows only from the
 typed destination's exact waiting prepend and unchanged ready/sigma fields;

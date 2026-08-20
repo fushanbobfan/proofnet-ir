@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- eliminated the exact raw return to the current opposite premise from the
+  typed Nop marked re-entry target. Every nontrivial marked-conclusion chain
+  ends at a concretely marked vertex, whereas a successful Nop keeps that mate
+  raw-unmarked. The refined Nop target retains raw work outside the active
+  carrier, older future work, and an older marked global conclusion. This does
+  not eliminate the corresponding Wait residual, derive the history-tail law,
+  or prove progress. The verified combined audit covers 999 theorems: 706
+  standard-three, 25 axiom-free, 129 `propext`-only, and 139
+  `propext`/`Quot.sound` boundaries;
 - normalized the exact raw return of a marked re-entry continuation into a
   closed full-graph walk. Its retained reference-switching prefix and strictly
   forward continuation tail are individually nonbacktracking. Complete

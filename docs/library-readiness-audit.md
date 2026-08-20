@@ -1179,6 +1179,14 @@ part of the engineering and proof-identity gap.
    combined audit still covers 996 theorems: 704
    standard-three, 25 axiom-free, 128 `propext`-only, and 139
    `propext`/`Quot.sound` boundaries.
+   `SequentialFigure7MarkedTargetNopRawReturnElimination.lean` then excludes the
+   exact raw return in the typed Nop branch. Every nontrivial
+   marked-conclusion chain ends at a concrete mark, but the Nop step keeps its
+   current mate raw-unmarked. The refined Nop target still admits raw work
+   outside the active carrier, older future work, and an older marked global
+   conclusion. Wait and the generic cyclic residuals are unchanged. The
+   verified combined audit now covers 999 theorems: 706 standard-three, 25
+   axiom-free, 129 `propext`-only, and 139 `propext`/`Quot.sound` boundaries.
    `SequentialFigure7CommitmentBlockerAdvance.lean` now combines the global
    queued-head law, strict split, and equal-boundary result. Under declarative
    correctness and the complete scheduler invariant, for a supplied canonical

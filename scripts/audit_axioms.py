@@ -121,6 +121,11 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "commitmentInterval_parTraceReentryMarkedContinuationExitOutcome",
     "ProofNetIR.SequentialFigure7.WaitStep."
     "commitmentInterval_parTraceReentryMarkedContinuationExitOutcome",
+    "ProofNetIR.SequentialFigure7."
+    "ActiveCarrierExternalReentryMarkedMateSeparatedContinuationExitTarget."
+    "nopNoExactReturnTarget",
+    "ProofNetIR.SequentialFigure7.NopStep."
+    "commitmentInterval_parTraceReentryMarkedContinuationNoExactReturnOutcome",
     "ProofNetIR.SequentialFigure7.MarkedConclusionChain."
     "rawReturnCyclicReduction",
     "ProofNetIR.SequentialFigure7.MarkedConclusionChain."
@@ -882,6 +887,7 @@ EXPECTED_AXIOM_FREE_THEOREMS = {
     "ProofNetIR.SequentialFigure7.ReadyHeadInput.stackResult_after",
 }
 EXPECTED_PROPEXT_ONLY_THEOREMS = {
+    "ProofNetIR.SequentialFigure7.MarkedConclusionChain.terminal_marked_of_ne",
     "ProofNetIR.SequentialFigure7.empty_olderRawMarkedRegionSeparated",
     "ProofNetIR.SequentialFigure7.empty_olderMarkedTensorPredecessorInvariant",
     "ProofNetIR.SequentialFigure7.empty_activeTopMarkedNonconclusionDebt",

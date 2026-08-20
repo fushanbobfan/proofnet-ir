@@ -312,6 +312,15 @@ expansion.
 #print axioms
   SequentialFigure7.WaitStep.commitmentInterval_parTraceReentryMarkedContinuationExitOutcome
 #print axioms
+  SequentialFigure7.MarkedConclusionChain.terminal_marked_of_ne
+namespace ProofNetIR.SequentialFigure7
+namespace ActiveCarrierExternalReentryMarkedMateSeparatedContinuationExitTarget
+#print axioms nopNoExactReturnTarget
+end ActiveCarrierExternalReentryMarkedMateSeparatedContinuationExitTarget
+end ProofNetIR.SequentialFigure7
+#print axioms
+  SequentialFigure7.NopStep.commitmentInterval_parTraceReentryMarkedContinuationNoExactReturnOutcome
+#print axioms
   SequentialFigure7.MarkedConclusionChain.rawReturnCyclicReduction
 #print axioms
   SequentialFigure7.MarkedConclusionChain.rawReturnCyclicJunctionReduction

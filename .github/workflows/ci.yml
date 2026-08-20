@@ -82,6 +82,8 @@ jobs:
           ~/.elan/bin/lake exe \
             proofnet_ir_commitment_interval_par_guard_reentry_marked_target_continuation_exit_tests
           ~/.elan/bin/lake exe \
+            proofnet_ir_marked_target_nop_raw_return_elimination_tests
+          ~/.elan/bin/lake exe \
             proofnet_ir_marked_target_raw_return_cyclic_reduction_tests
           ~/.elan/bin/lake exe proofnet_ir_commitment_blocker_advance_tests
           ~/.elan/bin/lake exe proofnet_ir_commitment_blocker_maximality_tests

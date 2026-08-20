@@ -9626,6 +9626,89 @@ ProofNetIR.SequentialFigure7.WaitStep.commitmentInterval_parTraceReentryMarkedCo
                                   tagHistory step.prepared.readyHeadInput component owned step.consumer)
 ```
 
+## Marked re-entry target Nop raw-return elimination
+
+### `ProofNetIR.SequentialFigure7.MarkedConclusionChain.terminal_marked_of_ne`
+
+Kind: theorem.
+
+A nontrivial marked-conclusion chain ends at a concretely marked vertex.
+
+```lean
+ProofNetIR.SequentialFigure7.MarkedConclusionChain.terminal_marked_of_ne : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {origin terminal : ProofNetIR.Vertex},
+  ProofNetIR.SequentialFigure7.MarkedConclusionChain certificate state origin terminal →
+    origin ≠ terminal → ∃ rawAge, state.core.marks[terminal]? = some (some rawAge)
+```
+
+### `ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedContinuationNoExactReturnTarget`
+
+Kind: definition.
+
+The mate-separated marked re-entry target after removing the Nop-only
+exact raw return. The remaining raw exit is explicitly outside the active
+occurrence carrier.
+
+```lean
+ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedContinuationNoExactReturnTarget : {certificate : ProofNetIR.Certificate} →
+  {state : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+    {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state} →
+      ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history →
+        (input : ProofNetIR.SequentialFigure7.ReadyHeadInput state) →
+          ProofNetIR.UnificationComponent →
+            List ProofNetIR.Vertex → ProofNetIR.ConnectiveBelow certificate input.vertex → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedContinuationExitTarget.nopNoExactReturnTarget`
+
+Kind: theorem.
+
+A typed Nop removes the exact raw-return subcase from the generic finite
+continuation target.
+
+```lean
+ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedContinuationExitTarget.nopNoExactReturnTarget : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before}
+  {tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history}
+  (step : ProofNetIR.SequentialFigure7.NopStep certificate before after) {component : ProofNetIR.UnificationComponent}
+  {owned : List ProofNetIR.Vertex},
+  ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedContinuationExitTarget tagHistory
+      step.prepared.readyHeadInput component owned step.consumer →
+    ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedContinuationNoExactReturnTarget
+      tagHistory step.prepared.readyHeadInput component owned step.consumer
+```
+
+### `ProofNetIR.SequentialFigure7.NopStep.commitmentInterval_parTraceReentryMarkedContinuationNoExactReturnOutcome`
+
+Kind: theorem.
+
+In the strictly older Nop branch, remove the exact raw-return alternative
+from the marked target's finite continuation exit.
+
+```lean
+ProofNetIR.SequentialFigure7.NopStep.commitmentInterval_parTraceReentryMarkedContinuationNoExactReturnOutcome : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before},
+  certificate.ReferenceSwitchingConnected →
+    ∀ (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+      ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+        ∀ (step : ProofNetIR.SequentialFigure7.NopStep certificate before after)
+          {component : ProofNetIR.UnificationComponent} {usedLinks owned : List Nat},
+          before.core.components[step.prepared.stackResult.rawAge]? = some (some component) →
+            certificate.ComponentOccurrenceWitness component usedLinks owned →
+              ∀ {position edgeCount : Nat} {first : ProofNetIR.SequentialSchedulerState.RawTokenAge},
+                0 < edgeCount →
+                  before.stack.sigma[position]? = some first →
+                    before.stack.sigma[position + edgeCount]? = some step.prepared.stackResult.rawAge →
+                      (¬∃ pending,
+                            pending ∈ step.prepared.stackResult.remainingTop ∧ ¬pending ∈ certificate.conclusions) →
+                        tagHistory.CommitmentIntervalParTraceOutcome step.prepared.readyHeadInput step.consumer position
+                          edgeCount first
+                          (¬step.consumer.mate ∈ owned ∧
+                            before.core.marks[step.consumer.mate]? = some none ∧
+                              ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedContinuationNoExactReturnTarget
+                                tagHistory step.prepared.readyHeadInput component owned step.consumer)
+```
+
 ## Marked re-entry target raw-return cyclic reduction
 
 ### `ProofNetIR.SequentialFigure7.MarkedConclusionRawReturnCyclicOutcome`

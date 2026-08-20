@@ -835,6 +835,23 @@ def sections : List Section := [
     ]
   },
   {
+    title := "Marked re-entry target Nop raw-return elimination"
+    declarations := [
+      Name.str
+        `ProofNetIR.SequentialFigure7.MarkedConclusionChain
+        "terminal_marked_of_ne",
+      `ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedContinuationNoExactReturnTarget,
+      Name.str
+        (Name.str
+          `ProofNetIR.SequentialFigure7
+          "ActiveCarrierExternalReentryMarkedMateSeparatedContinuationExitTarget")
+        "nopNoExactReturnTarget",
+      Name.str
+        `ProofNetIR.SequentialFigure7.NopStep
+        "commitmentInterval_parTraceReentryMarkedContinuationNoExactReturnOutcome"
+    ]
+  },
+  {
     title := "Marked re-entry target raw-return cyclic reduction"
     declarations := [
       `ProofNetIR.SequentialFigure7.MarkedConclusionRawReturnCyclicOutcome,

@@ -1098,8 +1098,12 @@
     exact reverse traversal of the prefix. A surviving par-pair
     residual keeps one occurrence in the switching prefix; its omitted-right
     tail occurrence starts at a concrete marked nonconclusion.
-  - [ ] Eliminate the complete-cancellation/par-pair residuals, the other
-    finite exits, and the equal-final traces, or recover a distinct
+  - [x] Eliminate the exact raw return in the typed Nop branch. A nontrivial
+    marked-conclusion chain ends concretely marked, while the Nop mate remains
+    raw-unmarked. Retain raw-outside, older-future, and older-marked-global
+    exits in the refined target, and leave Wait unchanged.
+  - [ ] Eliminate the remaining Wait cyclic residuals, the other finite exits,
+    and the equal-final traces, or recover a distinct
     ready-tail payer. Do not infer
     unconditional dispatcher progress, completion, terminality, later-state
     totality, global raw seams, fallback removal, Figure-7 pure-worklist

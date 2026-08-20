@@ -496,6 +496,12 @@ Otherwise the reduction exposes both premise occurrences of a par, placing the
 kept one in the prefix and the omitted one in the continuation tail. The
 omitted-right source is concretely marked and non-global. It does not eliminate
 either residual or any other open exit/trace branch.
+`SequentialFigure7MarkedTargetNopRawReturnElimination.lean`
+adds no source reading. It uses the typed Nop mate-unmarked equation to refute
+the concrete terminal mark forced by any nontrivial marked-conclusion chain
+ending at that mate. This removes only the exact-return alternative from the
+Nop marked re-entry target. Raw work outside the active carrier, older future
+work, an older marked global conclusion, and every Wait residual remain open.
 Global preservation of the mate-region and older-raw-mark invariants through
 candidate-creating rules remains open, as do queue origin, created-candidate raw
 seams, derivation of the re-entry avoidance premise, marked-history descent,
