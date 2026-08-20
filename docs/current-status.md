@@ -17,7 +17,7 @@ Status date: 2026-08-20
 | Track | Revision | Status | Authority |
 | --- | --- | --- | --- |
 | Stable library | `v0.9.0` / `9b7dc3d104af8f57ea9123aab2e61b42e05d2216` | Released | [v0.9.0 release audit](v0.9-release-audit.md) |
-| Rolling research | `v0.10.0-dev`; proof `49b527c`; audit `1e46573` | Active | This page/commits |
+| Rolling research | `v0.10.0-dev`; proof `be43b70`; audit `1e46573` | Active | This page/commits |
 
 Documentation-only commits may descend from the proof checkpoint without
 changing its mathematical authority. The stable release and rolling branch
@@ -71,14 +71,16 @@ path already carried by that edge. The external raw branch remains unchanged.
 This does not construct a path from the external endpoint to the commitment
 edge, prove first re-entry, or produce a distinct ready-tail payer.
 
-The current checkpoint connects each strictly older external endpoint to the
-active owned carrier. The two older branches retain their final commitment
-edge and now also carry an exact reference-switching simple path from inside
-the active carrier to the endpoint, together with one concrete stored edge on
-that path whose source is owned and whose target is outside. The raw branch
-remains unchanged. This proves an exact owned-to-outside crossing, but it does
-not retain an equality identifying the path start with the commitment child,
-classify that crossing, prove first re-entry, or return a ready-tail payer.
+The preceding crossing checkpoint connects the active owned carrier to each
+strictly older external endpoint and retains one exact owned-to-outside edge.
+The current checkpoint then composes every adjacent canonical commitment path
+across the complete positive retained `sigma` interval. Ready future work and
+older marked endpoints now carry an exact path from the endpoint back into the
+active owned carrier and one concrete outside-to-inside re-entry edge. Waiting
+work keeps its exact waiting cell without invented ownership, and external raw
+work remains unchanged. This proves exact re-entry for the ready-future and
+marked branches, but does not classify the re-entry edge as a distinct
+ready-tail payer or discharge the waiting/raw alternatives.
 
 The preceding queue/history-tail checkpoint remains valid. For supplied typed
 Nop and Wait steps, its iff theorems identify post-step debt with the exact
@@ -92,22 +94,24 @@ The earlier Wait obstruction also remains valid: every successful typed Wait
 from a scheduler-invariant input refutes unrestricted
 `ActiveTopContinuationExitLocalized` at its output. It rules out that unchanged
 same-component locality carrier, but neither refutes direct debt nor supplies
-the required queue-tail or parent re-entry argument.
+the required queue-tail or re-entry-edge classification.
 
 Within `ProofNetIR.SequentialFigure7`, the checkpoint's new public surface is
-exactly three declaration boundaries:
+exactly five declaration boundaries:
 
 ```text
-ActiveCarrierExternalEndpointCrossing
-ActiveCarrierParentExternalCommitmentCrossingOutcome
-ActiveCarrierParentExternalCommitmentOutcome.endpointCrossing
+ActiveCarrierExternalEndpointReentry
+CanonicalTagHistory.CommitmentIntervalReferencePath
+CanonicalTagHistory.commitmentInterval_referencePath
+ActiveCarrierParentExternalCommitmentReentryOutcome
+ActiveCarrierParentExternalCommitmentOutcome.reentryOutcome
 ```
 
 The earlier parent-escape, source-temporal, debt, history-tail,
 continuation-exit, common and external temporal-outcome, and conditional
-all-marked results remain valid. The new reduction attaches the exact final
-commitment edge to the two older branches but does not make any conditional
-implication unconditional.
+all-marked results remain valid. The new reduction composes the full retained
+commitment interval and attaches exact re-entry data to the ready-future and
+marked branches, but does not make any conditional implication unconditional.
 
 ### Finite ready-head boundary audit
 
@@ -139,14 +143,16 @@ Exact signatures are maintained in the generated API reference for the
 [external parent outcome](api-reference.md#active-top-debt-parent-external-temporal-outcome),
 [external parent commitment outcome](api-reference.md#active-top-debt-parent-external-commitment-outcome),
 [endpoint crossing](api-reference.md#active-top-debt-parent-external-endpoint-crossing),
+[commitment re-entry](api-reference.md#active-top-debt-parent-external-commitment-re-entry),
 [branch-local continuation credit](api-reference.md#branch-local-continuation-credit),
 [continuation-credit preservation](api-reference.md#continuation-credit-preservation),
 [endpoint-localized continuation exits](api-reference.md#endpoint-localized-continuation-exits),
 and the retained
 [Wait endpoint-locality obstruction](api-reference.md#wait-endpoint-locality-obstruction).
-The first open proof step is now to classify the exact owned-to-outside
-crossing and prove a first-reentry or ownership law, or prove directly that
-the normalized failure already carries a distinct active ready-tail payer.
+The first open proof step is now to classify the exact outside-to-inside
+re-entry edge for the ready-future and marked branches as a distinct active
+ready-tail payer, or otherwise eliminate the failure-conditioned residual.
+The waiting and external-raw alternatives also remain unresolved.
 The remaining global-created Forward/UnifyPayload alternatives must also be
 derived.
 Together these are the missing implication from correctness plus canonical
@@ -161,16 +167,16 @@ This checkpoint does not establish any of the following:
 - construction or existence of a relevant `ExecutedHistory`, reachable state,
   `CanonicalTagHistory`, `ReadyHeadInput`, or successful Nop or Wait transition;
 - impossibility of `ActiveCarrierParentEscape`, exclusivity between an escape
-  and a valid non-global ready-tail witness, or a proof that an escaped parent
-  re-enters the active carrier;
+  and a valid non-global ready-tail witness, or a proof that every escaped
+  parent endpoint re-enters the active carrier;
 - elimination of `ActiveCarrierParentExternalTemporalOutcome`, including a
-  theorem that an external raw or older endpoint re-enters the active carrier
-  or supplies a distinct ready-tail payer;
-- a classification of the exact owned-to-outside crossing, a first-reentry
-  theorem, or a proof that the crossing returns a distinct active payer;
+  theorem that external raw or waiting work re-enters the active carrier, or
+  that any branch supplies a distinct ready-tail payer;
+- a classification of the exact outside-to-inside re-entry edge as raw or
+  marked, or a proof that the edge returns a distinct active payer;
 - terminality of the temporal outcome; in particular, its marked case may
   continue through another submitted connective;
-- the failure-conditioned first-reentry, ownership, or ordered
+- the failure-conditioned re-entry-edge classification, ownership, or ordered
   distinct-payment law needed to turn the external-only outcome into the
   missing queue-tail result;
 - derivation of `ActiveTopDebtTailLaw` from declarative correctness,
@@ -213,12 +219,12 @@ plan is maintained in [v0.10-design.md](v0.10-design.md) and
 The exact rolling proof checkpoint is:
 
 ```text
-commit    49b527ceff8b88d416e35d824f2aeed33e1ddbf0
-tree      e695c7452d3155bdce6236fa0c41593659f189bd
-parent    66bdb28b0d7624f166fcd710b3c19758024440f2
-stage     active-top debt external parent endpoint crossing
-delta     17 paths, +475/-25
-manifest  7A478EAC4A4F3DAFFDA347837FC17705BA3024FF5C7230D586BEA6E8D0B3ABF7
+commit    be43b707c1748a15c56a2d5a6749affb9b5de85d
+tree      33e8a1d15b2784ca3fbc22cbbe368ac2c81f6553
+parent    ffdb7f52f661f96e640a22d1faa1ee2369c059ec
+stage     active-top debt external parent commitment re-entry
+delta     17 paths, +822/-20
+manifest  13C6966C8BA43BEFF871DDD4E3FAA81AF789A725E9EF4B0286F0087215677D79
 ```
 
 The manifest hashes canonical
@@ -227,9 +233,9 @@ The manifest hashes canonical
 The checkpoint source receipts are:
 
 ```text
-source         E3E966CE6137F6FA8D801C7561114C2D106F772AD4A4ADD702C6D5A1AFF4AA95
-consumer       90E2DF1C8876B5D8F8A6CC9A737F4DE690349F32E423B222B67CE60187CE7AEF
-generated API  69CB15645E0AE08E6B97E068D6FC82EC1A3A0B8203E5C3AB17EE66F5D4DDC5AB
+source         9214B648B01A7565BC7E88F92A1273826CF2F173F5AA4C266B53E9562332B744
+consumer       F0738E61300E5DD283FC26B943E430EBA42D11AAF04EAB56ED382C157A4CC6E8
+generated API  76DEF03E93AC25B7111CDD2F9D0D211DF3FB6DC8905779D8D0722AE9F731F65A
 ```
 
 The separately committed finite-audit evidence is:
@@ -245,15 +251,15 @@ manifest  4BBAB7FC99D03D2612459A0FD9291990313A05A184F2572A581BC93C6E49DFDD
 
 Local verification on the committed bytes:
 
-- full `lake build`: 514/514 jobs;
-- Lean source audit: zero actual `sorry`/`admit` findings across 242 Lean
+- full `lake build`: 519/519 jobs;
+- Lean source audit: zero actual `sorry`/`admit` findings across 244 Lean
   files;
-- generated API reference: current at 61 sections and 1,617 declarations;
-- the runnable external-endpoint-crossing consumer destructured and rebuilt
-  the crossing carrier and all three outcome cases, exercised the public
-  normalizer, and emitted exactly
-  `active-top debt external endpoint crossing: kernel-green`;
-- public theorem audit: 962 entries total: 671 full-classical, 25
+- generated API reference: current at 62 sections and 1,622 declarations;
+- the runnable commitment-re-entry consumer exercised the full interval
+  theorem, destructured and rebuilt the re-entry carrier and all four outcome
+  cases, exercised the public normalizer, and emitted exactly
+  `active-top debt external commitment re-entry: kernel-green`;
+- public theorem audit: 964 entries total: 673 full-classical, 25
   axiom-free, 128 `propext`-only, and 138 `propext` plus `Quot.sound`;
 - the default, extended, and cross-variant progress audits passed with every
   incomplete visited state carrying an exact ready head and successful
@@ -266,16 +272,16 @@ Exact-head proof GitHub verification:
 
 - workflow: `Lean CI`;
 - event/ref: `push` / `main`;
-- run: [32350108780](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32350108780);
-- build job: [96367215413][proof-job];
-- exact head: `49b527ceff8b88d416e35d824f2aeed33e1ddbf0`;
+- run: [32354258949](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32354258949);
+- build job: [96379924536][proof-job];
+- exact head: `be43b707c1748a15c56a2d5a6749affb9b5de85d`;
 - result: 36 successful steps, zero failures, and one expected release-ref-only
   skip;
-- run: `2026-08-20T08:42:02Z`-`2026-08-20T08:55:25Z` (13m23s);
-- build job: `2026-08-20T08:42:05Z`-`2026-08-20T08:55:24Z`
-  (13m19s).
+- run: `2026-08-20T09:30:48Z`-`2026-08-20T09:41:22Z` (10m34s);
+- build job: `2026-08-20T09:30:51Z`-`2026-08-20T09:41:21Z`
+  (10m30s).
 
-[proof-job]: https://github.com/fushanbobfan/proofnet-ir/actions/runs/32350108780/job/96367215413
+[proof-job]: https://github.com/fushanbobfan/proofnet-ir/actions/runs/32354258949/job/96379924536
 
 Exact-head finite-audit GitHub verification:
 
@@ -342,9 +348,10 @@ deployment.
 
 The project goal remains open. The principal outstanding gates are:
 
-1. classify the exact active-owned-to-external crossing and derive a
-   first-reentry or ownership law, or derive a distinct active ready-tail payer
-   directly; then derive the remaining
+1. classify the exact outside-to-inside re-entry edge for ready future and
+   marked endpoints as a distinct active ready-tail payer, or otherwise
+   eliminate the failure residual; resolve the waiting/raw alternatives; then
+   derive the remaining
    global-created Forward/UnifyPayload alternatives;
    equivalently, prove that correctness plus `CanonicalTagHistory` implies
    `ActiveTopDebtTailLaw`. Only after that gate may endpoint debt combine with
