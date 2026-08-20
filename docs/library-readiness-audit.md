@@ -574,10 +574,9 @@ part of the engineering and proof-identity gap.
    dispatcher result. This history wrapper does not construct that ready head;
    the following structural classifier identifies the exact shape when it is
    absent, and the following debt and continuation-exit layers give conditional
-   completion reductions. The first gate before dispatcher progress is now the
-   failure-conditioned distinct-payer/re-entry law described below, with
-   separate `par` and `tensor` statements. Later-state
-   totality, recursive-fallback removal,
+   completion reductions. The re-entry-target classifier now leaves selected-
+   raw and concretely-marked no-tail alternatives as the first gate before
+   dispatcher progress. Later-state totality, recursive-fallback removal,
    faithful token-age scheduling, whole-program linearity, and Figure-7
    pure-worklist completeness remain open maturity gates; no global raw seam or
    sequentialization result follows from this history package.
@@ -636,10 +635,10 @@ part of the engineering and proof-identity gap.
    concrete mark as an earlier prepared-selection event; it is not a premise of
    the reduction. No `ActiveTopDebtTailLaw` is assumed or derived. No
    computational coexistence receipt is part of this public checkpoint. The
-   next readiness gate is a
-   failure-conditioned distinct-payer/re-entry law, split between `par` and
-   `tensor`; progress, completion, termination, totality, and completeness
-   remain open.
+   downstream re-entry classifier identifies the exact submitted-parent target
+   status; eliminating its selected-raw and concretely-marked no-tail cases is
+   the next readiness gate. Progress, completion, termination, totality, and
+   completeness remain open.
    `SequentialFigure7ActiveTopDebtParentEscapeTemporal.lean` sharpens that
    residual without closing it. Under the matching canonical history,
    correctness, scheduler invariant, exact active occurrence/accounting data,
@@ -680,6 +679,14 @@ part of the engineering and proof-identity gap.
    outside-to-inside re-entry edge; waiting keeps its exact cell and raw work
    stays unchanged. The re-entry edge is not yet classified as a distinct
    ready-tail payer or eliminated under the no-tail hypothesis.
+   `SequentialFigure7ActiveTopDebtParentExternalReentryTarget.lean` now
+   identifies the edge as the reverse of an exact submitted connective-parent
+   edge. Its target is a non-global active-frontier premise, and complete ready
+   accounting classifies it as the selected raw head, a raw ready-tail
+   occurrence, or a prior concrete mark. Explicit no-tail removes the middle
+   case but does not eliminate the selected or marked alternatives. The next
+   gate is therefore a failure-conditioned distinct-payer or residual-
+   elimination theorem, followed by the global-created tail obligations.
    `SequentialFigure7ContinuationCredit.lean` and its preservation module now
    close a weaker full-history invariant. The two carriers assign each marked
    nonconclusion one of three receipts: an unmarked mate, future conclusion

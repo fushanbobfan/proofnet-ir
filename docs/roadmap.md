@@ -1362,8 +1362,12 @@
     commitment edge into the active top. The complete retained interval now
     composes: ready future and marked endpoints carry exact endpoint-to-active
     paths and outside-to-inside re-entry edges, while waiting retains its exact
-    cell. Next classify that re-entry edge into a distinct ready-tail payer or
-    eliminate the failure residual before claiming
+    cell. Each re-entry is now the reverse of an exact submitted
+    connective-parent edge whose target is a non-global active-frontier
+    premise. Ready-bucket accounting classifies that target as the selected raw
+    head, a raw ready-tail occurrence, or a prior concrete mark; under no-tail,
+    only the selected and marked cases remain. Next eliminate those failure
+    alternatives or derive a distinct ready-tail payer before claiming
     exhaustive progress on incomplete, correct, certified-reachable states.
     Exact source-left complexity descent, last-step decomposition, and
     recursive visited-route separation from the selected head are now proved.

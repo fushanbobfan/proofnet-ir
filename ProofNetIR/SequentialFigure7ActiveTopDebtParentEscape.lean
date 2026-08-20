@@ -182,7 +182,9 @@ private theorem producer_used_of_conclusion_owned
     rw [sourceLookup, exactLink, sameLink]
   simpa [sameIndex] using sourceUsed
 
-private theorem connectivePremises_owned_of_conclusion_owned
+/-- If an occurrence carrier owns a submitted connective conclusion, it owns
+both premises of that connective. -/
+theorem connectivePremises_owned_of_conclusion_owned
     {certificate : Certificate} (structural : certificate.StructurallyWellFormed)
     {tree : CutFreeDerivation} {frontier usedLinks owned : List Nat}
     (witness : OccurrenceDerivation certificate tree frontier usedLinks owned)
@@ -288,7 +290,9 @@ private theorem usedConsumer_of_owned_not_frontier
           ((CutFreeDerivation.reorder?_perm reorderEquation).mem_iff.mp oldFrontier)
       exact induction vertexOwned oldNotFrontier
 
-private theorem connectiveConclusion_owned_of_premise_owned_not_frontier
+/-- An owned submitted premise that is internal rather than frontier keeps its
+connective conclusion in the same occurrence carrier. -/
+theorem connectiveConclusion_owned_of_premise_owned_not_frontier
     {certificate : Certificate} (structural : certificate.StructurallyWellFormed)
     {tree : CutFreeDerivation} {frontier usedLinks owned : List Nat}
     (witness : OccurrenceDerivation certificate tree frontier usedLinks owned)
@@ -381,7 +385,9 @@ theorem ActiveCarrierParentEscape.authenticMarkedPremise
     tagHistory.final_rawMarked_iff.mp premiseMarked, premiseNotGlobal,
     linkLookup, premiseMembership, conclusionNotOwned⟩
 
-private theorem submittedPremise_not_conclusion
+/-- A premise of a structurally well-formed submitted connective is not a
+global certificate conclusion. -/
+theorem submittedPremise_not_conclusion
     {certificate : Certificate} (structural : certificate.StructurallyWellFormed)
     {linkIndex : Nat} {link : Link} {premise : Vertex}
     (lookup : certificate.links[linkIndex]? = some link)

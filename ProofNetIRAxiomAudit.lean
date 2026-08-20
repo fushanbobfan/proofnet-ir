@@ -391,6 +391,14 @@ expansion.
   SequentialFigure7.CanonicalTagHistory.commitmentInterval_referencePath
 #print axioms
   SequentialFigure7.ActiveCarrierParentExternalCommitmentOutcome.reentryOutcome
+#print axioms
+  Certificate.OccurrenceDerivation.connectivePremises_owned_of_conclusion_owned
+#print axioms
+  Certificate.OccurrenceDerivation.connectiveConclusion_owned_of_premise_owned_not_frontier
+#print axioms SequentialFigure7.submittedPremise_not_conclusion
+#print axioms SequentialFigure7.ActiveCarrierExternalEndpointReentry.targetStatus
+#print axioms
+  SequentialFigure7.ActiveCarrierExternalEndpointReentry.targetFailureStatus
 #print axioms SequentialFigure7.empty_markedNonconclusionContinuation
 #print axioms
   SequentialFigure7.InitialReservationStep.markedNonconclusionContinuation

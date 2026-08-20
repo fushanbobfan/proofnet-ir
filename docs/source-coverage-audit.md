@@ -378,13 +378,14 @@ the active component occurrence/accounting data and either a non-global
 ready-tail witness or `ActiveCarrierParentEscape`. The escape is a concrete
 marked non-global frontier premise distinct from the selected vertex whose
 exact submitted connective parent conclusion lies outside the active owned
-carrier. The theorem does not assert that these outcomes are exclusive; if the tail is absent, the
-failure-conditioned theorem forces the escape. `CanonicalTagHistory` is used
-only by the separate theorem authenticating the concrete mark as an earlier
-prepared-selection event. This layer neither assumes nor derives
-`ActiveTopDebtTailLaw`, and it contains no computational coexistence receipt.
-The next code-level gate is a failure-conditioned distinct-payer/re-entry law,
-split between `par` and `tensor`.
+carrier. The theorem does not assert that these outcomes are exclusive; if the
+tail is absent, the failure-conditioned theorem forces the escape.
+`CanonicalTagHistory` is used only by the separate theorem authenticating the
+concrete mark as an earlier prepared-selection event. This layer neither
+assumes nor derives `ActiveTopDebtTailLaw`, and it contains no computational
+coexistence receipt. The downstream re-entry classifier now reduces no-tail
+failure to selected-raw or concretely-marked targets; eliminating those cases
+remains open.
 `SequentialFigure7ActiveTopDebtParentEscapeTemporal.lean` is another
 kernel-checked code consequence and adds no source reading. With a matching
 canonical tag history, correctness, scheduler invariant, active
@@ -426,9 +427,15 @@ positive retained interval. Ready future and marked endpoints receive an
 endpoint-to-active path and an exact outside-to-inside edge; waiting retains
 its exact cell and raw work remains unchanged. The edge is not classified as a
 distinct raw payer, so no ready-tail witness or history-tail law follows.
+`SequentialFigure7ActiveTopDebtParentExternalReentryTarget.lean` adds no new
+source reading. It proves that the re-entry is the reverse of an exact
+submitted connective-parent edge with a non-global active-frontier target.
+Exact ready-bucket accounting classifies the target as selected raw, ready-tail
+raw, or concretely marked. The no-tail wrapper removes only the ready-tail
+case. It provides no distinct payer, tail law, or progress theorem.
 Global preservation of the mate-region and older-raw-mark invariants through
 candidate-creating rules remains open, as do queue origin, created-candidate raw
-seams, exact re-entry-edge classification of the external-only temporal outcome,
+seams, elimination of the selected/marked re-entry failure cases,
 unconditional active-top completion, progress,
 later-state totality,
 fallback removal,

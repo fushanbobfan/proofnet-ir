@@ -10379,6 +10379,144 @@ ProofNetIR.SequentialFigure7.ActiveCarrierParentExternalCommitmentOutcome.reentr
               owned
 ```
 
+## Active-top debt parent external re-entry target
+
+### `ProofNetIR.Certificate.OccurrenceDerivation.connectivePremises_owned_of_conclusion_owned`
+
+Kind: theorem.
+
+If an occurrence carrier owns a submitted connective conclusion, it owns
+both premises of that connective.
+
+```lean
+ProofNetIR.Certificate.OccurrenceDerivation.connectivePremises_owned_of_conclusion_owned : ∀ {certificate : ProofNetIR.Certificate},
+  certificate.StructurallyWellFormed →
+    ∀ {tree : ProofNetIR.CutFreeDerivation} {frontier usedLinks owned : List Nat},
+      certificate.OccurrenceDerivation tree frontier usedLinks owned →
+        ∀ {linkIndex left right conclusion : Nat},
+          conclusion ∈ owned →
+            certificate.links[linkIndex]? = some (ProofNetIR.Link.tensor left right conclusion) ∨
+                certificate.links[linkIndex]? = some (ProofNetIR.Link.par left right conclusion) →
+              left ∈ owned ∧ right ∈ owned
+```
+
+### `ProofNetIR.Certificate.OccurrenceDerivation.connectiveConclusion_owned_of_premise_owned_not_frontier`
+
+Kind: theorem.
+
+An owned submitted premise that is internal rather than frontier keeps its
+connective conclusion in the same occurrence carrier.
+
+```lean
+ProofNetIR.Certificate.OccurrenceDerivation.connectiveConclusion_owned_of_premise_owned_not_frontier : ∀ {certificate : ProofNetIR.Certificate},
+  certificate.StructurallyWellFormed →
+    ∀ {tree : ProofNetIR.CutFreeDerivation} {frontier usedLinks owned : List Nat},
+      certificate.OccurrenceDerivation tree frontier usedLinks owned →
+        ∀ {linkIndex left right conclusion premise : Nat},
+          certificate.links[linkIndex]? = some (ProofNetIR.Link.tensor left right conclusion) ∨
+              certificate.links[linkIndex]? = some (ProofNetIR.Link.par left right conclusion) →
+            premise ∈ [left, right] → premise ∈ owned → ¬premise ∈ frontier → conclusion ∈ owned
+```
+
+### `ProofNetIR.SequentialFigure7.submittedPremise_not_conclusion`
+
+Kind: theorem.
+
+A premise of a structurally well-formed submitted connective is not a
+global certificate conclusion.
+
+```lean
+ProofNetIR.SequentialFigure7.submittedPremise_not_conclusion : ∀ {certificate : ProofNetIR.Certificate},
+  certificate.StructurallyWellFormed →
+    ∀ {linkIndex : Nat} {link : ProofNetIR.Link} {premise : ProofNetIR.Vertex},
+      certificate.links[linkIndex]? = some link → premise ∈ link.premises → ¬premise ∈ certificate.conclusions
+```
+
+### `ProofNetIR.SequentialFigure7.ActiveCarrierInboundParentEdge`
+
+Kind: definition.
+
+Exact connective-parent origin of an outside-to-inside edge of one
+occurrence carrier.
+
+```lean
+ProofNetIR.SequentialFigure7.ActiveCarrierInboundParentEdge : (certificate : ProofNetIR.Certificate) →
+  ProofNetIR.UnificationComponent → List ProofNetIR.Vertex → certificate.referenceSwitchingGraph.DirectedEdge → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryTargetStatus`
+
+Kind: definition.
+
+One exact re-entry edge together with the scheduler status of its active
+frontier target.
+
+```lean
+ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryTargetStatus : ProofNetIR.Certificate →
+  (state : ProofNetIR.SequentialSchedulerBridge.ReservationState) →
+    ProofNetIR.SequentialFigure7.ReadyHeadInput state →
+      ProofNetIR.UnificationComponent → List ProofNetIR.Vertex → ProofNetIR.Vertex → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryFailureTargetStatus`
+
+Kind: definition.
+
+Failure-conditioned re-entry status after the non-global ready-tail case
+has been excluded. The target is the selected raw head or a prior mark.
+
+```lean
+ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryFailureTargetStatus : ProofNetIR.Certificate →
+  (state : ProofNetIR.SequentialSchedulerBridge.ReservationState) →
+    ProofNetIR.SequentialFigure7.ReadyHeadInput state →
+      ProofNetIR.UnificationComponent → List ProofNetIR.Vertex → ProofNetIR.Vertex → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.ActiveCarrierExternalEndpointReentry.targetStatus`
+
+Kind: theorem.
+
+Classify the exact active-frontier target of an external endpoint
+re-entry as the selected head, a genuine ready-tail occurrence, or a concrete
+prior mark.
+
+```lean
+ProofNetIR.SequentialFigure7.ActiveCarrierExternalEndpointReentry.targetStatus : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (input : ProofNetIR.SequentialFigure7.ReadyHeadInput state),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+    ∀ {component : ProofNetIR.UnificationComponent} {usedLinks owned : List Nat},
+      state.core.components[input.rawAge]? = some (some component) →
+        certificate.ComponentOccurrenceWitness component usedLinks owned →
+          ProofNetIR.Certificate.OwnedOccurrenceAccounted state.core input.rawAge component owned →
+            ∀ {endpoint : ProofNetIR.Vertex},
+              ProofNetIR.SequentialFigure7.ActiveCarrierExternalEndpointReentry certificate owned endpoint →
+                ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryTargetStatus certificate state input component
+                  owned endpoint
+```
+
+### `ProofNetIR.SequentialFigure7.ActiveCarrierExternalEndpointReentry.targetFailureStatus`
+
+Kind: theorem.
+
+Under explicit failure of the non-global ready-tail obligation, the exact
+re-entry target is the selected raw head or a concretely marked active-frontier
+premise.
+
+```lean
+ProofNetIR.SequentialFigure7.ActiveCarrierExternalEndpointReentry.targetFailureStatus : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (input : ProofNetIR.SequentialFigure7.ReadyHeadInput state),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+    ∀ {component : ProofNetIR.UnificationComponent} {usedLinks owned : List Nat},
+      state.core.components[input.rawAge]? = some (some component) →
+        certificate.ComponentOccurrenceWitness component usedLinks owned →
+          ProofNetIR.Certificate.OwnedOccurrenceAccounted state.core input.rawAge component owned →
+            ∀ {endpoint : ProofNetIR.Vertex},
+              ProofNetIR.SequentialFigure7.ActiveCarrierExternalEndpointReentry certificate owned endpoint →
+                (¬∃ pending, pending ∈ input.readyTail ∧ ¬pending ∈ certificate.conclusions) →
+                  ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryFailureTargetStatus certificate state input
+                    component owned endpoint
+```
+
 ## Branch-local continuation credit
 
 ### `ProofNetIR.SequentialFigure7.ContinuationCredit`

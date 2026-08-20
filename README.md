@@ -24,25 +24,26 @@ latest research surface and are prepared for documented development changes.
 ### Rolling-main summary
 
 For a correct selected `par`, a ready-head input and `SchedulerInvariant`
-reduce the first active-carrier boundary to a non-global ready-tail vertex or
-an `ActiveCarrierParentEscape` whose submitted parent leaves the carrier. If
-no such tail vertex exists, the escape is forced.
+yield a non-global ready-tail vertex or an `ActiveCarrierParentEscape` whose
+submitted parent leaves the carrier. If the tail is absent, escape is forced.
 
 With matching `CanonicalTagHistory`, the no-tail escape has an exact temporal
 normal form. Par has an anchored raw sibling or older parent continuation;
 tensor has an active-representative mark with sibling and parent outside the
 carrier. Continuation credit maps both to `ActiveCarrierParentTemporalOutcome`.
 Typed no-tail Nop and Wait guards leave only external raw work or strictly
-older external future/marked work. The complete positive retained `sigma` interval composes its
-commitment paths. Ready future and marked external endpoints carry an
-endpoint-to-active path and one exact outside-to-inside re-entry edge. Waiting
-keeps its exact cell, and raw external work remains unchanged. No re-entry-edge
-classification, distinct payer, or `ActiveTopDebtTailLaw` proof follows.
+older external future/marked work. A complete positive retained `sigma`
+interval composes its commitment paths, returning ready future and marked
+external endpoints through one exact outside-to-inside edge.
 
-This checkpoint proves no unconditional all-marked result, progress,
-completion, termination, totality, or completeness. Next classify the exact
-re-entry edge into a distinct ready-tail payer or eliminate its failure, then
-derive the still-open global-created tail obligations.
+That re-entry is now identified as the reverse of a submitted connective-parent
+edge. Its active-frontier premise is exactly the selected raw head, a raw
+ready-tail occurrence, or a prior concrete mark. When no non-global ready-tail
+exists, only the selected-head and marked alternatives remain.
+
+This proves no unconditional all-marked, progress, completion, termination,
+totality, or completeness result. Next eliminate the two failure alternatives
+or derive a distinct payer, then discharge the global-created tail obligations.
 [Current status](docs/current-status.md) owns exact revision, verification receipt, and gates.
 <!-- ROLLING_MAIN_SUMMARY_END -->
 

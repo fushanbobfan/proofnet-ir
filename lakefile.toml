@@ -66,6 +66,7 @@ defaultTargets = [
   "proofnet_ir_active_top_debt_parent_external_commitment_outcome_tests",
   "proofnet_ir_active_top_debt_parent_external_endpoint_crossing_tests",
   "proofnet_ir_active_top_debt_parent_external_commitment_reentry_tests",
+  "proofnet_ir_active_top_debt_parent_external_reentry_target_tests",
   "proofnet_ir_continuation_credit_preservation_tests",
   "proofnet_ir_continuation_exit_tests",
   "proofnet_ir_endpoint_locality_obstruction_tests",
@@ -342,6 +343,10 @@ root = "ProofNetIRActiveTopDebtParentExternalEndpointCrossingTests"
 [[lean_exe]]
 name = "proofnet_ir_active_top_debt_parent_external_commitment_reentry_tests"
 root = "ProofNetIRActiveTopDebtParentExternalCommitmentReentryTests"
+
+[[lean_exe]]
+name = "proofnet_ir_active_top_debt_parent_external_reentry_target_tests"
+root = "ProofNetIRActiveTopDebtParentExternalReentryTargetTests"
 
 [[lean_exe]]
 name = "proofnet_ir_continuation_credit_preservation_tests"

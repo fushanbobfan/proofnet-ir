@@ -912,6 +912,17 @@ verified combined audit covers 964 theorems: 673 standard-three, 25 axiom-free,
 and marked branches have exact re-entry, while waiting and raw branches retain
 only their prior data. No re-entry-edge classification, ready-tail witness,
 tail law, progress, or completion result is trusted here.
+`SequentialFigure7ActiveTopDebtParentExternalReentryTarget.lean` adds three
+proposition carriers and two target-classification theorems, and promotes three
+reusable occurrence-geometry facts from the parent-escape owner. The proof uses
+only structural well-formedness, occurrence derivation, exact ready/frontier
+alignment, and owned-occurrence accounting. The three carriers are
+`propext`-only; the submitted-premise fact uses `propext`/`Quot.sound`; the
+remaining four theorems use the standard three axioms. The verified combined
+audit covers 969 theorems: 677 standard-three, 25 axiom-free, 128
+`propext`-only, and 139 `propext`/`Quot.sound` boundaries. The theorem does not
+eliminate the selected-head or marked failure case,
+derive a tail law, or add any oracle or computational receipt.
 `SequentialFigure7CrossRepresentativeWaitPreservation.lean` adds no hidden
 source-region oracle. Its output-work classification follows only from the
 typed destination's exact waiting prepend and unchanged ready/sigma fields;

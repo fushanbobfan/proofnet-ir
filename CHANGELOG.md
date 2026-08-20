@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+- added `SequentialFigure7ActiveTopDebtParentExternalReentryTarget.lean` and
+  exposed three reusable occurrence-carrier geometry lemmas. Every exact
+  outside-to-inside endpoint re-entry is now the reverse of a submitted
+  connective-parent edge whose target is a non-global active-frontier premise.
+  With a ready-head input, `SchedulerInvariant`, and exact occurrence
+  accounting, that target is the selected raw head, a raw ready-tail
+  occurrence, or a prior concrete mark. Explicit absence of a non-global tail
+  removes only the middle case. This does not eliminate the selected or marked
+  alternatives, derive `ActiveTopDebtTailLaw`, or establish progress or
+  completion. The verified combined audit covers 969 theorems: 677
+  standard-three, 25 axiom-free, 128 `propext`-only, and 139
+  `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7ActiveTopDebtParentExternalCommitmentReentry.lean`.
   Every positive retained `sigma` interval now composes its adjacent canonical
   commitment paths. Ready future and older marked endpoints return to the

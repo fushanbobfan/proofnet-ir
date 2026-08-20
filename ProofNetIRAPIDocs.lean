@@ -1015,6 +1015,27 @@ def sections : List Section := [
     ]
   },
   {
+    title := "Active-top debt parent external re-entry target"
+    declarations := [
+      Name.str
+        `ProofNetIR.Certificate.OccurrenceDerivation
+        "connectivePremises_owned_of_conclusion_owned",
+      Name.str
+        `ProofNetIR.Certificate.OccurrenceDerivation
+        "connectiveConclusion_owned_of_premise_owned_not_frontier",
+      `ProofNetIR.SequentialFigure7.submittedPremise_not_conclusion,
+      `ProofNetIR.SequentialFigure7.ActiveCarrierInboundParentEdge,
+      `ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryTargetStatus,
+      `ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryFailureTargetStatus,
+      Name.str
+        `ProofNetIR.SequentialFigure7.ActiveCarrierExternalEndpointReentry
+        "targetStatus",
+      Name.str
+        `ProofNetIR.SequentialFigure7.ActiveCarrierExternalEndpointReentry
+        "targetFailureStatus"
+    ]
+  },
+  {
     title := "Branch-local continuation credit"
     declarations := [
       `ProofNetIR.SequentialFigure7.ContinuationCredit,

@@ -200,6 +200,14 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "commitmentInterval_referencePath",
     "ProofNetIR.SequentialFigure7.ActiveCarrierParentExternalCommitmentOutcome."
     "reentryOutcome",
+    "ProofNetIR.Certificate.OccurrenceDerivation."
+    "connectivePremises_owned_of_conclusion_owned",
+    "ProofNetIR.Certificate.OccurrenceDerivation."
+    "connectiveConclusion_owned_of_premise_owned_not_frontier",
+    "ProofNetIR.SequentialFigure7.ActiveCarrierExternalEndpointReentry."
+    "targetStatus",
+    "ProofNetIR.SequentialFigure7.ActiveCarrierExternalEndpointReentry."
+    "targetFailureStatus",
     "ProofNetIR.SequentialFigure7.InitialReservationStep."
     "markedNonconclusionContinuation",
     "ProofNetIR.SequentialFigure7.NopStep.selectedContinuationCredit",
@@ -951,6 +959,7 @@ EXPECTED_PROPEXT_ONLY_THEOREMS = {
 }
 EXPECTED_PROPEXT_QUOT_THEOREMS = {
     "ProofNetIR.SequentialFigure7.NewGuard.sourceLeftRegion_formulaComplexity_lt_conclusion",
+    "ProofNetIR.SequentialFigure7.submittedPremise_not_conclusion",
     "ProofNetIR.SequentialFigure7.FutureWorkAt.afterPreparedOrSelected",
     "ProofNetIR.SequentialFigure7.MarkedNonconclusionContinuation."
     "continuationExit",

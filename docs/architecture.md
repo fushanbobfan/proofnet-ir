@@ -973,11 +973,12 @@ out the unrestricted locality law as a full-history invariant across successful
 Wait transitions. The queue-tail and history-tail layers then isolate one exact
 caller-supplied carrier. The first-boundary parent-escape layer below instead
 states what declarative correctness and the scheduler invariant force without
-that carrier. Its next gate is a failure-conditioned distinct-payer/re-entry
-law, split between `par` and `tensor`, before dispatcher progress or later-state
-totality; global
-raw seams, fallback removal, faithful scheduling, pure-worklist completeness,
-sequentialization, and whole-program linearity remain separate.
+that carrier. The later re-entry-target classifier identifies the exact
+submitted parent edge and reduces no-tail failure to selected-raw or
+concretely-marked targets. Eliminating those cases remains before dispatcher
+progress or later-state totality; global raw seams, fallback removal, faithful
+scheduling, pure-worklist completeness, sequentialization, and whole-program
+linearity remain separate.
 
 `SequentialFigure7ActiveTopResidual.lean` removes the ambiguity in that gate.
 `ActiveTopDrained` stores the last sigma boundary, its exact live component, and
@@ -1052,9 +1053,10 @@ witness forces the escape; it does not eliminate the escape.
 authenticates the escape's concrete mark as an earlier prepared-selection
 event. No theorem in this layer assumes or derives `ActiveTopDebtTailLaw`. A
 public computational coexistence receipt is not part of this checkpoint. The
-next proof gate is a failure-conditioned distinct-payer/re-entry law, stated separately for
-`par` and `tensor`; unconditional progress, completion, termination, totality,
-and completeness remain open.
+downstream re-entry classifier now identifies exact submitted-parent target
+status; eliminating its selected-raw and concretely-marked no-tail cases remains
+open. Unconditional progress, completion, termination, totality, and
+completeness also remain open.
 
 `SequentialFigure7ActiveTopDebtParentEscapeTemporal.lean` now normalizes that
 failure-conditioned escape without assuming the tail law. With a matching
@@ -1112,6 +1114,16 @@ outside-to-inside re-entry edge. The waiting branch retains its exact waiting
 cell without inventing ownership, while the external raw branch is unchanged.
 The re-entry edge is not classified as a distinct ready-tail payer, so this is
 not a history-tail, progress, or completion theorem.
+
+`SequentialFigure7ActiveTopDebtParentExternalReentryTarget.lean` classifies
+that edge structurally. An outside-to-inside edge is the reverse of one exact
+submitted connective-parent edge; its target is a non-global premise on the
+active component frontier and its conclusion remains outside the occurrence
+carrier. Exact ready-bucket accounting then splits the target into the selected
+raw head, a raw ready-tail occurrence, or a prior concrete mark. Under the
+explicit negation of a non-global tail, the middle case disappears. The result
+does not distinguish or eliminate the selected and marked failure cases, derive
+`ActiveTopDebtTailLaw`, or prove progress or completion.
 
 `SequentialFigure7ContinuationCredit.lean` and
 `SequentialFigure7ContinuationCreditPreservation.lean` close a deliberately
