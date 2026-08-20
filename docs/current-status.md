@@ -17,7 +17,7 @@ Status date: 2026-08-20
 | Track | Revision | Status | Authority |
 | --- | --- | --- | --- |
 | Stable library | `v0.9.0` / `9b7dc3d104af8f57ea9123aab2e61b42e05d2216` | Released | [v0.9.0 release audit](v0.9-release-audit.md) |
-| Rolling research | `v0.10.0-dev`; proof `8265cfe`; audit `1e46573` | Active | This page/commits |
+| Rolling research | `v0.10.0-dev`; proof `40ef827`; audit `1e46573` | Active | This page/commits |
 
 Documentation-only commits may descend from the proof checkpoint without
 changing its mathematical authority. The stable release and rolling branch
@@ -190,7 +190,7 @@ branch of the existing inclusive interval outcome. No trichotomy case is
 eliminated, and the avoiding and equal-final branches remain open. The result
 does not derive a ready-tail payer, `ActiveTopDebtTailLaw`, or progress.
 
-From that exact target, the current checkpoint follows each marked non-global
+From that exact target, the preceding checkpoint follows each marked non-global
 parent through its finite continuation chain. Its terminal receipt is
 raw-unmarked work outside the active carrier, an exact raw return to the
 current selected/mate pair, future work at a strictly older boundary, or a
@@ -201,6 +201,19 @@ strict formula-complexity growth from the marked re-entry target to the
 current mate. No terminal alternative is eliminated, and the avoiding and
 equal-final branches remain inclusive. The result derives neither a distinct
 ready-tail payer nor `ActiveTopDebtTailLaw`, completion, or progress.
+
+The current checkpoint gives that exact raw return a proof-relevant cyclic
+normal form. It splices the retained reference-switching prefix from the
+current mate to the target conclusion with the strictly forward continuation
+tail returning to the current mate. The tail has no repeated target. Cyclic
+immediate-reverse normalization either removes the splice completely, with an
+exact cancellation site whenever the original splice was nonempty, or leaves
+a nonbacktracking cycle. Declarative correctness then exposes both premise
+occurrences of an exact par: its kept occurrence lies in the retained prefix,
+while its omitted occurrence lies forward in the continuation tail. Neither
+complete cancellation nor the par-pair residual is eliminated. The other
+finite exits, avoiding and equal-final branches, the history-tail law, and
+progress remain open.
 
 The preceding queue/history-tail checkpoint remains valid. For supplied typed
 Nop and Wait steps, its iff theorems identify post-step debt with the exact
@@ -216,7 +229,7 @@ from a scheduler-invariant input refutes unrestricted
 same-component locality carrier, but neither refutes direct debt nor supplies
 the required queue-tail or elimination of the classified re-entry failure.
 
-The checkpoint's accumulated public surface is exactly thirty-eight declaration
+The checkpoint's accumulated public surface is exactly forty-two declaration
 boundaries:
 
 ```text
@@ -258,6 +271,11 @@ SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedContinuationExi
 SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedTemporalTarget.continuationExitTarget
 SequentialFigure7.NopStep.commitmentInterval_parTraceReentryMarkedContinuationExitOutcome
 SequentialFigure7.WaitStep.commitmentInterval_parTraceReentryMarkedContinuationExitOutcome
+SequentialFigure7.MarkedConclusionRawReturnCyclicOutcome
+SequentialFigure7.MarkedConclusionChain.rawReturnCyclicReduction
+SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedContinuationCyclicReductionTarget
+SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedContinuationExitTarget.
+  continuationCyclicReductionTarget
 ```
 
 The earlier parent-escape, source-temporal, debt, history-tail,
@@ -282,11 +300,15 @@ active representative. The preceding theorems further separate that target
 from the current mate and rule out the current selected head as the mate of
 any exact connective view rooted at the target. The preceding target-indexed
 theorem binds the same target to its unique parent and normalizes that parent's
-first continuation step. The current theorem follows every marked non-global
+first continuation step. The preceding theorem follows every marked non-global
 parent through a finite chain and ends raw outside the carrier, at an exact raw
 return to the current pair, at strictly older queued work, or at a strictly
 older marked global conclusion. It does not eliminate any alternative or make
-any conditional implication unconditional.
+any conditional implication unconditional. The current theorem refines only
+that exact raw return into complete cancellation or an exact par-pair residual,
+with the kept occurrence in the switching prefix and the omitted forward
+occurrence in the continuation tail. It eliminates neither residual and makes
+no conditional implication unconditional.
 
 ### Finite ready-head boundary audit
 
@@ -330,15 +352,16 @@ Exact signatures are maintained in the generated API reference for the
 [interval par-guard re-entry mate separation][reentry-mate-separation],
 [marked re-entry target temporal reduction][target-temporal],
 [marked re-entry target finite continuation exit][target-exit],
+[marked re-entry target raw-return cyclic reduction][target-cycle],
 [branch-local continuation credit](api-reference.md#branch-local-continuation-credit),
 [continuation-credit preservation](api-reference.md#continuation-credit-preservation),
 [endpoint-localized continuation exits](api-reference.md#endpoint-localized-continuation-exits),
 and the retained
 [Wait endpoint-locality obstruction](api-reference.md#wait-endpoint-locality-obstruction).
-The first open proof step is now to discharge the finite raw-outside,
-raw-return, older-future, and older-marked-global alternatives, especially the
-exact return to the current selected/mate pair, and eliminate both equal-final
-trace orientations.
+The first open proof step is now to eliminate the complete-cancellation and
+par-pair residuals of the exact raw return, discharge the raw-outside,
+older-future, and older-marked-global alternatives, and eliminate both
+equal-final trace orientations.
 The waiting and external-raw outcome alternatives also remain unresolved.
 The remaining global-created Forward/UnifyPayload alternatives must also be
 derived.
@@ -364,6 +387,9 @@ This checkpoint does not establish any of the following:
   conclusion-to-mate trace, elimination of the finite raw-outside, raw-return,
   older-future, or older-marked-global continuation alternatives, or
   conversion of that target into a distinct active raw payer;
+- impossibility of complete cyclic cancellation, elimination of the surviving
+  kept-prefix/omitted-tail par pair, or conversion of either cyclic residual
+  into a distinct ready-tail payer;
 - a terminal scheduler state or elimination of any finite continuation exit;
   normalization terminates the marked chain but does not discharge its
   raw, future, or marked-global endpoint;
@@ -409,12 +435,12 @@ plan is maintained in [v0.10-design.md](v0.10-design.md) and
 The exact rolling proof checkpoint is:
 
 ```text
-commit    8265cfe57ccae8114108c6c2377c726b50d7d653
-tree      2f896de1ef2b3503b911e8b707ac7ad9309f3155
-parent    6ec983be0befbdcf5e40c0a8b7319d666488bd80
-stage     marked re-entry target finite continuation exit
-delta     17 paths, +1068/-8
-manifest  69CF93B77C5AA3B5B8A35AAA4EF2B35CAA939162D01EDB68CACE43D8FCE07E76
+commit    40ef827849a4a4459696657a79f6b5abd705d712
+tree      68d65718bbab8e41aeae36d173637f47440626b7
+parent    dbd3e25a461cd6281c96ae056bf0d98993079d3b
+stage     marked re-entry target raw-return cyclic reduction
+delta     17 paths, +775/-10
+manifest  5224B35EAAF1E1E47C06D3673ADD22F9C816709D79CBC97C3AEEE8DA4A37A136
 ```
 
 The manifest hashes canonical
@@ -423,9 +449,9 @@ The manifest hashes canonical
 The checkpoint source receipts are:
 
 ```text
-exit source    5417D406F92E79278820B187A009D0C435D793F97822E6D4C06D360E6917FFAA
-exit consumer  3C2BC645AB968A22FE2BF4DB41DDC049DC4D2287199D759D3FBE60A4EFE9C5D7
-generated API  D99ACFE7EBD56FCB250BFB737E730B64D8F272CA3C532D192ABC3EAA44F62221
+cyclic source    A3EA2EFE0420FD77FF02016DE7FB9D26BAE2CE0C8563A9CD931D6D5C64EC57D5
+cyclic consumer  528AD0FF203A754660B47612A0E45392C121178F7D877A34FEBF0FAEC0CF4ADB
+generated API    1F6564EC67EC3B94337D67742D8B67CFEC22D367172B93458B360A68A9FA9E5F
 ```
 
 The separately committed finite-audit evidence is:
@@ -441,14 +467,15 @@ manifest  4BBAB7FC99D03D2612459A0FD9291990313A05A184F2572A581BC93C6E49DFDD
 
 Local verification on the committed bytes:
 
-- full `lake build`: 564/564 jobs;
-- Lean source audit: zero actual `sorry`/`admit` findings across 262 Lean
+- full `lake build`: 569/569 jobs;
+- Lean source audit: zero actual `sorry`/`admit` findings across 264 Lean
   files;
-- generated API reference: current at 71 sections and 1,660 declarations;
-- the runnable finite-exit consumer called all three public theorems, consumed
-  and rebuilt every target-bound field and all four terminal alternatives, and
-  invoked both typed interval wrappers before emitting its kernel-green marker;
-- public theorem audit: 992 entries total: 700 full-classical, 25
+- generated API reference: current at 72 sections and 1,664 declarations;
+- the runnable cyclic-reduction consumer called both public theorems,
+  destructed and consumed the exact empty/cancellation and par-pair outcomes,
+  exercised the target-level adapter, and audited both public proposition
+  carriers before emitting its kernel-green marker;
+- public theorem audit: 994 entries total: 702 full-classical, 25
   axiom-free, 128 `propext`-only, and 139 `propext` plus `Quot.sound`;
 - the default, extended, and cross-variant progress audits passed with every
   incomplete visited state carrying an exact ready head and successful
@@ -461,20 +488,21 @@ Exact-head proof GitHub verification:
 
 - workflow: `Lean CI`;
 - event/ref: `push` / `main`;
-- run: [32400250092](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32400250092);
-- build job: [96526456523][proof-job];
-- exact head: `8265cfe57ccae8114108c6c2377c726b50d7d653`;
+- run: [32405397208](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32405397208);
+- build job: [96543174307][proof-job];
+- exact head: `40ef827849a4a4459696657a79f6b5abd705d712`;
 - result: 36 successful steps, zero failures, and one expected release-ref-only
   skip;
-- run: `2026-08-20T17:54:49Z`-`2026-08-20T18:08:15Z` (13m26s);
-- build job: `2026-08-20T17:54:52Z`-`2026-08-20T18:08:14Z`
-  (13m22s).
+- run: `2026-08-20T18:50:32Z`-`2026-08-20T19:02:01Z` (11m29s);
+- build job: `2026-08-20T18:50:35Z`-`2026-08-20T19:02:01Z`
+  (11m26s).
 
-[proof-job]: https://github.com/fushanbobfan/proofnet-ir/actions/runs/32400250092/job/96526456523
+[proof-job]: https://github.com/fushanbobfan/proofnet-ir/actions/runs/32405397208/job/96543174307
 [reentry-failure]: api-reference.md#commitment-interval-par-guard-re-entry-failure-target
 [reentry-mate-separation]: api-reference.md#commitment-interval-par-guard-re-entry-mate-separation
 [target-temporal]: api-reference.md#commitment-interval-marked-re-entry-target-temporal-reduction
 [target-exit]: api-reference.md#marked-re-entry-target-finite-continuation-exit
+[target-cycle]: api-reference.md#marked-re-entry-target-raw-return-cyclic-reduction
 
 Exact-head finite-audit GitHub verification:
 
@@ -541,10 +569,10 @@ deployment.
 
 The project goal remains open. The principal outstanding gates are:
 
-1. discharge the mate-separated target's finite raw-outside, exact raw-return,
-   older-future, and older-marked-global continuation alternatives, eliminate
-   that target or descend its mark to a distinct active payer, and eliminate
-   the equal-final
+1. eliminate the exact raw return's complete-cancellation and par-pair
+   residuals; discharge the mate-separated target's finite raw-outside,
+   older-future, and older-marked-global continuation alternatives; eliminate
+   that target or descend its mark to a distinct active payer; and eliminate the equal-final
    conclusion-to-selected/mate trace obstructions over the retained commitment
    interval;
    resolve the waiting/raw outcome alternatives; then derive the remaining
