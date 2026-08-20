@@ -841,6 +841,10 @@ def sections : List Section := [
       Name.str
         `ProofNetIR.SequentialFigure7.MarkedConclusionChain
         "rawReturnCyclicReduction",
+      `ProofNetIR.SequentialFigure7.MarkedConclusionRawReturnCyclicJunctionOutcome,
+      Name.str
+        `ProofNetIR.SequentialFigure7.MarkedConclusionChain
+        "rawReturnCyclicJunctionReduction",
       Name.str
         `ProofNetIR.SequentialFigure7
         "ActiveCarrierExternalReentryMarkedMateSeparatedContinuationCyclicReductionTarget",
@@ -848,7 +852,15 @@ def sections : List Section := [
         (Name.str
           `ProofNetIR.SequentialFigure7
           "ActiveCarrierExternalReentryMarkedMateSeparatedContinuationExitTarget")
-        "continuationCyclicReductionTarget"
+        "continuationCyclicReductionTarget",
+      Name.str
+        `ProofNetIR.SequentialFigure7
+        "ActiveCarrierExternalReentryMarkedMateSeparatedContinuationCyclicJunctionTarget",
+      Name.str
+        (Name.str
+          `ProofNetIR.SequentialFigure7
+          "ActiveCarrierExternalReentryMarkedMateSeparatedContinuationCyclicReductionTarget")
+        "cyclicJunctionTarget"
     ]
   },
   {

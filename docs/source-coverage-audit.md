@@ -485,10 +485,12 @@ derive a payer or tail law, or close the avoiding/equal-final traces.
 `SequentialFigure7MarkedTargetRawReturnCyclicReduction.lean`
 adds no source reading. It turns the exact raw return into a closed full-graph
 walk whose switching prefix is retained and whose continuation tail is forward
-with distinct targets. Normalization either cancels the walk or exposes both
-premise occurrences of a par, placing the kept one in the prefix and the
-omitted one in the continuation tail. It does not eliminate either residual or
-any other open exit/trace branch.
+with distinct targets; both segments are individually nonbacktracking.
+Nontrivial complete cancellation occurs at their exact cyclic junction.
+Otherwise the reduction exposes both premise occurrences of a par, placing the
+kept one in the prefix and the omitted one in the continuation tail. The
+omitted-right source is concretely marked and non-global. It does not eliminate
+either residual or any other open exit/trace branch.
 Global preservation of the mate-region and older-raw-mark invariants through
 candidate-creating rules remains open, as do queue origin, created-candidate raw
 seams, derivation of the re-entry avoidance premise, marked-history descent,

@@ -1554,12 +1554,14 @@ contradiction, payer, tail law, or progress theorem.
 `SequentialFigure7MarkedTargetRawReturnCyclicReduction.lean`
 splices the exact raw return into a closed walk in the full occurrence graph.
 The prefix is lifted occurrence-for-occurrence from the reference switching;
-the continuation tail is forward and has no repeated target. Cyclic
-normalization either removes the splice completely or leaves a nonbacktracking
-cycle. In the latter case correctness exposes both exact premises of a par,
-with its kept occurrence in the switching prefix and its omitted occurrence in
-the continuation tail. Complete cancellation and the par-pair case remain
-residuals rather than contradictions or ready-tail payers.
+the continuation tail is forward with no repeated target, and both segments
+are individually nonbacktracking. Complete normalization is either the empty
+splice or cancellation at their exact cyclic junction. Otherwise correctness
+exposes both exact premises of a par, with its kept occurrence in the switching
+prefix and its omitted occurrence in the continuation tail. The latter starts
+at a concretely marked nonconclusion in the finite chain. Complete cancellation
+and the par-pair case remain residuals rather than contradictions or ready-tail
+payers.
 
 `SequentialFigure7CommitmentBlockerAdvance.lean` joins the global queued-head
 law, the strict `sigma` split, the strict-edge avoiding adapter, and the final

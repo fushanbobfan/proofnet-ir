@@ -123,9 +123,14 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "commitmentInterval_parTraceReentryMarkedContinuationExitOutcome",
     "ProofNetIR.SequentialFigure7.MarkedConclusionChain."
     "rawReturnCyclicReduction",
+    "ProofNetIR.SequentialFigure7.MarkedConclusionChain."
+    "rawReturnCyclicJunctionReduction",
     "ProofNetIR.SequentialFigure7."
     "ActiveCarrierExternalReentryMarkedMateSeparatedContinuationExitTarget."
     "continuationCyclicReductionTarget",
+    "ProofNetIR.SequentialFigure7."
+    "ActiveCarrierExternalReentryMarkedMateSeparatedContinuationCyclicReductionTarget."
+    "cyclicJunctionTarget",
     "ProofNetIR.SequentialFigure7.CanonicalTagHistory."
     "strictOlder_commitmentPath_or_advance_or_equalCallbackFailure",
     "ProofNetIR.SequentialFigure7.CanonicalTagHistory."

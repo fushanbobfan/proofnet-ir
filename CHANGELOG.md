@@ -4,14 +4,15 @@
 
 - normalized the exact raw return of a marked re-entry continuation into a
   closed full-graph walk. Its retained reference-switching prefix and strictly
-  forward continuation tail either cancel completely, with an exact
-  cancellation site when the splice is nonempty, or leave a cyclically
-  nonbacktracking remainder. Declarative correctness forces every nonempty
-  remainder to contain both premise occurrences of a par: the kept occurrence
-  lies in the prefix and the omitted occurrence lies forward in the tail. The
+  forward continuation tail are individually nonbacktracking. Complete
+  cancellation is either genuinely empty or localized to their exact cyclic
+  segment junction. Declarative correctness forces every nonempty remainder to
+  contain both premise occurrences of a par: the kept occurrence lies in the
+  prefix, while the omitted occurrence lies forward in the tail and starts at
+  a concrete marked nonconclusion. The
   reduction does not eliminate either residual, another finite exit, or an
   equal-final trace, and derives no payer, tail law, or progress theorem. The
-  verified combined audit covers 994 theorems: 702 standard-three, 25
+  verified combined audit covers 996 theorems: 704 standard-three, 25
   axiom-free, 128 `propext`-only, and 139 `propext`/`Quot.sound` boundaries;
 - finitely normalized the exact marked re-entry target's continuation chain.
   Its terminal receipt is raw work outside the active carrier, an exact raw

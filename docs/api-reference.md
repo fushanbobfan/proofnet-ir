@@ -9666,6 +9666,40 @@ ProofNetIR.SequentialFigure7.MarkedConclusionChain.rawReturnCyclicReduction : �
                       targetConsumer.conclusion
 ```
 
+### `ProofNetIR.SequentialFigure7.MarkedConclusionRawReturnCyclicJunctionOutcome`
+
+Kind: definition.
+
+Cyclic normalization with the complete-cancellation branch localized to
+the exact junction of the retained prefix and forward continuation tail.
+
+```lean
+ProofNetIR.SequentialFigure7.MarkedConclusionRawReturnCyclicJunctionOutcome : ProofNetIR.Certificate →
+  ProofNetIR.SequentialSchedulerBridge.ReservationState → ProofNetIR.Vertex → ProofNetIR.Vertex → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.MarkedConclusionChain.rawReturnCyclicJunctionReduction`
+
+Kind: theorem.
+
+Refine complete raw-return cancellation to an exact cyclic junction
+between the two individually nonbacktracking splice segments.
+
+```lean
+ProofNetIR.SequentialFigure7.MarkedConclusionChain.rawReturnCyclicJunctionReduction : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  certificate.DeclarativelyCorrect →
+    ∀ {base origin : ProofNetIR.Vertex} (path : certificate.referenceSwitchingGraph.EdgeSimplePath),
+      path.start = base →
+        ∀ (directed : certificate.referenceSwitchingGraph.DirectedEdge),
+          directed ∈ path.traversed →
+            ∀ (targetConsumer : ProofNetIR.ConnectiveBelow certificate origin),
+              directed.source = targetConsumer.conclusion →
+                origin ≠ base →
+                  ProofNetIR.SequentialFigure7.MarkedConclusionChain certificate state origin base →
+                    ProofNetIR.SequentialFigure7.MarkedConclusionRawReturnCyclicJunctionOutcome certificate state base
+                      targetConsumer.conclusion
+```
+
 ### `ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedContinuationCyclicReductionTarget`
 
 Kind: definition.
@@ -9701,6 +9735,45 @@ ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedCont
     ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedContinuationExitTarget tagHistory input
         component owned current →
       ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedContinuationCyclicReductionTarget
+        tagHistory input component owned current
+```
+
+### `ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedContinuationCyclicJunctionTarget`
+
+Kind: definition.
+
+Refine the exact raw-return branch through the two nonbacktracking splice
+segments. Complete cancellation is localized to their cyclic junction, while
+a surviving omitted-right par occurrence is a concrete marked nonconclusion
+source in the continuation tail.
+
+```lean
+ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedContinuationCyclicJunctionTarget : {certificate : ProofNetIR.Certificate} →
+  {state : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+    {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state} →
+      ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history →
+        (input : ProofNetIR.SequentialFigure7.ReadyHeadInput state) →
+          ProofNetIR.UnificationComponent →
+            List ProofNetIR.Vertex → ProofNetIR.ConnectiveBelow certificate input.vertex → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedContinuationCyclicReductionTarget.cyclicJunctionTarget`
+
+Kind: theorem.
+
+Refine the exact raw-return branch to the cyclic-junction form and retain
+the other three continuation exits unchanged.
+
+```lean
+ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedContinuationCyclicReductionTarget.cyclicJunctionTarget : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  {tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history}
+  {input : ProofNetIR.SequentialFigure7.ReadyHeadInput state} {component : ProofNetIR.UnificationComponent}
+  {owned : List ProofNetIR.Vertex} {current : ProofNetIR.ConnectiveBelow certificate input.vertex},
+  certificate.DeclarativelyCorrect →
+    ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedContinuationCyclicReductionTarget
+        tagHistory input component owned current →
+      ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedContinuationCyclicJunctionTarget
         tagHistory input component owned current
 ```
 

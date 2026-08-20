@@ -36,8 +36,8 @@ represented at the active boundary. Nop keeps an external raw-unmarked mate;
 Wait keeps an external marked mate with a strictly older representative.
 The retained path separates that target from the current mate. Its exact raw
 return splices a retained switching prefix with a forward continuation tail.
-Cyclic normalization either cancels completely or leaves a par-pair residual:
-the kept edge lies in the prefix and the omitted edge lies in the tail.
+Complete cancellation is localized to the exact junction of the two
+nonbacktracking segments; a surviving omitted-right tail edge starts at a marked nonconclusion.
 This proves no unconditional all-marked, progress, completion, termination,
 totality, or completeness result. Cancellation and par-pair residuals,
 other finite exits, equal-final traces, and global tails remain open.

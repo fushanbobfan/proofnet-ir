@@ -975,11 +975,12 @@ audit covers 992 theorems: 700 standard-three, 25 axiom-free, 128
 `propext`-only, and 139 `propext`/`Quot.sound` boundaries. No exit elimination,
 tail law, progress, completion, or terminality claim is introduced.
 `SequentialFigure7MarkedTargetRawReturnCyclicReduction.lean`
-adds two proposition carriers and two standard-three theorems. Its proof uses
+adds four proposition carriers and four standard-three theorems. Its proof uses
 only exact occurrence lifting, strict formula-complexity growth, proof-relevant
 cyclic cancellation, and the existing correctness theorem for nonbacktracking
-full-graph cycles. The verified combined audit covers 994 theorems: 702
-standard-three, 25 axiom-free, 128 `propext`-only, and 139
+full-graph cycles. The newer carrier also retains the current mark/nonconclusion
+ledger for every continuation-tail source. The verified combined audit covers
+996 theorems: 704 standard-three, 25 axiom-free, 128 `propext`-only, and 139
 `propext`/`Quot.sound` boundaries. It adds no runtime witness or oracle and does
 not treat cancellation or the surviving par pair as a contradiction.
 `SequentialFigure7CrossRepresentativeWaitPreservation.lean` adds no hidden

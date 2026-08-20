@@ -1165,11 +1165,13 @@ part of the engineering and proof-identity gap.
    axiom-free, 128 `propext`-only, and 139 `propext`/`Quot.sound` boundaries.
    `SequentialFigure7MarkedTargetRawReturnCyclicReduction.lean`
    then gives the exact raw return a full-graph cyclic normal form. The
-   retained prefix and forward continuation tail either cancel completely or
-   leave a nonbacktracking remainder whose exact kept and omitted par-premise
-   occurrences lie in the prefix and tail respectively. Neither alternative
-   is eliminated, and the other continuation exits and equal-final branches
-   are unchanged. The verified combined audit covers 994 theorems: 702
+   retained prefix and forward continuation tail are individually
+   nonbacktracking. Complete cancellation is empty or occurs at their exact
+   cyclic junction. A nonempty remainder has exact kept and omitted par-premise
+   occurrences in the prefix and tail respectively, and the omitted-right
+   source is a concrete marked nonconclusion. Neither alternative is
+   eliminated, and the other continuation exits and equal-final branches are
+   unchanged. The verified combined audit covers 996 theorems: 704
    standard-three, 25 axiom-free, 128 `propext`-only, and 139
    `propext`/`Quot.sound` boundaries.
    `SequentialFigure7CommitmentBlockerAdvance.lean` now combines the global
