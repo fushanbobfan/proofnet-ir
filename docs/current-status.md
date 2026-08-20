@@ -17,7 +17,7 @@ Status date: 2026-08-20
 | Track | Revision | Status | Authority |
 | --- | --- | --- | --- |
 | Stable library | `v0.9.0` / `9b7dc3d104af8f57ea9123aab2e61b42e05d2216` | Released | [v0.9.0 release audit](v0.9-release-audit.md) |
-| Rolling research | `v0.10.0-dev`; proof `a714b6e`; audit `1e46573` | Active | This page/commits |
+| Rolling research | `v0.10.0-dev`; proof `685e0f2`; audit `1e46573` | Active | This page/commits |
 
 Documentation-only commits may descend from the proof checkpoint without
 changing its mathematical authority. The stable release and rolling branch
@@ -80,7 +80,7 @@ back into the active owned carrier and one concrete outside-to-inside edge.
 Waiting work keeps its exact waiting cell without invented ownership, and
 external raw work remains unchanged.
 
-The current checkpoint classifies the exact re-entry target. Three reusable
+The preceding checkpoint classifies the exact re-entry target. Three reusable
 occurrence-geometry theorems first show that owned submitted conclusions own
 their premises, internal owned premises retain their conclusion, and every
 submitted premise is non-global. An outside-to-inside re-entry edge is
@@ -91,6 +91,17 @@ target states: the selected raw head, a raw ready-tail occurrence, or a prior
 concrete mark. Under explicit absence of a non-global ready-tail witness, only
 the selected-raw and concretely-marked alternatives remain. Neither is yet
 eliminated, and the waiting/raw outcome branches remain unresolved.
+
+The current checkpoint adds the first history-sensitive reduction of those
+two alternatives. Canonical raw-mark history authenticates every concrete
+target and proves that its representative is the active boundary. If the
+retained re-entry path additionally avoids the current submitted par
+conclusion, parent-link uniqueness rules out the selected target. Under the
+same explicit no-tail premise, the remaining target is therefore distinct
+from the selected head, concretely marked, authenticated by an exact
+`RawMarked` event, and represented at the active boundary. The theorem does
+not derive the path-avoidance premise or turn that historical mark into a
+distinct raw ready-tail payer.
 
 The preceding queue/history-tail checkpoint remains valid. For supplied typed
 Nop and Wait steps, its iff theorems identify post-step debt with the exact
@@ -106,7 +117,8 @@ from a scheduler-invariant input refutes unrestricted
 same-component locality carrier, but neither refutes direct debt nor supplies
 the required queue-tail or elimination of the classified re-entry failure.
 
-The checkpoint's new public surface is exactly eight declaration boundaries:
+The checkpoint's accumulated public surface is exactly thirteen declaration
+boundaries:
 
 ```text
 Certificate.OccurrenceDerivation.connectivePremises_owned_of_conclusion_owned
@@ -115,15 +127,22 @@ SequentialFigure7.submittedPremise_not_conclusion
 SequentialFigure7.ActiveCarrierInboundParentEdge
 SequentialFigure7.ActiveCarrierExternalReentryTargetStatus
 SequentialFigure7.ActiveCarrierExternalReentryFailureTargetStatus
+SequentialFigure7.ActiveCarrierExternalEndpointReentryAvoiding
+SequentialFigure7.ActiveCarrierExternalReentryFailureHistoricalStatus
+SequentialFigure7.ActiveCarrierExternalReentryMarkedHistoricalTarget
 SequentialFigure7.ActiveCarrierExternalEndpointReentry.targetStatus
 SequentialFigure7.ActiveCarrierExternalEndpointReentry.targetFailureStatus
+SequentialFigure7.ActiveCarrierExternalEndpointReentry.targetFailureHistoricalStatus
+SequentialFigure7.ActiveCarrierExternalEndpointReentryAvoiding.markedHistoricalTarget
 ```
 
 The earlier parent-escape, source-temporal, debt, history-tail,
 continuation-exit, common and external temporal-outcome, commitment/re-entry,
 and conditional all-marked results remain valid. The new reduction identifies
-the exact parent-edge and scheduler status of each retained re-entry target,
-but does not make any conditional implication unconditional.
+the exact parent-edge, scheduler status, and canonical raw-mark provenance of
+each retained re-entry target. It excludes the selected case only under an
+explicit conclusion-avoidance premise and does not make any conditional
+implication unconditional.
 
 ### Finite ready-head boundary audit
 
@@ -162,10 +181,11 @@ Exact signatures are maintained in the generated API reference for the
 [endpoint-localized continuation exits](api-reference.md#endpoint-localized-continuation-exits),
 and the retained
 [Wait endpoint-locality obstruction](api-reference.md#wait-endpoint-locality-obstruction).
-The first open proof step is now to eliminate the selected-raw and
-concretely-marked re-entry-target alternatives under no-tail, or derive a
-distinct active ready-tail payer from either. The waiting and external-raw
-outcome alternatives also remain unresolved.
+The first open proof step is now to derive the conclusion-avoidance premise for
+the retained commitment path or handle the exact through-current-conclusion
+case. The resulting distinct historical mark must then be descended to a
+distinct active ready-tail payer. The waiting and external-raw outcome
+alternatives also remain unresolved.
 The remaining global-created Forward/UnifyPayload alternatives must also be
 derived.
 Together these are the missing implication from correctness plus canonical
@@ -185,9 +205,10 @@ This checkpoint does not establish any of the following:
 - elimination of `ActiveCarrierParentExternalTemporalOutcome`, including a
   theorem that external raw or waiting work re-enters the active carrier, or
   that any branch supplies a distinct ready-tail payer;
-- elimination of the selected-raw or concretely-marked target status after the
-  ready-tail alternative has been denied, or a proof that either status returns
-  a distinct active payer;
+- derivation of current-par-conclusion avoidance for every retained commitment
+  return, elimination of the complementary through-current-conclusion case,
+  or conversion of the distinct authenticated marked target into a distinct
+  active raw payer;
 - terminality of the temporal outcome; in particular, its marked case may
   continue through another submitted connective;
 - the ordered distinct-payment or history re-entry law needed to turn the
@@ -232,12 +253,12 @@ plan is maintained in [v0.10-design.md](v0.10-design.md) and
 The exact rolling proof checkpoint is:
 
 ```text
-commit    a714b6ef1f2b49699b64eb334c3b83b44c04b9d6
-tree      32b69ab4a2d073d4f3ebee066bb2dc6a14cae754
-parent    28f2c6e9c6cf4be3ef1149da44efa6a4b0502797
-stage     active-top debt external re-entry target classification
-delta     18 paths, +806/-46
-manifest  0F384FE14D5BA19B59F045A90ED3E34C17E3430B0C62AA2E9EDEE3AEC157BEA9
+commit    685e0f28ebf754f707cef9f04cf923d3c7cd1c95
+tree      8b3dee24dfffe5c96c3da4884cd8a224336862cb
+parent    931585a92df7e1bdee089c2c94e44eb2f6ada6e7
+stage     active-top debt re-entry failure-target authentication
+delta     14 paths, +518/-46
+manifest  31AED45BB9120D1113F522E8B0D10FA87251504513F93AE9048D641F4D269B57
 ```
 
 The manifest hashes canonical
@@ -247,9 +268,9 @@ The checkpoint source receipts are:
 
 ```text
 geometry owner  7AD91B0B4FDA3CF37238E364772E96A7442513672D3E5190504D62A80079F761
-target source   23EB85387ED64F55CF3AD34F2767A2205BEFF2DC098D1993DF7911A09EECBBFF
-consumer        FA148A9E4ACF1497DBA9C594589E8061350BCCF017E5828CDA84BA382C369ACF
-generated API   72FB27E44687C8AFDB8753A02F417F1873877999CB805273C54484F11D619912
+target source   B28F61800D3248D44E0D8C715057F3F8C3265C314E714DD4FC5776EC6B54D6C5
+consumer        CD0693BD360CB73FECB866B5AB40DF8FA0A1EE4EB0BA00FADE33699A8040E112
+generated API   7EAA8978526C7A798F8ADDAA99E384A31A8192DF57F042888E105936334757A6
 ```
 
 The separately committed finite-audit evidence is:
@@ -268,12 +289,12 @@ Local verification on the committed bytes:
 - full `lake build`: 524/524 jobs;
 - Lean source audit: zero actual `sorry`/`admit` findings across 246 Lean
   files;
-- generated API reference: current at 63 sections and 1,630 declarations;
+- generated API reference: current at 63 sections and 1,635 declarations;
 - the runnable re-entry-target consumer exercised the three promoted geometry
-  theorems, destructured and rebuilt the inbound parent edge, all three target
-  states and both no-tail failure states, called both public classifiers, and
+  theorems, destructured and rebuilt the inbound parent edge, all structural
+  and history-bearing target states, called all four public classifiers, and
   emitted exactly `active-top debt external re-entry target: kernel-green`;
-- public theorem audit: 969 entries total: 677 full-classical, 25
+- public theorem audit: 971 entries total: 679 full-classical, 25
   axiom-free, 128 `propext`-only, and 139 `propext` plus `Quot.sound`;
 - the default, extended, and cross-variant progress audits passed with every
   incomplete visited state carrying an exact ready head and successful
@@ -286,16 +307,16 @@ Exact-head proof GitHub verification:
 
 - workflow: `Lean CI`;
 - event/ref: `push` / `main`;
-- run: [32358378624](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32358378624);
-- build job: [96392441954][proof-job];
-- exact head: `a714b6ef1f2b49699b64eb334c3b83b44c04b9d6`;
+- run: [32362116396](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32362116396);
+- build job: [96403715076][proof-job];
+- exact head: `685e0f28ebf754f707cef9f04cf923d3c7cd1c95`;
 - result: 36 successful steps, zero failures, and one expected release-ref-only
   skip;
-- run: `2026-08-20T10:19:33Z`-`2026-08-20T10:33:11Z` (13m38s);
-- build job: `2026-08-20T10:19:37Z`-`2026-08-20T10:33:10Z`
-  (13m33s).
+- run: `2026-08-20T11:05:36Z`-`2026-08-20T11:18:36Z` (13m00s);
+- build job: `2026-08-20T11:05:40Z`-`2026-08-20T11:18:35Z`
+  (12m55s).
 
-[proof-job]: https://github.com/fushanbobfan/proofnet-ir/actions/runs/32358378624/job/96392441954
+[proof-job]: https://github.com/fushanbobfan/proofnet-ir/actions/runs/32362116396/job/96403715076
 
 Exact-head finite-audit GitHub verification:
 
@@ -362,8 +383,9 @@ deployment.
 
 The project goal remains open. The principal outstanding gates are:
 
-1. eliminate the selected-raw and concretely-marked re-entry target cases under
-   explicit no-tail, or derive a distinct active ready-tail payer from them;
+1. derive current-par-conclusion avoidance for the retained commitment return
+   or handle its exact through-current-conclusion branch, then descend the
+   resulting distinct authenticated mark to an active ready-tail payer;
    resolve the waiting/raw outcome alternatives; then derive the remaining
    global-created Forward/UnifyPayload alternatives;
    equivalently, prove that correctness plus `CanonicalTagHistory` implies
