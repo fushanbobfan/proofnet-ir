@@ -17,7 +17,7 @@ Status date: 2026-08-19
 | Track | Revision | Status | Authority |
 | --- | --- | --- | --- |
 | Stable library | `v0.9.0` / `9b7dc3d104af8f57ea9123aab2e61b42e05d2216` | Released | [v0.9.0 release audit](v0.9-release-audit.md) |
-| Rolling research | `v0.10.0-dev`; latest proof checkpoint `b65409addd9c51df6458e6ffd8a6db4d0e384425`; latest finite-audit evidence `1e46573141a8ad683cc539480f18c92992bda60c` | Active | This page and the exact commits |
+| Rolling research | `v0.10.0-dev`; latest proof checkpoint `40b40696e422195e438ee7a7596bec666f0b047c`; latest finite-audit evidence `1e46573141a8ad683cc539480f18c92992bda60c` | Active | This page and the exact commits |
 
 Documentation-only commits may descend from the proof checkpoint without
 changing its mathematical authority. The stable release and rolling branch
@@ -46,42 +46,43 @@ The exact release guarantees, receipts, and non-goals are frozen in the
 
 ## Rolling main result
 
-The current checkpoint proves an exact obstruction to the unrestricted
-same-component endpoint-locality law. For every successful typed
-`WaitStep certificate before after`, a supplied
-`SchedulerInvariant certificate before` implies
-`¬ ActiveTopContinuationExitLocalized certificate after`. The theorem is
-conditional on the typed Wait transition; it does not construct a transition
-or show that any reachable canonical history contains one.
+The current checkpoint isolates the exact queue-tail residual for active-top
+marked-nonconclusion debt. For a supplied successful typed Nop or Wait, an
+input `SchedulerInvariant`, and prior `ActiveTopMarkedNonconclusionDebt`, debt
+after the step holds exactly when the prepared `remainingTop` contains a vertex
+outside the certificate's global conclusions. These iff theorems normalize the
+residual; they do not manufacture the non-global tail witness from correctness,
+history, or reachability.
 
-The proof isolates the two impossible localized exits at the Wait output. The
-selected active-frontier premise is marked, and its consumer's conclusion is
-unmarked waiting work. A raw-mate exit would require the already marked mate to
-be unmarked. A future-conclusion exit would place the same unmarked conclusion
-in the active component frontier and hence in ready work, contradicting the
-scheduler invariant's separation of ready and waiting vertices.
+The checkpoint also packages the six exact current branch obligations as the
+reset-aware `CanonicalTagHistory.ActiveTopDebtTailLaw`. Concl recurses; Nop and
+Wait require the current non-global `remainingTop` witness and recurse; New
+resets. Forward and UnifyPayload stop recursion and retain only their exact
+current non-global-created or global-created-tail alternative. Supplying this
+law with its matching canonical tag history yields
+`ActiveTopMarkedNonconclusionDebt` at the endpoint. The law remains an explicit
+premise, not a consequence of correctness or canonical history.
 
-Consequently, `ActiveTopContinuationExitLocalized` cannot be preserved as an
-unrestricted invariant through successful Wait transitions. This conclusion
-does not require declarative correctness and proves neither reachability nor
-post-Wait drainedness. It also does not refute direct
-`ActiveTopMarkedNonconclusionDebt`, a locality law restricted to an appropriate
-drained state, a temporal or cross-component law, or another sufficient
-completion route.
+The preceding Wait obstruction remains valid: every successful typed Wait from
+a scheduler-invariant input refutes unrestricted
+`ActiveTopContinuationExitLocalized` at its output. It rules out that unchanged
+same-component locality carrier, but neither refutes direct debt nor derives
+the new history-tail law. It still proves neither reachable Wait existence nor
+post-Wait drainedness.
 
-The checkpoint's new public surface is exactly one theorem boundary:
+The checkpoint's new public surface is exactly four declaration boundaries:
 
 ```text
-ProofNetIR.SequentialFigure7.WaitStep.not_activeTopContinuationExitLocalized
+ProofNetIR.SequentialFigure7.NopStep.activeTopMarkedNonconclusionDebt_iff_readyTailNonconclusion
+ProofNetIR.SequentialFigure7.WaitStep.activeTopMarkedNonconclusionDebt_iff_readyTailNonconclusion
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.ActiveTopDebtTailLaw
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.activeTopMarkedNonconclusionDebt_of_tailLaw
 ```
 
-The preceding continuation-exit results remain valid. In particular,
-structural well-formedness, queued-vertex unmarkedness, and a supplied
-`ActiveTopContinuationExitLocalized` receipt still imply
-`ActiveTopMarkedNonconclusionDebt`; declarative correctness, the complete
-scheduler invariant, `ActiveTopDrained`, and the same supplied receipt still
-imply `core.allMarked = true`. The obstruction limits where that sufficient
-hypothesis can hold; it does not weaken either conditional implication.
+The earlier debt, branch-residual, continuation-exit, and conditional
+all-marked results remain valid. The new history theorem consumes a supplied
+tail law; it does not make any of those conditional implications
+unconditional.
 
 ### Finite ready-head boundary audit
 
@@ -104,33 +105,40 @@ coverage or progress. Exact counters and scope are maintained in
 
 Exact signatures are maintained in the generated API reference for the
 [active-top marked-nonconclusion debt](api-reference.md#active-top-marked-nonconclusion-debt),
+[active-top debt branch residuals](api-reference.md#active-top-debt-branch-residuals),
+[active-top debt ready-tail normalization](api-reference.md#active-top-debt-ready-tail-normalization),
+[active-top debt history-tail law](api-reference.md#active-top-debt-history-tail-law),
 [branch-local continuation credit](api-reference.md#branch-local-continuation-credit),
 [continuation-credit preservation](api-reference.md#continuation-credit-preservation),
 [endpoint-localized continuation exits](api-reference.md#endpoint-localized-continuation-exits),
-and the current
+and the retained
 [Wait endpoint-locality obstruction](api-reference.md#wait-endpoint-locality-obstruction).
-The first open proof step is to derive active-top debt directly from a correct
-supplied canonical history, formulate and preserve a Wait-compatible drained,
-temporal, or cross-component weakening, or establish another sufficient
-completion law. Only after a sound bridge is available can the drained
-reduction contribute to an unconditional progress or completion argument.
+The first open proof step is the exact history-level queue-ordering theorem:
+derive the Nop/Wait non-global `remainingTop` witnesses and the global-created
+Forward/UnifyPayload tail alternatives from correctness plus canonical tag
+history. At this packaged boundary, that is the missing implication to
+`ActiveTopDebtTailLaw`. Only after it is proved can the debt and drained
+reductions contribute to an unconditional progress or completion argument.
 
 ## What the rolling theorem does not prove
 
 This checkpoint does not establish any of the following:
 
 - construction or existence of a relevant `ExecutedHistory`, reachable state,
-  `CanonicalTagHistory`, `ReadyHeadInput`, or successful Wait transition;
+  `CanonicalTagHistory`, `ReadyHeadInput`, or successful Nop or Wait transition;
+- derivation of `ActiveTopDebtTailLaw` from declarative correctness,
+  reachability, or the matching canonical tag history;
+- existence of the exact non-global `remainingTop` witness for Nop or Wait, or
+  the exact global-created tail alternative for Forward or UnifyPayload, from
+  supplied correctness and history;
+- endpoint debt from canonical history alone, without the explicit tail-law
+  premise;
 - that any reachable canonical history contains a Wait, or that the output of a
   supplied Wait is active-top drained;
 - necessity of `ActiveTopContinuationExitLocalized`, or its derivation from
   declarative correctness, reachability, or supplied canonical history;
-- direct active-top-debt preservation through complete canonical histories, or
-  preservation of a Wait-compatible drained, temporal, or cross-component
-  locality law;
-- the selected-away witness for Nop or Wait, or the exact non-global tail law
-  for global-created Forward or UnifyPayload, from supplied history and
-  correctness;
+- preservation of another Wait-compatible drained, temporal, or
+  cross-component locality law;
 - an unconditional reachable-state proof that `ActiveTopDrained` implies
   `core.allMarked = true`, semantic completion, or terminality without a
   compatible sufficient completion premise;
@@ -158,12 +166,12 @@ plan is maintained in [v0.10-design.md](v0.10-design.md) and
 The exact rolling proof checkpoint is:
 
 ```text
-commit    b65409addd9c51df6458e6ffd8a6db4d0e384425
-tree      c8737affdecb5e5fe86381014588d0a19feb142a
-parent    80a3107a0b12a724d0bad42cd4e45e737f350a82
-stage     Wait-output endpoint-locality obstruction
-delta     17 paths, +532/-65
-manifest  405DEB7AAA3A782B48D4123DCEBBF5B879D56E2634A2EF1EFCD286AE44381DDA
+commit    40b40696e422195e438ee7a7596bec666f0b047c
+tree      27c47073687a5f475c584ba810c26faa84ceffed
+parent    7344206bf899baa7afd2a712de5e63b25e1ca0f8
+stage     active-top debt queue/history tails
+delta     18 paths, +717/-49
+manifest  A766B1FE4765B7D4C224EC8BC0A4D79BFF5ED99B44760AB2FE806E111BF5D26C
 ```
 
 The manifest hashes canonical
@@ -172,9 +180,10 @@ The manifest hashes canonical
 The checkpoint source receipts are:
 
 ```text
-source         1C4AEC37CAF25E3AB653772395B41F85269D390AD15A1AC6D9A75C69C6960FBD
-consumer       1F7C24B318852569FBB11B6AD978A2F1C75BAA30B9B604DA12B75FB5ED175515
-generated API  A61828AC7FD8F1DF52C1D53BD4CA6C172089F35A32E427F6995B0BFDB11591B6
+queue source   353EF031F539AC7CD431DF87DBCBB01A800FE63FB433D94ECFB2EF557547B56E
+history source AA1EF86AB74680996460DE69D6FBCA68A4243B0AB586CE1A77078656C73394A8
+consumer       4AC40A040A64AA47E04A42FF326C32E12FF02C5188FC1E11E58A73CC6EF9B9C9
+generated API  521B2D710993E22FE077F78C204589FC7E769880365A36D431137B40A27AA935
 ```
 
 The separately committed finite-audit evidence is:
@@ -190,14 +199,14 @@ manifest  4BBAB7FC99D03D2612459A0FD9291990313A05A184F2572A581BC93C6E49DFDD
 
 Local verification on the committed bytes:
 
-- full `lake build`: 477/477 jobs;
-- Lean source audit: zero actual `sorry`/`admit` findings across 227 Lean
+- full `lake build`: 484/484 jobs;
+- Lean source audit: zero actual `sorry`/`admit` findings across 230 Lean
   files;
-- generated API reference: current at 53 sections and 1,589 declarations;
-- the runnable Wait-obstruction consumer invoked the public theorem, reduced an
-  assumed output-locality receipt to `False`, and emitted exactly
-  `Figure-7 wait-output endpoint-locality obstruction: kernel-green`;
-- public declaration audit: 947 declarations total: 657 full-classical, 25
+- generated API reference: current at 55 sections and 1,593 declarations;
+- the runnable history-tail consumer exercised both queue-tail iff directions,
+  unfolded all six history-law branches, invoked the endpoint theorem, and
+  emitted exactly `active-top debt history-tail consumer: kernel-green`;
+- public declaration audit: 950 declarations total: 660 full-classical, 25
   axiom-free, 127 `propext`-only, and 138 `propext` plus `Quot.sound`;
 - the default, extended, and cross-variant progress audits passed with every
   incomplete visited state carrying an exact ready head and successful
@@ -210,14 +219,14 @@ Exact-head proof GitHub verification:
 
 - workflow: `Lean CI`;
 - event/ref: `push` / `main`;
-- run: [32320379041](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32320379041);
-- build job: [96281231734](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32320379041/job/96281231734);
-- exact head: `b65409addd9c51df6458e6ffd8a6db4d0e384425`;
+- run: [32324934855](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32324934855);
+- build job: [96294176391](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32324934855/job/96294176391);
+- exact head: `40b40696e422195e438ee7a7596bec666f0b047c`;
 - result: 36 successful steps, zero failures, and one expected release-ref-only
   skip;
-- run: `2026-08-20T01:15:51Z`-`2026-08-20T01:28:38Z` (12m47s);
-- build job: `2026-08-20T01:15:55Z`-`2026-08-20T01:28:38Z`
-  (12m43s).
+- run: `2026-08-20T02:31:21Z`-`2026-08-20T02:42:55Z` (11m34s);
+- build job: `2026-08-20T02:31:25Z`-`2026-08-20T02:42:55Z`
+  (11m30s).
 
 Exact-head finite-audit GitHub verification:
 
@@ -284,18 +293,17 @@ deployment.
 
 The project goal remains open. The principal outstanding gates are:
 
-1. derive `ActiveTopMarkedNonconclusionDebt` directly from a correct supplied
-   canonical history, formulate and preserve a Wait-compatible drained,
-   temporal, or cross-component weakening, or prove another sufficient
-   completion law; then obtain the unconditional reachable-state
-   `ActiveTopDrained → core.allMarked = true` corollary and use marking
-   incompleteness to exclude the residual. The unrestricted
-   `ActiveTopContinuationExitLocalized` law is refuted after every supplied
-   successful typed Wait from a scheduler-invariant input, so it cannot be the
-   unchanged full-history invariant. The obstruction proves neither reachable
-   Wait existence nor post-Wait drainedness, and progress, completion,
-   terminality, later-state totality, and arbitrary history existence remain
-   open;
+1. derive the exact history-level queue-order tails for Nop and Wait and the
+   global-created Forward and UnifyPayload alternatives; equivalently, prove
+   that correctness plus `CanonicalTagHistory` implies
+   `ActiveTopDebtTailLaw`. Only after that gate may endpoint debt combine with
+   active-top drainedness and marking incompleteness in an unconditional
+   progress argument. The unrestricted `ActiveTopContinuationExitLocalized`
+   law remains refuted after every supplied successful typed Wait from a
+   scheduler-invariant input, so it cannot replace the tail law. Reachable Wait
+   existence, post-Wait drainedness, unconditional `allMarked`, progress,
+   completion, terminality, later-state totality, and arbitrary history
+   existence remain open;
 2. close the separate queue-origin and remaining created-candidate laws needed
    by the global mate-region and raw-mark preservation families;
 3. derive exhaustive nonterminal dispatcher progress and later-state totality;
