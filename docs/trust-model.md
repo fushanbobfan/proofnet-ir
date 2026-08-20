@@ -893,6 +893,15 @@ covers 961 theorems: 670 standard-three, 25 axiom-free, 128 `propext`-only,
 and 138 `propext`/`Quot.sound` boundaries. No
 endpoint-to-edge path, re-entry, ready-tail witness, tail law, progress, or
 completion result is trusted here.
+`SequentialFigure7ActiveTopDebtParentExternalEndpointCrossing.lean` adds one
+independent proposition carrier, one three-branch outcome carrier, and one
+normalization theorem. The proof uses only reference-switching connectedness,
+the exact child occurrence already stored in the commitment split, ownership
+uniqueness, and finite path boundary extraction. No oracle or computational
+receipt is introduced. The verified combined audit covers 962 theorems: 671
+standard-three, 25 axiom-free, 128 `propext`-only, and 138
+`propext`/`Quot.sound` boundaries. No crossing classification, re-entry,
+ready-tail witness, tail law, progress, or completion result is trusted here.
 `SequentialFigure7CrossRepresentativeWaitPreservation.lean` adds no hidden
 source-region oracle. Its output-work classification follows only from the
 typed destination's exact waiting prepend and unchanged ready/sigma fields;

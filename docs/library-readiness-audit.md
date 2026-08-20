@@ -671,8 +671,11 @@ part of the engineering and proof-identity gap.
    strengthens the older future and older marked branches with an exact
    retained `sigma` split. The final adjacent edge into the active top carries
    its canonical commitment reference path. The raw external branch stays
-   unchanged, and no theorem yet connects any external endpoint to that path
-   or turns it into a distinct ready-tail payer.
+   unchanged. `SequentialFigure7ActiveTopDebtParentExternalEndpointCrossing.lean`
+   now connects the active owned carrier to each exact older
+   continuation endpoint and retains one stored owned-to-outside crossing.
+   The crossing is not yet classified as a distinct ready-tail payer or
+   eliminated under the no-tail hypothesis.
    `SequentialFigure7ContinuationCredit.lean` and its preservation module now
    close a weaker full-history invariant. The two carriers assign each marked
    nonconclusion one of three receipts: an unmarked mate, future conclusion

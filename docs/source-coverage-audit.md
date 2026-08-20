@@ -413,11 +413,17 @@ derived.
 new source reading. It uses retained `sigma` order and the canonical
 commitment-edge path API to attach the final predecessor-to-active edge to the
 older future and older marked branches. It preserves the external raw branch
-and proves no endpoint-to-edge path, re-entry, tail witness, or tail law.
+and proves no endpoint re-entry, tail witness, or tail law.
+`SequentialFigure7ActiveTopDebtParentExternalEndpointCrossing.lean` also adds
+no new source reading. It uses reference-switching connectedness, exact child
+occurrence ownership, and graph boundary extraction to connect the active
+carrier to each older endpoint and retain one owned-to-outside stored-edge
+crossing. It does not classify that crossing as raw or marked, return a
+ready-tail witness, or derive the history-tail law.
 Global preservation of the mate-region and older-raw-mark invariants through
 candidate-creating rules remains open, as do queue origin, created-candidate raw
-seams, endpoint-to-commitment connection and first re-entry of the
-external-only temporal outcome,
+seams, exact crossing classification and first re-entry of the external-only
+temporal outcome,
 unconditional active-top completion, progress,
 later-state totality,
 fallback removal,

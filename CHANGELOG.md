@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- added `SequentialFigure7ActiveTopDebtParentExternalEndpointCrossing.lean`.
+  Both older external commitment branches now carry an exact
+  reference-switching path from an active-owned vertex to their
+  exact external continuation endpoint, together with one concrete stored-edge
+  crossing from the active owned carrier to its complement. The raw external
+  branch remains unchanged. This does not classify the crossing as a distinct
+  ready-tail payer, prove re-entry, derive `ActiveTopDebtTailLaw`, or establish
+  progress/completion. The verified combined audit covers 962 theorems: 671
+  standard-three, 25 axiom-free, 128 `propext`-only, and 138
+  `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7ActiveTopDebtParentExternalCommitmentOutcome.lean`.
   Every strictly older future or marked endpoint in the external temporal
   outcome is now located on a retained `sigma` interval whose final adjacent

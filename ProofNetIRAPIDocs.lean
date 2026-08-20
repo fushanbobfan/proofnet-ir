@@ -989,6 +989,16 @@ def sections : List Section := [
     ]
   },
   {
+    title := "Active-top debt parent external endpoint crossing"
+    declarations := [
+      `ProofNetIR.SequentialFigure7.ActiveCarrierExternalEndpointCrossing,
+      `ProofNetIR.SequentialFigure7.ActiveCarrierParentExternalCommitmentCrossingOutcome,
+      Name.str
+        `ProofNetIR.SequentialFigure7.ActiveCarrierParentExternalCommitmentOutcome
+        "endpointCrossing"
+    ]
+  },
+  {
     title := "Branch-local continuation credit"
     declarations := [
       `ProofNetIR.SequentialFigure7.ContinuationCredit,

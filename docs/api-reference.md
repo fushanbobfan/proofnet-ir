@@ -10244,6 +10244,57 @@ ProofNetIR.SequentialFigure7.ActiveCarrierParentExternalTemporalOutcome.commitme
           ProofNetIR.SequentialFigure7.ActiveCarrierParentExternalCommitmentOutcome tagHistory activeRawAge owned
 ```
 
+## Active-top debt parent external endpoint crossing
+
+### `ProofNetIR.SequentialFigure7.ActiveCarrierExternalEndpointCrossing`
+
+Kind: definition.
+
+An exact reference-switching path from one active occurrence carrier to
+an external endpoint, together with one stored-edge crossing of its boundary.
+
+```lean
+ProofNetIR.SequentialFigure7.ActiveCarrierExternalEndpointCrossing : ProofNetIR.Certificate → List ProofNetIR.Vertex → ProofNetIR.Vertex → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.ActiveCarrierParentExternalCommitmentCrossingOutcome`
+
+Kind: inductive type.
+
+The external parent commitment normal form after its older endpoints have
+been connected to the active occurrence carrier and one exact boundary edge
+has been retained.
+
+```lean
+ProofNetIR.SequentialFigure7.ActiveCarrierParentExternalCommitmentCrossingOutcome : {certificate : ProofNetIR.Certificate} →
+  {state : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+    {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state} →
+      ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history →
+        ProofNetIR.SequentialSchedulerState.RawTokenAge → List ProofNetIR.Vertex → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.ActiveCarrierParentExternalCommitmentOutcome.endpointCrossing`
+
+Kind: theorem.
+
+Connect both older external endpoints to the active occurrence carrier
+through the correct reference switching and retain an exact boundary crossing.
+
+```lean
+ProofNetIR.SequentialFigure7.ActiveCarrierParentExternalCommitmentOutcome.endpointCrossing : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  {tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history}
+  {activeRawAge : ProofNetIR.SequentialSchedulerState.RawTokenAge} {owned : List ProofNetIR.Vertex},
+  ProofNetIR.SequentialFigure7.ActiveCarrierParentExternalCommitmentOutcome tagHistory activeRawAge owned →
+    certificate.ReferenceSwitchingConnected →
+      ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+        ∀ {component : ProofNetIR.UnificationComponent} {usedLinks : List Nat},
+          state.core.components[activeRawAge]? = some (some component) →
+            certificate.ComponentOccurrenceWitness component usedLinks owned →
+              ProofNetIR.SequentialFigure7.ActiveCarrierParentExternalCommitmentCrossingOutcome tagHistory activeRawAge
+                owned
+```
+
 ## Branch-local continuation credit
 
 ### `ProofNetIR.SequentialFigure7.ContinuationCredit`

@@ -385,6 +385,8 @@ expansion.
   SequentialFigure7.CanonicalTagHistory.strictOlderCommitmentSplit_to_top
 #print axioms
   SequentialFigure7.ActiveCarrierParentExternalTemporalOutcome.commitmentOutcome
+#print axioms
+  SequentialFigure7.ActiveCarrierParentExternalCommitmentOutcome.endpointCrossing
 #print axioms SequentialFigure7.empty_markedNonconclusionContinuation
 #print axioms
   SequentialFigure7.InitialReservationStep.markedNonconclusionContinuation

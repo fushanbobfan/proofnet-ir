@@ -1066,9 +1066,12 @@
     `sigma` interval and attach the final canonical commitment edge into the
     active top. Preserve the external raw branch unchanged. Do not claim a path
     from the external endpoint to that edge or a ready-tail witness.
-  - [ ] Connect the external endpoint to the retained commitment edge and prove
-    a first-reentry or ownership law that yields a distinct ready-tail payer,
-    or otherwise eliminate the failure-conditioned residual. Do not infer
+  - [x] Using the active child occurrence of that commitment edge, construct an
+    exact reference-switching path from inside the active owned carrier to each
+    older external endpoint and retain one concrete owned-to-outside crossing.
+  - [ ] Classify that crossing by first re-entry or ownership so that it yields
+    a distinct ready-tail payer, or otherwise eliminate the
+    failure-conditioned residual. Do not infer
     unconditional dispatcher progress, completion, terminality, later-state
     totality, global raw seams, fallback removal, Figure-7 pure-worklist
     completeness, sequentialization, faithful token-age scheduling, or
@@ -1352,10 +1355,11 @@
     carrier. For actual Nop and Wait failures, the selected raw endpoint is now
     eliminated, leaving only external raw work or strictly older external
     future/marked work. The two older cases now retain their final canonical
-    commitment edge into the active top. Next connect each external endpoint to
-    that edge and prove re-entry, or otherwise turn the outcome into a distinct
-    ready-tail payer before claiming exhaustive progress on incomplete,
-    correct, certified-reachable states.
+    commitment edge into the active top. Each older branch now also carries an
+    exact path from the active owned carrier to the external continuation
+    and one stored-edge boundary crossing. Next classify that crossing into a
+    distinct ready-tail payer or eliminate the failure residual before claiming
+    exhaustive progress on incomplete, correct, certified-reachable states.
     Exact source-left complexity descent, last-step decomposition, and
     recursive visited-route separation from the selected head are now proved.
     Reference-switching geometry now also excludes a terminal axiom partner

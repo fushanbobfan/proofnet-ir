@@ -1093,9 +1093,16 @@ completeness result.
 the two strictly older branches on the retained `sigma` stack. It records the
 last adjacent predecessor-to-active edge and the exact canonical commitment
 reference path carried by that edge. The external raw branch is preserved
-without inventing a boundary. This does not connect the external endpoint to
-the commitment path, prove first re-entry, return a distinct ready-tail payer,
-derive the history-tail law, or establish progress or completion.
+without inventing a boundary.
+
+`SequentialFigure7ActiveTopDebtParentExternalEndpointCrossing.lean` uses the
+active child occurrence of that commitment edge and reference-switching
+connectedness to construct an exact simple path from inside the active owned
+region to each older external endpoint. It retains a concrete stored-edge
+occurrence whose source is active owned and whose target is outside. The
+carrier does not retain a named child-endpoint equality or classify that edge
+as a distinct raw payer, prove endpoint re-entry, derive the history-tail law,
+or establish progress or completion.
 
 `SequentialFigure7ContinuationCredit.lean` and
 `SequentialFigure7ContinuationCreditPreservation.lean` close a deliberately
