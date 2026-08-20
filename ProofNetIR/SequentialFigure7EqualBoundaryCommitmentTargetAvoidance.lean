@@ -17,6 +17,10 @@ The general result is an inclusive dichotomy: its right branch records the
 failure of the generic child-untouched callback through an exact stored-left
 historical touch, without denying that an avoiding path may also exist.
 
+For a supplied ready-head par conclusion, a parallel inclusive dichotomy
+returns an avoiding path or the exact same-age historical trace step from that
+conclusion to the selected premise or its mate.
+
 This module does not prove unconditional equal-boundary target avoidance,
 dispatcher progress, totality, worklist completeness, fallback removal,
 token-age scheduling, or whole-program linearity.
@@ -138,6 +142,85 @@ private theorem SourceLeftChain.decompose_at_step
       · rcases induction restLast sourceMem step with
           ⟨beforeTrace, afterTrace, decomposition⟩
         exact ⟨current :: beforeTrace, afterTrace, by simp [decomposition]⟩
+
+/-- A reservation event touching a submitted par conclusion traverses the
+exact stored-left source step in its search trace. -/
+theorem ReservationEvent.touched_parConclusion_decomposition
+    {certificate : Certificate}
+    (structural : certificate.StructurallyWellFormed)
+    (event : ReservationEvent certificate)
+    {selected : Vertex}
+    (consumer : ConnectiveBelow certificate selected)
+    (parEq : consumer.kind = .par)
+    (touched : event.Touched consumer.conclusion) :
+    ∃ beforeTrace afterTrace,
+      event.search.result.trace =
+        beforeTrace ++ consumer.conclusion :: consumer.storedLeft ::
+          afterTrace := by
+  have parLookup :
+      certificate.links[consumer.linkIndex]? =
+        some (.par consumer.storedLeft consumer.storedRight
+          consumer.conclusion) := by
+    simpa [SequentialConnectiveKind.asLink, parEq] using consumer.link_eq
+  have conclusionInTrace :
+      consumer.conclusion ∈ event.search.result.trace := by
+    rcases touched with inTrace | leftEq | rightEq
+    · exact inTrace
+    · exfalso
+      exact structural.axiomEndpoint_ne_connectiveConclusion
+        (List.mem_of_getElem? event.search.result.exactLink) (Or.inl rfl)
+        (List.mem_of_getElem? parLookup)
+        (by simpa [Link.produces] using leftEq)
+    · exfalso
+      exact structural.axiomEndpoint_ne_connectiveConclusion
+        (List.mem_of_getElem? event.search.result.exactLink) (Or.inr rfl)
+        (List.mem_of_getElem? parLookup)
+        (by simpa [Link.produces] using rightEq)
+  have reachedEndpoint :
+      event.search.reached = event.search.result.left ∨
+        event.search.reached = event.search.result.right := by
+    rcases event.search.route.storedEndpoints with endpoints | endpoints
+    · exact Or.inl endpoints.1
+    · exact Or.inr endpoints.1
+  exact SourceLeftChain.decompose_at_step structural
+    event.search.route.chain event.search.route.traceLast
+    event.search.result.exactLink reachedEndpoint conclusionInTrace
+    (.par parLookup)
+
+/-- Touching a submitted par conclusion records either the exact
+conclusion-to-selected step or the exact conclusion-to-mate step, according to
+the submitted premise orientation. -/
+theorem ReservationEvent.touched_parConclusion_cases
+    {certificate : Certificate}
+    (structural : certificate.StructurallyWellFormed)
+    (event : ReservationEvent certificate)
+    {selected : Vertex}
+    (consumer : ConnectiveBelow certificate selected)
+    (parEq : consumer.kind = .par)
+    (touched : event.Touched consumer.conclusion) :
+    (consumer.side = .storedLeft ∧
+      ∃ beforeTrace afterTrace,
+        event.search.result.trace =
+          beforeTrace ++ consumer.conclusion :: selected :: afterTrace) ∨
+    (consumer.side = .storedRight ∧
+      ∃ beforeTrace afterTrace,
+        event.search.result.trace =
+          beforeTrace ++ consumer.conclusion :: consumer.mate ::
+            afterTrace) := by
+  rcases event.touched_parConclusion_decomposition structural consumer parEq
+      touched with ⟨beforeTrace, afterTrace, decomposition⟩
+  cases sideEq : consumer.side with
+  | storedLeft =>
+      left
+      refine ⟨rfl, beforeTrace, afterTrace, ?_⟩
+      have selectedEq : selected = consumer.storedLeft := by
+        simpa [TensorPremiseSide.premise, sideEq] using consumer.premise_eq
+      simpa [selectedEq] using decomposition
+  | storedRight =>
+      right
+      refine ⟨rfl, beforeTrace, afterTrace, ?_⟩
+      simpa [ConnectiveBelow.mate, TensorPremiseSide.mate, sideEq] using
+        decomposition
 
 namespace CanonicalTagHistory
 
@@ -313,6 +396,58 @@ theorem commitmentEdge_equal_boundary_dichotomy
       ⟨sideLeft, beforeTrace, afterTrace, decomposition⟩
     exact Or.inr ⟨event, beforeTrace, afterTrace, membership, eventAge,
       sideLeft, decomposition⟩
+
+/-- The equal-boundary final commitment edge either avoids the supplied
+ready-head par conclusion or exposes an exact same-age historical trace step
+from that conclusion to the selected premise or its mate.
+
+The alternatives are inclusive. The theorem does not prove the child event
+untouched, eliminate either trace orientation, compose a whole retained
+interval, or derive a ready-tail witness. -/
+theorem commitmentEdge_parConclusion_dichotomy
+    {certificate : Certificate} {state : ReservationState}
+    {history : ExecutedHistory certificate state}
+    (tagHistory : CanonicalTagHistory certificate history)
+    (invariant : SchedulerInvariant certificate state)
+    (input : ReadyHeadInput state)
+    (consumer : ConnectiveBelow certificate input.vertex)
+    (parEq : consumer.kind = .par)
+    {position parent : RawTokenAge}
+    (parentAt : state.stack.sigma[position]? = some parent)
+    (childAt :
+      state.stack.sigma[position + 1]? = some input.rawAge) :
+    tagHistory.CommitmentEdgeTargetAvoidingPath parent input.rawAge
+        consumer.conclusion ∨
+      ∃ event : ReservationEvent certificate,
+        event ∈ tagHistory.reservationLedger ∧
+          event.rawAge = input.rawAge ∧
+          ((consumer.side = .storedLeft ∧
+              ∃ beforeTrace afterTrace,
+                event.search.result.trace =
+                  beforeTrace ++ consumer.conclusion :: input.vertex ::
+                    afterTrace) ∨
+            (consumer.side = .storedRight ∧
+              ∃ beforeTrace afterTrace,
+                event.search.result.trace =
+                  beforeTrace ++ consumer.conclusion :: consumer.mate ::
+                    afterTrace)) := by
+  classical
+  by_cases childUntouched :
+      ∀ {event : ReservationEvent certificate},
+        event ∈ tagHistory.reservationLedger →
+          event.rawAge = input.rawAge →
+            ¬ event.Touched consumer.conclusion
+  · exact Or.inl
+      (tagHistory.commitmentEdge_referencePath_avoiding_parConclusion invariant
+        input consumer parEq parentAt childAt childUntouched)
+  · rcases Classical.not_forall.mp childUntouched with ⟨event, missing⟩
+    rcases Classical.not_imp.mp missing with ⟨membership, missing⟩
+    rcases Classical.not_imp.mp missing with ⟨eventAge, missing⟩
+    have touched : event.Touched consumer.conclusion :=
+      Classical.not_not.mp missing
+    exact Or.inr ⟨event, membership, eventAge,
+      event.touched_parConclusion_cases invariant.structural consumer parEq
+        touched⟩
 
 end CanonicalTagHistory
 end SequentialFigure7

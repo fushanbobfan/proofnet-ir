@@ -919,12 +919,14 @@ only structural well-formedness, occurrence derivation, exact ready/frontier
 alignment, owned-occurrence accounting, canonical raw-mark history, and exact
 parent-link uniqueness. Four structural carriers are `propext`-only; the two
 history-bearing carriers and six proof theorems use the standard three axioms;
-the submitted-premise fact uses `propext`/`Quot.sound`. The verified combined
-audit covers 971 theorems: 679 standard-three, 25 axiom-free, 128
-`propext`-only, and 139 `propext`/`Quot.sound` boundaries. The proof does not
-derive conclusion avoidance for commitment re-entry paths, turn the remaining
-historical mark into a distinct raw payer, derive a tail law, or add any oracle
-or computational receipt.
+the submitted-premise fact uses `propext`/`Quot.sound`. The adjacent-edge par
+specialization and equal-boundary trace dichotomy add four standard-three
+theorems. The verified combined audit covers 975 theorems: 683 standard-three,
+25 axiom-free, 128 `propext`-only, and 139 `propext`/`Quot.sound` boundaries.
+The proof does not derive the child-event untouched callbacks, eliminate the
+selected/mate trace branches, turn the remaining historical mark into a
+distinct raw payer, derive a tail law, or add any oracle or computational
+receipt.
 `SequentialFigure7CrossRepresentativeWaitPreservation.lean` adds no hidden
 source-region oracle. Its output-work classification follows only from the
 typed destination's exact waiting prepend and unchanged ready/sigma fields;
@@ -1134,11 +1136,11 @@ composition, queue origin, a raw seam, enabledness, progress, completeness,
 fallback removal, or complexity.
 `SequentialFigure7CommitmentEdgeTargetAvoidance.lean` adds no avoidance oracle.
 It consumes an explicit law saying that the exact child ledger event does not
-touch a supplied future candidate's tensor conclusion. Existing ownership
-accounting excludes that conclusion from the endpoint anchors; structural
-producer uniqueness and the final mark equations exclude the historical tensor
-collision; the explicit untouched law keeps it out of the historical source
-trace.
+touch a supplied future candidate's tensor conclusion or a supplied ready-head
+par conclusion. Existing ownership accounting excludes either conclusion from
+the endpoint anchors; structural producer uniqueness and the final mark
+equations exclude the historical tensor collision; the explicit untouched law
+keeps the target out of the historical source trace.
 Verified loop erasure then yields the avoiding canonical edge path. The law's
 global availability, arbitrary multi-edge composition, queue origin, raw-seam
 discharge, enabledness, progress, completeness, and complexity remain open.

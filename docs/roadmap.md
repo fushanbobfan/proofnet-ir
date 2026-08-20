@@ -1369,10 +1369,13 @@
     only the selected and marked cases remain. Canonical raw-mark history now
     authenticates the marked target at the active representative. A retained
     path that additionally avoids the current par conclusion cannot target the
-    selected head, leaving a distinct historical mark. Next derive that path
-    avoidance for commitment returns or handle the through-current-conclusion
-    case, then turn the marked history into a distinct ready-tail payer before
-    claiming
+    selected head, leaving a distinct historical mark. An explicit child-event
+    untouched law now supplies avoidance for any adjacent retained edge. At the
+    active edge, an inclusive dichotomy returns avoidance or an authentic
+    same-age trace containing the exact par-conclusion step to selected or
+    mate. Next discharge the untouched callbacks, eliminate the two trace
+    branches, and turn the marked history into a distinct ready-tail payer
+    before claiming
     exhaustive progress on incomplete, correct, certified-reachable states.
     Exact source-left complexity descent, last-step decomposition, and
     recursive visited-route separation from the selected head are now proved.

@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- extended adjacent and equal-boundary commitment target avoidance to the
+  current ready-head par conclusion. An explicit child-event untouched law now
+  yields an adjacent avoiding path. At the active boundary, an inclusive
+  dichotomy returns that path or an authentic same-age event trace containing
+  the exact par-conclusion step to the selected premise or its mate. It does
+  not derive untouchedness, eliminate either trace branch, compose the whole
+  retained interval, or produce a ready-tail payer. The verified combined
+  audit covers 975 theorems: 683 standard-three, 25 axiom-free, 128
+  `propext`-only, and 139 `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7ActiveTopDebtParentExternalReentryTarget.lean` and
   exposed three reusable occurrence-carrier geometry lemmas. Every exact
   outside-to-inside endpoint re-entry is now the reverse of a submitted

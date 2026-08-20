@@ -269,9 +269,14 @@ expansion.
 #print axioms
   SequentialFigure7.CanonicalTagHistory.sameRepresentative_conclusionTouch_decomposition
 #print axioms
+  SequentialFigure7.ReservationEvent.touched_parConclusion_decomposition
+#print axioms SequentialFigure7.ReservationEvent.touched_parConclusion_cases
+#print axioms
   SequentialFigure7.CanonicalTagHistory.commitmentEdge_referencePath_avoiding_of_equal_storedRight
 #print axioms
   SequentialFigure7.CanonicalTagHistory.commitmentEdge_equal_boundary_dichotomy
+#print axioms
+  SequentialFigure7.CanonicalTagHistory.commitmentEdge_parConclusion_dichotomy
 #print axioms
   SequentialFigure7.CanonicalTagHistory.strictOlder_commitmentPath_or_advance_or_equalCallbackFailure
 #print axioms
@@ -531,6 +536,8 @@ expansion.
 #print axioms SequentialFigure7.CanonicalTagHistory.rawMarked_reservationEvent_referenceAnchors
 #print axioms SequentialFigure7.CanonicalTagHistory.commitmentEdge_referencePath
 #print axioms SequentialFigure7.CanonicalTagHistory.commitmentEdge_referencePath_avoiding
+#print axioms
+  SequentialFigure7.CanonicalTagHistory.commitmentEdge_referencePath_avoiding_parConclusion
 #print axioms SequentialFigure7.CanonicalTagHistory.commitmentInterval_referencePath_avoiding
 #print axioms SequentialFigure7.carrierFresh
 #print axioms SequentialFigure7.CanonicalTagHistory.freshSourceLeftRun_carrier_not_touched

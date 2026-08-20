@@ -702,7 +702,8 @@ def sections : List Section := [
     title := "Adjacent commitment-edge target avoidance"
     declarations := [
       `ProofNetIR.SequentialFigure7.CanonicalTagHistory.CommitmentEdgeTargetAvoidingPath,
-      `ProofNetIR.SequentialFigure7.CanonicalTagHistory.commitmentEdge_referencePath_avoiding
+      `ProofNetIR.SequentialFigure7.CanonicalTagHistory.commitmentEdge_referencePath_avoiding,
+      `ProofNetIR.SequentialFigure7.CanonicalTagHistory.commitmentEdge_referencePath_avoiding_parConclusion
     ]
   },
   {
@@ -715,6 +716,12 @@ def sections : List Section := [
     title := "Equal-boundary commitment target avoidance"
     declarations := [
       Name.str
+        `ProofNetIR.SequentialFigure7.ReservationEvent
+        "touched_parConclusion_decomposition",
+      Name.str
+        `ProofNetIR.SequentialFigure7.ReservationEvent
+        "touched_parConclusion_cases",
+      Name.str
         `ProofNetIR.SequentialFigure7.CanonicalTagHistory
         "sameRepresentative_conclusionTouch_decomposition",
       Name.str
@@ -722,7 +729,10 @@ def sections : List Section := [
         "commitmentEdge_referencePath_avoiding_of_equal_storedRight",
       Name.str
         `ProofNetIR.SequentialFigure7.CanonicalTagHistory
-        "commitmentEdge_equal_boundary_dichotomy"
+        "commitmentEdge_equal_boundary_dichotomy",
+      Name.str
+        `ProofNetIR.SequentialFigure7.CanonicalTagHistory
+        "commitmentEdge_parConclusion_dichotomy"
     ]
   },
   {

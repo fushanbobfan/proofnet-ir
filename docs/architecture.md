@@ -1416,13 +1416,14 @@ outside this layer.
 
 `SequentialFigure7CommitmentEdgeTargetAvoidance.lean` refines that one-edge
 path under one explicit semantic law. For a supplied `FutureNewCandidateAt`,
-the exact child ledger event must not touch the future tensor conclusion. The
-proof derives that the conclusion is absent from both endpoint owned carriers,
-excludes equality with the historical tensor conclusion using producer
-uniqueness and final mark equations, reconstructs an avoiding middle segment,
-and composes the three avoiding paths by verified loop erasure. This does not
-derive the child-event untouched law or its global availability, compose a
-whole spine, recover queue origin, discharge a raw seam, or imply progress.
+or for the conclusion of a supplied ready-head par consumer, the exact child
+ledger event must leave the target conclusion untouched. Ownership accounting
+keeps either conclusion outside both endpoint carriers; producer uniqueness
+and final mark equations exclude collision with the historical tensor
+conclusion. The proof reconstructs an avoiding middle segment and composes the
+three avoiding paths by verified loop erasure. This does not derive the
+child-event untouched law or its global availability, compose a whole spine,
+recover queue origin, discharge a raw seam, or imply progress.
 
 `SequentialFigure7CommitmentIntervalTargetAvoidance.lean` supplies the
 composition combinator for any positive-length retained-`sigma` interval. A
@@ -1466,8 +1467,12 @@ dichotomy: either such a path exists, or an authentic child event has the
 active raw age, stored-left orientation, and an exact adjacent
 conclusion-to-head trace fragment. The second branch records failure of the
 generic child-untouched callback; it neither excludes every avoiding path nor
-makes the two branches disjoint. No mate-region/raw-mark invariant, queue
-origin, reachability, progress, or complexity result is added.
+makes the two branches disjoint. For a current ready-head par conclusion, a
+parallel inclusive dichotomy returns an avoiding path or an authentic same-age
+event whose trace contains the exact conclusion-to-selected or
+conclusion-to-mate step. It does not eliminate either par orientation. No
+mate-region/raw-mark invariant, queue origin, reachability, progress, or
+complexity result is added.
 
 `SequentialFigure7CommitmentBlockerAdvance.lean` joins the global queued-head
 law, the strict `sigma` split, the strict-edge avoiding adapter, and the final

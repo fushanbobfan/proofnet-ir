@@ -37,10 +37,13 @@ Raw-mark history authenticates the mark at the active representative. If the
 path avoids the current par conclusion, parent uniqueness excludes selected and
 leaves a distinct marked target.
 
+An adjacent commitment edge gets that avoidance from an explicit child-event
+untouched law. At the active edge, either avoidance holds or a same-age trace
+contains the exact par-conclusion step to selected or mate.
+
 This proves no unconditional all-marked, progress, completion, termination,
-totality, or completeness result. Path avoidance is not derived. Next prove it
-for commitment returns or handle the through-current-conclusion case, use the
-marked history to obtain a distinct payer, and discharge global-created tails.
+totality, or completeness result. Child untouchedness and both trace branches
+remain open. Next derive a distinct payer and discharge global-created tails.
 [Current status](docs/current-status.md) owns exact revision, verification receipt, and gates.
 <!-- ROLLING_MAIN_SUMMARY_END -->
 

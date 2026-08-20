@@ -435,8 +435,12 @@ raw, or concretely marked. The no-tail wrapper removes only the ready-tail
 case. Canonical raw-mark history authenticates a marked target at the active
 representative. A retained path that also avoids the current par conclusion
 cannot target the selected head, so only a distinct historical mark remains.
-The module does not derive that path avoidance or a distinct raw payer, tail
-law, or progress theorem.
+Adjacent-edge target avoidance now accepts the exact child-event untouched law
+for this par conclusion. The active-edge dichotomy returns either avoidance or
+an authentic same-age trace step from the conclusion to selected or mate. The
+modules do not derive untouchedness, eliminate either trace branch, compose
+the complete avoiding return, or produce a distinct raw payer, tail law, or
+progress theorem.
 Global preservation of the mate-region and older-raw-mark invariants through
 candidate-creating rules remains open, as do queue origin, created-candidate raw
 seams, derivation of the re-entry avoidance premise, marked-history descent,

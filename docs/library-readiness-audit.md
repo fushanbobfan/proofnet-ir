@@ -1098,6 +1098,11 @@ part of the engineering and proof-identity gap.
    child-untouched callback failed, not a proof that no avoiding path exists;
    both alternatives may hold. Mate-region/raw-mark availability, queue origin,
    progress, completeness, scheduling, and complexity remain outside it.
+   The same owners now cover a supplied ready-head par conclusion. Explicit
+   child-event untouchedness yields an adjacent avoiding path; at the active
+   boundary, an inclusive dichotomy instead records an authentic same-age trace
+   step from the par conclusion to selected or mate. Neither untouchedness nor
+   elimination of those two trace branches is claimed.
    `SequentialFigure7CommitmentBlockerAdvance.lean` now combines the global
    queued-head law, strict split, and equal-boundary result. Under declarative
    correctness and the complete scheduler invariant, for a supplied canonical

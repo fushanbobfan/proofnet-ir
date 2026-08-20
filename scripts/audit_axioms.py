@@ -77,10 +77,16 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "ProofNetIR.SequentialFigure7.CanonicalTagHistory.strictOlderSigmaSplit",
     "ProofNetIR.SequentialFigure7.CanonicalTagHistory."
     "sameRepresentative_conclusionTouch_decomposition",
+    "ProofNetIR.SequentialFigure7.ReservationEvent."
+    "touched_parConclusion_decomposition",
+    "ProofNetIR.SequentialFigure7.ReservationEvent."
+    "touched_parConclusion_cases",
     "ProofNetIR.SequentialFigure7.CanonicalTagHistory."
     "commitmentEdge_referencePath_avoiding_of_equal_storedRight",
     "ProofNetIR.SequentialFigure7.CanonicalTagHistory."
     "commitmentEdge_equal_boundary_dichotomy",
+    "ProofNetIR.SequentialFigure7.CanonicalTagHistory."
+    "commitmentEdge_parConclusion_dichotomy",
     "ProofNetIR.SequentialFigure7.CanonicalTagHistory."
     "strictOlder_commitmentPath_or_advance_or_equalCallbackFailure",
     "ProofNetIR.SequentialFigure7.CanonicalTagHistory."
@@ -334,6 +340,8 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "ProofNetIR.SequentialFigure7.CanonicalTagHistory.rawMarked_reservationEvent_referenceAnchors",
     "ProofNetIR.SequentialFigure7.CanonicalTagHistory.commitmentEdge_referencePath",
     "ProofNetIR.SequentialFigure7.CanonicalTagHistory.commitmentEdge_referencePath_avoiding",
+    "ProofNetIR.SequentialFigure7.CanonicalTagHistory."
+    "commitmentEdge_referencePath_avoiding_parConclusion",
     "ProofNetIR.SequentialFigure7.CanonicalTagHistory.commitmentInterval_referencePath_avoiding",
     "ProofNetIR.SequentialFigure7.CanonicalTagHistory.freshSourceLeftRun_carrier_not_touched",
     "ProofNetIR.SequentialFigure7.carrier_not_exactMarkedOccurrenceOwner",

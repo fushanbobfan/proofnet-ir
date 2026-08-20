@@ -1,3 +1,9 @@
+/-
+Copyright (c) 2026 ProofNet-IR contributors. All rights reserved.
+Released under MIT license as described in the file LICENSE.
+Authors: ProofNet-IR contributors
+-/
+
 import ProofNetIR.SequentialFigure7CommitmentEdgeTargetAvoidance
 
 namespace ProofNetIR
@@ -5,9 +11,9 @@ namespace ProofNetIR
 /-!
 # Figure-7 commitment-edge target-avoidance consumer
 
-This consumer invokes the exact two-item public surface.  The theorem call
-supplies the child-event untouched law explicitly and consumes the resulting
-target-avoiding adjacent commitment path.
+This consumer invokes the target carrier and both adjacent-edge theorems. The
+calls supply the child-event untouched law explicitly for future tensor and
+ready-head par conclusions and consume the resulting avoiding paths.
 -/
 
 open SequentialFigure7
@@ -16,6 +22,7 @@ open SequentialSchedulerState
 
 #check CanonicalTagHistory.CommitmentEdgeTargetAvoidingPath
 #check CanonicalTagHistory.commitmentEdge_referencePath_avoiding
+#check CanonicalTagHistory.commitmentEdge_referencePath_avoiding_parConclusion
 
 /-- Invoke the public result predicate directly. -/
 example {certificate : Certificate} {state : ReservationState}
@@ -40,6 +47,27 @@ example {certificate : Certificate} {state : ReservationState}
       candidate.tensor.conclusion := by
   exact tagHistory.commitmentEdge_referencePath_avoiding invariant candidate
     parentAt childAt childUntouched
+
+/-- Invoke the ready-head par-conclusion specialization. -/
+example {certificate : Certificate} {state : ReservationState}
+    {history : ExecutedHistory certificate state}
+    (tagHistory : CanonicalTagHistory certificate history)
+    (invariant : SchedulerInvariant certificate state)
+    (input : ReadyHeadInput state)
+    (consumer : ConnectiveBelow certificate input.vertex)
+    (parEq : consumer.kind = .par)
+    {position parent child : RawTokenAge}
+    (parentAt : state.stack.sigma[position]? = some parent)
+    (childAt : state.stack.sigma[position + 1]? = some child)
+    (childUntouched : ∀ {event : ReservationEvent certificate},
+      event ∈ tagHistory.reservationLedger → event.rawAge = child →
+        ¬ event.Touched consumer.conclusion) :
+    tagHistory.CommitmentEdgeTargetAvoidingPath parent child
+      consumer.conclusion := by
+  exact tagHistory.commitmentEdge_referencePath_avoiding_parConclusion
+    invariant input consumer parEq parentAt childAt childUntouched
+
+#print axioms CanonicalTagHistory.commitmentEdge_referencePath_avoiding_parConclusion
 
 end ProofNetIR
 

@@ -11,9 +11,10 @@ import ProofNetIR.SequentialFigure7CrossRepresentativeInvariant
 # Figure-7 commitment-edge target avoidance
 
 Constructs one exact reference-switching path across adjacent retained sigma
-commitments while avoiding a supplied future candidate tensor conclusion.
-The child-event untouched law is an explicit premise; this module does not
-derive its global availability, any raw-seam invariant, or scheduler progress.
+commitments while avoiding a supplied future candidate tensor conclusion or a
+supplied ready-head par conclusion. The child-event untouched law is an
+explicit premise; this module does not derive its global availability, any
+raw-seam invariant, or scheduler progress.
 -/
 
 namespace ProofNetIR
@@ -84,6 +85,59 @@ private theorem tensorConclusion_not_owned
       (mem_liveFrontierVertices_of_raw componentLookup frontier)
 
 end FutureNewCandidateAt
+
+private theorem ReadyHeadInput.parConclusion_not_owned
+    {certificate : Certificate} {state : ReservationState}
+    (input : ReadyHeadInput state)
+    (invariant : SchedulerInvariant certificate state)
+    (consumer : ConnectiveBelow certificate input.vertex)
+    (parEq : consumer.kind = .par)
+    {index : RawTokenAge} {component : UnificationComponent}
+    {owned : List Vertex}
+    (componentLookup :
+      state.core.components[index]? = some (some component))
+    (accounted :
+      Certificate.OwnedOccurrenceAccounted state.core index component owned) :
+    consumer.conclusion ∉ owned := by
+  have parLookup :
+      certificate.links[consumer.linkIndex]? =
+        some (.par consumer.storedLeft consumer.storedRight
+          consumer.conclusion) := by
+    simpa [SequentialConnectiveKind.asLink, parEq] using consumer.link_eq
+  have selectedUnmarked : state.core.marks[input.vertex]? = some none :=
+    invariant.queued_vertices_unmarked input.vertex
+      (input.futureWorkAt invariant).mem_queued
+  have conclusionNotProduced : ¬ Produced state consumer.conclusion := by
+    intro produced
+    rcases invariant.produced_premises_marked
+        (List.mem_of_getElem? parLookup) produced with
+      ⟨⟨leftAge, leftMarked⟩, rightAge, rightMarked⟩
+    cases sideEq : consumer.side with
+    | storedLeft =>
+        have selectedEq : input.vertex = consumer.storedLeft := by
+          simpa [TensorPremiseSide.premise, sideEq] using
+            consumer.premise_eq
+        have leftUnmarked :
+            state.core.marks[consumer.storedLeft]? = some none :=
+          (congrArg (fun vertex ↦ state.core.marks[vertex]?)
+            selectedEq).symm.trans selectedUnmarked
+        rw [leftUnmarked] at leftMarked
+        simp at leftMarked
+    | storedRight =>
+        have selectedEq : input.vertex = consumer.storedRight := by
+          simpa [TensorPremiseSide.premise, sideEq] using
+            consumer.premise_eq
+        have rightUnmarked :
+            state.core.marks[consumer.storedRight]? = some none :=
+          (congrArg (fun vertex ↦ state.core.marks[vertex]?)
+            selectedEq).symm.trans selectedUnmarked
+        rw [rightUnmarked] at rightMarked
+        simp at rightMarked
+  intro conclusionOwned
+  apply conclusionNotProduced
+  rcases accounted consumer.conclusion conclusionOwned with marked | raw
+  · exact .inl ⟨marked.choose, marked.choose_spec.1⟩
+  · exact .inr (mem_liveFrontierVertices_of_raw componentLookup raw.2)
 
 private theorem parLeftEdge_mem_leftRetained
     {links : List Link} {left right conclusion : Vertex}
@@ -342,6 +396,32 @@ private theorem NewStep.selectedToReachedReferencePath_avoiding
   exact ⟨path, pathStarts.trans tensorStarts,
     pathFinishes.trans routeFinishes, pathAvoids⟩
 
+private theorem NewStep.tensorConclusion_ne_parConclusion
+    {certificate : Certificate} {before after : ReservationState}
+    (structural : certificate.StructurallyWellFormed)
+    (step : NewStep certificate before after)
+    {selected : Vertex}
+    (consumer : ConnectiveBelow certificate selected)
+    (parEq : consumer.kind = .par) :
+    step.tensor.conclusion ≠ consumer.conclusion := by
+  intro sameConclusion
+  have tensorMembership :
+      Link.tensor step.tensor.storedLeft step.tensor.storedRight
+          step.tensor.conclusion ∈ certificate.links :=
+    List.mem_of_getElem? step.tensorValid.2.1
+  have parLookup :
+      certificate.links[consumer.linkIndex]? =
+        some (.par consumer.storedLeft consumer.storedRight
+          consumer.conclusion) := by
+    simpa [SequentialConnectiveKind.asLink, parEq] using consumer.link_eq
+  have sameLink :=
+    UnificationState.StructurallyWellFormed.producerLink_unique
+      (conclusion := step.tensor.conclusion) structural
+      tensorMembership (by simp [Link.produces])
+      (List.mem_of_getElem? parLookup)
+      (by simp [Link.produces, sameConclusion])
+  contradiction
+
 namespace CanonicalTagHistory
 
 private theorem NewStep.tensorConclusion_ne_futureCandidate
@@ -489,6 +569,92 @@ theorem commitmentEdge_referencePath_avoiding
     intro membership
     exact targetNotChildOwned
       (childAnchorWithin candidate.tensor.conclusion membership)
+  rcases edgeStep.selectedToReachedReferencePath_avoiding
+      invariant.structural selectedNe ownConclusionNe
+        (childUntouched (List.mem_of_getElem? edgeChildLookup)
+          childEq.symm) with
+    ⟨middlePath, middleStarts, middleFinishes, middleAvoids⟩
+  rcases Graph.EdgeSimplePath.connectEraseAvoiding parentAnchor.reverse
+      middlePath (by
+        change parentAnchor.start = middlePath.start
+        rw [parentAnchorStarts, middleStarts])
+      reversedParentAvoids middleAvoids with
+    ⟨prefixPath, prefixStarts, prefixFinishes, prefixAvoids⟩
+  rcases Graph.EdgeSimplePath.connectEraseAvoiding prefixPath childAnchor
+      (prefixFinishes.trans
+        (middleFinishes.trans childAnchorStarts.symm))
+      prefixAvoids childAvoids with
+    ⟨path, pathStarts, pathFinishes, pathAvoids⟩
+  refine ⟨parentEvent, ReservationEvent.new edgeStep, path, parentLookup,
+    edgeChildLookup, ?_, ?_, pathAvoids⟩
+  · exact pathStarts.trans (prefixStarts.trans (by
+      change parentAnchor.finish = parentEvent.search.result.left
+      exact parentAnchorFinishes))
+  · exact pathFinishes.trans childAnchorFinishes
+
+/-- An adjacent retained sigma commitment admits a reference-switching path
+that avoids the conclusion of a supplied ready-head par consumer whenever the
+exact child ledger event leaves that conclusion untouched.
+
+The ready-head and scheduler hypotheses prove that the unproduced par
+conclusion belongs to neither endpoint occurrence carrier. The
+`childUntouched` callback remains explicit; this theorem does not establish
+its history-wide availability or eliminate the complementary touch case. -/
+theorem commitmentEdge_referencePath_avoiding_parConclusion
+    {certificate : Certificate} {state : ReservationState}
+    {history : ExecutedHistory certificate state}
+    (tagHistory : CanonicalTagHistory certificate history)
+    (invariant : SchedulerInvariant certificate state)
+    (input : ReadyHeadInput state)
+    (consumer : ConnectiveBelow certificate input.vertex)
+    (parEq : consumer.kind = .par)
+    {position parent child : RawTokenAge}
+    (parentAt : state.stack.sigma[position]? = some parent)
+    (childAt : state.stack.sigma[position + 1]? = some child)
+    (childUntouched : ∀ {event : ReservationEvent certificate},
+      event ∈ tagHistory.reservationLedger → event.rawAge = child →
+        ¬ event.Touched consumer.conclusion) :
+    tagHistory.CommitmentEdgeTargetAvoidingPath parent child
+      consumer.conclusion := by
+  rcases tagHistory.commitmentEdge_referencePath invariant parentAt childAt with
+    ⟨edgeBefore, edgeAfter, edgeStep, parentEvent, parentComponent,
+      childComponent, parentEventUsed, parentForestUsed, parentOwned,
+      childEventUsed, childForestUsed, childOwned, parentAnchor,
+      _oldCommittedPath, childAnchor, _oldCanonicalPath, parentLookup,
+      edgeChildLookup, _parentRawAge, _parentEq, childEq, selectedMarked,
+      parentComponentLookup, _parentDerivation, _parentLink, _parentWitness,
+      parentAccounted, selectedOwned, _parentLeftOwned, childComponentLookup,
+      _childDerivation, _childLink, _childWitness, childAccounted, reachedOwned,
+      parentAnchorStarts, parentAnchorFinishes, parentAnchorWithin,
+      _oldCommittedStarts, _oldCommittedFinishes, childAnchorStarts,
+      childAnchorFinishes, childAnchorWithin, _oldCanonicalStarts,
+      _oldCanonicalFinishes, _reachedEndpoint⟩
+  have targetNotParentOwned : consumer.conclusion ∉ parentOwned :=
+    input.parConclusion_not_owned invariant consumer parEq
+      parentComponentLookup parentAccounted
+  have targetNotChildOwned : consumer.conclusion ∉ childOwned :=
+    input.parConclusion_not_owned invariant consumer parEq
+      childComponentLookup childAccounted
+  have selectedNe :
+      edgeStep.stackResult.vertex ≠ consumer.conclusion := by
+    intro same
+    apply targetNotParentOwned
+    simpa [same] using selectedOwned
+  have ownConclusionNe :
+      edgeStep.tensor.conclusion ≠ consumer.conclusion :=
+    edgeStep.tensorConclusion_ne_parConclusion invariant.structural consumer
+      parEq
+  have parentAvoids : consumer.conclusion ∉ parentAnchor.vertices := by
+    intro membership
+    exact targetNotParentOwned
+      (parentAnchorWithin consumer.conclusion membership)
+  have reversedParentAvoids :
+      consumer.conclusion ∉ parentAnchor.reverse.vertices := by
+    simpa using parentAvoids
+  have childAvoids : consumer.conclusion ∉ childAnchor.vertices := by
+    intro membership
+    exact targetNotChildOwned
+      (childAnchorWithin consumer.conclusion membership)
   rcases edgeStep.selectedToReachedReferencePath_avoiding
       invariant.structural selectedNe ownConclusionNe
         (childUntouched (List.mem_of_getElem? edgeChildLookup)

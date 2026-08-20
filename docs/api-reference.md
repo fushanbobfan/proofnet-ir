@@ -8786,6 +8786,35 @@ ProofNetIR.SequentialFigure7.CanonicalTagHistory.commitmentEdge_referencePath_av
             tagHistory.CommitmentEdgeTargetAvoidingPath parent child candidate.tensor.conclusion
 ```
 
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.commitmentEdge_referencePath_avoiding_parConclusion`
+
+Kind: theorem.
+
+An adjacent retained sigma commitment admits a reference-switching path
+that avoids the conclusion of a supplied ready-head par consumer whenever the
+exact child ledger event leaves that conclusion untouched.
+
+The ready-head and scheduler hypotheses prove that the unproduced par
+conclusion belongs to neither endpoint occurrence carrier. The
+`childUntouched` callback remains explicit; this theorem does not establish
+its history-wide availability or eliminate the complementary touch case.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.commitmentEdge_referencePath_avoiding_parConclusion : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+    ∀ (input : ProofNetIR.SequentialFigure7.ReadyHeadInput state)
+      (consumer : ProofNetIR.ConnectiveBelow certificate input.vertex),
+      consumer.kind = ProofNetIR.SequentialConnectiveKind.par →
+        ∀ {position parent child : ProofNetIR.SequentialSchedulerState.RawTokenAge},
+          state.stack.sigma[position]? = some parent →
+            state.stack.sigma[position + 1]? = some child →
+              (∀ {event : ProofNetIR.SequentialFigure7.ReservationEvent certificate},
+                  event ∈ tagHistory.reservationLedger → event.rawAge = child → ¬event.Touched consumer.conclusion) →
+                tagHistory.CommitmentEdgeTargetAvoidingPath parent child consumer.conclusion
+```
+
 ## Commitment-interval target avoidance
 
 ### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.commitmentInterval_referencePath_avoiding`
@@ -8822,6 +8851,47 @@ ProofNetIR.SequentialFigure7.CanonicalTagHistory.commitmentInterval_referencePat
 ```
 
 ## Equal-boundary commitment target avoidance
+
+### `ProofNetIR.SequentialFigure7.ReservationEvent.touched_parConclusion_decomposition`
+
+Kind: theorem.
+
+A reservation event touching a submitted par conclusion traverses the
+exact stored-left source step in its search trace.
+
+```lean
+ProofNetIR.SequentialFigure7.ReservationEvent.touched_parConclusion_decomposition : ∀ {certificate : ProofNetIR.Certificate},
+  certificate.StructurallyWellFormed →
+    ∀ (event : ProofNetIR.SequentialFigure7.ReservationEvent certificate) {selected : ProofNetIR.Vertex}
+      (consumer : ProofNetIR.ConnectiveBelow certificate selected),
+      consumer.kind = ProofNetIR.SequentialConnectiveKind.par →
+        event.Touched consumer.conclusion →
+          ∃ beforeTrace afterTrace,
+            event.search.result.trace = beforeTrace ++ consumer.conclusion :: consumer.storedLeft :: afterTrace
+```
+
+### `ProofNetIR.SequentialFigure7.ReservationEvent.touched_parConclusion_cases`
+
+Kind: theorem.
+
+Touching a submitted par conclusion records either the exact
+conclusion-to-selected step or the exact conclusion-to-mate step, according to
+the submitted premise orientation.
+
+```lean
+ProofNetIR.SequentialFigure7.ReservationEvent.touched_parConclusion_cases : ∀ {certificate : ProofNetIR.Certificate},
+  certificate.StructurallyWellFormed →
+    ∀ (event : ProofNetIR.SequentialFigure7.ReservationEvent certificate) {selected : ProofNetIR.Vertex}
+      (consumer : ProofNetIR.ConnectiveBelow certificate selected),
+      consumer.kind = ProofNetIR.SequentialConnectiveKind.par →
+        event.Touched consumer.conclusion →
+          (consumer.side = ProofNetIR.TensorPremiseSide.storedLeft ∧
+              ∃ beforeTrace afterTrace,
+                event.search.result.trace = beforeTrace ++ consumer.conclusion :: selected :: afterTrace) ∨
+            consumer.side = ProofNetIR.TensorPremiseSide.storedRight ∧
+              ∃ beforeTrace afterTrace,
+                event.search.result.trace = beforeTrace ++ consumer.conclusion :: consumer.mate :: afterTrace
+```
 
 ### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.sameRepresentative_conclusionTouch_decomposition`
 
@@ -8897,6 +8967,43 @@ ProofNetIR.SequentialFigure7.CanonicalTagHistory.commitmentEdge_equal_boundary_d
                     guard.tensor.side = ProofNetIR.TensorPremiseSide.storedLeft ∧
                       event.search.result.trace =
                         beforeTrace ++ guard.tensor.conclusion :: guard.head.vertex :: afterTrace
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.commitmentEdge_parConclusion_dichotomy`
+
+Kind: theorem.
+
+The equal-boundary final commitment edge either avoids the supplied
+ready-head par conclusion or exposes an exact same-age historical trace step
+from that conclusion to the selected premise or its mate.
+
+The alternatives are inclusive. The theorem does not prove the child event
+untouched, eliminate either trace orientation, compose a whole retained
+interval, or derive a ready-tail witness.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.commitmentEdge_parConclusion_dichotomy : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+    ∀ (input : ProofNetIR.SequentialFigure7.ReadyHeadInput state)
+      (consumer : ProofNetIR.ConnectiveBelow certificate input.vertex),
+      consumer.kind = ProofNetIR.SequentialConnectiveKind.par →
+        ∀ {position parent : ProofNetIR.SequentialSchedulerState.RawTokenAge},
+          state.stack.sigma[position]? = some parent →
+            state.stack.sigma[position + 1]? = some input.rawAge →
+              tagHistory.CommitmentEdgeTargetAvoidingPath parent input.rawAge consumer.conclusion ∨
+                ∃ event,
+                  event ∈ tagHistory.reservationLedger ∧
+                    event.rawAge = input.rawAge ∧
+                      ((consumer.side = ProofNetIR.TensorPremiseSide.storedLeft ∧
+                          ∃ beforeTrace afterTrace,
+                            event.search.result.trace =
+                              beforeTrace ++ consumer.conclusion :: input.vertex :: afterTrace) ∨
+                        consumer.side = ProofNetIR.TensorPremiseSide.storedRight ∧
+                          ∃ beforeTrace afterTrace,
+                            event.search.result.trace =
+                              beforeTrace ++ consumer.conclusion :: consumer.mate :: afterTrace)
 ```
 
 ## Commitment blocker advance
