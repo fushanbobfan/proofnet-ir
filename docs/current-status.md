@@ -17,7 +17,7 @@ Status date: 2026-08-20
 | Track | Revision | Status | Authority |
 | --- | --- | --- | --- |
 | Stable library | `v0.9.0` / `9b7dc3d104af8f57ea9123aab2e61b42e05d2216` | Released | [v0.9.0 release audit](v0.9-release-audit.md) |
-| Rolling research | `v0.10.0-dev`; proof `d1e551f`; audit `1e46573` | Active | This page/commits |
+| Rolling research | `v0.10.0-dev`; proof `79debf6`; audit `1e46573` | Active | This page/commits |
 
 Documentation-only commits may descend from the proof checkpoint without
 changing its mathematical authority. The stable release and rolling branch
@@ -205,16 +205,22 @@ ready-tail payer nor `ActiveTopDebtTailLaw`, completion, or progress.
 The current checkpoint strengthens that proof-relevant cyclic normal form.
 The retained switching prefix and strictly forward continuation tail are now
 both exposed as individually nonbacktracking. If cyclic normalization removes
-the splice completely, either both segments were empty or both were nonempty
-and the cancellation lies at their exact cyclic segment junction. If a
-nonempty remainder survives, declarative correctness still exposes the kept
-and omitted premise occurrences of an exact par. The omitted-right occurrence
-lies in the continuation tail, and its source is now retained as a concrete
-marked non-global vertex from the finite continuation chain. The target-level
-adapter refines only the exact raw-return branch and leaves raw-outside,
-older-future, and older-marked-global exits unchanged. Neither the junction
-cancellation nor the marked par-pair residual is eliminated. Avoiding and
-equal-final branches, the history-tail law, and progress remain open.
+the splice completely, either both segments were empty or both were nonempty.
+In the nonempty case the exact cancellation site is one of the two cyclic
+segment junctions. Moreover, every retained-prefix edge is backward, has its
+exact reverse in the continuation tail, and targets a concrete marked
+non-global chain vertex; every continuation-tail edge has its exact reverse
+in the prefix. Both edge-index lists are duplicate-free. This is an exact
+mutual pairing, not yet an ordering theorem identifying the tail with the
+reverse traversal of the prefix. If a nonempty remainder survives,
+declarative correctness still exposes the kept and omitted premise
+occurrences of an exact par. The omitted-right occurrence lies in the
+continuation tail, and its source is retained as a concrete marked non-global
+vertex from the finite continuation chain. The target-level adapter refines
+only the exact raw-return branch and leaves raw-outside, older-future, and
+older-marked-global exits unchanged. Neither complete cancellation nor the
+marked par-pair residual is eliminated. Avoiding and equal-final branches,
+the history-tail law, and progress remain open.
 
 The preceding queue/history-tail checkpoint remains valid. For supplied typed
 Nop and Wait steps, its iff theorems identify post-step debt with the exact
@@ -230,7 +236,7 @@ from a scheduler-invariant input refutes unrestricted
 same-component locality carrier, but neither refutes direct debt nor supplies
 the required queue-tail or elimination of the classified re-entry failure.
 
-The checkpoint's accumulated public surface is exactly forty-six declaration
+The checkpoint's accumulated public surface is exactly forty-eight declaration
 boundaries:
 
 ```text
@@ -274,6 +280,8 @@ SequentialFigure7.NopStep.commitmentInterval_parTraceReentryMarkedContinuationEx
 SequentialFigure7.WaitStep.commitmentInterval_parTraceReentryMarkedContinuationExitOutcome
 SequentialFigure7.MarkedConclusionRawReturnCyclicOutcome
 SequentialFigure7.MarkedConclusionChain.rawReturnCyclicReduction
+SequentialFigure7.MarkedConclusionRawReturnCyclicCancellationSite
+SequentialFigure7.MarkedConclusionRawReturnCompleteCancellationPairing
 SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedContinuationCyclicReductionTarget
 SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedContinuationExitTarget.
   continuationCyclicReductionTarget
@@ -311,12 +319,16 @@ parent through a finite chain and ends raw outside the carrier, at an exact raw
 return to the current pair, at strictly older queued work, or at a strictly
 older marked global conclusion. It does not eliminate any alternative or make
 any conditional implication unconditional. The current theorems refine only
-that exact raw return. Complete cancellation is empty or localized to the
-exact junction of the individually nonbacktracking prefix and tail. A
-surviving exact par pair keeps its left occurrence in the prefix and its
-omitted-right occurrence in the continuation tail, whose source is a concrete
-marked non-global chain vertex. They eliminate neither residual and make no
-conditional implication unconditional.
+that exact raw return. Complete cancellation is empty or localized to one of
+the two exact junctions of the individually nonbacktracking prefix and tail.
+In the nonempty case the two duplicate-free edge lists are mutually paired by
+exact reversal; prefix edges are backward, tail edges are forward, and every
+prefix target is concretely marked and non-global. A surviving exact par pair
+keeps its left occurrence in the prefix and its omitted-right occurrence in
+the continuation tail, whose source is a concrete marked non-global chain
+vertex. The pairing is not yet ordered into an exact reversed traversal. The
+theorems eliminate neither residual and make no conditional implication
+unconditional.
 
 ### Finite ready-head boundary audit
 
@@ -366,9 +378,11 @@ Exact signatures are maintained in the generated API reference for the
 [endpoint-localized continuation exits](api-reference.md#endpoint-localized-continuation-exits),
 and the retained
 [Wait endpoint-locality obstruction](api-reference.md#wait-endpoint-locality-obstruction).
-The first open proof step is now to exploit the exact cyclic junction and
-marked omitted-right source to eliminate those two raw-return residuals or
-recover a distinct payer. The raw-outside, older-future, and
+The first open proof step is now to order the exact mutual reverse pairing
+into a reversed traversal, or use path, mark, and history uniqueness to
+eliminate one endpoint pairing. The surviving marked omitted-right source
+must likewise be eliminated or converted into a distinct payer. The
+raw-outside, older-future, and
 older-marked-global alternatives and both equal-final trace orientations also
 remain to be discharged.
 The waiting and external-raw outcome alternatives also remain unresolved.
@@ -396,9 +410,10 @@ This checkpoint does not establish any of the following:
   conclusion-to-mate trace, elimination of the finite raw-outside, raw-return,
   older-future, or older-marked-global continuation alternatives, or
   conversion of that target into a distinct active raw payer;
-- impossibility of exact cyclic-junction cancellation, elimination of the
-  surviving marked omitted-right par pair, or conversion of either cyclic
-  residual into a distinct ready-tail payer;
+- impossibility of exact cyclic-junction cancellation, an ordering theorem for
+  the mutual reverse pairing, elimination of the surviving marked
+  omitted-right par pair, or conversion of either cyclic residual into a
+  distinct ready-tail payer;
 - a terminal scheduler state or elimination of any finite continuation exit;
   normalization terminates the marked chain but does not discharge its
   raw, future, or marked-global endpoint;
@@ -444,12 +459,12 @@ plan is maintained in [v0.10-design.md](v0.10-design.md) and
 The exact rolling proof checkpoint is:
 
 ```text
-commit    d1e551fd59bde99ce3ff543cdddc99496f158e58
-tree      4b9b40ca55aeba1ba0e469f88e2e2ab4822f1040
-parent    0eea180a5cc143a8d6f35355d78cfa8b0b3bde45
-stage     marked re-entry target raw-return cyclic-junction reduction
-delta     14 paths, +630/-50
-manifest  899F858D2D964353EDF0D5365E4E9C9CDAA449095422DE24D7DBF82530AA07F9
+commit    79debf66f116ad68b30cbc79dca022a7e43042a4
+tree      d4e5adacaf73eb2a152f85fe6e4a8233d2ce2ff2
+parent    3fce2652240967355c34916190a2392fa63137cb
+stage     pair complete raw-return cancellation segments
+delta     12 paths, +409/-76
+manifest  E03E94E72EE650BB3A8659B48C97FA069DC34B7ED95B6766A5D6F72FAE89EB46
 ```
 
 The manifest hashes canonical
@@ -458,9 +473,9 @@ The manifest hashes canonical
 The checkpoint source receipts are:
 
 ```text
-cyclic source    0C8A3A38D4B8D3BBD9EE66B4BDA9CBF06FB65AF396F8E772DE9BECE9C146CE6E
-cyclic consumer  05A23952B149C64415AE2A02AE6031EBE6588A424A6042F256B7EE4BCA44A47B
-generated API    2996D8557508397C71C706221194F3188F64284E88D9B12CFB7AA7B483459A85
+cyclic source    81B31DAA62BD004171EDB7A5F5E2CA01B37D792DD4981EA3DFF3CA0A7099CDF1
+cyclic consumer  EE4D08D0E35FB3A210BE378A5EE4D98AC1DF0875969B566C73B06CD49AB23931
+generated API    F23BA31E4EA0A88F5E8A7A223F589C414D1F30F974D39F0C23A77010B6D231D5
 ```
 
 The separately committed finite-audit evidence is:
@@ -479,12 +494,14 @@ Local verification on the committed bytes:
 - full `lake build`: 569/569 jobs;
 - Lean source audit: zero actual `sorry`/`admit` findings across 264 Lean
   files;
-- generated API reference: current at 72 sections and 1,668 declarations;
+- generated API reference: current at 72 sections and 1,670 declarations;
 - the runnable cyclic-reduction consumer called all four public theorems,
   destructed the old and junction-aware cancellation/par-pair outcomes,
-  consumed both nonbacktracking-segment facts and the omitted-right source
-  mark, exercised both target-level adapters, and audited all four public
-  proposition carriers before emitting its kernel-green marker;
+  consumed both nonbacktracking-segment facts, both exact junction
+  orientations, the two duplicate-free edge-index lists, both directions of
+  the mutual reverse pairing, and the omitted-right source mark, exercised
+  both target-level adapters, and audited all six public proposition carriers
+  before emitting its kernel-green marker;
 - public theorem audit: 996 entries total: 704 full-classical, 25
   axiom-free, 128 `propext`-only, and 139 `propext` plus `Quot.sound`;
 - the default, extended, and cross-variant progress audits passed with every
@@ -498,16 +515,16 @@ Exact-head proof GitHub verification:
 
 - workflow: `Lean CI`;
 - event/ref: `push` / `main`;
-- run: [32410539076](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32410539076);
-- build job: [96559665251][proof-job];
-- exact head: `d1e551fd59bde99ce3ff543cdddc99496f158e58`;
+- run: [32416174913](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32416174913);
+- build job: [96577720990][proof-job];
+- exact head: `79debf66f116ad68b30cbc79dca022a7e43042a4`;
 - result: 36 successful steps, zero failures, and one expected release-ref-only
   skip;
-- run: `2026-08-20T19:47:05Z`-`2026-08-20T20:00:20Z` (13m15s);
-- build job: `2026-08-20T19:47:08Z`-`2026-08-20T20:00:19Z`
-  (13m11s).
+- run: `2026-08-20T20:49:36Z`-`2026-08-20T21:03:21Z` (13m45s);
+- build job: `2026-08-20T20:49:40Z`-`2026-08-20T21:03:20Z`
+  (13m40s).
 
-[proof-job]: https://github.com/fushanbobfan/proofnet-ir/actions/runs/32410539076/job/96559665251
+[proof-job]: https://github.com/fushanbobfan/proofnet-ir/actions/runs/32416174913/job/96577720990
 [reentry-failure]: api-reference.md#commitment-interval-par-guard-re-entry-failure-target
 [reentry-mate-separation]: api-reference.md#commitment-interval-par-guard-re-entry-mate-separation
 [target-temporal]: api-reference.md#commitment-interval-marked-re-entry-target-temporal-reduction
@@ -579,8 +596,9 @@ deployment.
 
 The project goal remains open. The principal outstanding gates are:
 
-1. eliminate the exact raw return's complete-cancellation and par-pair
-   residuals; discharge the mate-separated target's finite raw-outside,
+1. order or eliminate the exact raw return's mutual reverse pairing and
+   eliminate its par-pair residual; discharge the mate-separated target's
+   finite raw-outside,
    older-future, and older-marked-global continuation alternatives; eliminate
    that target or descend its mark to a distinct active payer; and eliminate the equal-final
    conclusion-to-selected/mate trace obstructions over the retained commitment
