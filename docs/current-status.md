@@ -17,7 +17,7 @@ Status date: 2026-08-20
 | Track | Revision | Status | Authority |
 | --- | --- | --- | --- |
 | Stable library | `v0.9.0` / `9b7dc3d104af8f57ea9123aab2e61b42e05d2216` | Released | [v0.9.0 release audit](v0.9-release-audit.md) |
-| Rolling research | `v0.10.0-dev`; proof `55dd6a2`; audit `1e46573` | Active | This page/commits |
+| Rolling research | `v0.10.0-dev`; proof `c4e3bd5`; audit `1e46573` | Active | This page/commits |
 
 Documentation-only commits may descend from the proof checkpoint without
 changing its mathematical authority. The stable release and rolling branch
@@ -223,7 +223,7 @@ unchanged. The exact out-and-back traversal and marked par-pair residual are
 not eliminated. Avoiding and equal-final branches, the history-tail law, and
 progress remain open.
 
-The current checkpoint eliminates the exact raw return specifically from the
+The preceding checkpoint eliminates the exact raw return specifically from the
 typed Nop marked re-entry target. Every nontrivial marked-conclusion chain ends
 at a concretely marked vertex. A successful Nop instead keeps its current
 opposite premise raw-unmarked, so a nontrivial chain cannot terminate at that
@@ -232,6 +232,18 @@ carrier, future work at a strictly older boundary, and a marked global
 conclusion at a strictly older representative. The generic cyclic reduction
 and the corresponding Wait exact-return branch remain valid and unresolved.
 The result supplies no ready-tail witness, history-tail law, completion, or
+progress theorem.
+
+The current checkpoint refines the exact raw return retained by the generic and
+typed Wait targets. The re-entry premise is concretely marked at the active
+representative, while its exact submitted parent conclusion lies outside the
+active occurrence carrier. Any nontrivial return chain therefore reaches that
+parent conclusion at its first step, where exact occurrence ownership makes
+its representative strictly older. Canonical tag history authenticates the
+same conclusion with a concrete `RawMarked` event. The refined target retains
+raw work outside the carrier, this first-step descent, older future work, and
+an older marked global conclusion. It exposes rather than eliminates the Wait
+descent and derives no ready-tail witness, history-tail law, completion, or
 progress theorem.
 
 The preceding queue/history-tail checkpoint remains valid. For supplied typed
@@ -248,7 +260,7 @@ from a scheduler-invariant input refutes unrestricted
 same-component locality carrier, but neither refutes direct debt nor supplies
 the required queue-tail or elimination of the classified re-entry failure.
 
-The checkpoint's accumulated public surface is exactly fifty-three declaration
+The checkpoint's accumulated public surface is exactly fifty-eight declaration
 boundaries:
 
 ```text
@@ -309,6 +321,13 @@ SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedContinuationExi
   nopNoExactReturnTarget
 SequentialFigure7.NopStep.
   commitmentInterval_parTraceReentryMarkedContinuationNoExactReturnOutcome
+SequentialFigure7.MarkedConclusionChainFirstRepresentativeDescent
+SequentialFigure7.MarkedConclusionChain.firstRepresentativeDescent_of_ne
+SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedContinuationFirstDescentTarget
+SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedContinuationExitTarget.
+  firstDescentTarget
+SequentialFigure7.WaitStep.
+  commitmentInterval_parTraceReentryMarkedContinuationFirstDescentOutcome
 ```
 
 The earlier parent-escape, source-temporal, debt, history-tail,
@@ -348,10 +367,15 @@ traversal of the retained prefix. A surviving exact par pair keeps its left
 occurrence in the prefix and its omitted-right occurrence in the continuation
 tail, whose source is a concrete marked non-global chain vertex. The theorems
 eliminate neither residual and make no conditional implication unconditional.
-The current Nop theorem then removes the exact return to the current mate by
+The preceding Nop theorem then removes the exact return to the current mate by
 combining concrete terminal marking for every nontrivial chain with the typed
 Nop mate-unmarked equation. The other three continuation exits, every Wait
 residual, and all avoiding/equal-final branches remain unchanged.
+The current refinement keeps the generic and Wait return but exposes its first
+submitted parent conclusion outside the active carrier. That conclusion is an
+authentic canonical raw-mark event whose representative is strictly older than
+the active boundary. This is a history-sensitive descent residual, not its
+elimination or a distinct ready-tail payer.
 
 ### Finite ready-head boundary audit
 
@@ -396,15 +420,16 @@ Exact signatures are maintained in the generated API reference for the
 [marked re-entry target temporal reduction][target-temporal],
 [marked re-entry target finite continuation exit][target-exit],
 [marked re-entry target Nop raw-return elimination][target-nop-no-return],
+[marked re-entry target raw-return first descent][target-first-descent],
 [marked re-entry target raw-return cyclic reduction][target-cycle],
 [branch-local continuation credit](api-reference.md#branch-local-continuation-credit),
 [continuation-credit preservation](api-reference.md#continuation-credit-preservation),
 [endpoint-localized continuation exits](api-reference.md#endpoint-localized-continuation-exits),
 and the retained
 [Wait endpoint-locality obstruction](api-reference.md#wait-endpoint-locality-obstruction).
-The first open proof step is now to eliminate the remaining Wait/generic exact
-out-and-back traversal, or use its path, mark, and history uniqueness to
-convert it into a distinct payer. The surviving marked omitted-right source
+The first open proof step is now to eliminate the authenticated first-step
+descent retained by Wait, or combine its older event with the ordered cyclic
+path to recover a distinct payer. The surviving marked omitted-right source
 must likewise be eliminated or converted into a distinct payer. The
 raw-outside, older-future, and
 older-marked-global alternatives and both equal-final trace orientations also
@@ -432,8 +457,9 @@ This checkpoint does not establish any of the following:
 - elimination of the prior-concrete-mark target in the strictly older re-entry,
   elimination of either equal-final conclusion-to-selected or
   conclusion-to-mate trace, elimination of the finite raw-outside,
-  older-future, or older-marked-global continuation alternatives, or the exact
-  raw return in Wait and generic contexts, or
+  older-future, or older-marked-global continuation alternatives, or the
+  authenticated first-step descent now replacing exact raw return in Wait and
+  generic contexts, or
   conversion of that target into a distinct active raw payer;
 - impossibility of the remaining Wait/generic ordered exact out-and-back
   cyclic-junction traversal, elimination of the surviving marked omitted-right
@@ -484,12 +510,12 @@ plan is maintained in [v0.10-design.md](v0.10-design.md) and
 The exact rolling proof checkpoint is:
 
 ```text
-commit    55dd6a2e52ed810d73e58357e1f44205626c8ec2
-tree      68edad0f4e037937324dd8c9f52554d34638467b
-parent    517bd68f285204c96569016447488399ef364f69
-stage     eliminate the typed Nop exact raw return
-delta     17 paths, +605/-16
-manifest  3638972CEE42C404A8355C10439CAE78687A2C00F3CEBD7EAE799ED4CB0D40A5
+commit    c4e3bd5d9ce95f1dea57915dad9a26af149228e2
+tree      9175ce1f9d8edac6c3a27382292e51416f43ecb1
+parent    b28e488d9901b432e95402293485538595d89f99
+stage     expose the Wait exact-return first descent
+delta     17 paths, +850/-9
+manifest  D8D9FEFF1B8E572FF09538005FFFD485513F3C12F5FB5219967F8B51CE941106
 ```
 
 The manifest hashes canonical
@@ -498,9 +524,9 @@ The manifest hashes canonical
 The checkpoint source receipts are:
 
 ```text
-Nop source      258F86F64D84851FF0E096DD2AE08A677F77D1A529DC7E63C7EA165A92066B45
-Nop consumer    E8A2C8B9573FDB4231E7BFD87F6A855CA1C76A21DDA601E96ACC6EA1FAB3BC01
-generated API   939A250159D482FAE7D01F0BEAE687438AA3EA18253355B1D85360BB6E0CB862
+descent source    6F5F44398E81B33C5FD29F20B95B068BAF242CCF57ED32CEC9C5776B37BBAC57
+descent consumer  075A4294A31C239699E138C9A07F6DB497604968D3C203C51D49DA86A76F05EF
+generated API     34D19BCA1EAC39BE3807EDF3999FE541D9EE5E2E17F6C31B6C143BE109D818CB
 ```
 
 The separately committed finite-audit evidence is:
@@ -516,16 +542,16 @@ manifest  4BBAB7FC99D03D2612459A0FD9291990313A05A184F2572A581BC93C6E49DFDD
 
 Local verification on the committed bytes:
 
-- full `lake build`: 574/574 jobs;
-- Lean source audit: zero actual `sorry`/`admit` findings across 266 Lean
+- full `lake build`: 579/579 jobs;
+- Lean source audit: zero actual `sorry`/`admit` findings across 268 Lean
   files;
-- generated API reference: current at 73 sections and 1,675 declarations;
-- the runnable Nop raw-return-elimination consumer called the terminal-mark
-  theorem, refined a supplied generic target, destructed every remaining exit,
-  applied the integrated commitment-interval theorem, cased every outer
-  outcome, and audited all four public declarations before emitting its
-  kernel-green marker;
-- public theorem audit: 999 entries total: 706 full-classical, 25
+- generated API reference: current at 74 sections and 1,680 declarations;
+- the runnable raw-return first-descent consumer called the chain theorem,
+  destructed its authenticated first-step witness, refined a supplied generic
+  target, destructed all four retained exits, applied the integrated Wait
+  theorem, cased every outer outcome, and audited all five public declarations
+  before emitting its kernel-green marker;
+- public theorem audit: 1002 entries total: 709 full-classical, 25
   axiom-free, 129 `propext`-only, and 139 `propext` plus `Quot.sound`;
 - the default, extended, and cross-variant progress audits passed with every
   incomplete visited state carrying an exact ready head and successful
@@ -538,21 +564,22 @@ Exact-head proof GitHub verification:
 
 - workflow: `Lean CI`;
 - event/ref: `push` / `main`;
-- run: [32424826209](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32424826209);
-- build job: [96604488097][proof-job];
-- exact head: `55dd6a2e52ed810d73e58357e1f44205626c8ec2`;
+- run: [32427794610](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32427794610);
+- build job: [96613216350][proof-job];
+- exact head: `c4e3bd5d9ce95f1dea57915dad9a26af149228e2`;
 - result: 36 successful steps, zero failures, and one expected release-ref-only
   skip;
-- run: `2026-08-20T22:33:55Z`-`2026-08-20T22:47:42Z` (13m47s);
-- build job: `2026-08-20T22:33:59Z`-`2026-08-20T22:47:41Z`
-  (13m42s).
+- run: `2026-08-20T23:14:14Z`-`2026-08-20T23:28:29Z` (14m15s);
+- build job: `2026-08-20T23:14:19Z`-`2026-08-20T23:28:28Z`
+  (14m09s).
 
-[proof-job]: https://github.com/fushanbobfan/proofnet-ir/actions/runs/32424826209/job/96604488097
+[proof-job]: https://github.com/fushanbobfan/proofnet-ir/actions/runs/32427794610/job/96613216350
 [reentry-failure]: api-reference.md#commitment-interval-par-guard-re-entry-failure-target
 [reentry-mate-separation]: api-reference.md#commitment-interval-par-guard-re-entry-mate-separation
 [target-temporal]: api-reference.md#commitment-interval-marked-re-entry-target-temporal-reduction
 [target-exit]: api-reference.md#marked-re-entry-target-finite-continuation-exit
 [target-nop-no-return]: api-reference.md#marked-re-entry-target-nop-raw-return-elimination
+[target-first-descent]: api-reference.md#marked-re-entry-target-raw-return-first-descent
 [target-cycle]: api-reference.md#marked-re-entry-target-raw-return-cyclic-reduction
 
 Exact-head finite-audit GitHub verification:
@@ -620,8 +647,9 @@ deployment.
 
 The project goal remains open. The principal outstanding gates are:
 
-1. eliminate the remaining Wait/generic exact raw return's ordered
-   out-and-back traversal and its par-pair residual; discharge the
+1. eliminate the authenticated first-step descent now exposed in the
+   Wait/generic return, together with its ordered out-and-back traversal and
+   par-pair residual; discharge the
    mate-separated target's
    finite raw-outside,
    older-future, and older-marked-global continuation alternatives; eliminate
