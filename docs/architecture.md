@@ -1533,6 +1533,15 @@ does not eliminate the marked target, choose its submitted source kind, recover
 a ready-tail witness, derive the history-tail law, or close an avoiding or
 equal-final branch.
 
+`SequentialFigure7CommitmentIntervalParGuardReentryMarkedTargetTemporal.lean`
+binds that same marked target to its unique submitted parent and exact inbound
+source. Canonical continuation credit then yields three target-indexed cases:
+the raw mate is unmarked and outside the active carrier, the parent conclusion
+is queued at a strictly older boundary, or that conclusion is concretely
+marked at a strictly older representative. The target's source kind remains
+available through its exact consumer, but no case is eliminated and no
+ready-tail witness, history-tail law, or progress theorem follows.
+
 `SequentialFigure7CommitmentBlockerAdvance.lean` joins the global queued-head
 law, the strict `sigma` split, the strict-edge avoiding adapter, and the final
 equal-boundary classification. Under declarative correctness and the complete

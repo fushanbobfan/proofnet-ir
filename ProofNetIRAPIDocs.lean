@@ -803,6 +803,21 @@ def sections : List Section := [
     ]
   },
   {
+    title := "Commitment-interval marked re-entry target temporal reduction"
+    declarations := [
+      `ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedTemporalTarget,
+      Name.str
+        `ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedTarget
+        "temporalTarget",
+      Name.str
+        `ProofNetIR.SequentialFigure7.NopStep
+        "commitmentInterval_parTraceReentryMarkedTemporalOutcome",
+      Name.str
+        `ProofNetIR.SequentialFigure7.WaitStep
+        "commitmentInterval_parTraceReentryMarkedTemporalOutcome"
+    ]
+  },
+  {
     title := "Commitment blocker advance"
     declarations := [
       Name.str

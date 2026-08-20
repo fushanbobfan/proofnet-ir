@@ -1081,8 +1081,12 @@
     separate that exact marked target from the current mate. Any connective
     view rooted at the target has a mate different from the selected head, so
     the target's selected raw-sibling continuation is excluded.
+  - [x] Bind the target's unique submitted consumer to the exact inbound edge.
+    Normalize its continuation to an unmarked raw mate outside the active
+    carrier, queued parent work at a strictly older boundary, or a parent
+    conclusion marked at a strictly older representative.
   - [ ] Eliminate that marked re-entry target or recover a distinct ready-tail
-    payer. Do not infer
+    payer by discharging its target-indexed temporal alternatives. Do not infer
     unconditional dispatcher progress, completion, terminality, later-state
     totality, global raw seams, fallback removal, Figure-7 pure-worklist
     completeness, sequentialization, faithful token-age scheduling, or

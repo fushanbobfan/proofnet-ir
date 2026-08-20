@@ -956,6 +956,15 @@ verified combined audit covers 986 theorems: 694 standard-three, 25
 axiom-free, 128 `propext`-only, and 139 `propext`/`Quot.sound` boundaries. No
 source-kind choice, ready-tail witness, tail law, progress, completion,
 computational receipt, or new oracle is introduced.
+`SequentialFigure7CommitmentIntervalParGuardReentryMarkedTargetTemporal.lean`
+adds one proposition carrier and three standard-three theorems. The generic
+theorem uses canonical continuation credit and the complete scheduler
+invariant to bind the unique target consumer to the inbound edge. Its raw mate
+lies outside the active carrier; queued and marked parent conclusions are
+strictly older than the active boundary. The verified combined audit covers
+989 theorems: 697 standard-three, 25 axiom-free, 128 `propext`-only, and 139
+`propext`/`Quot.sound` boundaries. No branch elimination, tail law, progress,
+completion, computational receipt, or new oracle is introduced.
 `SequentialFigure7CrossRepresentativeWaitPreservation.lean` adds no hidden
 source-region oracle. Its output-work classification follows only from the
 typed destination's exact waiting prepend and unchanged ready/sigma fields;

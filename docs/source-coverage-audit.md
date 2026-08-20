@@ -468,6 +468,13 @@ that every connective view rooted at that target has a mate different from the
 current selected head. The result excludes the selected raw-sibling alternative
 for this target, but does not eliminate the target, choose its source kind,
 derive a ready-tail witness or history-tail law, or close equal-final traces.
+`SequentialFigure7CommitmentIntervalParGuardReentryMarkedTargetTemporal.lean`
+adds no source reading. It binds the unique consumer at that exact marked
+target to the inbound parent edge and normalizes its continuation to raw work
+outside the active carrier, queued parent work at a strictly older boundary,
+or a parent conclusion marked at a strictly older representative. It does not
+eliminate the target or any case, derive a tail witness or law, or close the
+avoiding/equal-final traces.
 Global preservation of the mate-region and older-raw-mark invariants through
 candidate-creating rules remains open, as do queue origin, created-candidate raw
 seams, derivation of the re-entry avoidance premise, marked-history descent,

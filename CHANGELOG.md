@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- bound the unique submitted parent of the mate-separated marked re-entry
+  target to the exact inbound edge. Canonical continuation credit now reduces
+  that same target to an unmarked raw mate outside the active carrier, parent
+  work queued at a strictly older boundary, or a parent conclusion marked at a
+  strictly older representative. This target-indexed trichotomy does not
+  eliminate the marked target or any temporal branch, derive a tail witness or
+  law, or close the avoiding/equal-final cases. The verified combined audit
+  covers 989 theorems: 697 standard-three, 25 axiom-free, 128
+  `propext`-only, and 139 `propext`/`Quot.sound` boundaries;
 - separated the exact marked re-entry target from the current mate in the
   strictly older no-tail Nop and Wait commitment-interval branches. Simplicity
   of the retained path prevents the inbound target from revisiting its starting

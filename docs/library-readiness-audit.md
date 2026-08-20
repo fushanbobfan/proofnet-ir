@@ -1146,6 +1146,15 @@ part of the engineering and proof-identity gap.
    close the avoiding/equal-final cases. The verified combined audit covers
    986 theorems: 694 standard-three, 25 axiom-free, 128 `propext`-only, and
    139 `propext`/`Quot.sound` boundaries.
+   `SequentialFigure7CommitmentIntervalParGuardReentryMarkedTargetTemporal.lean`
+   then binds the unique consumer at that same target to the exact inbound
+   parent edge. Its target-indexed continuation is an unmarked raw mate outside
+   the active carrier, queued parent work at a strictly older boundary, or a
+   parent conclusion marked at a strictly older representative. This does not
+   eliminate the target or a temporal branch, derive a payer or tail law, or
+   close the avoiding/equal-final cases. The verified combined audit covers
+   989 theorems: 697 standard-three, 25 axiom-free, 128 `propext`-only, and
+   139 `propext`/`Quot.sound` boundaries.
    `SequentialFigure7CommitmentBlockerAdvance.lean` now combines the global
    queued-head law, strict split, and equal-boundary result. Under declarative
    correctness and the complete scheduler invariant, for a supplied canonical

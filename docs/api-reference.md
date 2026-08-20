@@ -9411,6 +9411,113 @@ ProofNetIR.SequentialFigure7.WaitStep.commitmentInterval_parTraceReentryMateSepa
                                   tagHistory step.prepared.readyHeadInput component owned step.consumer)
 ```
 
+## Commitment-interval marked re-entry target temporal reduction
+
+### `ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedTemporalTarget`
+
+Kind: definition.
+
+A mate-separated marked re-entry target together with the exact temporal
+status of its unique submitted parent.
+
+```lean
+ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedTemporalTarget : {certificate : ProofNetIR.Certificate} →
+  {state : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+    {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state} →
+      ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history →
+        (input : ProofNetIR.SequentialFigure7.ReadyHeadInput state) →
+          ProofNetIR.UnificationComponent →
+            List ProofNetIR.Vertex → ProofNetIR.ConnectiveBelow certificate input.vertex → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedTarget.temporalTarget`
+
+Kind: theorem.
+
+Normalize the exact marked re-entry target through its unique parent.
+The raw endpoint is outside the active carrier; queued and marked parent
+conclusions are strictly older than the active boundary.
+
+```lean
+ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedTarget.temporalTarget : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  {tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history}
+  {input : ProofNetIR.SequentialFigure7.ReadyHeadInput state} {component : ProofNetIR.UnificationComponent}
+  {usedLinks owned : List Nat},
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+    ∀ (current : ProofNetIR.ConnectiveBelow certificate input.vertex),
+      state.core.components[input.rawAge]? = some (some component) →
+        certificate.ComponentOccurrenceWitness component usedLinks owned →
+          ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedTarget tagHistory input component
+              owned current →
+            (¬∃ pending, pending ∈ input.readyTail ∧ ¬pending ∈ certificate.conclusions) →
+              ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedTemporalTarget tagHistory
+                input component owned current
+```
+
+### `ProofNetIR.SequentialFigure7.NopStep.commitmentInterval_parTraceReentryMarkedTemporalOutcome`
+
+Kind: theorem.
+
+In the strictly older Nop branch, the mate-separated marked target has an
+exact parent continuation: raw outside, queued older, or marked older.
+
+```lean
+ProofNetIR.SequentialFigure7.NopStep.commitmentInterval_parTraceReentryMarkedTemporalOutcome : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before},
+  certificate.ReferenceSwitchingConnected →
+    ∀ (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+      ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+        ∀ (step : ProofNetIR.SequentialFigure7.NopStep certificate before after)
+          {component : ProofNetIR.UnificationComponent} {usedLinks owned : List Nat},
+          before.core.components[step.prepared.stackResult.rawAge]? = some (some component) →
+            certificate.ComponentOccurrenceWitness component usedLinks owned →
+              ∀ {position edgeCount : Nat} {first : ProofNetIR.SequentialSchedulerState.RawTokenAge},
+                0 < edgeCount →
+                  before.stack.sigma[position]? = some first →
+                    before.stack.sigma[position + edgeCount]? = some step.prepared.stackResult.rawAge →
+                      (¬∃ pending,
+                            pending ∈ step.prepared.stackResult.remainingTop ∧ ¬pending ∈ certificate.conclusions) →
+                        tagHistory.CommitmentIntervalParTraceOutcome step.prepared.readyHeadInput step.consumer position
+                          edgeCount first
+                          (¬step.consumer.mate ∈ owned ∧
+                            before.core.marks[step.consumer.mate]? = some none ∧
+                              ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedTemporalTarget
+                                tagHistory step.prepared.readyHeadInput component owned step.consumer)
+```
+
+### `ProofNetIR.SequentialFigure7.WaitStep.commitmentInterval_parTraceReentryMarkedTemporalOutcome`
+
+Kind: theorem.
+
+In the strictly older Wait branch, the mate-separated marked target has
+an exact parent continuation: raw outside, queued older, or marked older.
+
+```lean
+ProofNetIR.SequentialFigure7.WaitStep.commitmentInterval_parTraceReentryMarkedTemporalOutcome : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before},
+  certificate.ReferenceSwitchingConnected →
+    ∀ (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+      ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+        ∀ (step : ProofNetIR.SequentialFigure7.WaitStep certificate before after)
+          {component : ProofNetIR.UnificationComponent} {usedLinks owned : List Nat},
+          before.core.components[step.prepared.stackResult.rawAge]? = some (some component) →
+            certificate.ComponentOccurrenceWitness component usedLinks owned →
+              ∀ {position edgeCount : Nat} {first : ProofNetIR.SequentialSchedulerState.RawTokenAge},
+                0 < edgeCount →
+                  before.stack.sigma[position]? = some first →
+                    before.stack.sigma[position + edgeCount]? = some step.prepared.stackResult.rawAge →
+                      (¬∃ pending,
+                            pending ∈ step.prepared.stackResult.remainingTop ∧ ¬pending ∈ certificate.conclusions) →
+                        tagHistory.CommitmentIntervalParTraceOutcome step.prepared.readyHeadInput step.consumer position
+                          edgeCount first
+                          (¬step.consumer.mate ∈ owned ∧
+                            before.core.marks[step.consumer.mate]? = some (some step.mateRawAge) ∧
+                              before.core.representative step.mateRawAge < step.prepared.stackResult.rawAge ∧
+                                ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedTemporalTarget
+                                  tagHistory step.prepared.readyHeadInput component owned step.consumer)
+```
+
 ## Commitment blocker advance
 
 ### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.strictOlder_commitmentPath_or_advance_or_equalCallbackFailure`
