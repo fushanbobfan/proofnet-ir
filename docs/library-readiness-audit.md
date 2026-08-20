@@ -674,8 +674,12 @@ part of the engineering and proof-identity gap.
    unchanged. `SequentialFigure7ActiveTopDebtParentExternalEndpointCrossing.lean`
    now connects the active owned carrier to each exact older
    continuation endpoint and retains one stored owned-to-outside crossing.
-   The crossing is not yet classified as a distinct ready-tail payer or
-   eliminated under the no-tail hypothesis.
+   `SequentialFigure7ActiveTopDebtParentExternalCommitmentReentry.lean` now
+   composes the complete retained commitment interval. Ready future and older
+   marked endpoints receive an endpoint-to-active path and an exact
+   outside-to-inside re-entry edge; waiting keeps its exact cell and raw work
+   stays unchanged. The re-entry edge is not yet classified as a distinct
+   ready-tail payer or eliminated under the no-tail hypothesis.
    `SequentialFigure7ContinuationCredit.lean` and its preservation module now
    close a weaker full-history invariant. The two carriers assign each marked
    nonconclusion one of three receipts: an unmarked mate, future conclusion

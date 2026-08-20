@@ -1104,6 +1104,15 @@ carrier does not retain a named child-endpoint equality or classify that edge
 as a distinct raw payer, prove endpoint re-entry, derive the history-tail law,
 or establish progress or completion.
 
+`SequentialFigure7ActiveTopDebtParentExternalCommitmentReentry.lean` composes
+all adjacent commitment paths across the positive retained `sigma` interval.
+For ready future work and older marked endpoints, the result is an exact path
+from the endpoint back into the active owned carrier and a concrete
+outside-to-inside re-entry edge. The waiting branch retains its exact waiting
+cell without inventing ownership, while the external raw branch is unchanged.
+The re-entry edge is not classified as a distinct ready-tail payer, so this is
+not a history-tail, progress, or completion theorem.
+
 `SequentialFigure7ContinuationCredit.lean` and
 `SequentialFigure7ContinuationCreditPreservation.lean` close a deliberately
 weaker history invariant. `ContinuationCredit` records an unmarked connective

@@ -902,6 +902,16 @@ receipt is introduced. The verified combined audit covers 962 theorems: 671
 standard-three, 25 axiom-free, 128 `propext`-only, and 138
 `propext`/`Quot.sound` boundaries. No crossing classification, re-entry,
 ready-tail witness, tail law, progress, or completion result is trusted here.
+`SequentialFigure7ActiveTopDebtParentExternalCommitmentReentry.lean` adds two
+proposition carriers, one four-branch outcome carrier, and two theorems. The
+interval theorem composes adjacent canonical commitment paths; the normalizer
+uses exact queue cells, concrete marks, carrier alignment, and finite path
+boundary extraction. No oracle or computational receipt is introduced. The
+verified combined audit covers 964 theorems: 673 standard-three, 25 axiom-free,
+128 `propext`-only, and 138 `propext`/`Quot.sound` boundaries. The ready-future
+and marked branches have exact re-entry, while waiting and raw branches retain
+only their prior data. No re-entry-edge classification, ready-tail witness,
+tail law, progress, or completion result is trusted here.
 `SequentialFigure7CrossRepresentativeWaitPreservation.lean` adds no hidden
 source-region oracle. Its output-work classification follows only from the
 typed destination's exact waiting prepend and unchanged ready/sigma fields;

@@ -196,6 +196,10 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "commitmentOutcome",
     "ProofNetIR.SequentialFigure7.ActiveCarrierParentExternalCommitmentOutcome."
     "endpointCrossing",
+    "ProofNetIR.SequentialFigure7.CanonicalTagHistory."
+    "commitmentInterval_referencePath",
+    "ProofNetIR.SequentialFigure7.ActiveCarrierParentExternalCommitmentOutcome."
+    "reentryOutcome",
     "ProofNetIR.SequentialFigure7.InitialReservationStep."
     "markedNonconclusionContinuation",
     "ProofNetIR.SequentialFigure7.NopStep.selectedContinuationCredit",

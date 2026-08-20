@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- added `SequentialFigure7ActiveTopDebtParentExternalCommitmentReentry.lean`.
+  Every positive retained `sigma` interval now composes its adjacent canonical
+  commitment paths. Ready future and older marked endpoints return to the
+  active carrier through an exact outside-to-inside re-entry edge. Waiting
+  retains its exact waiting cell, and external raw work remains unchanged.
+  This does not classify the re-entry edge, produce a distinct ready-tail
+  payer, derive `ActiveTopDebtTailLaw`, or establish progress/completion. The
+  verified combined audit covers 964 theorems: 673 standard-three, 25
+  axiom-free, 128 `propext`-only, and 138 `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7ActiveTopDebtParentExternalEndpointCrossing.lean`.
   Both older external commitment branches now carry an exact
   reference-switching path from an active-owned vertex to their

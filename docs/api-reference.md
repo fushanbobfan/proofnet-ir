@@ -10295,6 +10295,90 @@ ProofNetIR.SequentialFigure7.ActiveCarrierParentExternalCommitmentOutcome.endpoi
                 owned
 ```
 
+## Active-top debt parent external commitment re-entry
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.CommitmentIntervalReferencePath`
+
+Kind: definition.
+
+One exact reference-switching path between the reservation endpoints of a
+positive retained commitment interval.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.CommitmentIntervalReferencePath : {certificate : ProofNetIR.Certificate} →
+  {state : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+    {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state} →
+      ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history →
+        ProofNetIR.SequentialSchedulerState.RawTokenAge → ProofNetIR.SequentialSchedulerState.RawTokenAge → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.commitmentInterval_referencePath`
+
+Kind: theorem.
+
+Compose every adjacent commitment path in one supplied positive retained
+`sigma` interval. Loop erasure preserves the exact endpoint events.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.commitmentInterval_referencePath : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+    ∀ {position edgeCount : Nat} {first last : ProofNetIR.SequentialSchedulerState.RawTokenAge},
+      0 < edgeCount →
+        state.stack.sigma[position]? = some first →
+          state.stack.sigma[position + edgeCount]? = some last → tagHistory.CommitmentIntervalReferencePath first last
+```
+
+### `ProofNetIR.SequentialFigure7.ActiveCarrierExternalEndpointReentry`
+
+Kind: definition.
+
+A structured path from an external endpoint back into one active owned
+carrier, retaining one exact outside-to-inside stored edge.
+
+```lean
+ProofNetIR.SequentialFigure7.ActiveCarrierExternalEndpointReentry : ProofNetIR.Certificate → List ProofNetIR.Vertex → ProofNetIR.Vertex → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.ActiveCarrierParentExternalCommitmentReentryOutcome`
+
+Kind: inductive type.
+
+The external temporal outcome after the whole retained commitment interval
+has been composed. Ready future work and marked endpoints re-enter the active
+carrier; waiting work retains its exact cell.
+
+```lean
+ProofNetIR.SequentialFigure7.ActiveCarrierParentExternalCommitmentReentryOutcome : {certificate : ProofNetIR.Certificate} →
+  {state : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+    {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state} →
+      ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history →
+        ProofNetIR.SequentialSchedulerState.RawTokenAge → List ProofNetIR.Vertex → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.ActiveCarrierParentExternalCommitmentOutcome.reentryOutcome`
+
+Kind: theorem.
+
+Compose the complete retained commitment interval for both older external
+branches. Ready work and marked work return through an exact active-carrier
+re-entry; waiting and raw work retain their precise unresolved forms.
+
+```lean
+ProofNetIR.SequentialFigure7.ActiveCarrierParentExternalCommitmentOutcome.reentryOutcome : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  {tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history}
+  {activeRawAge : ProofNetIR.SequentialSchedulerState.RawTokenAge} {owned : List ProofNetIR.Vertex},
+  ProofNetIR.SequentialFigure7.ActiveCarrierParentExternalCommitmentOutcome tagHistory activeRawAge owned →
+    ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+      ∀ {component : ProofNetIR.UnificationComponent} {usedLinks : List Nat},
+        state.core.components[activeRawAge]? = some (some component) →
+          certificate.ComponentOccurrenceWitness component usedLinks owned →
+            ProofNetIR.SequentialFigure7.ActiveCarrierParentExternalCommitmentReentryOutcome tagHistory activeRawAge
+              owned
+```
+
 ## Branch-local continuation credit
 
 ### `ProofNetIR.SequentialFigure7.ContinuationCredit`

@@ -1069,8 +1069,12 @@
   - [x] Using the active child occurrence of that commitment edge, construct an
     exact reference-switching path from inside the active owned carrier to each
     older external endpoint and retain one concrete owned-to-outside crossing.
-  - [ ] Classify that crossing by first re-entry or ownership so that it yields
-    a distinct ready-tail payer, or otherwise eliminate the
+  - [x] Compose the complete positive retained commitment interval. Give ready
+    future and older marked endpoints an exact endpoint-to-active path and
+    outside-to-inside re-entry edge; preserve the exact waiting cell and raw
+    external branch.
+  - [ ] Classify that re-entry edge so that it yields a distinct ready-tail
+    payer, or otherwise eliminate the
     failure-conditioned residual. Do not infer
     unconditional dispatcher progress, completion, terminality, later-state
     totality, global raw seams, fallback removal, Figure-7 pure-worklist
@@ -1355,10 +1359,11 @@
     carrier. For actual Nop and Wait failures, the selected raw endpoint is now
     eliminated, leaving only external raw work or strictly older external
     future/marked work. The two older cases now retain their final canonical
-    commitment edge into the active top. Each older branch now also carries an
-    exact path from the active owned carrier to the external continuation
-    and one stored-edge boundary crossing. Next classify that crossing into a
-    distinct ready-tail payer or eliminate the failure residual before claiming
+    commitment edge into the active top. The complete retained interval now
+    composes: ready future and marked endpoints carry exact endpoint-to-active
+    paths and outside-to-inside re-entry edges, while waiting retains its exact
+    cell. Next classify that re-entry edge into a distinct ready-tail payer or
+    eliminate the failure residual before claiming
     exhaustive progress on incomplete, correct, certified-reachable states.
     Exact source-left complexity descent, last-step decomposition, and
     recursive visited-route separation from the selected head are now proved.

@@ -32,16 +32,17 @@ With matching `CanonicalTagHistory`, the no-tail escape has an exact temporal
 normal form. Par has an anchored raw sibling or older parent continuation;
 tensor has an active-representative mark with sibling and parent outside the
 carrier. Continuation credit maps both to `ActiveCarrierParentTemporalOutcome`.
-For actual no-tail Nop and Wait steps, typed guards eliminate the selected raw
-case. Only external raw work or strictly older external future/marked work
-remains. The two older branches retain the final `sigma` commitment edge and
-now carry an active-to-endpoint path and one owned-to-outside edge. This is not yet re-entry,
-ready-tail witness, or `ActiveTopDebtTailLaw` proof.
+Typed no-tail Nop and Wait guards leave only external raw work or strictly
+older external future/marked work. The complete positive retained `sigma` interval composes its
+commitment paths. Ready future and marked external endpoints carry an
+endpoint-to-active path and one exact outside-to-inside re-entry edge. Waiting
+keeps its exact cell, and raw external work remains unchanged. No re-entry-edge
+classification, distinct payer, or `ActiveTopDebtTailLaw` proof follows.
 
 This checkpoint proves no unconditional all-marked result, progress,
-completion, termination, totality, or completeness. The next gate is to
-classify the exact crossing into a distinct ready-tail payer or eliminate its
-failure case, then derive the still-open global-created tail obligations.
+completion, termination, totality, or completeness. Next classify the exact
+re-entry edge into a distinct ready-tail payer or eliminate its failure, then
+derive the still-open global-created tail obligations.
 [Current status](docs/current-status.md) owns exact revision, verification receipt, and gates.
 <!-- ROLLING_MAIN_SUMMARY_END -->
 

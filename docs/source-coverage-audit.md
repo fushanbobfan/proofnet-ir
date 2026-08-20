@@ -420,10 +420,15 @@ occurrence ownership, and graph boundary extraction to connect the active
 carrier to each older endpoint and retain one owned-to-outside stored-edge
 crossing. It does not classify that crossing as raw or marked, return a
 ready-tail witness, or derive the history-tail law.
+`SequentialFigure7ActiveTopDebtParentExternalCommitmentReentry.lean` adds no
+new source reading. It composes every adjacent commitment path across the
+positive retained interval. Ready future and marked endpoints receive an
+endpoint-to-active path and an exact outside-to-inside edge; waiting retains
+its exact cell and raw work remains unchanged. The edge is not classified as a
+distinct raw payer, so no ready-tail witness or history-tail law follows.
 Global preservation of the mate-region and older-raw-mark invariants through
 candidate-creating rules remains open, as do queue origin, created-candidate raw
-seams, exact crossing classification and first re-entry of the external-only
-temporal outcome,
+seams, exact re-entry-edge classification of the external-only temporal outcome,
 unconditional active-top completion, progress,
 later-state totality,
 fallback removal,

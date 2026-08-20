@@ -387,6 +387,10 @@ expansion.
   SequentialFigure7.ActiveCarrierParentExternalTemporalOutcome.commitmentOutcome
 #print axioms
   SequentialFigure7.ActiveCarrierParentExternalCommitmentOutcome.endpointCrossing
+#print axioms
+  SequentialFigure7.CanonicalTagHistory.commitmentInterval_referencePath
+#print axioms
+  SequentialFigure7.ActiveCarrierParentExternalCommitmentOutcome.reentryOutcome
 #print axioms SequentialFigure7.empty_markedNonconclusionContinuation
 #print axioms
   SequentialFigure7.InitialReservationStep.markedNonconclusionContinuation
