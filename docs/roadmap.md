@@ -1077,6 +1077,10 @@
     uniqueness, and strict complexity to eliminate the selected target in the
     strictly older Nop/Wait branch. Retain a distinct authenticated concrete
     mark represented at the active boundary.
+  - [x] Use retained-path simplicity and structural parent uniqueness to
+    separate that exact marked target from the current mate. Any connective
+    view rooted at the target has a mate different from the selected head, so
+    the target's selected raw-sibling continuation is excluded.
   - [ ] Eliminate that marked re-entry target or recover a distinct ready-tail
     payer. Do not infer
     unconditional dispatcher progress, completion, terminality, later-state

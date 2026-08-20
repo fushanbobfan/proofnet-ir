@@ -1136,6 +1136,16 @@ part of the engineering and proof-identity gap.
    out the selected target and returns a distinct authenticated concrete mark
    represented at the active boundary. The marked target, avoiding branch, and
    both equal-final traces remain; no tail law or progress theorem follows.
+   `SequentialFigure7CommitmentIntervalParGuardReentryMateSeparation.lean`
+   then uses simple-path freshness and exact connective-parent uniqueness to
+   separate the marked inbound target from the current mate. Every exact
+   connective view rooted at that target has a mate different from the current
+   selected head. This removes the selected raw-sibling alternative for the
+   exact target, but it does not eliminate the target, choose par versus tensor
+   source shape, return a ready-tail payer, derive the history-tail law, or
+   close the avoiding/equal-final cases. The verified combined audit covers
+   986 theorems: 694 standard-three, 25 axiom-free, 128 `propext`-only, and
+   139 `propext`/`Quot.sound` boundaries.
    `SequentialFigure7CommitmentBlockerAdvance.lean` now combines the global
    queued-head law, strict split, and equal-boundary result. Under declarative
    correctness and the complete scheduler invariant, for a supplied canonical

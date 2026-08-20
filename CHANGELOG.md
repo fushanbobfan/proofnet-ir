@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- separated the exact marked re-entry target from the current mate in the
+  strictly older no-tail Nop and Wait commitment-interval branches. Simplicity
+  of the retained path prevents the inbound target from revisiting its starting
+  mate; structural parent uniqueness then shows that every connective view at
+  that target has a mate different from the current selected head. This removes
+  the selected raw-sibling alternative for the exact target without eliminating
+  the marked target, choosing its source kind, deriving a tail witness or law,
+  or closing the avoiding/equal-final branches. The verified combined audit
+  covers 986 theorems: 694 standard-three, 25 axiom-free, 128
+  `propext`-only, and 139 `propext`/`Quot.sound` boundaries;
 - eliminated the selected-head re-entry target from the strictly older
   stored-right Nop and Wait commitment-interval branches under exact failure
   of the non-global ready-tail obligation. Parent uniqueness, the all-left

@@ -461,6 +461,13 @@ stored-right guard, parent uniqueness, and strict complexity exclude the
 selected target in the strictly older Nop/Wait branch. The surviving target is
 a distinct authenticated concrete mark represented at the active boundary.
 The theorem does not eliminate that mark or either equal-final trace.
+`SequentialFigure7CommitmentIntervalParGuardReentryMateSeparation.lean` adds no
+source reading. The retained simple path makes the exact marked target distinct
+from its starting current mate. Exact connective-parent uniqueness then shows
+that every connective view rooted at that target has a mate different from the
+current selected head. The result excludes the selected raw-sibling alternative
+for this target, but does not eliminate the target, choose its source kind,
+derive a ready-tail witness or history-tail law, or close equal-final traces.
 Global preservation of the mate-region and older-raw-mark invariants through
 candidate-creating rules remains open, as do queue origin, created-candidate raw
 seams, derivation of the re-entry avoidance premise, marked-history descent,

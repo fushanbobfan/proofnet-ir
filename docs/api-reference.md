@@ -9304,6 +9304,113 @@ ProofNetIR.SequentialFigure7.WaitStep.commitmentInterval_parTraceReentryMarkedOu
                                   tagHistory step.prepared.readyHeadInput component owned step.consumer.mate)
 ```
 
+## Commitment-interval par-guard re-entry mate separation
+
+### `ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedTarget`
+
+Kind: definition.
+
+A marked external re-entry target whose exact target is separated from the
+current mate. Every connective view rooted at that target also has a mate
+different from the current selected head.
+
+```lean
+ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedTarget : {certificate : ProofNetIR.Certificate} →
+  {state : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+    {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state} →
+      ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history →
+        (input : ProofNetIR.SequentialFigure7.ReadyHeadInput state) →
+          ProofNetIR.UnificationComponent →
+            List ProofNetIR.Vertex → ProofNetIR.ConnectiveBelow certificate input.vertex → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedHistoricalTarget.mateSeparated`
+
+Kind: theorem.
+
+A marked target reached from the current mate by a retained simple path is
+mate-separated: it is not the current mate, and its own opposite premise is
+not the current selected head.
+
+```lean
+ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedHistoricalTarget.mateSeparated : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  {tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history}
+  {input : ProofNetIR.SequentialFigure7.ReadyHeadInput state} {component : ProofNetIR.UnificationComponent}
+  {owned : List ProofNetIR.Vertex},
+  certificate.StructurallyWellFormed →
+    ∀ (current : ProofNetIR.ConnectiveBelow certificate input.vertex),
+      ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedHistoricalTarget tagHistory input component owned
+          current.mate →
+        ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedTarget tagHistory input component
+          owned current
+```
+
+### `ProofNetIR.SequentialFigure7.NopStep.commitmentInterval_parTraceReentryMateSeparatedOutcome`
+
+Kind: theorem.
+
+In the strictly older Nop branch, exact ready-tail failure leaves a marked
+re-entry target separated from both the current mate and the current selected
+head through every target connective view.
+
+```lean
+ProofNetIR.SequentialFigure7.NopStep.commitmentInterval_parTraceReentryMateSeparatedOutcome : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before},
+  certificate.ReferenceSwitchingConnected →
+    ∀ (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+      ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+        ∀ (step : ProofNetIR.SequentialFigure7.NopStep certificate before after)
+          {component : ProofNetIR.UnificationComponent} {usedLinks owned : List Nat},
+          before.core.components[step.prepared.stackResult.rawAge]? = some (some component) →
+            certificate.ComponentOccurrenceWitness component usedLinks owned →
+              ∀ {position edgeCount : Nat} {first : ProofNetIR.SequentialSchedulerState.RawTokenAge},
+                0 < edgeCount →
+                  before.stack.sigma[position]? = some first →
+                    before.stack.sigma[position + edgeCount]? = some step.prepared.stackResult.rawAge →
+                      (¬∃ pending,
+                            pending ∈ step.prepared.stackResult.remainingTop ∧ ¬pending ∈ certificate.conclusions) →
+                        tagHistory.CommitmentIntervalParTraceOutcome step.prepared.readyHeadInput step.consumer position
+                          edgeCount first
+                          (¬step.consumer.mate ∈ owned ∧
+                            before.core.marks[step.consumer.mate]? = some none ∧
+                              ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedTarget
+                                tagHistory step.prepared.readyHeadInput component owned step.consumer)
+```
+
+### `ProofNetIR.SequentialFigure7.WaitStep.commitmentInterval_parTraceReentryMateSeparatedOutcome`
+
+Kind: theorem.
+
+In the strictly older Wait branch, exact ready-tail failure leaves a marked
+re-entry target separated from both the current mate and the current selected
+head through every target connective view.
+
+```lean
+ProofNetIR.SequentialFigure7.WaitStep.commitmentInterval_parTraceReentryMateSeparatedOutcome : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before},
+  certificate.ReferenceSwitchingConnected →
+    ∀ (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+      ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+        ∀ (step : ProofNetIR.SequentialFigure7.WaitStep certificate before after)
+          {component : ProofNetIR.UnificationComponent} {usedLinks owned : List Nat},
+          before.core.components[step.prepared.stackResult.rawAge]? = some (some component) →
+            certificate.ComponentOccurrenceWitness component usedLinks owned →
+              ∀ {position edgeCount : Nat} {first : ProofNetIR.SequentialSchedulerState.RawTokenAge},
+                0 < edgeCount →
+                  before.stack.sigma[position]? = some first →
+                    before.stack.sigma[position + edgeCount]? = some step.prepared.stackResult.rawAge →
+                      (¬∃ pending,
+                            pending ∈ step.prepared.stackResult.remainingTop ∧ ¬pending ∈ certificate.conclusions) →
+                        tagHistory.CommitmentIntervalParTraceOutcome step.prepared.readyHeadInput step.consumer position
+                          edgeCount first
+                          (¬step.consumer.mate ∈ owned ∧
+                            before.core.marks[step.consumer.mate]? = some (some step.mateRawAge) ∧
+                              before.core.representative step.mateRawAge < step.prepared.stackResult.rawAge ∧
+                                ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedTarget
+                                  tagHistory step.prepared.readyHeadInput component owned step.consumer)
+```
+
 ## Commitment blocker advance
 
 ### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.strictOlder_commitmentPath_or_advance_or_equalCallbackFailure`

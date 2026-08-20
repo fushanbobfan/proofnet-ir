@@ -788,6 +788,21 @@ def sections : List Section := [
     ]
   },
   {
+    title := "Commitment-interval par-guard re-entry mate separation"
+    declarations := [
+      `ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedTarget,
+      Name.str
+        `ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedHistoricalTarget
+        "mateSeparated",
+      Name.str
+        `ProofNetIR.SequentialFigure7.NopStep
+        "commitmentInterval_parTraceReentryMateSeparatedOutcome",
+      Name.str
+        `ProofNetIR.SequentialFigure7.WaitStep
+        "commitmentInterval_parTraceReentryMateSeparatedOutcome"
+    ]
+  },
+  {
     title := "Commitment blocker advance"
     declarations := [
       Name.str

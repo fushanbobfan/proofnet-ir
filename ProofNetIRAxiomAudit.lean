@@ -294,6 +294,12 @@ expansion.
 #print axioms
   SequentialFigure7.WaitStep.commitmentInterval_parTraceReentryMarkedOutcome
 #print axioms
+  SequentialFigure7.ActiveCarrierExternalReentryMarkedHistoricalTarget.mateSeparated
+#print axioms
+  SequentialFigure7.NopStep.commitmentInterval_parTraceReentryMateSeparatedOutcome
+#print axioms
+  SequentialFigure7.WaitStep.commitmentInterval_parTraceReentryMateSeparatedOutcome
+#print axioms
   SequentialFigure7.CanonicalTagHistory.strictOlder_commitmentPath_or_advance_or_equalCallbackFailure
 #print axioms
   SequentialFigure7.CanonicalTagHistory.strictOlder_commitmentPath_or_equalCallbackFailure

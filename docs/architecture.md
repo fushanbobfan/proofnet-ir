@@ -1523,6 +1523,16 @@ at the active boundary. The theorem does not eliminate that marked target or
 the avoiding and equal-final branches, derive the history-tail law, or prove
 progress.
 
+`SequentialFigure7CommitmentIntervalParGuardReentryMateSeparation.lean`
+strengthens that marked-target branch without changing its inclusive outer
+shape. A retained simple path cannot revisit its external starting mate. If a
+connective view at the exact marked target had the current selected head as its
+mate, structural parent uniqueness would swap the two exact views and identify
+the target with that path start. The new carrier records both separations. It
+does not eliminate the marked target, choose its submitted source kind, recover
+a ready-tail witness, derive the history-tail law, or close an avoiding or
+equal-final branch.
+
 `SequentialFigure7CommitmentBlockerAdvance.lean` joins the global queued-head
 law, the strict `sigma` split, the strict-edge avoiding adapter, and the final
 equal-boundary classification. Under declarative correctness and the complete

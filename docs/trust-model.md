@@ -946,6 +946,16 @@ covers 983 theorems: 691 standard-three, 25 axiom-free, 128
 `propext`-only, and 139 `propext`/`Quot.sound` boundaries. No oracle,
 computational receipt, history-tail law, progress, or completion result is
 introduced.
+`SequentialFigure7CommitmentIntervalParGuardReentryMateSeparation.lean` adds
+one proposition carrier and three standard-three theorems. The generic theorem
+uses only retained simple-path freshness and structural exact-parent
+uniqueness; the typed Nop and Wait theorems lift the existing strictly older
+branch. The target is distinct from the current mate, and any exact connective
+view rooted there has a mate different from the current selected head. The
+verified combined audit covers 986 theorems: 694 standard-three, 25
+axiom-free, 128 `propext`-only, and 139 `propext`/`Quot.sound` boundaries. No
+source-kind choice, ready-tail witness, tail law, progress, completion,
+computational receipt, or new oracle is introduced.
 `SequentialFigure7CrossRepresentativeWaitPreservation.lean` adds no hidden
 source-region oracle. Its output-work classification follows only from the
 typed destination's exact waiting prepend and unchanged ready/sigma fields;
