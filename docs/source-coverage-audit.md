@@ -475,6 +475,13 @@ outside the active carrier, queued parent work at a strictly older boundary,
 or a parent conclusion marked at a strictly older representative. It does not
 eliminate the target or any case, derive a tail witness or law, or close the
 avoiding/equal-final traces.
+`SequentialFigure7CommitmentIntervalParGuardReentryMarkedTargetContinuationExit.lean`
+adds no source reading. It follows the target-bound marked parent through the
+finite continuation-credit normalizer and preserves exact endpoint identity.
+Its raw endpoint is outside the carrier or returns to the current
+selected/mate pair; future and marked-global endpoints remain outside at a
+strictly older boundary or representative. It does not eliminate any exit,
+derive a payer or tail law, or close the avoiding/equal-final traces.
 Global preservation of the mate-region and older-raw-mark invariants through
 candidate-creating rules remains open, as do queue origin, created-candidate raw
 seams, derivation of the re-entry avoidance premise, marked-history descent,

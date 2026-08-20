@@ -115,6 +115,12 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "commitmentInterval_parTraceReentryMarkedTemporalOutcome",
     "ProofNetIR.SequentialFigure7.WaitStep."
     "commitmentInterval_parTraceReentryMarkedTemporalOutcome",
+    "ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedTemporalTarget."
+    "continuationExitTarget",
+    "ProofNetIR.SequentialFigure7.NopStep."
+    "commitmentInterval_parTraceReentryMarkedContinuationExitOutcome",
+    "ProofNetIR.SequentialFigure7.WaitStep."
+    "commitmentInterval_parTraceReentryMarkedContinuationExitOutcome",
     "ProofNetIR.SequentialFigure7.CanonicalTagHistory."
     "strictOlder_commitmentPath_or_advance_or_equalCallbackFailure",
     "ProofNetIR.SequentialFigure7.CanonicalTagHistory."

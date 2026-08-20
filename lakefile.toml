@@ -39,6 +39,7 @@ defaultTargets = [
   "proofnet_ir_commitment_interval_par_guard_reentry_failure_tests",
   "proofnet_ir_commitment_interval_par_guard_reentry_mate_separation_tests",
   "proofnet_ir_commitment_interval_par_guard_reentry_marked_target_temporal_tests",
+  "proofnet_ir_commitment_interval_par_guard_reentry_marked_target_continuation_exit_tests",
   "proofnet_ir_commitment_blocker_advance_tests",
   "proofnet_ir_commitment_blocker_maximality_tests",
   "proofnet_ir_active_region_touch_separation_tests",
@@ -242,6 +243,10 @@ root = "ProofNetIRCommitmentIntervalParGuardReentryMateSeparationTests"
 [[lean_exe]]
 name = "proofnet_ir_commitment_interval_par_guard_reentry_marked_target_temporal_tests"
 root = "ProofNetIRCommitmentIntervalParGuardReentryMarkedTargetTemporalTests"
+
+[[lean_exe]]
+name = "proofnet_ir_commitment_interval_par_guard_reentry_marked_target_continuation_exit_tests"
+root = "ProofNetIRCommitmentIntervalParGuardReentryMarkedTargetContinuationExitTests"
 
 [[lean_exe]]
 name = "proofnet_ir_commitment_blocker_advance_tests"

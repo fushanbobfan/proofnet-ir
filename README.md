@@ -34,10 +34,10 @@ Under exact no-tail failure, a strictly older stored-right branch cannot target
 the selected head. Its target is a distinct authenticated concrete mark
 represented at the active boundary. Nop keeps an external raw-unmarked mate;
 Wait keeps an external marked mate with a strictly older representative.
-The retained path separates that marked target from the current mate; every
-exact consumer there has a mate different from selected. Its bound parent
-continuation is raw outside the carrier or queued/marked strictly older.
-The avoiding and equal-final selected/mate branches remain inclusive.
+The retained path separates that target from the current mate; every exact
+consumer there has a mate different from selected. Its continuation exits raw
+outside, returns to the selected/mate pair, or ends at older queued or marked
+global work. Avoiding and equal-final selected/mate branches remain inclusive.
 This proves no unconditional all-marked, progress, completion, termination,
 totality, or completeness result. Equal-final traces, elimination of the
 marked re-entry target, and global tails remain open.

@@ -1085,8 +1085,13 @@
     Normalize its continuation to an unmarked raw mate outside the active
     carrier, queued parent work at a strictly older boundary, or a parent
     conclusion marked at a strictly older representative.
+  - [x] Follow any marked non-global parent through its finite continuation
+    chain. Isolate raw work outside the carrier, an exact raw return to the
+    current selected/mate pair, older future work, or an older marked global
+    conclusion.
   - [ ] Eliminate that marked re-entry target or recover a distinct ready-tail
-    payer by discharging its target-indexed temporal alternatives. Do not infer
+    payer by discharging its finite exit alternatives, especially the exact
+    raw return. Do not infer
     unconditional dispatcher progress, completion, terminality, later-state
     totality, global raw seams, fallback removal, Figure-7 pure-worklist
     completeness, sequentialization, faithful token-age scheduling, or

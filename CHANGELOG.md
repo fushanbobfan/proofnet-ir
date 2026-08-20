@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- finitely normalized the exact marked re-entry target's continuation chain.
+  Its terminal receipt is raw work outside the active carrier, an exact raw
+  return to the current selected/mate pair with strict formula-complexity
+  growth, future work at a strictly older boundary, or a marked global
+  conclusion at a strictly older representative. The reduction does not
+  eliminate the raw return or another terminal case, derive a tail witness or
+  law, or close the avoiding/equal-final branches. The verified combined audit
+  covers 992 theorems: 700 standard-three, 25 axiom-free, 128
+  `propext`-only, and 139 `propext`/`Quot.sound` boundaries;
 - bound the unique submitted parent of the mate-separated marked re-entry
   target to the exact inbound edge. Canonical continuation credit now reduces
   that same target to an unmarked raw mate outside the active carrier, parent

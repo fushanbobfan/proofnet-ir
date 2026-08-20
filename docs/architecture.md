@@ -1542,6 +1542,15 @@ marked at a strictly older representative. The target's source kind remains
 available through its exact consumer, but no case is eliminated and no
 ready-tail witness, history-tail law, or progress theorem follows.
 
+`SequentialFigure7CommitmentIntervalParGuardReentryMarkedTargetContinuationExit.lean`
+follows a marked non-global parent through the existing finite continuation
+normalizer. The terminal receipt is raw outside the active carrier, an exact
+raw return to the current selected/mate pair, future work at a strictly older
+boundary, or a marked global conclusion at a strictly older representative.
+The return binds the terminal consumer to the current conclusion and records
+strict formula-complexity growth from target to mate. It is a residual, not a
+contradiction, payer, tail law, or progress theorem.
+
 `SequentialFigure7CommitmentBlockerAdvance.lean` joins the global queued-head
 law, the strict `sigma` split, the strict-edge avoiding adapter, and the final
 equal-boundary classification. Under declarative correctness and the complete

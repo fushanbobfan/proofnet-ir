@@ -818,6 +818,23 @@ def sections : List Section := [
     ]
   },
   {
+    title := "Marked re-entry target finite continuation exit"
+    declarations := [
+      Name.str
+        `ProofNetIR.SequentialFigure7
+        "ActiveCarrierExternalReentryMarkedMateSeparatedContinuationExitTarget",
+      Name.str
+        `ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedTemporalTarget
+        "continuationExitTarget",
+      Name.str
+        `ProofNetIR.SequentialFigure7.NopStep
+        "commitmentInterval_parTraceReentryMarkedContinuationExitOutcome",
+      Name.str
+        `ProofNetIR.SequentialFigure7.WaitStep
+        "commitmentInterval_parTraceReentryMarkedContinuationExitOutcome"
+    ]
+  },
+  {
     title := "Commitment blocker advance"
     declarations := [
       Name.str

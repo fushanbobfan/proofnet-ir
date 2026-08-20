@@ -965,6 +965,15 @@ strictly older than the active boundary. The verified combined audit covers
 989 theorems: 697 standard-three, 25 axiom-free, 128 `propext`-only, and 139
 `propext`/`Quot.sound` boundaries. No branch elimination, tail law, progress,
 completion, computational receipt, or new oracle is introduced.
+`SequentialFigure7CommitmentIntervalParGuardReentryMarkedTargetContinuationExit.lean`
+adds one proposition carrier and three standard-three theorems. It reuses the
+canonical continuation-credit theorem and strict formula-complexity recursion;
+no runtime witness or new oracle enters the proof. The finite exits are raw
+outside the carrier, an exact raw return to the current selected/mate pair,
+older future work, or an older marked global conclusion. The verified combined
+audit covers 992 theorems: 700 standard-three, 25 axiom-free, 128
+`propext`-only, and 139 `propext`/`Quot.sound` boundaries. No exit elimination,
+tail law, progress, completion, or terminality claim is introduced.
 `SequentialFigure7CrossRepresentativeWaitPreservation.lean` adds no hidden
 source-region oracle. Its output-work classification follows only from the
 typed destination's exact waiting prepend and unchanged ready/sigma fields;
