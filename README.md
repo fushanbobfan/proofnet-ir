@@ -34,13 +34,13 @@ Under exact no-tail failure, a strictly older stored-right branch cannot target
 the selected head. Its target is a distinct authenticated concrete mark
 represented at the active boundary. Nop keeps an external raw-unmarked mate;
 Wait keeps an external marked mate with a strictly older representative.
-The retained path separates that target from the current mate; every exact
-consumer there has a mate different from selected. Its continuation exits raw
-outside, returns to the selected/mate pair, or ends at older queued or marked
-global work. Avoiding and equal-final selected/mate branches remain inclusive.
+The retained path separates that target from the current mate. Its exact raw
+return splices a retained switching prefix with a forward continuation tail.
+Cyclic normalization either cancels completely or leaves a par-pair residual:
+the kept edge lies in the prefix and the omitted edge lies in the tail.
 This proves no unconditional all-marked, progress, completion, termination,
-totality, or completeness result. Equal-final traces, elimination of the
-marked re-entry target, and global tails remain open.
+totality, or completeness result. Cancellation and par-pair residuals,
+other finite exits, equal-final traces, and global tails remain open.
 [Current status](docs/current-status.md) owns exact revision, verification receipt, and gates.
 <!-- ROLLING_MAIN_SUMMARY_END -->
 

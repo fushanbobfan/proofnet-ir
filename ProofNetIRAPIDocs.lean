@@ -835,6 +835,23 @@ def sections : List Section := [
     ]
   },
   {
+    title := "Marked re-entry target raw-return cyclic reduction"
+    declarations := [
+      `ProofNetIR.SequentialFigure7.MarkedConclusionRawReturnCyclicOutcome,
+      Name.str
+        `ProofNetIR.SequentialFigure7.MarkedConclusionChain
+        "rawReturnCyclicReduction",
+      Name.str
+        `ProofNetIR.SequentialFigure7
+        "ActiveCarrierExternalReentryMarkedMateSeparatedContinuationCyclicReductionTarget",
+      Name.str
+        (Name.str
+          `ProofNetIR.SequentialFigure7
+          "ActiveCarrierExternalReentryMarkedMateSeparatedContinuationExitTarget")
+        "continuationCyclicReductionTarget"
+    ]
+  },
+  {
     title := "Commitment blocker advance"
     declarations := [
       Name.str

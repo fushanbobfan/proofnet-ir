@@ -312,6 +312,13 @@ expansion.
 #print axioms
   SequentialFigure7.WaitStep.commitmentInterval_parTraceReentryMarkedContinuationExitOutcome
 #print axioms
+  SequentialFigure7.MarkedConclusionChain.rawReturnCyclicReduction
+namespace ProofNetIR.SequentialFigure7
+namespace ActiveCarrierExternalReentryMarkedMateSeparatedContinuationExitTarget
+#print axioms continuationCyclicReductionTarget
+end ActiveCarrierExternalReentryMarkedMateSeparatedContinuationExitTarget
+end ProofNetIR.SequentialFigure7
+#print axioms
   SequentialFigure7.CanonicalTagHistory.strictOlder_commitmentPath_or_advance_or_equalCallbackFailure
 #print axioms
   SequentialFigure7.CanonicalTagHistory.strictOlder_commitmentPath_or_equalCallbackFailure

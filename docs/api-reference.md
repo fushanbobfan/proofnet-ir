@@ -9626,6 +9626,84 @@ ProofNetIR.SequentialFigure7.WaitStep.commitmentInterval_parTraceReentryMarkedCo
                                   tagHistory step.prepared.readyHeadInput component owned step.consumer)
 ```
 
+## Marked re-entry target raw-return cyclic reduction
+
+### `ProofNetIR.SequentialFigure7.MarkedConclusionRawReturnCyclicOutcome`
+
+Kind: definition.
+
+Cyclic normalization of one raw-return continuation splice. The retained
+prefix comes from the reference switching; the continuation tail is forward
+and has no repeated target. Complete cancellation records either the genuinely
+empty splice or a concrete cancellation site. Otherwise, correctness exposes
+the kept and omitted premise occurrences of a par, with the omitted occurrence
+forced into the continuation tail.
+
+```lean
+ProofNetIR.SequentialFigure7.MarkedConclusionRawReturnCyclicOutcome : ProofNetIR.Certificate → ProofNetIR.Vertex → ProofNetIR.Vertex → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.MarkedConclusionChain.rawReturnCyclicReduction`
+
+Kind: theorem.
+
+Splice the retained prefix before an inbound re-entry edge with the
+continuation chain after its first parent edge, then normalize the resulting
+closed full-graph walk.
+
+```lean
+ProofNetIR.SequentialFigure7.MarkedConclusionChain.rawReturnCyclicReduction : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  certificate.DeclarativelyCorrect →
+    ∀ {base origin : ProofNetIR.Vertex} (path : certificate.referenceSwitchingGraph.EdgeSimplePath),
+      path.start = base →
+        ∀ (directed : certificate.referenceSwitchingGraph.DirectedEdge),
+          directed ∈ path.traversed →
+            ∀ (targetConsumer : ProofNetIR.ConnectiveBelow certificate origin),
+              directed.source = targetConsumer.conclusion →
+                origin ≠ base →
+                  ProofNetIR.SequentialFigure7.MarkedConclusionChain certificate state origin base →
+                    ProofNetIR.SequentialFigure7.MarkedConclusionRawReturnCyclicOutcome certificate base
+                      targetConsumer.conclusion
+```
+
+### `ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedContinuationCyclicReductionTarget`
+
+Kind: definition.
+
+Refine only the exact raw-return branch of the marked target continuation
+exit. Raw work outside the carrier and the older future or marked-global exits
+are retained unchanged.
+
+```lean
+ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedContinuationCyclicReductionTarget : {certificate : ProofNetIR.Certificate} →
+  {state : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+    {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state} →
+      ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history →
+        (input : ProofNetIR.SequentialFigure7.ReadyHeadInput state) →
+          ProofNetIR.UnificationComponent →
+            List ProofNetIR.Vertex → ProofNetIR.ConnectiveBelow certificate input.vertex → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedContinuationExitTarget.continuationCyclicReductionTarget`
+
+Kind: theorem.
+
+Refine the exact raw-return branch into its cyclic cancellation/par-pair
+normal form.
+
+```lean
+ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedContinuationExitTarget.continuationCyclicReductionTarget : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  {tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history}
+  {input : ProofNetIR.SequentialFigure7.ReadyHeadInput state} {component : ProofNetIR.UnificationComponent}
+  {owned : List ProofNetIR.Vertex} {current : ProofNetIR.ConnectiveBelow certificate input.vertex},
+  certificate.DeclarativelyCorrect →
+    ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedContinuationExitTarget tagHistory input
+        component owned current →
+      ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedContinuationCyclicReductionTarget
+        tagHistory input component owned current
+```
+
 ## Commitment blocker advance
 
 ### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.strictOlder_commitmentPath_or_advance_or_equalCallbackFailure`
