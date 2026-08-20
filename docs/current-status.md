@@ -17,7 +17,7 @@ Status date: 2026-08-19
 | Track | Revision | Status | Authority |
 | --- | --- | --- | --- |
 | Stable library | `v0.9.0` / `9b7dc3d104af8f57ea9123aab2e61b42e05d2216` | Released | [v0.9.0 release audit](v0.9-release-audit.md) |
-| Rolling research | `v0.10.0-dev`; latest proof checkpoint `8939aa90a460a9e4aa89a76795f6fa0511ee733c`; latest finite-audit evidence `1e46573141a8ad683cc539480f18c92992bda60c` | Active | This page and the exact commits |
+| Rolling research | `v0.10.0-dev`; latest proof checkpoint `b65409addd9c51df6458e6ffd8a6db4d0e384425`; latest finite-audit evidence `1e46573141a8ad683cc539480f18c92992bda60c` | Active | This page and the exact commits |
 
 Documentation-only commits may descend from the proof checkpoint without
 changing its mathematical authority. The stable release and rolling branch
@@ -46,54 +46,42 @@ The exact release guarantees, receipts, and non-goals are frozen in the
 
 ## Rolling main result
 
-The current checkpoint proves that supplied branch-local continuation credit
-always has a finite normalized exit. `MarkedConclusionChain` records the ascent
-through concretely marked, non-global connective conclusions. Formula
-complexity increases strictly at every step and remains bounded by the
-certificate's intrinsic complexity budget, so a
-`MarkedNonconclusionContinuation` receipt ends as a `ContinuationExit`: an
-unmarked raw mate, scheduled future-conclusion work, or a concretely marked
-global conclusion.
+The current checkpoint proves an exact obstruction to the unrestricted
+same-component endpoint-locality law. For every successful typed
+`WaitStep certificate before after`, a supplied
+`SchedulerInvariant certificate before` implies
+`¬ ActiveTopContinuationExitLocalized certificate after`. The theorem is
+conditional on the typed Wait transition; it does not construct a transition
+or show that any reachable canonical history contains one.
 
-At a drained active boundary, the scheduler invariant turns the open exits into
-sharper endpoint facts. A raw mate is structurally non-global and unmarked. A
-future conclusion is unmarked and queued at a boundary strictly older than the
-active top. The marked-global case remains an explicit terminal alternative.
-This is finite normalization of supplied evidence, not a construction of a
-history, an endpoint-locality proof, or a progress theorem.
+The proof isolates the two impossible localized exits at the Wait output. The
+selected active-frontier premise is marked, and its consumer's conclusion is
+unmarked waiting work. A raw-mate exit would require the already marked mate to
+be unmarked. A future-conclusion exit would place the same unmarked conclusion
+in the active component frontier and hence in ready work, contradicting the
+scheduler invariant's separation of ready and waiting vertices.
 
-`LocalizedContinuationExit` is the separate endpoint-owned carrier. It has
-only raw-mate and future-conclusion constructors, binds the selected endpoint
-to one component frontier, and deliberately has no marked-global constructor.
-`ActiveTopContinuationExitLocalized` asks for such a receipt at every marked
-nonconclusion on the active frontier. This predicate is sufficient only: the
-checkpoint neither claims it is necessary nor derives it from correctness,
-reachability, or a supplied canonical history, and it proves no arbitrary
-history or locality existence theorem.
+Consequently, `ActiveTopContinuationExitLocalized` cannot be preserved as an
+unrestricted invariant through successful Wait transitions. This conclusion
+does not require declarative correctness and proves neither reachability nor
+post-Wait drainedness. It also does not refute direct
+`ActiveTopMarkedNonconclusionDebt`, a locality law restricted to an appropriate
+drained state, a temporal or cross-component law, or another sufficient
+completion route.
 
-The checkpoint's new public surface is exactly three carriers, one predicate,
-and six theorem boundaries:
+The checkpoint's new public surface is exactly one theorem boundary:
 
 ```text
-ProofNetIR.SequentialFigure7.MarkedConclusionChain
-ProofNetIR.SequentialFigure7.ContinuationExit
-ProofNetIR.SequentialFigure7.LocalizedContinuationExit
-ProofNetIR.SequentialFigure7.ActiveTopContinuationExitLocalized
-ProofNetIR.SequentialFigure7.MarkedNonconclusionContinuation.continuationExit
-ProofNetIR.SequentialFigure7.FutureWorkAt.rawAge_lt_active_of_activeTopDrained
-ProofNetIR.SequentialFigure7.ContinuationExit.elim_of_activeTopDrained
-ProofNetIR.SequentialFigure7.LocalizedContinuationExit.continuationExit
-ProofNetIR.SequentialFigure7.activeTopMarkedNonconclusionDebt_of_continuationExitLocalized
-ProofNetIR.SequentialFigure7.SchedulerInvariant.allMarked_of_activeTopDrained_of_continuationExitLocalized
+ProofNetIR.SequentialFigure7.WaitStep.not_activeTopContinuationExitLocalized
 ```
 
-The first reduction theorem requires exactly structural well-formedness,
-queued-vertex unmarkedness, and endpoint locality to obtain
-`ActiveTopMarkedNonconclusionDebt`. The second combines declarative
-correctness, the complete scheduler invariant, `ActiveTopDrained`, and the same
-locality law to derive `core.allMarked = true`. Thus the checkpoint packages an
-exact sufficient completion route while leaving its missing endpoint-ownership
-premise visible.
+The preceding continuation-exit results remain valid. In particular,
+structural well-formedness, queued-vertex unmarkedness, and a supplied
+`ActiveTopContinuationExitLocalized` receipt still imply
+`ActiveTopMarkedNonconclusionDebt`; declarative correctness, the complete
+scheduler invariant, `ActiveTopDrained`, and the same supplied receipt still
+imply `core.allMarked = true`. The obstruction limits where that sufficient
+hypothesis can hold; it does not weaken either conditional implication.
 
 ### Finite ready-head boundary audit
 
@@ -118,31 +106,34 @@ Exact signatures are maintained in the generated API reference for the
 [active-top marked-nonconclusion debt](api-reference.md#active-top-marked-nonconclusion-debt),
 [branch-local continuation credit](api-reference.md#branch-local-continuation-credit),
 [continuation-credit preservation](api-reference.md#continuation-credit-preservation),
-and the new
-[endpoint-localized continuation exits](api-reference.md#endpoint-localized-continuation-exits).
-The first open proof step is to derive active-top debt or another
-history-compatible sufficient completion law from a correct supplied canonical
-history. Endpoint locality remains an explicit sufficient assumption not
-supplied by that history. Only after a sound bridge is available can the
-drained reduction contribute to an unconditional progress or completion
-argument.
+[endpoint-localized continuation exits](api-reference.md#endpoint-localized-continuation-exits),
+and the current
+[Wait endpoint-locality obstruction](api-reference.md#wait-endpoint-locality-obstruction).
+The first open proof step is to derive active-top debt directly from a correct
+supplied canonical history, formulate and preserve a Wait-compatible drained,
+temporal, or cross-component weakening, or establish another sufficient
+completion law. Only after a sound bridge is available can the drained
+reduction contribute to an unconditional progress or completion argument.
 
 ## What the rolling theorem does not prove
 
 This checkpoint does not establish any of the following:
 
 - construction or existence of a relevant `ExecutedHistory`, reachable state,
-  `CanonicalTagHistory`, or `ReadyHeadInput`;
+  `CanonicalTagHistory`, `ReadyHeadInput`, or successful Wait transition;
+- that any reachable canonical history contains a Wait, or that the output of a
+  supplied Wait is active-top drained;
 - necessity of `ActiveTopContinuationExitLocalized`, or its derivation from
   declarative correctness, reachability, or supplied canonical history;
-- endpoint-locality or active-top-debt preservation through complete canonical
-  histories;
+- direct active-top-debt preservation through complete canonical histories, or
+  preservation of a Wait-compatible drained, temporal, or cross-component
+  locality law;
 - the selected-away witness for Nop or Wait, or the exact non-global tail law
   for global-created Forward or UnifyPayload, from supplied history and
   correctness;
 - an unconditional reachable-state proof that `ActiveTopDrained` implies
-  `core.allMarked = true`, semantic completion, or terminality without the
-  endpoint-locality sufficient law (or some replacement completion premise);
+  `core.allMarked = true`, semantic completion, or terminality without a
+  compatible sufficient completion premise;
 - an exclusivity theorem for the exact-dispatch / active-top-drained
   disjunction;
 - a proof that every relevant semantic nonterminal state presents a ready head;
@@ -167,20 +158,23 @@ plan is maintained in [v0.10-design.md](v0.10-design.md) and
 The exact rolling proof checkpoint is:
 
 ```text
-commit    8939aa90a460a9e4aa89a76795f6fa0511ee733c
-tree      7ba1d5c0db32c0169bda73c5abe4f19d821cb838
-parent    536d3fc0b820e2ae71ce70ba834af5b6a5b9a715
-stage     finite endpoint-localized continuation exits
-delta     17 paths, +1000/-46
-manifest  586A23C0780BAA1EC31E43186D8776EF31D8A739E3A9B9BE21E318EF12387F65
+commit    b65409addd9c51df6458e6ffd8a6db4d0e384425
+tree      c8737affdecb5e5fe86381014588d0a19feb142a
+parent    80a3107a0b12a724d0bad42cd4e45e737f350a82
+stage     Wait-output endpoint-locality obstruction
+delta     17 paths, +532/-65
+manifest  405DEB7AAA3A782B48D4123DCEBBF5B879D56E2634A2EF1EFCD286AE44381DDA
 ```
+
+The manifest hashes canonical
+`path<TAB>UPPER_SHA256<TAB>blob<LF>` records for the committed delta.
 
 The checkpoint source receipts are:
 
 ```text
-source         2E1F129EDF8C2B5D7B53A7FE413DFA87AC928D6A8C8B3B9A7EA863BA34AE7708
-consumer       CE20C98A1AB821DAB6070F372C87211F9DF86D0807939BAE6801AED76032587E
-generated API  49E277D33DF487FA9076589BA618A14BDB89FC5938D70D31537CDA3F6E3A5DFE
+source         1C4AEC37CAF25E3AB653772395B41F85269D390AD15A1AC6D9A75C69C6960FBD
+consumer       1F7C24B318852569FBB11B6AD978A2F1C75BAA30B9B604DA12B75FB5ED175515
+generated API  A61828AC7FD8F1DF52C1D53BD4CA6C172089F35A32E427F6995B0BFDB11591B6
 ```
 
 The separately committed finite-audit evidence is:
@@ -196,17 +190,15 @@ manifest  4BBAB7FC99D03D2612459A0FD9291990313A05A184F2572A581BC93C6E49DFDD
 
 Local verification on the committed bytes:
 
-- full `lake build`: 472/472 jobs in 94.985 seconds;
-- Lean source audit: zero actual `sorry`/`admit` findings across 225 Lean
+- full `lake build`: 477/477 jobs;
+- Lean source audit: zero actual `sorry`/`admit` findings across 227 Lean
   files;
-- generated API reference: current at 52 sections and 1,588 declarations;
-- the runnable endpoint-localized continuation consumer destructed all three
-  carriers, consumed the locality predicate, exercised all six theorem
-  boundaries, and emitted exactly
-  `Figure-7 endpoint-localized continuation reduction: kernel-green`;
-- public declaration audit: 946 declarations total: 656 full-classical, 25
+- generated API reference: current at 53 sections and 1,589 declarations;
+- the runnable Wait-obstruction consumer invoked the public theorem, reduced an
+  assumed output-locality receipt to `False`, and emitted exactly
+  `Figure-7 wait-output endpoint-locality obstruction: kernel-green`;
+- public declaration audit: 947 declarations total: 657 full-classical, 25
   axiom-free, 127 `propext`-only, and 138 `propext` plus `Quot.sound`;
-- independent final reviews reported zero P0, P1, P2, or P3 findings;
 - the default, extended, and cross-variant progress audits passed with every
   incomplete visited state carrying an exact ready head and successful
   dispatch, every dispatch-none stop fully marked, and zero missing-head,
@@ -218,14 +210,14 @@ Exact-head proof GitHub verification:
 
 - workflow: `Lean CI`;
 - event/ref: `push` / `main`;
-- run: [32316380132](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32316380132);
-- build job: [96269371407](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32316380132/job/96269371407);
-- exact head: `8939aa90a460a9e4aa89a76795f6fa0511ee733c`;
+- run: [32320379041](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32320379041);
+- build job: [96281231734](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32320379041/job/96281231734);
+- exact head: `b65409addd9c51df6458e6ffd8a6db4d0e384425`;
 - result: 36 successful steps, zero failures, and one expected release-ref-only
   skip;
-- run: `2026-08-20T00:12:10Z`-`2026-08-20T00:25:05Z` (12m55s);
-- build job: `2026-08-20T00:12:14Z`-`2026-08-20T00:25:05Z`
-  (12m51s).
+- run: `2026-08-20T01:15:51Z`-`2026-08-20T01:28:38Z` (12m47s);
+- build job: `2026-08-20T01:15:55Z`-`2026-08-20T01:28:38Z`
+  (12m43s).
 
 Exact-head finite-audit GitHub verification:
 
@@ -292,14 +284,18 @@ deployment.
 
 The project goal remains open. The principal outstanding gates are:
 
-1. derive `ActiveTopMarkedNonconclusionDebt` or another history-compatible
-   sufficient completion law from a correct supplied canonical history; then
-   obtain the unconditional reachable-state `ActiveTopDrained → core.allMarked
-   = true` corollary and use marking incompleteness to exclude the residual.
-   `ActiveTopContinuationExitLocalized` remains an explicit sufficient
-   assumption not supplied by history. The finite exit theorem does not yet
-   provide endpoint ownership, and progress, completion, terminality,
-   later-state totality, and arbitrary history existence remain open;
+1. derive `ActiveTopMarkedNonconclusionDebt` directly from a correct supplied
+   canonical history, formulate and preserve a Wait-compatible drained,
+   temporal, or cross-component weakening, or prove another sufficient
+   completion law; then obtain the unconditional reachable-state
+   `ActiveTopDrained → core.allMarked = true` corollary and use marking
+   incompleteness to exclude the residual. The unrestricted
+   `ActiveTopContinuationExitLocalized` law is refuted after every supplied
+   successful typed Wait from a scheduler-invariant input, so it cannot be the
+   unchanged full-history invariant. The obstruction proves neither reachable
+   Wait existence nor post-Wait drainedness, and progress, completion,
+   terminality, later-state totality, and arbitrary history existence remain
+   open;
 2. close the separate queue-origin and remaining created-candidate laws needed
    by the global mate-region and raw-mark preservation families;
 3. derive exhaustive nonterminal dispatcher progress and later-state totality;
