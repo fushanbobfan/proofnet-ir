@@ -17,7 +17,7 @@ Status date: 2026-08-20
 | Track | Revision | Status | Authority |
 | --- | --- | --- | --- |
 | Stable library | `v0.9.0` / `9b7dc3d104af8f57ea9123aab2e61b42e05d2216` | Released | [v0.9.0 release audit](v0.9-release-audit.md) |
-| Rolling research | `v0.10.0-dev`; proof `685e0f2`; audit `1e46573` | Active | This page/commits |
+| Rolling research | `v0.10.0-dev`; proof `211ee8b`; audit `1e46573` | Active | This page/commits |
 
 Documentation-only commits may descend from the proof checkpoint without
 changing its mathematical authority. The stable release and rolling branch
@@ -103,14 +103,24 @@ from the selected head, concretely marked, authenticated by an exact
 not derive the path-avoidance premise or turn that historical mark into a
 distinct raw ready-tail payer.
 
-The current checkpoint advances that exact avoidance seam. For any adjacent
+The preceding checkpoint advances that exact avoidance seam. For any adjacent
 retained commitment edge, an explicit child-event untouched callback now
 produces a reference-switching path that avoids the supplied ready-head par
 conclusion. At the active equal-boundary edge, an inclusive dichotomy returns
 that avoiding path or an authentic same-age ledger event whose trace contains
 the exact par-conclusion step to the selected premise or its mate. This neither
-derives the callback nor eliminates either trace orientation, and it does not
-yet compose a complete avoiding return.
+derives the callback nor eliminates either trace orientation.
+
+The current checkpoint classifies the complete positive retained commitment
+interval against that par conclusion. If every local edge has an avoiding
+path, the interval compositor yields one endpoint path. Otherwise the theorem
+identifies an exact parent/child edge with no such local path and an authentic
+event at the child age whose trace contains the conclusion-to-selected or
+conclusion-to-mate step. Strict sigma ordering places that child strictly
+before or at the interval's final boundary. The endpoint-path and localized
+failed-edge alternatives remain inclusive. The theorem does not discharge the
+failed edge, eliminate either trace orientation, or produce a payer or tail
+law.
 
 The preceding queue/history-tail checkpoint remains valid. For supplied typed
 Nop and Wait steps, its iff theorems identify post-step debt with the exact
@@ -126,7 +136,7 @@ from a scheduler-invariant input refutes unrestricted
 same-component locality carrier, but neither refutes direct debt nor supplies
 the required queue-tail or elimination of the classified re-entry failure.
 
-The checkpoint's accumulated public surface is exactly seventeen declaration
+The checkpoint's accumulated public surface is exactly eighteen declaration
 boundaries:
 
 ```text
@@ -147,6 +157,7 @@ SequentialFigure7.CanonicalTagHistory.commitmentEdge_referencePath_avoiding_parC
 SequentialFigure7.ReservationEvent.touched_parConclusion_decomposition
 SequentialFigure7.ReservationEvent.touched_parConclusion_cases
 SequentialFigure7.CanonicalTagHistory.commitmentEdge_parConclusion_dichotomy
+SequentialFigure7.CanonicalTagHistory.commitmentInterval_parConclusion_dichotomy
 ```
 
 The earlier parent-escape, source-temporal, debt, history-tail,
@@ -154,9 +165,10 @@ continuation-exit, common and external temporal-outcome, commitment/re-entry,
 and conditional all-marked results remain valid. The re-entry reduction
 identifies the exact parent-edge, scheduler status, and canonical raw-mark
 provenance of each retained target. The current results provide one adjacent
-par-conclusion avoiding path from an explicit callback and classify the active
-edge as avoidance or one exact trace step. They do not make any conditional
-implication unconditional.
+par-conclusion avoiding path from an explicit callback, classify the active
+edge as avoidance or one exact trace step, and lift that inclusive
+classification across the complete positive interval. They do not make any
+conditional implication unconditional.
 
 ### Finite ready-head boundary audit
 
@@ -192,17 +204,17 @@ Exact signatures are maintained in the generated API reference for the
 [re-entry target status](api-reference.md#active-top-debt-parent-external-re-entry-target),
 [adjacent avoidance](api-reference.md#adjacent-commitment-edge-target-avoidance),
 [equal-boundary avoidance](api-reference.md#equal-boundary-commitment-target-avoidance),
+[interval par dichotomy](api-reference.md#commitment-interval-par-conclusion-dichotomy),
 [branch-local continuation credit](api-reference.md#branch-local-continuation-credit),
 [continuation-credit preservation](api-reference.md#continuation-credit-preservation),
 [endpoint-localized continuation exits](api-reference.md#endpoint-localized-continuation-exits),
 and the retained
 [Wait endpoint-locality obstruction](api-reference.md#wait-endpoint-locality-obstruction).
-The first open proof step is now to discharge the child-event untouched
-callbacks over the retained commitment return and eliminate the exact
-conclusion-to-selected or conclusion-to-mate trace branches. The resulting
-distinct historical mark must then be descended to a distinct active
-ready-tail payer. The waiting and external-raw outcome alternatives also remain
-unresolved.
+The first open proof step is now to eliminate the localized strict-older and
+equal-final conclusion-to-selected or conclusion-to-mate trace obstructions.
+The resulting distinct historical mark must then be descended to a distinct
+active ready-tail payer. The waiting and external-raw outcome alternatives
+also remain unresolved.
 The remaining global-created Forward/UnifyPayload alternatives must also be
 derived.
 Together these are the missing implication from correctness plus canonical
@@ -222,11 +234,10 @@ This checkpoint does not establish any of the following:
 - elimination of `ActiveCarrierParentExternalTemporalOutcome`, including a
   theorem that external raw or waiting work re-enters the active carrier, or
   that any branch supplies a distinct ready-tail payer;
-- derivation of the child-event untouched callbacks for every retained
-  commitment return, elimination of the exact conclusion-to-selected or
-  conclusion-to-mate trace branches, composition of a complete avoiding
-  return, or conversion of the distinct authenticated marked target into a
-  distinct active raw payer;
+- discharge of the localized failed commitment edge, elimination of its exact
+  conclusion-to-selected or conclusion-to-mate trace branches, or conversion
+  of the distinct authenticated marked target into a distinct active raw
+  payer;
 - terminality of the temporal outcome; in particular, its marked case may
   continue through another submitted connective;
 - the ordered distinct-payment or history re-entry law needed to turn the
@@ -271,12 +282,12 @@ plan is maintained in [v0.10-design.md](v0.10-design.md) and
 The exact rolling proof checkpoint is:
 
 ```text
-commit    ebcc7da57695591b16c5f177239732a26e1aa3e5
-tree      d2fdbf491cd9b7d811e2d5e0c402e43b76a7159d
-parent    cafe123803813b1c8c717ba95e0792dab04e6c5b
-stage     par-conclusion commitment-path classification
-delta     16 paths, +611/-44
-manifest  02B9D02F46976A4733C73E02CDF33279CF8ED24D268DC07CEF7E73844516E7AE
+commit    211ee8ba49e1d2548d76ad68dc91df779df176c9
+tree      780c438ec477187ad24f009fb29c2f109fc34cef
+parent    d2172369ea4fb371c917710b07ddc534274004a2
+stage     commitment-interval par-conclusion dichotomy
+delta     17 paths, +346/-25
+manifest  BA6AC2B6595C80AA6716A248A51CD27974BD40926656AC920209E60A4357A97F
 ```
 
 The manifest hashes canonical
@@ -285,11 +296,9 @@ The manifest hashes canonical
 The checkpoint source receipts are:
 
 ```text
-adjacent source    B4D304B93EF20016A8077802794ABD27D000B1294624F9697390572A500D9FC1
-equal source       D57B7FC8F796EB0E20894FD67C202EA7E9FE4B73E72BFDBD1879D637B597AAF8
-adjacent consumer  7E17AAE7C2224B847FADEDCDC33C0216EB037D7918EC11471DE1383C0957725F
-equal consumer     D3E45960DEE38BF87FAB4DC44363FCE31C179431D922985F0A9A39D2A64D5E85
-generated API      A3EF611D6DF20504A5BDDEAFF6D5AC3E222288AFBC791BEA9D5F93DAFDD26C26
+interval source    09A57C983CB78618B88CD80A1A100EC8BD1B1E7C2824265CCC52885802B8858B
+interval consumer  E267EE6BC3040C593E696D39D6A3CD6E5534717F6E0638E73CA3CD4A0E017D44
+generated API      7135817B996A2ABDCF2C1DACA730E322017A75D6F58601FB5D8929549544F027
 ```
 
 The separately committed finite-audit evidence is:
@@ -305,15 +314,14 @@ manifest  4BBAB7FC99D03D2612459A0FD9291990313A05A184F2572A581BC93C6E49DFDD
 
 Local verification on the committed bytes:
 
-- full `lake build`: 524/524 jobs;
-- Lean source audit: zero actual `sorry`/`admit` findings across 246 Lean
+- full `lake build`: 529/529 jobs;
+- Lean source audit: zero actual `sorry`/`admit` findings across 248 Lean
   files;
-- generated API reference: current at 63 sections and 1,639 declarations;
-- the two runnable commitment target-avoidance consumers called the adjacent
-  par specialization, destructured both exact trace orientations and both
-  active-edge dichotomy branches, and emitted their exact API-consumer pass
-  markers;
-- public theorem audit: 975 entries total: 683 full-classical, 25
+- generated API reference: current at 64 sections and 1,640 declarations;
+- the runnable interval consumer called the public theorem, reconstructed the
+  composed-path case, destructured every failed-edge field and both exact trace
+  orientations, and emitted its kernel-green marker;
+- public theorem audit: 976 entries total: 684 full-classical, 25
   axiom-free, 128 `propext`-only, and 139 `propext` plus `Quot.sound`;
 - the default, extended, and cross-variant progress audits passed with every
   incomplete visited state carrying an exact ready head and successful
@@ -326,16 +334,16 @@ Exact-head proof GitHub verification:
 
 - workflow: `Lean CI`;
 - event/ref: `push` / `main`;
-- run: [32364609414](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32364609414);
-- build job: [96411304606][proof-job];
-- exact head: `ebcc7da57695591b16c5f177239732a26e1aa3e5`;
+- run: [32367635262](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32367635262);
+- build job: [96420599276][proof-job];
+- exact head: `211ee8ba49e1d2548d76ad68dc91df779df176c9`;
 - result: 36 successful steps, zero failures, and one expected release-ref-only
   skip;
-- run: `2026-08-20T11:36:14Z`-`2026-08-20T11:49:36Z` (13m22s);
-- build job: `2026-08-20T11:36:17Z`-`2026-08-20T11:49:35Z`
-  (13m18s).
+- run: `2026-08-20T12:12:24Z`-`2026-08-20T12:21:47Z` (9m23s);
+- build job: `2026-08-20T12:12:28Z`-`2026-08-20T12:21:46Z`
+  (9m18s).
 
-[proof-job]: https://github.com/fushanbobfan/proofnet-ir/actions/runs/32364609414/job/96411304606
+[proof-job]: https://github.com/fushanbobfan/proofnet-ir/actions/runs/32367635262/job/96420599276
 
 Exact-head finite-audit GitHub verification:
 
@@ -402,10 +410,10 @@ deployment.
 
 The project goal remains open. The principal outstanding gates are:
 
-1. discharge the child-event untouched callbacks and the exact
-   conclusion-to-selected/mate trace branches over the retained commitment
-   return, then descend the resulting distinct authenticated mark to an active
-   ready-tail payer;
+1. eliminate the localized strict-older and equal-final
+   conclusion-to-selected/mate trace obstructions over the retained commitment
+   interval, then descend the resulting distinct authenticated mark to an
+   active ready-tail payer;
    resolve the waiting/raw outcome alternatives; then derive the remaining
    global-created Forward/UnifyPayload alternatives;
    equivalently, prove that correctness plus `CanonicalTagHistory` implies
