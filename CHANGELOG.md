@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- refined the generic exact raw-return branch to an authenticated first-step
+  representative descent. When the re-entry target starts at the active
+  representative and its submitted parent conclusion lies outside the active
+  occurrence carrier, the first marked-conclusion-chain step lands at a
+  strictly older representative; canonical tag history supplies the exact
+  `RawMarked` event for that conclusion. The typed Wait reduction now exposes
+  this descent instead of an opaque exact return, but does not eliminate it,
+  derive the history-tail law, or prove progress. The verified combined audit
+  covers 1002 theorems: 709 standard-three, 25 axiom-free, 129
+  `propext`-only, and 139 `propext`/`Quot.sound` boundaries;
 - eliminated the exact raw return to the current opposite premise from the
   typed Nop marked re-entry target. Every nontrivial marked-conclusion chain
   ends at a concretely marked vertex, whereas a successful Nop keeps that mate

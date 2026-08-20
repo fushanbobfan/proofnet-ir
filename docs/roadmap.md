@@ -1102,8 +1102,11 @@
     marked-conclusion chain ends concretely marked, while the Nop mate remains
     raw-unmarked. Retain raw-outside, older-future, and older-marked-global
     exits in the refined target, and leave Wait unchanged.
-  - [ ] Eliminate the remaining Wait cyclic residuals, the other finite exits,
-    and the equal-final traces, or recover a distinct
+  - [x] Refine the exact return retained by Wait to an authenticated first-step
+    descent. The first parent conclusion outside the active carrier is marked
+    at a strictly older representative, with its exact canonical-history event.
+  - [ ] Eliminate that Wait descent and the remaining cyclic residuals, the
+    other finite exits, and the equal-final traces, or recover a distinct
     ready-tail payer. Do not infer
     unconditional dispatcher progress, completion, terminality, later-state
     totality, global raw seams, fallback removal, Figure-7 pure-worklist

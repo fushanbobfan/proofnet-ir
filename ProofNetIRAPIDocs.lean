@@ -852,6 +852,24 @@ def sections : List Section := [
     ]
   },
   {
+    title := "Marked re-entry target raw-return first descent"
+    declarations := [
+      `ProofNetIR.SequentialFigure7.MarkedConclusionChainFirstRepresentativeDescent,
+      Name.str
+        `ProofNetIR.SequentialFigure7.MarkedConclusionChain
+        "firstRepresentativeDescent_of_ne",
+      `ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedContinuationFirstDescentTarget,
+      Name.str
+        (Name.str
+          `ProofNetIR.SequentialFigure7
+          "ActiveCarrierExternalReentryMarkedMateSeparatedContinuationExitTarget")
+        "firstDescentTarget",
+      Name.str
+        `ProofNetIR.SequentialFigure7.WaitStep
+        "commitmentInterval_parTraceReentryMarkedContinuationFirstDescentOutcome"
+    ]
+  },
+  {
     title := "Marked re-entry target raw-return cyclic reduction"
     declarations := [
       `ProofNetIR.SequentialFigure7.MarkedConclusionRawReturnCyclicOutcome,

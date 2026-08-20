@@ -127,6 +127,13 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "ProofNetIR.SequentialFigure7.NopStep."
     "commitmentInterval_parTraceReentryMarkedContinuationNoExactReturnOutcome",
     "ProofNetIR.SequentialFigure7.MarkedConclusionChain."
+    "firstRepresentativeDescent_of_ne",
+    "ProofNetIR.SequentialFigure7."
+    "ActiveCarrierExternalReentryMarkedMateSeparatedContinuationExitTarget."
+    "firstDescentTarget",
+    "ProofNetIR.SequentialFigure7.WaitStep."
+    "commitmentInterval_parTraceReentryMarkedContinuationFirstDescentOutcome",
+    "ProofNetIR.SequentialFigure7.MarkedConclusionChain."
     "rawReturnCyclicReduction",
     "ProofNetIR.SequentialFigure7.MarkedConclusionChain."
     "rawReturnCyclicJunctionReduction",

@@ -502,6 +502,12 @@ the concrete terminal mark forced by any nontrivial marked-conclusion chain
 ending at that mate. This removes only the exact-return alternative from the
 Nop marked re-entry target. Raw work outside the active carrier, older future
 work, an older marked global conclusion, and every Wait residual remain open.
+`SequentialFigure7MarkedTargetRawReturnFirstDescent.lean`
+adds no source reading. It combines exact submitted-parent ownership, marked
+occurrence accounting, representative ordering, and canonical raw-mark history.
+For a nontrivial exact return, the first marked parent conclusion outside the
+active carrier is authenticated and has a strictly older representative. This
+refines the Wait residual without eliminating it or deriving a ready tail.
 Global preservation of the mate-region and older-raw-mark invariants through
 candidate-creating rules remains open, as do queue origin, created-candidate raw
 seams, derivation of the re-entry avoidance premise, marked-history descent,

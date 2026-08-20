@@ -321,6 +321,15 @@ end ProofNetIR.SequentialFigure7
 #print axioms
   SequentialFigure7.NopStep.commitmentInterval_parTraceReentryMarkedContinuationNoExactReturnOutcome
 #print axioms
+  SequentialFigure7.MarkedConclusionChain.firstRepresentativeDescent_of_ne
+namespace ProofNetIR.SequentialFigure7
+namespace ActiveCarrierExternalReentryMarkedMateSeparatedContinuationExitTarget
+#print axioms firstDescentTarget
+end ActiveCarrierExternalReentryMarkedMateSeparatedContinuationExitTarget
+end ProofNetIR.SequentialFigure7
+#print axioms
+  SequentialFigure7.WaitStep.commitmentInterval_parTraceReentryMarkedContinuationFirstDescentOutcome
+#print axioms
   SequentialFigure7.MarkedConclusionChain.rawReturnCyclicReduction
 #print axioms
   SequentialFigure7.MarkedConclusionChain.rawReturnCyclicJunctionReduction

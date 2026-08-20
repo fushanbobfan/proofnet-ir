@@ -995,6 +995,14 @@ mate in the Nop branch. The other three finite exits and the Wait residuals are
 unchanged. The verified combined audit covers 999 theorems: 706
 standard-three, 25 axiom-free, 129 `propext`-only, and 139
 `propext`/`Quot.sound` boundaries.
+`SequentialFigure7MarkedTargetRawReturnFirstDescent.lean`
+adds two proposition carriers and three standard-three theorems. Exact parent
+uniqueness and occurrence ownership identify the first parent conclusion;
+ordered representatives make it strictly older, and canonical tag history
+authenticates its raw-mark event. No runtime witness or oracle is introduced.
+The reduction exposes but does not eliminate the Wait descent. The verified
+combined audit covers 1002 theorems: 709 standard-three, 25 axiom-free, 129
+`propext`-only, and 139 `propext`/`Quot.sound` boundaries.
 `SequentialFigure7CrossRepresentativeWaitPreservation.lean` adds no hidden
 source-region oracle. Its output-work classification follows only from the
 typed destination's exact waiting prepend and unchanged ready/sigma fields;

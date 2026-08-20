@@ -1187,6 +1187,14 @@ part of the engineering and proof-identity gap.
    conclusion. Wait and the generic cyclic residuals are unchanged. The
    verified combined audit now covers 999 theorems: 706 standard-three, 25
    axiom-free, 129 `propext`-only, and 139 `propext`/`Quot.sound` boundaries.
+   `SequentialFigure7MarkedTargetRawReturnFirstDescent.lean` then refines the
+   exact-return branch retained by Wait. Its first submitted parent conclusion
+   lies outside the active occurrence carrier, so a nontrivial return chain
+   immediately reaches a strictly older representative. Canonical tag history
+   authenticates that marked conclusion. The theorem exposes rather than
+   eliminates this residual and derives no tail law or progress. The verified
+   combined audit now covers 1002 theorems: 709 standard-three, 25 axiom-free,
+   129 `propext`-only, and 139 `propext`/`Quot.sound` boundaries.
    `SequentialFigure7CommitmentBlockerAdvance.lean` now combines the global
    queued-head law, strict split, and equal-boundary result. Under declarative
    correctness and the complete scheduler invariant, for a supplied canonical

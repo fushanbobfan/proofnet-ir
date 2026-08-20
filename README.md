@@ -37,10 +37,10 @@ For a typed Nop, a nontrivial marked-conclusion chain has a concretely marked
 terminal, while the current opposite premise remains raw-unmarked. Hence the
 exact return to that premise is impossible. Raw work outside the active carrier,
 older future work, and an older marked global conclusion remain possible.
-Wait still retains the exact-return and cyclic residuals.
-This proves no unconditional all-marked, progress, completion, termination,
-totality, or completeness result. Eliminating the remaining exits and
-equal-final traces, including the Wait residuals, remains open.
+Wait exact return exposes its first outside parent as an authenticated mark at
+a strictly older representative; it is a descent residual, not an elimination.
+No unconditional all-marked, progress, completion, termination, totality, or
+completeness follows; remaining exits and equal-final traces stay open.
 [Current status](docs/current-status.md) owns exact revision, verification receipt, and gates.
 <!-- ROLLING_MAIN_SUMMARY_END -->
 

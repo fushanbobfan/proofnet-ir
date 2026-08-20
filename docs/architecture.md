@@ -1577,6 +1577,17 @@ outside the active carrier, older future work, and an older marked global
 conclusion. It neither changes the generic cyclic reduction nor eliminates the
 corresponding Wait branch, and it supplies no tail law or progress result.
 
+`SequentialFigure7MarkedTargetRawReturnFirstDescent.lean`
+refines the exact-return branch that remains in the generic and Wait targets.
+The re-entry premise is marked at the active representative, while its exact
+submitted parent conclusion lies outside the active occurrence carrier. If the
+marked-conclusion chain returns to the current mate, its first step therefore
+lands at a strictly older representative. Canonical tag history authenticates
+that first conclusion as a `RawMarked` event. The refined target retains raw
+work outside the carrier, this first-step descent, older future work, and an
+older marked global conclusion. The descent is not eliminated and supplies no
+ready-tail, history-tail, completion, or progress theorem.
+
 `SequentialFigure7CommitmentBlockerAdvance.lean` joins the global queued-head
 law, the strict `sigma` split, the strict-edge avoiding adapter, and the final
 equal-boundary classification. Under declarative correctness and the complete
