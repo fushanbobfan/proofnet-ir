@@ -17,7 +17,7 @@ Status date: 2026-08-19
 | Track | Revision | Status | Authority |
 | --- | --- | --- | --- |
 | Stable library | `v0.9.0` / `9b7dc3d104af8f57ea9123aab2e61b42e05d2216` | Released | [v0.9.0 release audit](v0.9-release-audit.md) |
-| Rolling research | `v0.10.0-dev`; latest proof checkpoint `40b40696e422195e438ee7a7596bec666f0b047c`; latest finite-audit evidence `1e46573141a8ad683cc539480f18c92992bda60c` | Active | This page and the exact commits |
+| Rolling research | `v0.10.0-dev`; proof `0a93f48`; audit `1e46573` | Active | This page/commits |
 
 Documentation-only commits may descend from the proof checkpoint without
 changing its mathematical authority. The stable release and rolling branch
@@ -46,43 +46,48 @@ The exact release guarantees, receipts, and non-goals are frozen in the
 
 ## Rolling main result
 
-The current checkpoint isolates the exact queue-tail residual for active-top
-marked-nonconclusion debt. For a supplied successful typed Nop or Wait, an
-input `SchedulerInvariant`, and prior `ActiveTopMarkedNonconclusionDebt`, debt
-after the step holds exactly when the prepared `remainingTop` contains a vertex
-outside the certificate's global conclusions. These iff theorems normalize the
-residual; they do not manufacture the non-global tail witness from correctness,
-history, or reachability.
+The current checkpoint isolates the first exact failure boundary behind the
+Nop/Wait non-global ready-tail obligation for a selected `par`. Given an
+explicit `ReadyHeadInput`, declarative correctness, a `SchedulerInvariant`,
+and the selected connective, the active occurrence carrier exists and one of
+two outcomes follows: the ready tail already contains a non-global vertex, or
+a distinct concretely marked non-global frontier premise has a submitted
+connective parent whose conclusion lies outside the active owned carrier.
+The latter outcome is packaged as `ActiveCarrierParentEscape`.
 
-The checkpoint also packages the six exact current branch obligations as the
-reset-aware `CanonicalTagHistory.ActiveTopDebtTailLaw`. Concl recurses; Nop and
-Wait require the current non-global `remainingTop` witness and recurse; New
-resets. Forward and UnifyPayload stop recursion and retain only their exact
-current non-global-created or global-created-tail alternative. Supplying this
-law with its matching canonical tag history yields
-`ActiveTopMarkedNonconclusionDebt` at the endpoint. The law remains an explicit
-premise, not a consequence of correctness or canonical history.
+The failure-conditioned theorem removes the first alternative: if the
+non-global ready-tail witness is absent, the exact parent escape follows. A
+supplied `CanonicalTagHistory` authenticates the escape's concrete mark as an
+earlier `RawMarked` event. These reductions do not prove that the escape is
+impossible, do not assert that the two outcomes are exclusive, and neither
+assume nor derive `ActiveTopDebtTailLaw`.
 
-The preceding Wait obstruction remains valid: every successful typed Wait from
-a scheduler-invariant input refutes unrestricted
+The preceding queue/history-tail checkpoint remains valid. For supplied typed
+Nop and Wait steps, its iff theorems identify post-step debt with the exact
+non-global `remainingTop` witness, assuming the input scheduler invariant and
+prior debt. Its reset-aware `CanonicalTagHistory.ActiveTopDebtTailLaw` still
+packages all six branch obligations, and its endpoint theorem still derives
+debt only from a supplied instance of that law. Correctness plus canonical
+history has not yet been proved to produce the law.
+
+The earlier Wait obstruction also remains valid: every successful typed Wait
+from a scheduler-invariant input refutes unrestricted
 `ActiveTopContinuationExitLocalized` at its output. It rules out that unchanged
-same-component locality carrier, but neither refutes direct debt nor derives
-the new history-tail law. It still proves neither reachable Wait existence nor
-post-Wait drainedness.
+same-component locality carrier, but neither refutes direct debt nor supplies
+the required queue-tail or parent re-entry argument.
 
 The checkpoint's new public surface is exactly four declaration boundaries:
 
 ```text
-ProofNetIR.SequentialFigure7.NopStep.activeTopMarkedNonconclusionDebt_iff_readyTailNonconclusion
-ProofNetIR.SequentialFigure7.WaitStep.activeTopMarkedNonconclusionDebt_iff_readyTailNonconclusion
-ProofNetIR.SequentialFigure7.CanonicalTagHistory.ActiveTopDebtTailLaw
-ProofNetIR.SequentialFigure7.CanonicalTagHistory.activeTopMarkedNonconclusionDebt_of_tailLaw
+ProofNetIR.SequentialFigure7.ActiveCarrierParentEscape
+ProofNetIR.SequentialFigure7.ActiveCarrierParentEscape.authenticMarkedPremise
+ProofNetIR.SequentialFigure7.ReadyHeadInput.readyTail_nonconclusion_or_parentEscape
+ProofNetIR.SequentialFigure7.ReadyHeadInput.parentEscape_of_no_readyTail
 ```
 
-The earlier debt, branch-residual, continuation-exit, and conditional
-all-marked results remain valid. The new history theorem consumes a supplied
-tail law; it does not make any of those conditional implications
-unconditional.
+The earlier debt, history-tail, continuation-exit, and conditional all-marked
+results remain valid. The new reduction exposes a narrower obstruction; it
+does not make any conditional implication unconditional.
 
 ### Finite ready-head boundary audit
 
@@ -108,17 +113,20 @@ Exact signatures are maintained in the generated API reference for the
 [active-top debt branch residuals](api-reference.md#active-top-debt-branch-residuals),
 [active-top debt ready-tail normalization](api-reference.md#active-top-debt-ready-tail-normalization),
 [active-top debt history-tail law](api-reference.md#active-top-debt-history-tail-law),
+[active-top debt parent escape](api-reference.md#active-top-debt-parent-escape),
 [branch-local continuation credit](api-reference.md#branch-local-continuation-credit),
 [continuation-credit preservation](api-reference.md#continuation-credit-preservation),
 [endpoint-localized continuation exits](api-reference.md#endpoint-localized-continuation-exits),
 and the retained
 [Wait endpoint-locality obstruction](api-reference.md#wait-endpoint-locality-obstruction).
-The first open proof step is the exact history-level queue-ordering theorem:
-derive the Nop/Wait non-global `remainingTop` witnesses and the global-created
-Forward/UnifyPayload tail alternatives from correctness plus canonical tag
-history. At this packaged boundary, that is the missing implication to
-`ActiveTopDebtTailLaw`. Only after it is proved can the debt and drained
-reductions contribute to an unconditional progress or completion argument.
+The first open proof step is now failure-conditioned: use the authenticated
+parent escape to prove the ordered distinct-payment or re-entry fact that
+rules out a missing non-global ready tail, with the par and tensor cases kept
+separate. The remaining global-created Forward/UnifyPayload alternatives must
+also be derived. Together these are the missing implication from correctness
+plus canonical tag history to `ActiveTopDebtTailLaw`. Only after that law is
+established can the debt and drained reductions contribute to an
+unconditional progress or completion argument.
 
 ## What the rolling theorem does not prove
 
@@ -126,6 +134,11 @@ This checkpoint does not establish any of the following:
 
 - construction or existence of a relevant `ExecutedHistory`, reachable state,
   `CanonicalTagHistory`, `ReadyHeadInput`, or successful Nop or Wait transition;
+- impossibility of `ActiveCarrierParentEscape`, exclusivity between an escape
+  and a valid non-global ready-tail witness, or a proof that an escaped parent
+  re-enters the active carrier;
+- the failure-conditioned par/tensor ordered distinct-payment law needed to
+  turn the parent escape into the missing queue-tail result;
 - derivation of `ActiveTopDebtTailLaw` from declarative correctness,
   reachability, or the matching canonical tag history;
 - existence of the exact non-global `remainingTop` witness for Nop or Wait, or
@@ -166,12 +179,12 @@ plan is maintained in [v0.10-design.md](v0.10-design.md) and
 The exact rolling proof checkpoint is:
 
 ```text
-commit    40b40696e422195e438ee7a7596bec666f0b047c
-tree      27c47073687a5f475c584ba810c26faa84ceffed
-parent    7344206bf899baa7afd2a712de5e63b25e1ca0f8
-stage     active-top debt queue/history tails
-delta     18 paths, +717/-49
-manifest  A766B1FE4765B7D4C224EC8BC0A4D79BFF5ED99B44760AB2FE806E111BF5D26C
+commit    0a93f48da6a453d5a3c16d9569a0b4aaf7327d5a
+tree      318a657be93a1621daeee6cc4449a71cba4cbbe7
+parent    df14d4616cd0e7d5f87174f13f4a77575831572a
+stage     active-top debt parent escape
+delta     17 paths, +1299/-50
+manifest  6B786534C098E033DE4F1E6C3434872B6D9CEFC387BF2EE56451BE85A879DA64
 ```
 
 The manifest hashes canonical
@@ -180,10 +193,9 @@ The manifest hashes canonical
 The checkpoint source receipts are:
 
 ```text
-queue source   353EF031F539AC7CD431DF87DBCBB01A800FE63FB433D94ECFB2EF557547B56E
-history source AA1EF86AB74680996460DE69D6FBCA68A4243B0AB586CE1A77078656C73394A8
-consumer       4AC40A040A64AA47E04A42FF326C32E12FF02C5188FC1E11E58A73CC6EF9B9C9
-generated API  521B2D710993E22FE077F78C204589FC7E769880365A36D431137B40A27AA935
+source         2D3CD80BB9738C336DC1B1E9EB753938822C315CA27BFD773DC62CC9AC36E346
+consumer       FC84528991855F69F701154DA4959CD74CA4907645F3620A59BA4AC4C74E5892
+generated API  914E01635BD1A512E105A88B7470BC72A474391C54614F6D855B2716214E3E15
 ```
 
 The separately committed finite-audit evidence is:
@@ -199,14 +211,15 @@ manifest  4BBAB7FC99D03D2612459A0FD9291990313A05A184F2572A581BC93C6E49DFDD
 
 Local verification on the committed bytes:
 
-- full `lake build`: 484/484 jobs;
-- Lean source audit: zero actual `sorry`/`admit` findings across 230 Lean
+- full `lake build`: 489/489 jobs;
+- Lean source audit: zero actual `sorry`/`admit` findings across 232 Lean
   files;
-- generated API reference: current at 55 sections and 1,593 declarations;
-- the runnable history-tail consumer exercised both queue-tail iff directions,
-  unfolded all six history-law branches, invoked the endpoint theorem, and
-  emitted exactly `active-top debt history-tail consumer: kernel-green`;
-- public declaration audit: 950 declarations total: 660 full-classical, 25
+- generated API reference: current at 56 sections and 1,597 declarations;
+- the runnable parent-escape consumer destructured both reduction outcomes,
+  authenticated the escaped marked premise, exercised the failure-conditioned
+  theorem, and emitted exactly
+  `active-top debt parent-escape consumer: kernel-green`;
+- public declaration audit: 953 declarations total: 663 full-classical, 25
   axiom-free, 127 `propext`-only, and 138 `propext` plus `Quot.sound`;
 - the default, extended, and cross-variant progress audits passed with every
   incomplete visited state carrying an exact ready head and successful
@@ -219,14 +232,16 @@ Exact-head proof GitHub verification:
 
 - workflow: `Lean CI`;
 - event/ref: `push` / `main`;
-- run: [32324934855](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32324934855);
-- build job: [96294176391](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32324934855/job/96294176391);
-- exact head: `40b40696e422195e438ee7a7596bec666f0b047c`;
+- run: [32331957954](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32331957954);
+- build job: [96314179927][proof-job];
+- exact head: `0a93f48da6a453d5a3c16d9569a0b4aaf7327d5a`;
 - result: 36 successful steps, zero failures, and one expected release-ref-only
   skip;
-- run: `2026-08-20T02:31:21Z`-`2026-08-20T02:42:55Z` (11m34s);
-- build job: `2026-08-20T02:31:25Z`-`2026-08-20T02:42:55Z`
-  (11m30s).
+- run: `2026-08-20T04:27:31Z`-`2026-08-20T04:37:50Z` (10m19s);
+- build job: `2026-08-20T04:27:34Z`-`2026-08-20T04:37:50Z`
+  (10m16s).
+
+[proof-job]: https://github.com/fushanbobfan/proofnet-ir/actions/runs/32331957954/job/96314179927
 
 Exact-head finite-audit GitHub verification:
 
@@ -293,9 +308,10 @@ deployment.
 
 The project goal remains open. The principal outstanding gates are:
 
-1. derive the exact history-level queue-order tails for Nop and Wait and the
-   global-created Forward and UnifyPayload alternatives; equivalently, prove
-   that correctness plus `CanonicalTagHistory` implies
+1. close the failure-conditioned parent re-entry or ordered distinct-payment
+   law exposed by the new reduction, separately for par and tensor sources,
+   and derive the remaining global-created Forward/UnifyPayload alternatives;
+   equivalently, prove that correctness plus `CanonicalTagHistory` implies
    `ActiveTopDebtTailLaw`. Only after that gate may endpoint debt combine with
    active-top drainedness and marking incompleteness in an unconditional
    progress argument. The unrestricted `ActiveTopContinuationExitLocalized`
