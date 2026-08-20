@@ -23,29 +23,21 @@ latest research surface and are prepared for documented development changes.
 <!-- ROLLING_MAIN_SUMMARY_START -->
 ### Rolling-main summary
 
-For a correct selected `par`, a ready-head input and `SchedulerInvariant`
-yield a non-global ready tail or a carrier parent escape. No tail forces escape.
-
-Canonical history normalizes par and tensor escapes into one temporal outcome.
-No-tail Nop and Wait guards leave external raw work or strictly older work. A
+For a correct selected `par`, a ready-head input and scheduler invariant yield
+a non-global ready tail or a carrier parent escape. No tail forces escape.
+Canonical history normalizes par and tensor escapes into temporal outcomes.
+No-tail Nop and Wait guards leave external raw work or strictly older work; a
 positive retained `sigma` interval returns older endpoints through re-entry.
-
-Re-entry reverses a submitted parent edge. For the typed Nop/Wait older mate,
-supplied connectedness now classifies its target as selected raw, ready-tail
-raw, or a prior mark; equal-final trace branches remain.
-
-An adjacent commitment edge gets that avoidance from an explicit child-event
-untouched law. Across a complete positive interval, local paths compose or one
-exact child edge fails with an authentic selected/mate trace.
-
-A strictly older failure can only trace to an external stored-right mate. For
-actual Nop it is raw-unmarked; for Wait it is concretely marked with a strictly
-older representative. Equal-final failures retain both trace directions, and
-the outer alternatives remain inclusive; selected/marked re-entry targets stay open.
-
+Re-entry reverses a submitted parent edge. Supplied connectedness classifies
+its target as selected raw, ready-tail raw, or a prior concrete mark.
+Under exact no-tail failure, a strictly older stored-right branch cannot target
+the selected head. Its target is a distinct authenticated concrete mark
+represented at the active boundary. Nop keeps an external raw-unmarked mate;
+Wait keeps an external marked mate with a strictly older representative.
+The avoiding and equal-final selected/mate branches remain inclusive.
 This proves no unconditional all-marked, progress, completion, termination,
-totality, or completeness result. Equal-final traces and return of the external
-endpoints to a payer remain open. Next eliminate re-entry targets and global tails.
+totality, or completeness result. Equal-final traces, elimination of the
+marked re-entry target, and global tails remain open.
 [Current status](docs/current-status.md) owns exact revision, verification receipt, and gates.
 <!-- ROLLING_MAIN_SUMMARY_END -->
 

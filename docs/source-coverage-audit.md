@@ -383,9 +383,9 @@ tail is absent, the failure-conditioned theorem forces the escape.
 `CanonicalTagHistory` is used only by the separate theorem authenticating the
 concrete mark as an earlier prepared-selection event. This layer neither
 assumes nor derives `ActiveTopDebtTailLaw`, and it contains no computational
-coexistence receipt. The downstream re-entry classifier now reduces no-tail
-failure to selected-raw or concretely-marked targets; eliminating those cases
-remains open.
+coexistence receipt. The downstream re-entry classifier reduces no-tail failure
+to selected-raw or concretely-marked targets; its stored-right specialization
+now eliminates the selected target, while the marked target remains open.
 `SequentialFigure7ActiveTopDebtParentEscapeTemporal.lean` is another
 kernel-checked code consequence and adds no source reading. With a matching
 canonical tag history, correctness, scheduler invariant, active
@@ -455,6 +455,12 @@ Nop/Wait mate through one active-carrier inbound parent edge and classifies
 its target as selected raw, non-global ready-tail raw, or concretely marked.
 The selected/marked and equal-final branches remain, so this is not yet a
 tail-law or progress theorem.
+`SequentialFigure7CommitmentIntervalParGuardReentryFailure.lean` also adds no
+source reading. Under exact absence of a non-global ready-tail witness, the
+stored-right guard, parent uniqueness, and strict complexity exclude the
+selected target in the strictly older Nop/Wait branch. The surviving target is
+a distinct authenticated concrete mark represented at the active boundary.
+The theorem does not eliminate that mark or either equal-final trace.
 Global preservation of the mate-region and older-raw-mark invariants through
 candidate-creating rules remains open, as do queue origin, created-candidate raw
 seams, derivation of the re-entry avoidance premise, marked-history descent,

@@ -9237,6 +9237,73 @@ ProofNetIR.SequentialFigure7.WaitStep.commitmentInterval_parTraceReentryTargetOu
                                 step.prepared.readyHeadInput component owned step.consumer.mate)
 ```
 
+## Commitment-interval par-guard re-entry failure target
+
+### `ProofNetIR.SequentialFigure7.NopStep.commitmentInterval_parTraceReentryMarkedOutcome`
+
+Kind: theorem.
+
+Under exact failure of the non-global ready-tail obligation, the strictly
+older Nop mate re-enters the active carrier at a distinct authenticated marked
+target represented by the active boundary.
+
+```lean
+ProofNetIR.SequentialFigure7.NopStep.commitmentInterval_parTraceReentryMarkedOutcome : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before},
+  certificate.ReferenceSwitchingConnected →
+    ∀ (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+      ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+        ∀ (step : ProofNetIR.SequentialFigure7.NopStep certificate before after)
+          {component : ProofNetIR.UnificationComponent} {usedLinks owned : List Nat},
+          before.core.components[step.prepared.stackResult.rawAge]? = some (some component) →
+            certificate.ComponentOccurrenceWitness component usedLinks owned →
+              ∀ {position edgeCount : Nat} {first : ProofNetIR.SequentialSchedulerState.RawTokenAge},
+                0 < edgeCount →
+                  before.stack.sigma[position]? = some first →
+                    before.stack.sigma[position + edgeCount]? = some step.prepared.stackResult.rawAge →
+                      (¬∃ pending,
+                            pending ∈ step.prepared.stackResult.remainingTop ∧ ¬pending ∈ certificate.conclusions) →
+                        tagHistory.CommitmentIntervalParTraceOutcome step.prepared.readyHeadInput step.consumer position
+                          edgeCount first
+                          (¬step.consumer.mate ∈ owned ∧
+                            before.core.marks[step.consumer.mate]? = some none ∧
+                              ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedHistoricalTarget tagHistory
+                                step.prepared.readyHeadInput component owned step.consumer.mate)
+```
+
+### `ProofNetIR.SequentialFigure7.WaitStep.commitmentInterval_parTraceReentryMarkedOutcome`
+
+Kind: theorem.
+
+Under exact failure of the non-global ready-tail obligation, the strictly
+older Wait mate re-enters the active carrier at a distinct authenticated marked
+target represented by the active boundary.
+
+```lean
+ProofNetIR.SequentialFigure7.WaitStep.commitmentInterval_parTraceReentryMarkedOutcome : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before},
+  certificate.ReferenceSwitchingConnected →
+    ∀ (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+      ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+        ∀ (step : ProofNetIR.SequentialFigure7.WaitStep certificate before after)
+          {component : ProofNetIR.UnificationComponent} {usedLinks owned : List Nat},
+          before.core.components[step.prepared.stackResult.rawAge]? = some (some component) →
+            certificate.ComponentOccurrenceWitness component usedLinks owned →
+              ∀ {position edgeCount : Nat} {first : ProofNetIR.SequentialSchedulerState.RawTokenAge},
+                0 < edgeCount →
+                  before.stack.sigma[position]? = some first →
+                    before.stack.sigma[position + edgeCount]? = some step.prepared.stackResult.rawAge →
+                      (¬∃ pending,
+                            pending ∈ step.prepared.stackResult.remainingTop ∧ ¬pending ∈ certificate.conclusions) →
+                        tagHistory.CommitmentIntervalParTraceOutcome step.prepared.readyHeadInput step.consumer position
+                          edgeCount first
+                          (¬step.consumer.mate ∈ owned ∧
+                            before.core.marks[step.consumer.mate]? = some (some step.mateRawAge) ∧
+                              before.core.representative step.mateRawAge < step.prepared.stackResult.rawAge ∧
+                                ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedHistoricalTarget
+                                  tagHistory step.prepared.readyHeadInput component owned step.consumer.mate)
+```
+
 ## Commitment blocker advance
 
 ### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.strictOlder_commitmentPath_or_advance_or_equalCallbackFailure`

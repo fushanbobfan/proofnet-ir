@@ -635,10 +635,10 @@ part of the engineering and proof-identity gap.
    concrete mark as an earlier prepared-selection event; it is not a premise of
    the reduction. No `ActiveTopDebtTailLaw` is assumed or derived. No
    computational coexistence receipt is part of this public checkpoint. The
-   downstream re-entry classifier identifies the exact submitted-parent target
-   status; eliminating its selected-raw and concretely-marked no-tail cases is
-   the next readiness gate. Progress, completion, termination, totality, and
-   completeness remain open.
+   downstream re-entry classifier identifies exact submitted-parent target
+   status, and its stored-right no-tail specialization eliminates the selected
+   target. Eliminating the concretely marked target is the next readiness gate.
+   Progress, completion, termination, totality, and completeness remain open.
    `SequentialFigure7ActiveTopDebtParentEscapeTemporal.lean` sharpens that
    residual without closing it. Under the matching canonical history,
    correctness, scheduler invariant, exact active occurrence/accounting data,
@@ -1131,6 +1131,11 @@ part of the engineering and proof-identity gap.
    prior concrete mark. This exposes an immediate payer branch but does not
    eliminate the selected/marked targets or either equal-final trace, derive
    the history-tail law, or prove progress.
+   `SequentialFigure7CommitmentIntervalParGuardReentryFailure.lean` now applies
+   exact ready-tail failure to the strictly older stored-right branch. It rules
+   out the selected target and returns a distinct authenticated concrete mark
+   represented at the active boundary. The marked target, avoiding branch, and
+   both equal-final traces remain; no tail law or progress theorem follows.
    `SequentialFigure7CommitmentBlockerAdvance.lean` now combines the global
    queued-head law, strict split, and equal-boundary result. Under declarative
    correctness and the complete scheduler invariant, for a supplied canonical

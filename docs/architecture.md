@@ -1053,10 +1053,10 @@ witness forces the escape; it does not eliminate the escape.
 authenticates the escape's concrete mark as an earlier prepared-selection
 event. No theorem in this layer assumes or derives `ActiveTopDebtTailLaw`. A
 public computational coexistence receipt is not part of this checkpoint. The
-downstream re-entry classifier now identifies exact submitted-parent target
-status; eliminating its selected-raw and concretely-marked no-tail cases remains
-open. Unconditional progress, completion, termination, totality, and
-completeness also remain open.
+downstream re-entry classifier identifies exact submitted-parent target status,
+and its stored-right no-tail specialization eliminates the selected target.
+The concretely marked target remains open. Unconditional progress, completion,
+termination, totality, and completeness also remain open.
 
 `SequentialFigure7ActiveTopDebtParentEscapeTemporal.lean` now normalizes that
 failure-conditioned escape without assuming the tail law. With a matching
@@ -1511,6 +1511,16 @@ parent re-entry edge, and a target classification. The target is the selected
 raw head, a non-global raw ready-tail occurrence, or a prior concrete mark.
 The theorem does not eliminate the selected/marked cases, change the
 equal-final or inclusive alternatives, derive the history-tail law, or prove
+progress.
+
+`SequentialFigure7CommitmentIntervalParGuardReentryFailure.lean` specializes
+that older branch to exact failure of the non-global ready-tail obligation.
+Because the selected par is stored-right while the switching graph retains the
+stored-left parent edge, parent uniqueness and strict formula complexity rule
+out the selected head as the inbound target. The remaining target is distinct,
+concretely marked, authenticated by canonical raw-mark history, and represented
+at the active boundary. The theorem does not eliminate that marked target or
+the avoiding and equal-final branches, derive the history-tail law, or prove
 progress.
 
 `SequentialFigure7CommitmentBlockerAdvance.lean` joins the global queued-head

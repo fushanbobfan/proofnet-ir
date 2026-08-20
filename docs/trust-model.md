@@ -936,6 +936,16 @@ verified combined audit covers 981 theorems: 689 standard-three,
 25 axiom-free, 128 `propext`-only, and 139 `propext`/`Quot.sound` boundaries.
 The proofs do not eliminate the selected/marked target or equal-final trace
 branches, derive a tail law, or add any oracle or computational receipt.
+`SequentialFigure7CommitmentIntervalParGuardReentryFailure.lean` adds two
+standard-three theorems. Under the existing typed Nop/Wait steps, scheduler
+invariant, canonical history, supplied connectedness, and exact no-tail
+hypothesis, they eliminate the selected target only in the strictly older
+stored-right branch. The remaining inbound target is a distinct authenticated
+concrete mark represented at the active boundary. The verified combined audit
+covers 983 theorems: 691 standard-three, 25 axiom-free, 128
+`propext`-only, and 139 `propext`/`Quot.sound` boundaries. No oracle,
+computational receipt, history-tail law, progress, or completion result is
+introduced.
 `SequentialFigure7CrossRepresentativeWaitPreservation.lean` adds no hidden
 source-region oracle. Its output-work classification follows only from the
 typed destination's exact waiting prepend and unchanged ready/sigma fields;

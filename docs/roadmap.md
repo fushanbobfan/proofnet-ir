@@ -1073,9 +1073,12 @@
     future and older marked endpoints an exact endpoint-to-active path and
     outside-to-inside re-entry edge; preserve the exact waiting cell and raw
     external branch.
-  - [ ] Classify that re-entry edge so that it yields a distinct ready-tail
-    payer, or otherwise eliminate the
-    failure-conditioned residual. Do not infer
+  - [x] Under exact no-tail failure, use the stored-right guard, parent
+    uniqueness, and strict complexity to eliminate the selected target in the
+    strictly older Nop/Wait branch. Retain a distinct authenticated concrete
+    mark represented at the active boundary.
+  - [ ] Eliminate that marked re-entry target or recover a distinct ready-tail
+    payer. Do not infer
     unconditional dispatcher progress, completion, terminality, later-state
     totality, global raw seams, fallback removal, Figure-7 pure-worklist
     completeness, sequentialization, faithful token-age scheduling, or
@@ -1382,10 +1385,12 @@
     strictly older representative. Supplied reference-switching connectedness
     now returns either endpoint to an exact active-carrier inbound parent edge.
     Its target is the selected raw head, a non-global raw ready-tail occurrence,
-    or a prior concrete mark. Equal-final selected/mate traces and the inclusive
-    outer split remain. Next eliminate the selected/marked target branches and
-    equal-final traces, then close the tail law before claiming
-    exhaustive progress on incomplete, correct, certified-reachable states.
+    or a prior concrete mark. Under exact no-tail failure, the strictly older
+    stored-right branch cannot target the selected head; it leaves a distinct
+    authenticated mark represented at the active boundary. Equal-final
+    selected/mate traces and the inclusive outer split remain. Next eliminate
+    the marked target and equal-final traces, then close the tail law before
+    claiming exhaustive progress on incomplete, correct, certified-reachable states.
     Exact source-left complexity descent, last-step decomposition, and
     recursive visited-route separation from the selected head are now proved.
     Reference-switching geometry now also excludes a terminal axiom partner

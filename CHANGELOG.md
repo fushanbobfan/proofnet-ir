@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- eliminated the selected-head re-entry target from the strictly older
+  stored-right Nop and Wait commitment-interval branches under exact failure
+  of the non-global ready-tail obligation. Parent uniqueness, the all-left
+  switching edge, strict formula complexity, and the stored-right guard leave
+  a distinct authenticated concrete mark represented at the active boundary.
+  The marked target and the avoiding/equal-final branches remain. The verified
+  combined audit covers 983 theorems: 691 standard-three, 25
+  axiom-free, 128 `propext`-only, and 139 `propext`/`Quot.sound` boundaries;
 - connected the strictly older external mate in the typed Nop and Wait
   commitment-interval outcomes back into the active occurrence carrier. Under
   supplied reference-switching connectedness, the exact re-entry target is
