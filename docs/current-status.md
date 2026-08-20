@@ -17,7 +17,7 @@ Status date: 2026-08-19
 | Track | Revision | Status | Authority |
 | --- | --- | --- | --- |
 | Stable library | `v0.9.0` / `9b7dc3d104af8f57ea9123aab2e61b42e05d2216` | Released | [v0.9.0 release audit](v0.9-release-audit.md) |
-| Rolling research | `v0.10.0-dev`; latest proof checkpoint `016dab9813192f0a2119eed4cf4ed73be4c1f164`; latest finite-audit evidence `1e46573141a8ad683cc539480f18c92992bda60c` | Active | This page and the exact commits |
+| Rolling research | `v0.10.0-dev`; latest proof checkpoint `8939aa90a460a9e4aa89a76795f6fa0511ee733c`; latest finite-audit evidence `1e46573141a8ad683cc539480f18c92992bda60c` | Active | This page and the exact commits |
 
 Documentation-only commits may descend from the proof checkpoint without
 changing its mathematical authority. The stable release and rolling branch
@@ -46,75 +46,54 @@ The exact release guarantees, receipts, and non-goals are frozen in the
 
 ## Rolling main result
 
-The current checkpoint establishes a full supplied-history invariant for
-branch-local continuation credit. Every concretely raw-marked nonconclusion in
-the final state of an exact `CanonicalTagHistory` has one of three concrete
-receipts: its opposite connective premise is still raw-unmarked, work for its
-connective conclusion remains scheduled, or that conclusion is already
-raw-marked. The history theorem assumes neither declarative correctness nor a
-separate complete scheduler invariant; it inducts over the structural and
-branch evidence already carried by the supplied canonical history.
+The current checkpoint proves that supplied branch-local continuation credit
+always has a finite normalized exit. `MarkedConclusionChain` records the ascent
+through concretely marked, non-global connective conclusions. Formula
+complexity increases strictly at every step and remains bounded by the
+certificate's intrinsic complexity budget, so a
+`MarkedNonconclusionContinuation` receipt ends as a `ContinuationExit`: an
+unmarked raw mate, scheduled future-conclusion work, or a concretely marked
+global conclusion.
 
-`ContinuationCredit certificate state vertex` is the three-constructor receipt
-carrier. `MarkedNonconclusionContinuation certificate state` requires such a
-receipt for every vertex whose exact mark lookup is concrete and which is not a
-global certificate conclusion. These carriers record causal continuation data,
-not an active-frontier reserve. The checkpoint's public surface is exactly two
-carriers and 21 theorem boundaries.
+At a drained active boundary, the scheduler invariant turns the open exits into
+sharper endpoint facts. A raw mate is structurally non-global and unmarked. A
+future conclusion is unmarked and queued at a boundary strictly older than the
+active top. The marked-global case remains an explicit terminal alternative.
+This is finite normalization of supplied evidence, not a construction of a
+history, an endpoint-locality proof, or a progress theorem.
 
-Primary public declarations:
+`LocalizedContinuationExit` is the separate endpoint-owned carrier. It has
+only raw-mate and future-conclusion constructors, binds the selected endpoint
+to one component frontier, and deliberately has no marked-global constructor.
+`ActiveTopContinuationExitLocalized` asks for such a receipt at every marked
+nonconclusion on the active frontier. This predicate is sufficient only: the
+checkpoint neither claims it is necessary nor derives it from correctness,
+reachability, or a supplied canonical history, and it proves no arbitrary
+history or locality existence theorem.
+
+The checkpoint's new public surface is exactly three carriers, one predicate,
+and six theorem boundaries:
 
 ```text
-ProofNetIR.SequentialFigure7.ContinuationCredit
-ProofNetIR.SequentialFigure7.MarkedNonconclusionContinuation
-ProofNetIR.SequentialFigure7.empty_markedNonconclusionContinuation
-ProofNetIR.SequentialFigure7.InitialReservationStep.markedNonconclusionContinuation
-ProofNetIR.SequentialFigure7.FutureWorkAt.afterPreparedOrSelected
-ProofNetIR.SequentialFigure7.NopStep.selectedContinuationCredit
-ProofNetIR.SequentialFigure7.WaitStep.createdConclusionFutureWorkAt
-ProofNetIR.SequentialFigure7.WaitStep.selectedContinuationCredit
-ProofNetIR.SequentialFigure7.NewStep.selectedContinuationCredit
-ProofNetIR.SequentialFigure7.ForwardStep.createdConclusionFutureWorkAt
-ProofNetIR.SequentialFigure7.ForwardStep.selectedContinuationCredit
-ProofNetIR.SequentialFigure7.UnifyPayloadStep.createdConclusionFutureWorkAt
-ProofNetIR.SequentialFigure7.UnifyPayloadStep.selectedContinuationCredit
-ProofNetIR.SequentialFigure7.DispatchTagEvidence.newlyMarkedContinuationCredit
-ProofNetIR.SequentialFigure7.ConclStep.continuationCredit
-ProofNetIR.SequentialFigure7.NopStep.continuationCredit
-ProofNetIR.SequentialFigure7.NewStep.continuationCredit
-ProofNetIR.SequentialFigure7.WaitStep.continuationCredit
-ProofNetIR.SequentialFigure7.ForwardStep.continuationCredit
-ProofNetIR.SequentialFigure7.UnifyPayloadStep.continuationCredit
-ProofNetIR.SequentialFigure7.DispatchTagEvidence.oldContinuationCredit
-ProofNetIR.SequentialFigure7.DispatchTagEvidence.markedNonconclusionContinuation
-ProofNetIR.SequentialFigure7.CanonicalTagHistory.markedNonconclusionContinuation
+ProofNetIR.SequentialFigure7.MarkedConclusionChain
+ProofNetIR.SequentialFigure7.ContinuationExit
+ProofNetIR.SequentialFigure7.LocalizedContinuationExit
+ProofNetIR.SequentialFigure7.ActiveTopContinuationExitLocalized
+ProofNetIR.SequentialFigure7.MarkedNonconclusionContinuation.continuationExit
+ProofNetIR.SequentialFigure7.FutureWorkAt.rawAge_lt_active_of_activeTopDrained
+ProofNetIR.SequentialFigure7.ContinuationExit.elim_of_activeTopDrained
+ProofNetIR.SequentialFigure7.LocalizedContinuationExit.continuationExit
+ProofNetIR.SequentialFigure7.activeTopMarkedNonconclusionDebt_of_continuationExitLocalized
+ProofNetIR.SequentialFigure7.SchedulerInvariant.allMarked_of_activeTopDrained_of_continuationExitLocalized
 ```
 
-The empty and initial-reservation theorems establish the state predicate before
-any raw-mark event. Exact fresh-event lemmas then supply credit across all six
-dispatcher constructors: Nop and New retain a raw mate, while Wait, Forward,
-and UnifyPayload schedule the selected occurrence's connective conclusion;
-the Concl case is excluded by the nonconclusion premise at the dispatcher
-boundary.
-
-The six branch transports and two dispatcher-level transports require only
-structural well-formedness. Nop and New additionally consume the old owner's
-concrete mark to rule out their selected-mate residual; the old-credit
-dispatcher theorem carries that mark uniformly. Concl rules the same residual
-out by its exact conclusion view. Wait, Forward, and UnifyPayload convert it
-into scheduled conclusion work. Combining old-credit transport with exact
-fresh-event coverage gives one-step preservation, and induction over supplied
-`CanonicalTagHistory` gives the full-history state invariant without a
-declarative-correctness hypothesis.
-
-This closes continuation credit, not active-top marked-nonconclusion debt. None
-of the three receipt forms necessarily supplies a distinct raw-unmarked
-nonconclusion on the current active frontier. The earlier exact branch
-residuals therefore remain open: Nop and Wait still need selected-away
-witnesses, while global-created Forward and UnifyPayload still need non-global
-vertices in their exact ready tails. The checkpoint proves neither full debt
-preservation nor the unconditional implication from `ActiveTopDrained` to
-`core.allMarked = true`, and it makes no progress or history-existence claim.
+The first reduction theorem requires exactly structural well-formedness,
+queued-vertex unmarkedness, and endpoint locality to obtain
+`ActiveTopMarkedNonconclusionDebt`. The second combines declarative
+correctness, the complete scheduler invariant, `ActiveTopDrained`, and the same
+locality law to derive `core.allMarked = true`. Thus the checkpoint packages an
+exact sufficient completion route while leaving its missing endpoint-ownership
+premise visible.
 
 ### Finite ready-head boundary audit
 
@@ -136,42 +115,34 @@ coverage or progress. Exact counters and scope are maintained in
 [performance.md](performance.md).
 
 Exact signatures are maintained in the generated API reference for the
-[branch-prefix declarations](api-reference.md#older-marked-tensor-predecessor-branch-prefix)
-and the
-[full-history declarations](api-reference.md#full-history-older-marked-tensor-predecessor-invariant),
-followed by the
-[active-top residual](api-reference.md#active-top-ready-head-residual) and the
 [active-top marked-nonconclusion debt](api-reference.md#active-top-marked-nonconclusion-debt),
-the
-[active-top debt branch residuals](api-reference.md#active-top-debt-branch-residuals),
-and now
-[branch-local continuation credit](api-reference.md#branch-local-continuation-credit)
-with its
-[full preservation surface](api-reference.md#continuation-credit-preservation).
-The structural no-head classifier, conditional drained-to-all-marked reduction,
-and supplied-history continuation-credit invariant are kernel-checked. The
-first open proof step is to turn the causal credit chain plus the available
-correctness and frontier geometry into the selected-away and global-created
-exact-tail witnesses, or directly into complete canonical-history preservation
-of the active-top debt.
+[branch-local continuation credit](api-reference.md#branch-local-continuation-credit),
+[continuation-credit preservation](api-reference.md#continuation-credit-preservation),
+and the new
+[endpoint-localized continuation exits](api-reference.md#endpoint-localized-continuation-exits).
+The first open proof step is to derive active-top debt or another
+history-compatible sufficient completion law from a correct supplied canonical
+history. Endpoint locality remains an explicit sufficient assumption not
+supplied by that history. Only after a sound bridge is available can the
+drained reduction contribute to an unconditional progress or completion
+argument.
 
 ## What the rolling theorem does not prove
 
 This checkpoint does not establish any of the following:
 
-- construction of a relevant `ExecutedHistory`, reachable state, or
-  `ReadyHeadInput`;
-- conversion of continuation credit into
-  `ActiveTopMarkedNonconclusionDebt`;
-- the selected-away witness for Nop or Wait from supplied canonical history,
-  continuation credit, and correctness;
-- the exact non-global tail law for global-created Forward or UnifyPayload from
-  supplied canonical history, continuation credit, and correctness;
-- complete canonical-history preservation of
-  `ActiveTopMarkedNonconclusionDebt`;
+- construction or existence of a relevant `ExecutedHistory`, reachable state,
+  `CanonicalTagHistory`, or `ReadyHeadInput`;
+- necessity of `ActiveTopContinuationExitLocalized`, or its derivation from
+  declarative correctness, reachability, or supplied canonical history;
+- endpoint-locality or active-top-debt preservation through complete canonical
+  histories;
+- the selected-away witness for Nop or Wait, or the exact non-global tail law
+  for global-created Forward or UnifyPayload, from supplied history and
+  correctness;
 - an unconditional reachable-state proof that `ActiveTopDrained` implies
   `core.allMarked = true`, semantic completion, or terminality without the
-  debt hypothesis;
+  endpoint-locality sufficient law (or some replacement completion premise);
 - an exclusivity theorem for the exact-dispatch / active-top-drained
   disjunction;
 - a proof that every relevant semantic nonterminal state presents a ready head;
@@ -196,20 +167,20 @@ plan is maintained in [v0.10-design.md](v0.10-design.md) and
 The exact rolling proof checkpoint is:
 
 ```text
-commit    016dab9813192f0a2119eed4cf4ed73be4c1f164
-tree      87d0cadaee5ba467772aaece496bb7817569ba11
-parent    aba3d5000aeceb1a4e450260ccf913a01269c8ad
-stage     full-history continuation-credit preservation
-delta     18 paths, +2379/-35
-manifest  B1D6965F7FC77AB13DD74B5F4B32D85DCA43C9FF11EC53DC6A2018CADA05BB39
+commit    8939aa90a460a9e4aa89a76795f6fa0511ee733c
+tree      7ba1d5c0db32c0169bda73c5abe4f19d821cb838
+parent    536d3fc0b820e2ae71ce70ba834af5b6a5b9a715
+stage     finite endpoint-localized continuation exits
+delta     17 paths, +1000/-46
+manifest  586A23C0780BAA1EC31E43186D8776EF31D8A739E3A9B9BE21E318EF12387F65
 ```
 
-The three continuation-credit source receipts are:
+The checkpoint source receipts are:
 
 ```text
-base          09967E0F0CDBC1831714538E9256DBDC3791630CD2B832E435B7222957BD8F50
-preservation  8A6A9A43F6773BB964D38DCBD3CBB701CE65E7520FD370F61AF4FB568D1A11E7
-consumer      FD0B2F204AA163D8820345E4E943880838BA58901282857D2BB1A3FFA2B1B294
+source         2E1F129EDF8C2B5D7B53A7FE413DFA87AC928D6A8C8B3B9A7EA863BA34AE7708
+consumer       CE20C98A1AB821DAB6070F372C87211F9DF86D0807939BAE6801AED76032587E
+generated API  49E277D33DF487FA9076589BA618A14BDB89FC5938D70D31537CDA3F6E3A5DFE
 ```
 
 The separately committed finite-audit evidence is:
@@ -225,80 +196,36 @@ manifest  4BBAB7FC99D03D2612459A0FD9291990313A05A184F2572A581BC93C6E49DFDD
 
 Local verification on the committed bytes:
 
-- full `lake build`: 467/467 jobs;
-- Lean source audit: zero actual `sorry`/`admit` findings across 223 Lean
+- full `lake build`: 472/472 jobs in 94.985 seconds;
+- Lean source audit: zero actual `sorry`/`admit` findings across 225 Lean
   files;
-- generated API reference: current;
+- generated API reference: current at 52 sections and 1,588 declarations;
+- the runnable endpoint-localized continuation consumer destructed all three
+  carriers, consumed the locality predicate, exercised all six theorem
+  boundaries, and emitted exactly
+  `Figure-7 endpoint-localized continuation reduction: kernel-green`;
+- public declaration audit: 946 declarations total: 656 full-classical, 25
+  axiom-free, 127 `propext`-only, and 138 `propext` plus `Quot.sound`;
+- independent final reviews reported zero P0, P1, P2, or P3 findings;
 - the default, extended, and cross-variant progress audits passed with every
   incomplete visited state carrying an exact ready head and successful
   dispatch, every dispatch-none stop fully marked, and zero missing-head,
   incomplete-dispatch-none, cycle, or truncation findings;
-- the runnable predecessor consumer: passed under `--trust=0`, invokes the nine
-  branch-prefix declarations, constructs the indexed carrier, and derives
-  `False` from an actual gap's `no_predecessor` field;
-- the runnable Wait-preservation consumer: passed under `--trust=0`, invokes
-  the tenth public declaration, applies the preserved invariant, destructures
-  `SigmaImmediatePredecessorAt`, and consumes all four carrier fields;
-- the runnable Forward-preservation consumer: passed under `--trust=0`, invokes
-  the public bridge and Forward theorem, applies the preserved invariant, and
-  consumes all four indexed predecessor fields;
-- the runnable UnifyPayload-preservation consumer: passed under `--trust=0`,
-  invokes the raw touch theorem, compatibility wrapper, and preservation
-  theorem, then consumes all four indexed predecessor fields;
-- the existing UnifyPayload touch consumer directly exercises the new
-  carrier-free raw touch theorem as well as the compatibility wrapper;
-- the runnable full-history consumer: passed under `--trust=0`, invokes all
-  three new history declarations, projects all four indexed predecessor
-  fields, and destructures the exact dispatcher result into its kind and state;
-- the runnable active-top residual consumer: passed under `--trust=0`, invokes
-  both directions of the no-ready-head equivalence, destructures the exact
-  dispatcher witness, and consumes every residual field;
-- the runnable active-top marked-nonconclusion debt consumer: passed under
-  `--trust=0`, invokes all seven public theorems, checks the empty,
-  initial-reservation, New, Concl, non-global-created Forward and UnifyPayload
-  cases, and applies the exact drained-to-all-marked reduction;
-- the runnable active-top debt branch-residual consumer: passed under
-  `--trust=0`, invokes both directions of all five exact equivalences and
-  consumes both new public definitions by destructuring and reconstructing
-  their witnesses;
-- the runnable continuation-credit preservation consumer: passed under
-  `--trust=0`, invokes both public carriers and all 21 theorem boundaries,
-  case-splits all three receipt constructors, and consumes the raw-mate,
-  future-conclusion, and marked-conclusion evidence;
-- facade, API manifest, and axiom-audit entry points: passed under `--trust=0`;
-- public declaration audit: 940 declarations total;
-- audit classes: 653 full-classical, 25 axiom-free, 126 `propext`-only,
-  and 136 `propext` plus `Quot.sound`;
-- `empty_olderMarkedTensorPredecessorInvariant` depends exactly on `[propext]`;
-- the other six original branch-prefix theorems and the Wait, bridge, and
-  Forward, raw UnifyPayload touch, and UnifyPayload preservation theorems
-  depend exactly on `[propext, Classical.choice, Quot.sound]`;
-- the three full-history declarations depend exactly on
-  `[propext, Classical.choice, Quot.sound]`;
-- both active-top residual theorems depend exactly on
-  `[propext, Classical.choice, Quot.sound]`;
-- `empty_activeTopMarkedNonconclusionDebt` depends exactly on `[propext]`;
-- the other six active-top marked-nonconclusion debt theorems depend exactly on
-  `[propext, Classical.choice, Quot.sound]`;
-- `PreparedStep.activeTopMarkedNonconclusionDebt_iff_selectedAway` depends
-  exactly on `[propext]`;
-- the Nop, Wait, Forward, and UnifyPayload exact branch-residual equivalences
-  depend exactly on `[propext, Classical.choice, Quot.sound]`;
-- `empty_markedNonconclusionContinuation` depends exactly on `[propext]`;
-- `FutureWorkAt.afterPreparedOrSelected` depends exactly on
-  `[propext, Quot.sound]`;
-- the other 19 continuation-credit theorem boundaries depend exactly on
-  `[propext, Classical.choice, Quot.sound]`.
+- facade, generated API, consumer, and axiom-audit entry points passed under
+  the checkpoint's trust-zero and warnings-as-errors gates.
 
 Exact-head proof GitHub verification:
 
 - workflow: `Lean CI`;
 - event/ref: `push` / `main`;
-- run: [32310550692](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32310550692);
-- build job: [96252468617](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32310550692/job/96252468617);
-- exact head: `016dab9813192f0a2119eed4cf4ed73be4c1f164`;
-- result: 36 successful steps, zero failures, one expected release-ref-only
-  skip; run duration 10m51s and build-job duration 10m46s.
+- run: [32316380132](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32316380132);
+- build job: [96269371407](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32316380132/job/96269371407);
+- exact head: `8939aa90a460a9e4aa89a76795f6fa0511ee733c`;
+- result: 36 successful steps, zero failures, and one expected release-ref-only
+  skip;
+- run: `2026-08-20T00:12:10Z`-`2026-08-20T00:25:05Z` (12m55s);
+- build job: `2026-08-20T00:12:14Z`-`2026-08-20T00:25:05Z`
+  (12m51s).
 
 Exact-head finite-audit GitHub verification:
 
@@ -365,14 +292,14 @@ deployment.
 
 The project goal remains open. The principal outstanding gates are:
 
-1. convert the full-history continuation-credit chain plus correctness and
-   active-frontier geometry into the selected-away witnesses for Nop and Wait
-   and the exact non-global tail laws for global-created Forward and
-   UnifyPayload, or derive the debt directly; then package
-   `ActiveTopMarkedNonconclusionDebt` through complete canonical histories,
-   derive the unconditional reachable-state `ActiveTopDrained →
-   core.allMarked = true` corollary, and use marking incompleteness to exclude
-   the residual;
+1. derive `ActiveTopMarkedNonconclusionDebt` or another history-compatible
+   sufficient completion law from a correct supplied canonical history; then
+   obtain the unconditional reachable-state `ActiveTopDrained → core.allMarked
+   = true` corollary and use marking incompleteness to exclude the residual.
+   `ActiveTopContinuationExitLocalized` remains an explicit sufficient
+   assumption not supplied by history. The finite exit theorem does not yet
+   provide endpoint ownership, and progress, completion, terminality,
+   later-state totality, and arbitrary history existence remain open;
 2. close the separate queue-origin and remaining created-candidate laws needed
    by the global mate-region and raw-mark preservation families;
 3. derive exhaustive nonterminal dispatcher progress and later-state totality;
