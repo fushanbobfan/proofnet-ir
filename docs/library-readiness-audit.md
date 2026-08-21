@@ -1239,6 +1239,16 @@ part of the engineering and proof-identity gap.
    eliminated, and no payer, tail law, completion, or progress follows. The
    verified combined audit now covers 1029 theorems: 735 standard-three, 25
    axiom-free, 129 `propext`-only, and 140 `propext`/`Quot.sound` boundaries.
+   `SequentialFigure7MarkedTargetRawReturnCompleteCancellationCausalEndpoints.lean`
+   then rules out equality between the cyclic source and base in every
+   nonempty complete-cancellation branch. Prefix edge-index uniqueness turns
+   internal reduction into cyclic reduction; retention would otherwise place
+   a forbidden nonempty closed cyclically nonbacktracking walk in the correct
+   reference-switching tree. Both endpoint junctions remain, while the source
+   is strictly before the authenticated outer terminal. No other residual is
+   eliminated. The verified combined audit now covers 1031 theorems: 737
+   standard-three, 25 axiom-free, 129 `propext`-only, and 140
+   `propext`/`Quot.sound` boundaries.
    `SequentialFigure7CommitmentBlockerAdvance.lean` now combines the global
    queued-head law, strict split, and equal-boundary result. Under declarative
    correctness and the complete scheduler invariant, for a supplied canonical

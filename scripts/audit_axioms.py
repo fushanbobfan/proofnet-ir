@@ -188,6 +188,10 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "causalEndpointTarget",
     "ProofNetIR.SequentialFigure7.WaitStep."
     "commitmentInterval_parTraceReentryMarkedContinuationSiblingExitCausalEndpointOutcome",
+    "ProofNetIR.SequentialFigure7."
+    "MarkedConclusionRawReturnCompleteCancellationTraversal.source_ne_base",
+    "ProofNetIR.SequentialFigure7."
+    "MarkedConclusionRawReturnCyclicJunctionCausalOutcome.completeEndpoints",
     "ProofNetIR.SequentialFigure7.MarkedConclusionChain."
     "rawReturnCyclicReduction",
     "ProofNetIR.SequentialFigure7.MarkedConclusionChain."

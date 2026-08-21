@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- eliminated the source-equals-base subcase of nonempty complete raw-return
+  cancellation. Duplicate-free retained-prefix indices upgrade internal
+  nonbacktracking to cyclic nonbacktracking; if the source closed at the base,
+  retaining that nonempty walk in the correct reference switching would
+  contradict its tree contract. Both exact endpoint junctions remain, and the
+  cyclic source is now strictly before the authenticated outer terminal. This
+  does not eliminate complete cancellation, either junction, the par-pair
+  residual, sibling exits, marked-global orders, or the causal descent. The
+  verified combined audit now covers 1031 theorems: 737 standard-three, 25
+  axiom-free, 129 `propext`-only, and 140 `propext`/`Quot.sound` boundaries;
 - strengthened nonempty complete raw-return cancellation from one endpoint
   site to simultaneous exact reverse junctions at both segment endpoints. The
   first causal descent now also classifies the cyclic source as equal to or

@@ -1045,6 +1045,14 @@ typed witnesses. No runtime oracle or stronger trust dependency is introduced,
 and no cyclic or sibling residual is eliminated. The verified combined audit
 now covers 1029 theorems: 735 standard-three, 25 axiom-free, 129
 `propext`-only, and 140 `propext`/`Quot.sound` boundaries.
+`SequentialFigure7MarkedTargetRawReturnCompleteCancellationCausalEndpoints.lean`
+adds two standard-three theorems. The proof uses only the existing exact
+edge-index ledger, cyclic nonbacktracking mask transport, and declarative
+reference-switching tree; it adds no oracle or trust dependency. It rules out
+only source equality in a nonempty complete-cancellation branch and retains
+both endpoint junctions and every other residual. The verified combined audit
+now covers 1031 theorems: 737 standard-three, 25 axiom-free, 129
+`propext`-only, and 140 `propext`/`Quot.sound` boundaries.
 `SequentialFigure7CrossRepresentativeWaitPreservation.lean` adds no hidden
 source-region oracle. Its output-work classification follows only from the
 typed destination's exact waiting prepend and unchanged ready/sigma fields;

@@ -10498,6 +10498,56 @@ ProofNetIR.SequentialFigure7.WaitStep.commitmentInterval_parTraceReentryMarkedCo
                                     tagHistory step.prepared.readyHeadInput component owned step.consumer)
 ```
 
+## Marked re-entry target complete-cancellation causal endpoints
+
+### `ProofNetIR.SequentialFigure7.MarkedConclusionRawReturnCompleteCancellationTraversal.source_ne_base`
+
+Kind: theorem.
+
+A nonempty retained-prefix complete cancellation cannot have the same
+source and base in a correct reference switching.
+
+```lean
+ProofNetIR.SequentialFigure7.MarkedConclusionRawReturnCompleteCancellationTraversal.source_ne_base : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  certificate.DeclarativelyCorrect →
+    ∀ {base source : ProofNetIR.Vertex} {retainedPrefix continuationTail : List certificate.fullGraph.DirectedEdge},
+      ProofNetIR.SequentialFigure7.MarkedConclusionRawReturnCompleteCancellationTraversal state retainedPrefix
+          continuationTail →
+        certificate.fullGraph.EdgeWalk base retainedPrefix source →
+          (∀ (directed : certificate.fullGraph.DirectedEdge),
+              directed ∈ retainedPrefix → certificate.referenceSwitchingMask[directed.index]? = some true) →
+            ProofNetIR.Graph.EdgeWalk.NoImmediateReverse retainedPrefix → retainedPrefix ≠ [] → source ≠ base
+```
+
+### `ProofNetIR.SequentialFigure7.MarkedConclusionRawReturnCyclicJunctionCausalOutcome.completeEndpoints`
+
+Kind: theorem.
+
+In a nonempty complete-cancellation branch, the cyclic source is strictly
+before the authenticated base and both exact endpoint junctions are present.
+
+```lean
+ProofNetIR.SequentialFigure7.MarkedConclusionRawReturnCyclicJunctionCausalOutcome.completeEndpoints : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  {tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history},
+  certificate.DeclarativelyCorrect →
+    ∀ {base source : ProofNetIR.Vertex} {baseAge : ProofNetIR.SequentialSchedulerState.RawTokenAge},
+      ProofNetIR.SequentialFigure7.MarkedConclusionRawReturnCyclicJunctionCausalOutcome certificate state tagHistory
+          base source baseAge →
+        ∀ {retainedPrefix continuationTail : List certificate.fullGraph.DirectedEdge},
+          certificate.fullGraph.EdgeWalk base retainedPrefix source →
+            certificate.fullGraph.EdgeWalk source continuationTail base →
+              (∀ (directed : certificate.fullGraph.DirectedEdge),
+                  directed ∈ retainedPrefix → certificate.referenceSwitchingMask[directed.index]? = some true) →
+                ProofNetIR.Graph.EdgeWalk.NoImmediateReverse retainedPrefix →
+                  ProofNetIR.SequentialFigure7.MarkedConclusionRawReturnCompleteCancellationTraversal state
+                      retainedPrefix continuationTail →
+                    retainedPrefix ≠ [] →
+                      ProofNetIR.SequentialFigure7.MarkedConclusionRawReturnCompleteCancellationEndpointJunctions base
+                          source retainedPrefix continuationTail ∧
+                        ∃ sourceAge, tagHistory.RawMarkedBefore sourceAge source baseAge base
+```
+
 ## Marked re-entry target raw-return cyclic reduction
 
 ### `ProofNetIR.SequentialFigure7.MarkedConclusionRawReturnCyclicOutcome`

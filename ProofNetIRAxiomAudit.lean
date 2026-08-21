@@ -405,6 +405,14 @@ namespace WaitStep
 #print axioms commitmentInterval_parTraceReentryMarkedContinuationSiblingExitCausalEndpointOutcome
 end WaitStep
 end ProofNetIR.SequentialFigure7
+namespace ProofNetIR.SequentialFigure7
+namespace MarkedConclusionRawReturnCompleteCancellationTraversal
+#print axioms source_ne_base
+end MarkedConclusionRawReturnCompleteCancellationTraversal
+namespace MarkedConclusionRawReturnCyclicJunctionCausalOutcome
+#print axioms completeEndpoints
+end MarkedConclusionRawReturnCyclicJunctionCausalOutcome
+end ProofNetIR.SequentialFigure7
 #print axioms
   SequentialFigure7.MarkedConclusionChain.rawReturnCyclicReduction
 #print axioms

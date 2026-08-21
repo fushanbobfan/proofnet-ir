@@ -1631,6 +1631,15 @@ their four walk endpoints. The same chain places the cyclic source either at
 the authenticated outer terminal or strictly before it. The generic target and
 typed Wait theorem retain this classification without eliminating a junction,
 par-pair residual, sibling exit, marked-global order, or descent.
+`SequentialFigure7MarkedTargetRawReturnCompleteCancellationCausalEndpoints.lean`
+eliminates only the equality case in that final classification. The complete
+cancellation pairing makes retained-prefix edge indices duplicate-free, so its
+internally nonbacktracking prefix is cyclically nonbacktracking as well. If the
+cyclic source equaled the base, exact mask retention would embed a nonempty
+closed cyclically nonbacktracking walk in the correct reference switching,
+contradicting its tree contract. The combined theorem therefore keeps both
+endpoint junctions and places the source strictly before the authenticated
+base. Complete cancellation and every other residual remain open.
 
 `SequentialFigure7CommitmentBlockerAdvance.lean` joins the global queued-head
 law, the strict `sigma` split, the strict-edge avoiding adapter, and the final

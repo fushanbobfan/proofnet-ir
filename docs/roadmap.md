@@ -1125,9 +1125,13 @@
     junctions at both exact segment endpoints. Classify the cyclic source as
     equal to or strictly before the authenticated outer terminal on the same
     first-descent witness; retain every cyclic and sibling residual.
-  - [ ] Use the aligned causal and cyclic witnesses with the retained
-    commitment paths to eliminate the Wait descent or recover a distinct
-    ready-tail payer. Then
+  - [x] Rule out equality between the cyclic source and base in every nonempty
+    complete cancellation by transporting its duplicate-free, cyclically
+    nonbacktracking retained prefix into the correct reference-switching tree.
+    Retain both endpoint junctions and the strict source-before-base order.
+  - [ ] Use the strict cyclic endpoint order and aligned sibling causal witness
+    with the retained commitment paths to eliminate the Wait descent or recover
+    a distinct ready-tail payer. Then
     eliminate the remaining cyclic residuals, other finite exits, and
     equal-final traces. Do not infer
     unconditional dispatcher progress, completion, terminality, later-state

@@ -538,6 +538,13 @@ cancellation's traversal equality and orders the named cyclic source against
 the authenticated outer event from the same marked chain. The target and Wait
 adapters preserve all remaining junction, par-pair, sibling, marked-global, and
 descent alternatives, so no payer, tail law, completion, or progress follows.
+`SequentialFigure7MarkedTargetRawReturnCompleteCancellationCausalEndpoints.lean`
+adds no source reading. It combines exact retained-prefix index uniqueness,
+cyclic nonbacktracking transport through the reference mask, and the correct
+reference-switching tree to rule out source-equals-base for a nonempty complete
+cancellation. Both exact endpoint junctions remain and the source is strictly
+before the authenticated outer event. No other cyclic or sibling residual is
+eliminated.
 Global preservation of the mate-region and older-raw-mark invariants through
 candidate-creating rules remains open, as do queue origin, created-candidate raw
 seams, derivation of the re-entry avoidance premise, marked-history descent,

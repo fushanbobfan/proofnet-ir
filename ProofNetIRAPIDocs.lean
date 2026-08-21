@@ -1007,6 +1007,17 @@ def sections : List Section := [
     ]
   },
   {
+    title := "Marked re-entry target complete-cancellation causal endpoints"
+    declarations := [
+      Name.str
+        `ProofNetIR.SequentialFigure7.MarkedConclusionRawReturnCompleteCancellationTraversal
+        "source_ne_base",
+      Name.str
+        `ProofNetIR.SequentialFigure7.MarkedConclusionRawReturnCyclicJunctionCausalOutcome
+        "completeEndpoints"
+    ]
+  },
+  {
     title := "Marked re-entry target raw-return cyclic reduction"
     declarations := [
       `ProofNetIR.SequentialFigure7.MarkedConclusionRawReturnCyclicOutcome,
