@@ -23,24 +23,19 @@ latest research surface and are prepared for documented development changes.
 <!-- ROLLING_MAIN_SUMMARY_START -->
 ### Rolling-main summary
 
-For a correct selected `par`, a ready-head input and scheduler invariant yield
-a non-global ready tail or a carrier parent escape. No tail forces escape.
-Canonical history normalizes par and tensor escapes into temporal outcomes;
-positive retained `sigma` intervals return older endpoints through re-entry.
-Re-entry reverses a submitted parent edge. Supplied connectedness classifies
-its target as selected raw, ready-tail raw, or a prior concrete mark.
-Under exact no-tail failure, a strictly older stored-right branch targets a
-distinct authenticated mark. Nop keeps an external raw mate; Wait an older mark.
-The retained path separates that target from the current mate. Its exact raw
-return splices a retained switching prefix with a forward continuation tail.
-For a typed Nop, a nontrivial marked-conclusion chain has a concretely marked
-terminal, while the current opposite premise remains raw-unmarked. Hence the
-exact return to that premise is impossible. Raw work outside the active carrier,
-older future work, and an older marked global conclusion remain possible.
-Wait exact return exposes its first outside parent as an authenticated mark at
-a strictly older representative; it is a descent residual, not an elimination.
-No unconditional all-marked, progress, completion, termination, totality, or
-completeness follows; remaining exits and equal-final traces stay open.
+Canonical history now orders authentic prepared-selection raw-mark events.
+The order exposes both endpoint events and proves their selected occurrences
+distinct. An authentic mark of a submitted connective conclusion places both
+its queried premise and opposite mate strictly earlier in that history.
+This order enriches the first representative descent retained by Wait: the
+origin and its sibling mate both precede the older marked parent conclusion,
+and the sibling keeps a finite continuation exit. The generic first-descent
+target has the same causal refinement.
+The exact Nop return remains eliminated, while Wait's causal descent, sibling
+exit, raw work outside the active carrier, older future work, and older marked
+global work remain residuals. No transitive or total event order, history-tail
+law, unconditional all-marked, progress, completion, termination, totality, or
+completeness follows.
 [Current status](docs/current-status.md) owns exact revision, verification receipt, and gates.
 <!-- ROLLING_MAIN_SUMMARY_END -->
 

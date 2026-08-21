@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+- added a strict chronological relation between authentic prepared-selection
+  raw-mark events in canonical tag history. Its projections recover both
+  events and prove their selected occurrences distinct. If a submitted
+  connective conclusion is authentically raw-marked, both queried premises
+  have strictly earlier authentic events. The generic and typed Wait
+  first-descent reductions now attach this causal order to the origin and
+  sibling mate, retain a finite continuation exit for that mate, and preserve
+  the older marked parent conclusion. This does not eliminate the descent or
+  sibling exit, establish transitivity or totality of the event order, derive
+  the history-tail law, or prove progress. The verified combined audit covers
+  1009 theorems: 716 standard-three, 25 axiom-free, 129 `propext`-only, and 139
+  `propext`/`Quot.sound` boundaries;
 - refined the generic exact raw-return branch to an authenticated first-step
   representative descent. When the re-entry target starts at the active
   representative and its submitted parent conclusion lies outside the active

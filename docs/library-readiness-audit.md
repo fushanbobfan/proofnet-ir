@@ -1195,6 +1195,17 @@ part of the engineering and proof-identity gap.
    eliminates this residual and derives no tail law or progress. The verified
    combined audit now covers 1002 theorems: 709 standard-three, 25 axiom-free,
    129 `propext`-only, and 139 `propext`/`Quot.sound` boundaries.
+   `SequentialFigure7RawMarkCausalOrder.lean` and
+   `SequentialFigure7MarkedTargetRawReturnCausalDescent.lean` then make the
+   prepared-selection event order explicit. Both submitted premises precede
+   an authentically marked connective conclusion, and the first-descent
+   reduction records that the re-entry origin and sibling mate precede its
+   older marked parent. The sibling retains a finite continuation exit. The
+   generic target adapter and typed Wait theorem expose the same refinement.
+   The event relation is not claimed transitive or total, and the reduction
+   does not eliminate either residual or derive a tail law or progress. The
+   verified combined audit now covers 1009 theorems: 716 standard-three, 25
+   axiom-free, 129 `propext`-only, and 139 `propext`/`Quot.sound` boundaries.
    `SequentialFigure7CommitmentBlockerAdvance.lean` now combines the global
    queued-head law, strict split, and equal-boundary result. Under declarative
    correctness and the complete scheduler invariant, for a supplied canonical

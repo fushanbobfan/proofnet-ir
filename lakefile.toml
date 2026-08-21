@@ -42,6 +42,7 @@ defaultTargets = [
   "proofnet_ir_commitment_interval_par_guard_reentry_marked_target_continuation_exit_tests",
   "proofnet_ir_marked_target_nop_raw_return_elimination_tests",
   "proofnet_ir_marked_target_raw_return_first_descent_tests",
+  "proofnet_ir_marked_target_raw_return_causal_descent_tests",
   "proofnet_ir_marked_target_raw_return_cyclic_reduction_tests",
   "proofnet_ir_commitment_blocker_advance_tests",
   "proofnet_ir_commitment_blocker_maximality_tests",
@@ -258,6 +259,10 @@ root = "ProofNetIRMarkedTargetNopRawReturnEliminationTests"
 [[lean_exe]]
 name = "proofnet_ir_marked_target_raw_return_first_descent_tests"
 root = "ProofNetIRMarkedTargetRawReturnFirstDescentTests"
+
+[[lean_exe]]
+name = "proofnet_ir_marked_target_raw_return_causal_descent_tests"
+root = "ProofNetIRMarkedTargetRawReturnCausalDescentTests"
 
 [[lean_exe]]
 name = "proofnet_ir_marked_target_raw_return_cyclic_reduction_tests"

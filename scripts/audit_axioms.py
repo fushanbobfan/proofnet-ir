@@ -133,6 +133,19 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "firstDescentTarget",
     "ProofNetIR.SequentialFigure7.WaitStep."
     "commitmentInterval_parTraceReentryMarkedContinuationFirstDescentOutcome",
+    "ProofNetIR.SequentialFigure7.CanonicalTagHistory.RawMarkedBefore."
+    "first_rawMarked",
+    "ProofNetIR.SequentialFigure7.CanonicalTagHistory.RawMarkedBefore."
+    "second_rawMarked",
+    "ProofNetIR.SequentialFigure7.CanonicalTagHistory.RawMarkedBefore.vertex_ne",
+    "ProofNetIR.SequentialFigure7.CanonicalTagHistory.rawMarkedPremisesBefore",
+    "ProofNetIR.SequentialFigure7."
+    "MarkedConclusionChainFirstRepresentativeDescent.causalDescent",
+    "ProofNetIR.SequentialFigure7."
+    "ActiveCarrierExternalReentryMarkedMateSeparatedContinuationFirstDescentTarget."
+    "causalDescentTarget",
+    "ProofNetIR.SequentialFigure7.WaitStep."
+    "commitmentInterval_parTraceReentryMarkedContinuationCausalDescentOutcome",
     "ProofNetIR.SequentialFigure7.MarkedConclusionChain."
     "rawReturnCyclicReduction",
     "ProofNetIR.SequentialFigure7.MarkedConclusionChain."

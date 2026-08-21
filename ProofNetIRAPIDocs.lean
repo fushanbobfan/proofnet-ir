@@ -870,6 +870,28 @@ def sections : List Section := [
     ]
   },
   {
+    title := "Marked re-entry target raw-return causal descent"
+    declarations := [
+      `ProofNetIR.SequentialFigure7.MarkedConclusionChainFirstCausalDescent,
+      Name.str
+        `ProofNetIR.SequentialFigure7.MarkedConclusionChainFirstRepresentativeDescent
+        "causalDescent",
+      Name.str
+        `ProofNetIR.SequentialFigure7
+        ("ActiveCarrierExternalReentryMarkedMateSeparatedContinuation" ++
+          "CausalDescentTarget"),
+      Name.str
+        (Name.str
+          `ProofNetIR.SequentialFigure7
+          ("ActiveCarrierExternalReentryMarkedMateSeparatedContinuation" ++
+            "FirstDescentTarget"))
+        "causalDescentTarget",
+      Name.str
+        `ProofNetIR.SequentialFigure7.WaitStep
+        "commitmentInterval_parTraceReentryMarkedContinuationCausalDescentOutcome"
+    ]
+  },
+  {
     title := "Marked re-entry target raw-return cyclic reduction"
     declarations := [
       `ProofNetIR.SequentialFigure7.MarkedConclusionRawReturnCyclicOutcome,
@@ -2029,6 +2051,22 @@ def sections : List Section := [
       `ProofNetIR.SequentialFigure7.dispatcher_reachable_of_initializeReservation?_eq_some,
       `ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher.dispatch,
       `ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher.schedulerInvariant
+    ]
+  },
+  {
+    title := "Canonical raw-mark causal order"
+    declarations := [
+      `ProofNetIR.SequentialFigure7.CanonicalTagHistory.RawMarkedBefore,
+      Name.str
+        `ProofNetIR.SequentialFigure7.CanonicalTagHistory.RawMarkedBefore
+        "first_rawMarked",
+      Name.str
+        `ProofNetIR.SequentialFigure7.CanonicalTagHistory.RawMarkedBefore
+        "second_rawMarked",
+      Name.str
+        `ProofNetIR.SequentialFigure7.CanonicalTagHistory.RawMarkedBefore
+        "vertex_ne",
+      `ProofNetIR.SequentialFigure7.CanonicalTagHistory.rawMarkedPremisesBefore
     ]
   },
   {

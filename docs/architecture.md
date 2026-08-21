@@ -1588,6 +1588,22 @@ work outside the carrier, this first-step descent, older future work, and an
 older marked global conclusion. The descent is not eliminated and supplies no
 ready-tail, history-tail, completion, or progress theorem.
 
+`SequentialFigure7RawMarkCausalOrder.lean` makes the chronological relation
+between authentic prepared-selection raw-mark events explicit. A prior event
+survives each later constructor, and any prior event precedes the current
+event. The relation projects both endpoint events and makes their selected
+occurrences distinct. For an authentically marked submitted connective
+conclusion, both its queried premise and opposite mate have strictly earlier
+authentic raw-mark events.
+
+`SequentialFigure7MarkedTargetRawReturnCausalDescent.lean` combines that order
+with the first representative descent. Both the re-entry origin and its
+sibling mate precede the older marked parent conclusion; the sibling also
+retains its finite continuation exit. The generic first-descent target and the
+typed Wait outcome expose this refinement. No theorem eliminates the descent
+or sibling exit, makes the event order transitive or total, derives a
+ready-tail/history-tail law, or proves completion or progress.
+
 `SequentialFigure7CommitmentBlockerAdvance.lean` joins the global queued-head
 law, the strict `sigma` split, the strict-edge avoiding adapter, and the final
 equal-boundary classification. Under declarative correctness and the complete

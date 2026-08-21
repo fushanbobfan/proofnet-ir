@@ -330,6 +330,24 @@ end ProofNetIR.SequentialFigure7
 #print axioms
   SequentialFigure7.WaitStep.commitmentInterval_parTraceReentryMarkedContinuationFirstDescentOutcome
 #print axioms
+  SequentialFigure7.CanonicalTagHistory.RawMarkedBefore.first_rawMarked
+#print axioms
+  SequentialFigure7.CanonicalTagHistory.RawMarkedBefore.second_rawMarked
+#print axioms
+  SequentialFigure7.CanonicalTagHistory.RawMarkedBefore.vertex_ne
+#print axioms
+  SequentialFigure7.CanonicalTagHistory.rawMarkedPremisesBefore
+#print axioms
+  SequentialFigure7.MarkedConclusionChainFirstRepresentativeDescent.causalDescent
+namespace ProofNetIR.SequentialFigure7
+namespace ActiveCarrierExternalReentryMarkedMateSeparatedContinuationFirstDescentTarget
+#print axioms causalDescentTarget
+end ActiveCarrierExternalReentryMarkedMateSeparatedContinuationFirstDescentTarget
+namespace WaitStep
+#print axioms commitmentInterval_parTraceReentryMarkedContinuationCausalDescentOutcome
+end WaitStep
+end ProofNetIR.SequentialFigure7
+#print axioms
   SequentialFigure7.MarkedConclusionChain.rawReturnCyclicReduction
 #print axioms
   SequentialFigure7.MarkedConclusionChain.rawReturnCyclicJunctionReduction

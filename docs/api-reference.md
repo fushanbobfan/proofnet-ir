@@ -9826,6 +9826,114 @@ ProofNetIR.SequentialFigure7.WaitStep.commitmentInterval_parTraceReentryMarkedCo
                                   tagHistory step.prepared.readyHeadInput component owned step.consumer)
 ```
 
+## Marked re-entry target raw-return causal descent
+
+### `ProofNetIR.SequentialFigure7.MarkedConclusionChainFirstCausalDescent`
+
+Kind: definition.
+
+An authenticated first representative descent together with the strict
+raw-mark-event order of both premises and a finite continuation exit for the
+opposite premise.
+
+```lean
+ProofNetIR.SequentialFigure7.MarkedConclusionChainFirstCausalDescent : (certificate : ProofNetIR.Certificate) →
+  (state : ProofNetIR.SequentialSchedulerBridge.ReservationState) →
+    {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state} →
+      ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history →
+        ProofNetIR.Vertex → ProofNetIR.Vertex → ProofNetIR.SequentialSchedulerState.RawTokenAge → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.MarkedConclusionChainFirstRepresentativeDescent.causalDescent`
+
+Kind: theorem.
+
+Enrich an authenticated first representative descent with strict causal
+raw-mark order for both premises and a finite exit for the opposite premise.
+
+```lean
+ProofNetIR.SequentialFigure7.MarkedConclusionChainFirstRepresentativeDescent.causalDescent : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  {tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history}
+  {origin terminal : ProofNetIR.Vertex} {active : ProofNetIR.SequentialSchedulerState.RawTokenAge},
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+    ProofNetIR.SequentialFigure7.MarkedConclusionChainFirstRepresentativeDescent certificate state tagHistory origin
+        terminal active →
+      ProofNetIR.SequentialFigure7.MarkedConclusionChainFirstCausalDescent certificate state tagHistory origin terminal
+        active
+```
+
+### `ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedContinuationCausalDescentTarget`
+
+Kind: definition.
+
+The marked re-entry target after replacing the first representative
+descent by its causally ordered two-premise receipt.
+
+```lean
+ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedContinuationCausalDescentTarget : {certificate : ProofNetIR.Certificate} →
+  {state : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+    {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state} →
+      ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history →
+        (input : ProofNetIR.SequentialFigure7.ReadyHeadInput state) →
+          ProofNetIR.UnificationComponent →
+            List ProofNetIR.Vertex → ProofNetIR.ConnectiveBelow certificate input.vertex → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedContinuationFirstDescentTarget.causalDescentTarget`
+
+Kind: theorem.
+
+Replace the first-descent alternative in a generic re-entry target by its
+strict causal two-premise refinement.
+
+```lean
+ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedContinuationFirstDescentTarget.causalDescentTarget : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  {tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history}
+  (input : ProofNetIR.SequentialFigure7.ReadyHeadInput state),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+    ∀ {component : ProofNetIR.UnificationComponent} {owned : List ProofNetIR.Vertex}
+      {current : ProofNetIR.ConnectiveBelow certificate input.vertex},
+      ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedContinuationFirstDescentTarget
+          tagHistory input component owned current →
+        ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedContinuationCausalDescentTarget
+          tagHistory input component owned current
+```
+
+### `ProofNetIR.SequentialFigure7.WaitStep.commitmentInterval_parTraceReentryMarkedContinuationCausalDescentOutcome`
+
+Kind: theorem.
+
+In the strictly older Wait branch, replace exact raw return by a first
+descent whose two premises strictly precede the older parent conclusion in the
+canonical raw-mark event order.
+
+```lean
+ProofNetIR.SequentialFigure7.WaitStep.commitmentInterval_parTraceReentryMarkedContinuationCausalDescentOutcome : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before},
+  certificate.ReferenceSwitchingConnected →
+    ∀ (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+      ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+        ∀ (step : ProofNetIR.SequentialFigure7.WaitStep certificate before after)
+          {component : ProofNetIR.UnificationComponent} {usedLinks owned : List Nat},
+          before.core.components[step.prepared.stackResult.rawAge]? = some (some component) →
+            certificate.ComponentOccurrenceWitness component usedLinks owned →
+              ∀ {position edgeCount : Nat} {first : ProofNetIR.SequentialSchedulerState.RawTokenAge},
+                0 < edgeCount →
+                  before.stack.sigma[position]? = some first →
+                    before.stack.sigma[position + edgeCount]? = some step.prepared.stackResult.rawAge →
+                      (¬∃ pending,
+                            pending ∈ step.prepared.stackResult.remainingTop ∧ ¬pending ∈ certificate.conclusions) →
+                        tagHistory.CommitmentIntervalParTraceOutcome step.prepared.readyHeadInput step.consumer position
+                          edgeCount first
+                          (¬step.consumer.mate ∈ owned ∧
+                            before.core.marks[step.consumer.mate]? = some (some step.mateRawAge) ∧
+                              before.core.representative step.mateRawAge < step.prepared.stackResult.rawAge ∧
+                                ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedContinuationCausalDescentTarget
+                                  tagHistory step.prepared.readyHeadInput component owned step.consumer)
+```
+
 ## Marked re-entry target raw-return cyclic reduction
 
 ### `ProofNetIR.SequentialFigure7.MarkedConclusionRawReturnCyclicOutcome`
@@ -21487,6 +21595,88 @@ invariant under structural certificate validity.
 ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher.schedulerInvariant : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState},
   ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher certificate state →
     certificate.StructurallyWellFormed → ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state
+```
+
+## Canonical raw-mark causal order
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.RawMarkedBefore`
+
+Kind: inductive type.
+
+Strict chronological order between two authentic prepared-selection
+events in one canonical dispatcher history.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.RawMarkedBefore : {certificate : ProofNetIR.Certificate} →
+  {state : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+    {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state} →
+      ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history →
+        ProofNetIR.SequentialSchedulerState.RawTokenAge →
+          ProofNetIR.Vertex → ProofNetIR.SequentialSchedulerState.RawTokenAge → ProofNetIR.Vertex → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.RawMarkedBefore.first_rawMarked`
+
+Kind: theorem.
+
+The earlier endpoint of a chronological relation is an authentic raw-mark
+event in the same final history.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.RawMarkedBefore.first_rawMarked : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  {tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history}
+  {firstAge secondAge : ProofNetIR.SequentialSchedulerState.RawTokenAge} {first second : ProofNetIR.Vertex},
+  tagHistory.RawMarkedBefore firstAge first secondAge second → tagHistory.RawMarked firstAge first
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.RawMarkedBefore.second_rawMarked`
+
+Kind: theorem.
+
+The later endpoint of a chronological relation is an authentic raw-mark
+event in the same final history.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.RawMarkedBefore.second_rawMarked : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  {tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history}
+  {firstAge secondAge : ProofNetIR.SequentialSchedulerState.RawTokenAge} {first second : ProofNetIR.Vertex},
+  tagHistory.RawMarkedBefore firstAge first secondAge second → tagHistory.RawMarked secondAge second
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.RawMarkedBefore.vertex_ne`
+
+Kind: theorem.
+
+Strictly ordered raw-mark events select distinct occurrences.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.RawMarkedBefore.vertex_ne : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  {tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history}
+  {firstAge secondAge : ProofNetIR.SequentialSchedulerState.RawTokenAge} {first second : ProofNetIR.Vertex},
+  tagHistory.RawMarkedBefore firstAge first secondAge second → first ≠ second
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.rawMarkedPremisesBefore`
+
+Kind: theorem.
+
+Both submitted premises of an authentically raw-marked connective
+conclusion were authentically raw-marked at strictly earlier dispatcher
+events.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.rawMarkedPremisesBefore : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history) {vertex : ProofNetIR.Vertex}
+  (consumer : ProofNetIR.ConnectiveBelow certificate vertex)
+  {conclusionAge : ProofNetIR.SequentialSchedulerState.RawTokenAge},
+  tagHistory.RawMarked conclusionAge consumer.conclusion →
+    ∃ premiseAge mateAge,
+      tagHistory.RawMarkedBefore premiseAge vertex conclusionAge consumer.conclusion ∧
+        tagHistory.RawMarkedBefore mateAge consumer.mate conclusionAge consumer.conclusion
 ```
 
 ## Figure-7 progress invariants and source-region bridges

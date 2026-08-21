@@ -1105,9 +1105,14 @@
   - [x] Refine the exact return retained by Wait to an authenticated first-step
     descent. The first parent conclusion outside the active carrier is marked
     at a strictly older representative, with its exact canonical-history event.
-  - [ ] Eliminate that Wait descent and the remaining cyclic residuals, the
-    other finite exits, and the equal-final traces, or recover a distinct
-    ready-tail payer. Do not infer
+  - [x] Order authentic prepared-selection raw-mark events chronologically.
+    Both submitted premises of an authentically marked connective conclusion
+    occur earlier; the Wait first descent now records that order for its origin
+    and sibling mate and retains the sibling continuation exit.
+  - [ ] Combine that causal order with the retained cyclic and commitment paths
+    to eliminate the Wait descent or recover a distinct ready-tail payer. Then
+    eliminate the remaining cyclic residuals, other finite exits, and
+    equal-final traces. Do not infer
     unconditional dispatcher progress, completion, terminality, later-state
     totality, global raw seams, fallback removal, Figure-7 pure-worklist
     completeness, sequentialization, faithful token-age scheduling, or
