@@ -25,20 +25,20 @@ latest research surface and are prepared for documented development changes.
 
 Canonical history now orders authentic prepared-selection raw-mark events.
 The strict order is transitive and asymmetric, and any two authentic marks at
-distinct vertices are comparable. The equality-or-two-orders theorem also
-identifies repeated views of the same event by both age and vertex.
+distinct vertices are comparable; equality identifies repeats by age and vertex.
 The Wait first descent carries the outer mate as its full-chain terminal. Its
 sibling continuation is now re-rooted after the shared non-global conclusion.
-Finite-chain comparability then forces any marked-global endpoint strictly
-after the outer terminal; the former earlier branch is eliminated. Raw and
-future endpoints remain intact.
+Finite-chain comparability first forces a marked-global sibling endpoint after
+the outer terminal. Ready-head unmarkedness then rules out that last case:
+marking the current conclusion would force its selected premise to be marked,
+so only raw-mate and future-work sibling endpoints remain.
 The same first-descent chain carries its exact cyclic-junction normal form. In
 nonempty complete cancellation, the reverse traversal forces both endpoint junctions
 at once. Correctness excludes equality between the cyclic source and the
 authenticated outer terminal, so the source is strictly before it.
 The exact Nop return remains eliminated, while Wait's terminal-ordered causal
-descent, the forward marked-global branch, raw work outside the active
-carrier, older future work, and older marked global work remain residuals. No
+descent, raw/future sibling endpoints, raw work outside the active carrier,
+older future work, and older marked global work remain residuals. No complete
 endpoint elimination, history-tail law, unconditional all-marked, progress,
 completion, termination, totality, or completeness follows.
 [Current status](docs/current-status.md) owns exact revision, verification receipt, and gates.

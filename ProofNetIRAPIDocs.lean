@@ -1046,6 +1046,34 @@ def sections : List Section := [
     ]
   },
   {
+    title := "Marked re-entry target sibling open exits"
+    declarations := [
+      Name.str
+        `ProofNetIR.SequentialFigure7.MarkedConclusionChain
+        "terminalComparable",
+      Name.str
+        `ProofNetIR.SequentialFigure7
+        "ContinuationExitRawOrFuture",
+      Name.str
+        `ProofNetIR.SequentialFigure7.MarkedConclusionChainFirstCausalDescent
+        "sourceExitRawOrFuture",
+      Name.str
+        `ProofNetIR.SequentialFigure7
+        ("ActiveCarrierExternalReentryMarkedMateSeparatedContinuation" ++
+          "SiblingExitOpenTarget"),
+      Name.str
+        (Name.str
+          `ProofNetIR.SequentialFigure7
+          ("ActiveCarrierExternalReentryMarkedMateSeparatedContinuation" ++
+            "SiblingExitForwardCausalTarget"))
+        "openTarget",
+      Name.str
+        `ProofNetIR.SequentialFigure7.WaitStep
+        ("commitmentInterval_parTraceReentryMarkedContinuation" ++
+          "SiblingExitOpenOutcome")
+    ]
+  },
+  {
     title := "Marked re-entry target raw-return cyclic reduction"
     declarations := [
       `ProofNetIR.SequentialFigure7.MarkedConclusionRawReturnCyclicOutcome,

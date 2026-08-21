@@ -1259,6 +1259,16 @@ part of the engineering and proof-identity gap.
    history-tail law, completion, or progress follows. The verified combined
    audit now covers 1035 theorems: 741 standard-three, 25 axiom-free, 129
    `propext`-only, and 140 `propext`/`Quot.sound` boundaries.
+   `SequentialFigure7MarkedTargetRawReturnSiblingExitOpen.lean` then uses the
+   selected ready head's exact raw-unmarked lookup and canonical
+   `rawMarkedPremisesBefore` receipt to eliminate the remaining marked-global
+   sibling endpoint. Its open-exit carrier retains raw-mate and future-work
+   endpoints only. The target's separate raw, future, and older marked-global
+   branches and every cyclic, junction, par, descent, and tail-failure
+   residual remain. No payer, history-tail law, completion, or progress
+   follows. The verified combined audit now covers 1039 theorems: 744
+   standard-three, 25 axiom-free, 130 `propext`-only, and 140
+   `propext`/`Quot.sound` boundaries.
    `SequentialFigure7CommitmentBlockerAdvance.lean` now combines the global
    queued-head law, strict split, and equal-boundary result. Under declarative
    correctness and the complete scheduler invariant, for a supplied canonical

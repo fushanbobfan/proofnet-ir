@@ -1062,6 +1062,15 @@ alternative for the re-rooted sibling exit and retains every raw, future,
 cyclic, junction, par, descent, and tail-failure residual. The verified
 combined audit now covers 1035 theorems: 741 standard-three, 25 axiom-free, 129
 `propext`-only, and 140 `propext`/`Quot.sound` boundaries.
+`SequentialFigure7MarkedTargetRawReturnSiblingExitOpen.lean` adds one
+`propext`-only chain-comparison theorem and three standard-three theorems. It
+uses only typed connective ownership, queued-vertex unmarkedness, finite
+marked-chain structure, and authenticated raw-mark chronology; it introduces
+no runtime oracle or new trust dependency. It removes the remaining
+marked-global sibling endpoint while retaining both open endpoints and every
+separate target residual. The verified combined audit now covers 1039
+theorems: 744 standard-three, 25 axiom-free, 130 `propext`-only, and 140
+`propext`/`Quot.sound` boundaries.
 `SequentialFigure7CrossRepresentativeWaitPreservation.lean` adds no hidden
 source-region oracle. Its output-work classification follows only from the
 typed destination's exact waiting prepend and unchanged ready/sigma fields;

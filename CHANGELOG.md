@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- eliminated the remaining marked-global endpoint of the first causal
+  descent's sibling continuation. If finite-chain comparison reaches the
+  selected connective's opposite premise, its shared conclusion is concretely
+  marked; canonical raw-mark history would then mark the selected ready head,
+  contradicting queued-vertex unmarkedness. The new open-exit carrier retains
+  exactly raw-mate and future-work endpoints. The target's other raw, future,
+  and older marked-global branches, complete cancellation, both exact
+  junctions, the par residual, the descent, and tail failure remain. This
+  proves no payer, history-tail law, completion, or progress result. The
+  verified combined audit now covers 1039 theorems: 744 standard-three, 25
+  axiom-free, 130 `propext`-only, and 140 `propext`/`Quot.sound` boundaries;
 - re-rooted the first causal descent's sibling continuation after its shared
   marked non-global conclusion. Finite marked-conclusion chains from the same
   origin have comparable terminals, so a marked-global sibling endpoint is

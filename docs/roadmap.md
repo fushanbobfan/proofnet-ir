@@ -1133,6 +1133,10 @@
     marked non-global conclusion. Use finite-chain terminal comparability to
     rule out a marked-global endpoint before the authenticated outer mate,
     while retaining the forward marked-global, raw, and future exits.
+  - [x] Eliminate the remaining forward marked-global sibling endpoint. A
+    marked current conclusion would authenticate an earlier mark of the
+    selected ready premise, contradicting its exact raw-unmarked lookup. Retain
+    the raw-mate and future-work sibling exits and every separate target branch.
   - [ ] Use the strict cyclic endpoint order and aligned sibling causal witness
     with the retained commitment paths to eliminate the Wait descent or recover
     a distinct ready-tail payer. Then

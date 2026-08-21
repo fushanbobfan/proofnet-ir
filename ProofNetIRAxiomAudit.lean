@@ -424,6 +424,21 @@ namespace WaitStep
   commitmentInterval_parTraceReentryMarkedContinuationSiblingExitForwardCausalOutcome
 end WaitStep
 end ProofNetIR.SequentialFigure7
+namespace ProofNetIR.SequentialFigure7
+namespace MarkedConclusionChain
+#print axioms terminalComparable
+end MarkedConclusionChain
+namespace MarkedConclusionChainFirstCausalDescent
+#print axioms sourceExitRawOrFuture
+end MarkedConclusionChainFirstCausalDescent
+namespace ActiveCarrierExternalReentryMarkedMateSeparatedContinuationSiblingExitForwardCausalTarget
+#print axioms openTarget
+end ActiveCarrierExternalReentryMarkedMateSeparatedContinuationSiblingExitForwardCausalTarget
+namespace WaitStep
+#print axioms
+  commitmentInterval_parTraceReentryMarkedContinuationSiblingExitOpenOutcome
+end WaitStep
+end ProofNetIR.SequentialFigure7
 #print axioms
   SequentialFigure7.MarkedConclusionChain.rawReturnCyclicReduction
 #print axioms

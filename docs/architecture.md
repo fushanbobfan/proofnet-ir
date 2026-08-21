@@ -1649,6 +1649,17 @@ therefore occur strictly later; the earlier order is impossible. The generic
 target and typed Wait theorem retain raw-mate and future-conclusion exits,
 complete cancellation, both endpoint junctions, the par residual, the descent,
 and tail failure. No payer, history-tail law, completion, or progress follows.
+`SequentialFigure7MarkedTargetRawReturnSiblingExitOpen.lean` then eliminates
+the surviving marked-global sibling endpoint. The selected ready head is
+queued and therefore raw-unmarked. If the compared sibling chain reaches a
+marked global conclusion, either terminal uniqueness gives an immediate
+non-global contradiction or the current connective conclusion becomes
+concretely marked. Canonical raw-mark history would then mark both submitted
+premises, contradicting the selected head's raw-unmarked lookup. The resulting
+open-exit carrier has only raw-mate and future-work constructors. The target's
+separate raw, future, and older marked-global branches, complete cancellation,
+both endpoint junctions, the par residual, the descent, and tail failure remain;
+no payer, history-tail law, completion, or progress theorem follows.
 
 `SequentialFigure7CommitmentBlockerAdvance.lean` joins the global queued-head
 law, the strict `sigma` split, the strict-edge avoiding adapter, and the final

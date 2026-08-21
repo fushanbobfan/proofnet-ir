@@ -553,6 +553,14 @@ must consequently occur strictly after the authenticated outer event. Raw and
 future exits, complete cancellation, both endpoint junctions, the par
 residual, the descent, and tail failure remain, so no payer, history-tail law,
 completion, or progress theorem follows.
+`SequentialFigure7MarkedTargetRawReturnSiblingExitOpen.lean` adds no source
+reading. It combines ready-head queued-unmarkedness, finite marked-chain
+terminal comparability, and canonical raw-mark premise chronology to rule out
+the remaining marked-global sibling endpoint. The new open-exit receipt keeps
+only raw-mate and future-work endpoints. The target's separate raw, future,
+and older marked-global branches and all cyclic, junction, par, descent, and
+tail-failure residuals remain, so no payer, history-tail law, completion, or
+progress theorem follows.
 Global preservation of the mate-region and older-raw-mark invariants through
 candidate-creating rules remains open, as do queue origin, created-candidate raw
 seams, derivation of the re-entry avoidance premise, marked-history descent,

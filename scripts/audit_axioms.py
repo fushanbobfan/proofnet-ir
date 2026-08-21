@@ -200,6 +200,13 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "forwardCausalTarget",
     "ProofNetIR.SequentialFigure7.WaitStep."
     "commitmentInterval_parTraceReentryMarkedContinuationSiblingExitForwardCausalOutcome",
+    "ProofNetIR.SequentialFigure7."
+    "MarkedConclusionChainFirstCausalDescent.sourceExitRawOrFuture",
+    "ProofNetIR.SequentialFigure7."
+    "ActiveCarrierExternalReentryMarkedMateSeparatedContinuationSiblingExitForwardCausalTarget."
+    "openTarget",
+    "ProofNetIR.SequentialFigure7.WaitStep."
+    "commitmentInterval_parTraceReentryMarkedContinuationSiblingExitOpenOutcome",
     "ProofNetIR.SequentialFigure7.MarkedConclusionChain."
     "rawReturnCyclicReduction",
     "ProofNetIR.SequentialFigure7.MarkedConclusionChain."
@@ -962,6 +969,7 @@ EXPECTED_AXIOM_FREE_THEOREMS = {
 }
 EXPECTED_PROPEXT_ONLY_THEOREMS = {
     "ProofNetIR.SequentialFigure7.MarkedConclusionChain.terminal_marked_of_ne",
+    "ProofNetIR.SequentialFigure7.MarkedConclusionChain.terminalComparable",
     "ProofNetIR.SequentialFigure7.empty_olderRawMarkedRegionSeparated",
     "ProofNetIR.SequentialFigure7.empty_olderMarkedTensorPredecessorInvariant",
     "ProofNetIR.SequentialFigure7.empty_activeTopMarkedNonconclusionDebt",
