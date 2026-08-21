@@ -1036,6 +1036,15 @@ The verified combined audit covers 1025 theorems: 732 standard-three, 25
 axiom-free, 129 `propext`-only, and 139 `propext`/`Quot.sound` boundaries. It
 does not eliminate a junction, endpoint, descent, or ordered branch and proves
 no payer, history-tail law, completion, or progress.
+`SequentialFigure7MarkedTargetRawReturnCyclicEndpointCausalOrder.lean` adds
+three proposition carriers and four theorems. The endpoint-junction theorem
+uses exactly `propext` and `Quot.sound`; the causal source, target adapter, and
+typed Wait theorems use the standard three axioms. They derive only exact
+reverse endpoint data and canonical raw-mark order already carried by the
+typed witnesses. No runtime oracle or stronger trust dependency is introduced,
+and no cyclic or sibling residual is eliminated. The verified combined audit
+now covers 1029 theorems: 735 standard-three, 25 axiom-free, 129
+`propext`-only, and 140 `propext`/`Quot.sound` boundaries.
 `SequentialFigure7CrossRepresentativeWaitPreservation.lean` adds no hidden
 source-region oracle. Its output-work classification follows only from the
 typed destination's exact waiting prepend and unchanged ready/sigma fields;

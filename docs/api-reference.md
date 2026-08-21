@@ -10351,6 +10351,153 @@ ProofNetIR.SequentialFigure7.WaitStep.commitmentInterval_parTraceReentryMarkedCo
                                     tagHistory step.prepared.readyHeadInput component owned step.consumer)
 ```
 
+## Marked re-entry target cyclic-junction endpoint causal order
+
+### `ProofNetIR.SequentialFigure7.MarkedConclusionRawReturnCompleteCancellationEndpointJunctions`
+
+Kind: definition.
+
+The exact reverse traversal in nonempty complete cancellation exposes
+both reverse segment junctions and their four walk endpoints at once.
+
+```lean
+ProofNetIR.SequentialFigure7.MarkedConclusionRawReturnCompleteCancellationEndpointJunctions : {certificate : ProofNetIR.Certificate} →
+  ProofNetIR.Vertex →
+    ProofNetIR.Vertex → List certificate.fullGraph.DirectedEdge → List certificate.fullGraph.DirectedEdge → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.MarkedConclusionRawReturnCompleteCancellationTraversal.endpointJunctions`
+
+Kind: theorem.
+
+The exact reverse-traversal ledger of nonempty complete cancellation gives
+both endpoint junctions simultaneously.
+
+```lean
+ProofNetIR.SequentialFigure7.MarkedConclusionRawReturnCompleteCancellationTraversal.endpointJunctions : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {base source : ProofNetIR.Vertex} {retainedPrefix continuationTail : List certificate.fullGraph.DirectedEdge},
+  ProofNetIR.SequentialFigure7.MarkedConclusionRawReturnCompleteCancellationTraversal state retainedPrefix
+      continuationTail →
+    certificate.fullGraph.EdgeWalk base retainedPrefix source →
+      certificate.fullGraph.EdgeWalk source continuationTail base →
+        retainedPrefix ≠ [] →
+          ProofNetIR.SequentialFigure7.MarkedConclusionRawReturnCompleteCancellationEndpointJunctions base source
+            retainedPrefix continuationTail
+```
+
+### `ProofNetIR.SequentialFigure7.MarkedConclusionRawReturnCyclicJunctionCausalOutcome`
+
+Kind: definition.
+
+A cyclic-junction outcome together with the canonical causal position of
+its source endpoint relative to an authenticated base endpoint.
+
+```lean
+ProofNetIR.SequentialFigure7.MarkedConclusionRawReturnCyclicJunctionCausalOutcome : (certificate : ProofNetIR.Certificate) →
+  (state : ProofNetIR.SequentialSchedulerBridge.ReservationState) →
+    {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state} →
+      ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history →
+        ProofNetIR.Vertex → ProofNetIR.Vertex → ProofNetIR.SequentialSchedulerState.RawTokenAge → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.MarkedConclusionChainFirstCausalDescent.rawReturnCyclicJunctionCausalOutcome`
+
+Kind: theorem.
+
+The same first-causal-descent chain that produces the cyclic-junction
+normal form also places its source endpoint at or strictly before the
+authenticated outer endpoint.
+
+```lean
+ProofNetIR.SequentialFigure7.MarkedConclusionChainFirstCausalDescent.rawReturnCyclicJunctionCausalOutcome : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  {tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history} {origin outer : ProofNetIR.Vertex}
+  {active outerAge : ProofNetIR.SequentialSchedulerState.RawTokenAge},
+  certificate.DeclarativelyCorrect →
+    ProofNetIR.SequentialFigure7.MarkedConclusionChainFirstCausalDescent certificate state tagHistory origin outer
+        active →
+      tagHistory.RawMarked outerAge outer →
+        ∀ (path : certificate.referenceSwitchingGraph.EdgeSimplePath),
+          path.start = outer →
+            ∀ (directed : certificate.referenceSwitchingGraph.DirectedEdge),
+              directed ∈ path.traversed →
+                ∀ (targetConsumer : ProofNetIR.ConnectiveBelow certificate origin),
+                  directed.source = targetConsumer.conclusion →
+                    origin ≠ outer →
+                      ProofNetIR.SequentialFigure7.MarkedConclusionRawReturnCyclicJunctionCausalOutcome certificate
+                        state tagHistory outer targetConsumer.conclusion outerAge
+```
+
+### `ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedContinuationSiblingExitCausalEndpointTarget`
+
+Kind: definition.
+
+The sibling-exit causal/cyclic target with the cyclic source endpoint
+ordered against its authenticated outer endpoint.
+
+```lean
+ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedContinuationSiblingExitCausalEndpointTarget : {certificate : ProofNetIR.Certificate} →
+  {state : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+    {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state} →
+      ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history →
+        (input : ProofNetIR.SequentialFigure7.ReadyHeadInput state) →
+          ProofNetIR.UnificationComponent →
+            List ProofNetIR.Vertex → ProofNetIR.ConnectiveBelow certificate input.vertex → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedContinuationSiblingExitCausalJunctionTarget.causalEndpointTarget`
+
+Kind: theorem.
+
+Add the cyclic source's causal position to the first-descent branch without
+changing the other three continuation exits.
+
+```lean
+ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedContinuationSiblingExitCausalJunctionTarget.causalEndpointTarget : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  {tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history}
+  {input : ProofNetIR.SequentialFigure7.ReadyHeadInput state} {component : ProofNetIR.UnificationComponent}
+  {owned : List ProofNetIR.Vertex} {current : ProofNetIR.ConnectiveBelow certificate input.vertex},
+  certificate.DeclarativelyCorrect →
+    ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedContinuationSiblingExitCausalJunctionTarget
+        tagHistory input component owned current →
+      ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedContinuationSiblingExitCausalEndpointTarget
+        tagHistory input component owned current
+```
+
+### `ProofNetIR.SequentialFigure7.WaitStep.commitmentInterval_parTraceReentryMarkedContinuationSiblingExitCausalEndpointOutcome`
+
+Kind: theorem.
+
+In the strictly older Wait branch, align both cyclic endpoint junctions and
+the cyclic source's causal order with the retained sibling-exit receipt.
+
+```lean
+ProofNetIR.SequentialFigure7.WaitStep.commitmentInterval_parTraceReentryMarkedContinuationSiblingExitCausalEndpointOutcome : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before},
+  certificate.DeclarativelyCorrect →
+    certificate.ReferenceSwitchingConnected →
+      ∀ (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+        ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+          ∀ (step : ProofNetIR.SequentialFigure7.WaitStep certificate before after)
+            {component : ProofNetIR.UnificationComponent} {usedLinks owned : List Nat},
+            before.core.components[step.prepared.stackResult.rawAge]? = some (some component) →
+              certificate.ComponentOccurrenceWitness component usedLinks owned →
+                ∀ {position edgeCount : Nat} {first : ProofNetIR.SequentialSchedulerState.RawTokenAge},
+                  0 < edgeCount →
+                    before.stack.sigma[position]? = some first →
+                      before.stack.sigma[position + edgeCount]? = some step.prepared.stackResult.rawAge →
+                        (¬∃ pending,
+                              pending ∈ step.prepared.stackResult.remainingTop ∧ ¬pending ∈ certificate.conclusions) →
+                          tagHistory.CommitmentIntervalParTraceOutcome step.prepared.readyHeadInput step.consumer
+                            position edgeCount first
+                            (¬step.consumer.mate ∈ owned ∧
+                              before.core.marks[step.consumer.mate]? = some (some step.mateRawAge) ∧
+                                before.core.representative step.mateRawAge < step.prepared.stackResult.rawAge ∧
+                                  ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedContinuationSiblingExitCausalEndpointTarget
+                                    tagHistory step.prepared.readyHeadInput component owned step.consumer)
+```
+
 ## Marked re-entry target raw-return cyclic reduction
 
 ### `ProofNetIR.SequentialFigure7.MarkedConclusionRawReturnCyclicOutcome`

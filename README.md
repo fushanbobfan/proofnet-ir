@@ -32,9 +32,10 @@ re-entry origin and first sibling both precede it. The sibling continuation is
 now classified relative to that terminal. Raw and future exits remain intact;
 a marked-global endpoint is strictly earlier or strictly later than the outer
 terminal because the latter is a non-global submitted premise.
-The same first-descent chain now also carries its exact cyclic-junction normal
-form on the retained switching path, so chronology and switching geometry are
-aligned on one witness without removing either residual.
+The same first-descent chain carries its exact cyclic-junction normal form. In
+nonempty complete cancellation, the reverse traversal forces both endpoint junctions
+at once, while the cyclic source is equal to or strictly before the
+authenticated outer terminal. No cyclic residual is removed.
 The exact Nop return remains eliminated, while Wait's terminal-ordered causal
 descent, both ordered marked-global branches, raw work outside the active
 carrier, older future work, and older marked global work remain residuals. No

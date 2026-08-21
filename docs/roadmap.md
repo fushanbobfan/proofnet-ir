@@ -1121,6 +1121,10 @@
   - [x] Attach the existing exact cyclic-junction normal form to the complete
     marked-conclusion chain retained by that first descent. Keep its switching
     path and target connective aligned with the sibling causal classification.
+  - [x] Refine nonempty complete cancellation to simultaneous reverse
+    junctions at both exact segment endpoints. Classify the cyclic source as
+    equal to or strictly before the authenticated outer terminal on the same
+    first-descent witness; retain every cyclic and sibling residual.
   - [ ] Use the aligned causal and cyclic witnesses with the retained
     commitment paths to eliminate the Wait descent or recover a distinct
     ready-tail payer. Then

@@ -1624,6 +1624,13 @@ cyclic-junction outcome beside the sibling causal classification on the same
 switching path and target connective; the typed Wait theorem transports the
 combined witness. It eliminates no junction, exit, descent, or ordered branch
 and proves no payer, history-tail law, completion, or progress result.
+`SequentialFigure7MarkedTargetRawReturnCyclicEndpointCausalOrder.lean`
+strengthens only that aligned branch. Exact reverse traversal makes both
+nonempty complete-cancellation endpoint junctions hold simultaneously, with
+their four walk endpoints. The same chain places the cyclic source either at
+the authenticated outer terminal or strictly before it. The generic target and
+typed Wait theorem retain this classification without eliminating a junction,
+par-pair residual, sibling exit, marked-global order, or descent.
 
 `SequentialFigure7CommitmentBlockerAdvance.lean` joins the global queued-head
 law, the strict `sigma` split, the strict-edge avoiding adapter, and the final

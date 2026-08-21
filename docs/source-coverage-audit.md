@@ -532,6 +532,12 @@ full chain retained by the same first descent and stores that witness beside
 the sibling causal classification on the same switching path. No junction,
 exit, descent, or ordered branch is eliminated, and no payer, tail law,
 completion, or progress theorem follows.
+`SequentialFigure7MarkedTargetRawReturnCyclicEndpointCausalOrder.lean` adds no
+source reading. It derives both exact endpoint reverse junctions from complete
+cancellation's traversal equality and orders the named cyclic source against
+the authenticated outer event from the same marked chain. The target and Wait
+adapters preserve all remaining junction, par-pair, sibling, marked-global, and
+descent alternatives, so no payer, tail law, completion, or progress follows.
 Global preservation of the mate-region and older-raw-mark invariants through
 candidate-creating rules remains open, as do queue origin, created-candidate raw
 seams, derivation of the re-entry avoidance premise, marked-history descent,

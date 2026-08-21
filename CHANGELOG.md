@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- strengthened nonempty complete raw-return cancellation from one endpoint
+  site to simultaneous exact reverse junctions at both segment endpoints. The
+  first causal descent now also classifies the cyclic source as equal to or
+  strictly before its authenticated outer terminal, and the generic target and
+  typed Wait outcome retain that classification. This eliminates no junction,
+  par-pair residual, sibling exit, marked-global order, or descent, and derives
+  no payer, history-tail law, completion, or progress theorem. The verified
+  combined audit now covers 1029 theorems: 735 standard-three, 25 axiom-free,
+  129 `propext`-only, and 140 `propext`/`Quot.sound` boundaries;
 - aligned the first causal descent's sibling-exit chronology with the exact
   cyclic-junction normal form of the same full marked-conclusion chain. The
   strengthened generic target and typed Wait outcome retain the same switching

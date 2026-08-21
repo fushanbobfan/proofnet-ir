@@ -1230,6 +1230,15 @@ part of the engineering and proof-identity gap.
    The verified combined audit now covers 1025 theorems: 732 standard-three,
    25 axiom-free, 129 `propext`-only, and 139 `propext`/`Quot.sound`
    boundaries.
+   `SequentialFigure7MarkedTargetRawReturnCyclicEndpointCausalOrder.lean`
+   then turns the complete-cancellation site disjunction into simultaneous
+   reverse junctions at both exact walk endpoints and classifies the cyclic
+   source as equal to or strictly before the authenticated outer terminal. The
+   target adapter and typed Wait theorem preserve every other alternative. No
+   junction, par-pair residual, sibling exit, marked-global order, or descent is
+   eliminated, and no payer, tail law, completion, or progress follows. The
+   verified combined audit now covers 1029 theorems: 735 standard-three, 25
+   axiom-free, 129 `propext`-only, and 140 `propext`/`Quot.sound` boundaries.
    `SequentialFigure7CommitmentBlockerAdvance.lean` now combines the global
    queued-head law, strict split, and equal-boundary result. Under declarative
    correctness and the complete scheduler invariant, for a supplied canonical

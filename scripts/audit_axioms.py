@@ -180,6 +180,14 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "causalJunctionTarget",
     "ProofNetIR.SequentialFigure7.WaitStep."
     "commitmentInterval_parTraceReentryMarkedContinuationSiblingExitCausalJunctionOutcome",
+    "ProofNetIR.SequentialFigure7."
+    "MarkedConclusionChainFirstCausalDescent."
+    "rawReturnCyclicJunctionCausalOutcome",
+    "ProofNetIR.SequentialFigure7."
+    "ActiveCarrierExternalReentryMarkedMateSeparatedContinuationSiblingExitCausalJunctionTarget."
+    "causalEndpointTarget",
+    "ProofNetIR.SequentialFigure7.WaitStep."
+    "commitmentInterval_parTraceReentryMarkedContinuationSiblingExitCausalEndpointOutcome",
     "ProofNetIR.SequentialFigure7.MarkedConclusionChain."
     "rawReturnCyclicReduction",
     "ProofNetIR.SequentialFigure7.MarkedConclusionChain."
@@ -1074,6 +1082,8 @@ EXPECTED_PROPEXT_ONLY_THEOREMS = {
     "ProofNetIR.LeanProp.Schema.Raw.CheckedDerivation.sound",
 }
 EXPECTED_PROPEXT_QUOT_THEOREMS = {
+    "ProofNetIR.SequentialFigure7."
+    "MarkedConclusionRawReturnCompleteCancellationTraversal.endpointJunctions",
     "ProofNetIR.SequentialFigure7.NewGuard.sourceLeftRegion_formulaComplexity_lt_conclusion",
     "ProofNetIR.SequentialFigure7.submittedPremise_not_conclusion",
     "ProofNetIR.SequentialFigure7.FutureWorkAt.afterPreparedOrSelected",
