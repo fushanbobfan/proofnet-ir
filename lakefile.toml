@@ -315,6 +315,10 @@ name = "proofnet_ir_marked_target_raw_return_sibling_exit_ready_mate_elimination
 root = "ProofNetIRMarkedTargetRawReturnSiblingExitReadyMateEliminationTests"
 
 [[lean_exe]]
+name = "proofnet_ir_marked_target_raw_return_sibling_exit_waiting_mate_parent_recursion_tests"
+root = "ProofNetIRMarkedTargetRawReturnSiblingExitWaitingMateParentRecursionTests"
+
+[[lean_exe]]
 name = "proofnet_ir_marked_target_raw_return_cyclic_reduction_tests"
 root = "ProofNetIRMarkedTargetRawReturnCyclicReductionTests"
 

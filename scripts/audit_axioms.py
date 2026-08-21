@@ -248,6 +248,20 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "readyMateTarget",
     "ProofNetIR.SequentialFigure7.WaitStep."
     "commitmentInterval_parTraceReentryMarkedContinuationSiblingExitReadyMateOutcome",
+    "ProofNetIR.SequentialFigure7.FutureWorkActiveMateWaitingOutcome."
+    "activeCarrierParentEscape",
+    "ProofNetIR.SequentialFigure7.FutureWorkActiveMateWaitingOutcome."
+    "parentTemporalOutcome",
+    "ProofNetIR.SequentialFigure7.FutureWorkMateActiveCarrierReadyEliminatedStatus."
+    "parentRecursionStatus",
+    "ProofNetIR.SequentialFigure7."
+    "ContinuationExitRawOrFutureActiveCarrierReadyMateOutcome."
+    "parentRecursionOutcome",
+    "ProofNetIR.SequentialFigure7."
+    "ActiveCarrierExternalReentryMarkedMateSeparatedContinuationSiblingExitReadyMateTarget."
+    "parentRecursionTarget",
+    "ProofNetIR.SequentialFigure7.WaitStep."
+    "commitmentInterval_parTraceReentryMarkedContinuationSiblingExitParentRecursionOutcome",
     "ProofNetIR.SequentialFigure7.MarkedConclusionChain."
     "rawReturnCyclicReduction",
     "ProofNetIR.SequentialFigure7.MarkedConclusionChain."

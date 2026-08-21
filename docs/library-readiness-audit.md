@@ -1315,6 +1315,19 @@ part of the engineering and proof-identity gap.
    axiom-free, 130 `propext`-only, and 140 `propext`/`Quot.sound` boundaries.
    The future endpoint, exact raw return, payer, history-tail law, completion,
    and progress remain open.
+   `SequentialFigure7MarkedTargetRawReturnSiblingExitWaitingMateParentRecursion.lean`
+   now rebuilds the surviving active-owned waiting mate as a marked,
+   non-global active-frontier parent escape whose submitted conclusion leaves
+   the active carrier. Under ready-tail failure, it normalizes that escape to
+   the existing parent temporal outcome and transports the recursive status
+   through the sibling target and typed Wait trace. Its runnable consumer
+   reconstructs every public carrier and invokes all six registered public
+   theorems. The verified combined audit now covers 1063 theorems: 768
+   standard-three, 25 axiom-free, 130 `propext`-only, and 140
+   `propext`/`Quot.sound` boundaries. Active waiting is reduced recursively,
+   not eliminated, and no well-founded repeated normalization is proved;
+   older-outside endpoints, exact return, a payer, the history-tail law,
+   completion, and progress remain open.
    `SequentialFigure7CommitmentBlockerAdvance.lean` now combines the global
    queued-head law, strict split, and equal-boundary result. Under declarative
    correctness and the complete scheduler invariant, for a supplied canonical

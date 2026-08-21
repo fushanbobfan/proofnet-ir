@@ -593,6 +593,15 @@ active carrier. The active-owned branch is consequently the exact waiting
 return already carried by the causal/ownership result. Older-outside mates keep
 both ready and waiting locations. The future endpoint, exact raw return,
 distinct payer, history-tail law, completion, and progress remain open.
+`SequentialFigure7MarkedTargetRawReturnSiblingExitWaitingMateParentRecursion.lean`
+adds no source reading. It combines the exact active waiting span, occurrence
+ownership, submitted-premise structure, existing parent-escape chronology, and
+ready-tail failure. The active-owned waiting mate becomes a marked non-global
+active-frontier parent escape and then an existing parent temporal outcome.
+The sibling target and typed Wait trace retain that recursive status.
+Older-outside ready/waiting endpoints, exact return, a distinct payer, the
+history-tail law, well-founded repeated normalization, completion, and progress
+remain open.
 Global preservation of the mate-region and older-raw-mark invariants through
 candidate-creating rules remains open, as do queue origin, created-candidate raw
 seams, derivation of the re-entry avoidance premise, marked-history descent,

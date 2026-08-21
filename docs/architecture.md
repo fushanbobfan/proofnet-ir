@@ -1707,6 +1707,18 @@ its ready or waiting scheduler status. This is one scheduler-case elimination,
 not elimination of the future endpoint or exact raw return, construction of a
 payer, derivation of the history-tail law, completion, or progress.
 
+`SequentialFigure7MarkedTargetRawReturnSiblingExitWaitingMateParentRecursion.lean`
+then turns the surviving active-owned waiting return into an authenticated
+parent escape. Its mate is a concretely marked, non-global active-frontier
+premise distinct from the selected head, while its submitted conclusion lies
+outside the active occurrence carrier. Under ready-tail failure, the existing
+parent-escape normalization therefore supplies a recursive temporal outcome.
+That refinement is lifted through the sibling target and typed Wait trace.
+Older-outside mates retain their strictly older ready or waiting status. The
+result does not eliminate waiting or the recursive temporal residual, produce
+a payer, prove repeated normalization well-founded, derive the history-tail
+law, or prove completion or progress.
+
 `SequentialFigure7CommitmentBlockerAdvance.lean` joins the global queued-head
 law, the strict `sigma` split, the strict-edge avoiding adapter, and the final
 equal-boundary classification. Under declarative correctness and the complete

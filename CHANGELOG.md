@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- rebuilt the active-owned waiting future mate left after ready-case
+  elimination as a marked, non-global active-frontier parent escape. Under
+  exact ready-tail failure it now normalizes through the existing parent
+  temporal outcome, and that recursive status is transported through the
+  sibling-exit target and typed Wait trace. Older-outside mates retain their
+  strictly older ready or waiting status. This is a one-step recursive
+  reduction, not a well-founded descent proof, elimination of waiting,
+  construction of a payer, derivation of the
+  history-tail law, or proof of completion/progress. The verified combined
+  theorem audit now covers 1063 theorems: 768 standard-three, 25 axiom-free,
+  130 `propext`-only, and 140 `propext`/`Quot.sound` boundaries;
 - eliminated the ready scheduler subcase for an older future sibling endpoint
   whose mate belongs to the active occurrence carrier. Exact ready-component
   occurrence ownership would place that mate at both the strictly older and

@@ -11466,6 +11466,218 @@ ProofNetIR.SequentialFigure7.WaitStep.commitmentInterval_parTraceReentryMarkedCo
                                     tagHistory step.prepared.readyHeadInput component owned step.consumer)
 ```
 
+## Marked re-entry target active-mate waiting parent recursion
+
+### `ProofNetIR.SequentialFigure7.FutureWorkActiveMateWaitingOutcome.activeCarrierParentEscape`
+
+Kind: theorem.
+
+Rebuild an active-owned waiting future mate as a parent escape from the
+active occurrence carrier.
+
+```lean
+ProofNetIR.SequentialFigure7.FutureWorkActiveMateWaitingOutcome.activeCarrierParentEscape : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {input : ProofNetIR.SequentialFigure7.ReadyHeadInput state} {component : ProofNetIR.UnificationComponent}
+  {usedLinks owned : List Nat},
+  certificate.StructurallyWellFormed →
+    ProofNetIR.SequentialSchedulerBridge.QueuedVerticesUnmarked state →
+      certificate.ComponentOccurrenceWitness component usedLinks owned →
+        ∀ {terminal : ProofNetIR.Vertex} {consumer : ProofNetIR.ConnectiveBelow certificate terminal}
+          {boundary : ProofNetIR.SequentialSchedulerState.RawTokenAge},
+          ¬consumer.conclusion ∈ owned →
+            consumer.mate ∈ owned →
+              ProofNetIR.SequentialFigure7.FutureWorkActiveMateWaitingOutcome certificate state input terminal consumer
+                  boundary →
+                ProofNetIR.SequentialFigure7.ActiveCarrierParentEscape certificate state component owned input.vertex
+```
+
+### `ProofNetIR.SequentialFigure7.FutureWorkActiveMateWaitingOutcome.parentTemporalOutcome`
+
+Kind: theorem.
+
+Normalize an active-owned waiting future mate through the existing
+no-ready-tail parent temporal outcome.
+
+```lean
+ProofNetIR.SequentialFigure7.FutureWorkActiveMateWaitingOutcome.parentTemporalOutcome : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  certificate.DeclarativelyCorrect →
+    ∀ {input : ProofNetIR.SequentialFigure7.ReadyHeadInput state} {component : ProofNetIR.UnificationComponent}
+      {usedLinks owned : List Nat},
+      ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+        state.core.components[input.rawAge]? = some (some component) →
+          certificate.ComponentOccurrenceWitness component usedLinks owned →
+            ∀ {terminal : ProofNetIR.Vertex} {consumer : ProofNetIR.ConnectiveBelow certificate terminal}
+              {boundary : ProofNetIR.SequentialSchedulerState.RawTokenAge},
+              ¬consumer.conclusion ∈ owned →
+                consumer.mate ∈ owned →
+                  ProofNetIR.SequentialFigure7.FutureWorkActiveMateWaitingOutcome certificate state input terminal
+                      consumer boundary →
+                    (¬∃ pending, pending ∈ input.readyTail ∧ ¬pending ∈ certificate.conclusions) →
+                      ProofNetIR.SequentialFigure7.ActiveCarrierParentTemporalOutcome certificate state input.rawAge
+                        input.vertex owned
+```
+
+### `ProofNetIR.SequentialFigure7.FutureWorkMateActiveCarrierParentRecursionStatus`
+
+Kind: inductive type.
+
+Ready-eliminated future-mate status with the active waiting branch exposed
+as a recursive parent temporal outcome.
+
+```lean
+ProofNetIR.SequentialFigure7.FutureWorkMateActiveCarrierParentRecursionStatus : (certificate : ProofNetIR.Certificate) →
+  (state : ProofNetIR.SequentialSchedulerBridge.ReservationState) →
+    ProofNetIR.SequentialFigure7.ReadyHeadInput state →
+      List ProofNetIR.Vertex →
+        (terminal : ProofNetIR.Vertex) →
+          ProofNetIR.ConnectiveBelow certificate terminal →
+            ProofNetIR.SequentialSchedulerState.RawTokenAge → ProofNetIR.SequentialSchedulerState.RawTokenAge → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.FutureWorkMateActiveCarrierReadyEliminatedStatus.parentRecursionStatus`
+
+Kind: theorem.
+
+Refine ready-mate elimination by normalizing its active waiting branch to
+the parent temporal interface.
+
+```lean
+ProofNetIR.SequentialFigure7.FutureWorkMateActiveCarrierReadyEliminatedStatus.parentRecursionStatus : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  certificate.DeclarativelyCorrect →
+    ∀ {input : ProofNetIR.SequentialFigure7.ReadyHeadInput state} {component : ProofNetIR.UnificationComponent}
+      {usedLinks owned : List Nat},
+      ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+        state.core.components[input.rawAge]? = some (some component) →
+          certificate.ComponentOccurrenceWitness component usedLinks owned →
+            ∀ {terminal : ProofNetIR.Vertex} {consumer : ProofNetIR.ConnectiveBelow certificate terminal}
+              {boundary mateAge : ProofNetIR.SequentialSchedulerState.RawTokenAge},
+              ¬consumer.conclusion ∈ owned →
+                ProofNetIR.SequentialFigure7.FutureWorkMateActiveCarrierReadyEliminatedStatus certificate state input
+                    owned terminal consumer boundary mateAge →
+                  (¬∃ pending, pending ∈ input.readyTail ∧ ¬pending ∈ certificate.conclusions) →
+                    ProofNetIR.SequentialFigure7.FutureWorkMateActiveCarrierParentRecursionStatus certificate state
+                      input owned terminal consumer boundary mateAge
+```
+
+### `ProofNetIR.SequentialFigure7.ContinuationExitRawOrFutureActiveCarrierParentRecursionOutcome`
+
+Kind: inductive type.
+
+Raw-or-future sibling exit after refining every active-owned future mate
+to a recursive parent temporal outcome.
+
+```lean
+ProofNetIR.SequentialFigure7.ContinuationExitRawOrFutureActiveCarrierParentRecursionOutcome : (certificate : ProofNetIR.Certificate) →
+  (state : ProofNetIR.SequentialSchedulerBridge.ReservationState) →
+    {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state} →
+      ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history →
+        (input : ProofNetIR.SequentialFigure7.ReadyHeadInput state) →
+          List ProofNetIR.Vertex → ProofNetIR.ConnectiveBelow certificate input.vertex → ProofNetIR.Vertex → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.ContinuationExitRawOrFutureActiveCarrierReadyMateOutcome.parentRecursionOutcome`
+
+Kind: theorem.
+
+Lift parent-recursion refinement across a ready-mate-eliminated sibling
+exit.
+
+```lean
+ProofNetIR.SequentialFigure7.ContinuationExitRawOrFutureActiveCarrierReadyMateOutcome.parentRecursionOutcome : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  {tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history}
+  {input : ProofNetIR.SequentialFigure7.ReadyHeadInput state} {component : ProofNetIR.UnificationComponent}
+  {usedLinks owned : List Nat},
+  certificate.DeclarativelyCorrect →
+    ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+      state.core.components[input.rawAge]? = some (some component) →
+        certificate.ComponentOccurrenceWitness component usedLinks owned →
+          ∀ {current : ProofNetIR.ConnectiveBelow certificate input.vertex} {origin : ProofNetIR.Vertex},
+            ProofNetIR.SequentialFigure7.ContinuationExitRawOrFutureActiveCarrierReadyMateOutcome certificate state
+                tagHistory input owned current origin →
+              (¬∃ pending, pending ∈ input.readyTail ∧ ¬pending ∈ certificate.conclusions) →
+                ProofNetIR.SequentialFigure7.ContinuationExitRawOrFutureActiveCarrierParentRecursionOutcome certificate
+                  state tagHistory input owned current origin
+```
+
+### `ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedContinuationSiblingExitParentRecursionTarget`
+
+Kind: definition.
+
+Causal-ownership target whose first-descending sibling exit records active
+waiting as a recursive parent temporal outcome.
+
+```lean
+ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedContinuationSiblingExitParentRecursionTarget : {certificate : ProofNetIR.Certificate} →
+  {state : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+    {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state} →
+      ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history →
+        (input : ProofNetIR.SequentialFigure7.ReadyHeadInput state) →
+          ProofNetIR.UnificationComponent →
+            List ProofNetIR.Vertex → ProofNetIR.ConnectiveBelow certificate input.vertex → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedContinuationSiblingExitReadyMateTarget.parentRecursionTarget`
+
+Kind: theorem.
+
+Refine the causal sibling branch of the ready-mate target to the recursive
+parent temporal target.
+
+```lean
+ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedContinuationSiblingExitReadyMateTarget.parentRecursionTarget : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  {tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history}
+  {input : ProofNetIR.SequentialFigure7.ReadyHeadInput state} {component : ProofNetIR.UnificationComponent}
+  {usedLinks owned : List Nat} {current : ProofNetIR.ConnectiveBelow certificate input.vertex},
+  certificate.DeclarativelyCorrect →
+    ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+      state.core.components[input.rawAge]? = some (some component) →
+        certificate.ComponentOccurrenceWitness component usedLinks owned →
+          ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedContinuationSiblingExitReadyMateTarget
+              tagHistory input component owned current →
+            (¬∃ pending, pending ∈ input.readyTail ∧ ¬pending ∈ certificate.conclusions) →
+              ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedContinuationSiblingExitParentRecursionTarget
+                tagHistory input component owned current
+```
+
+### `ProofNetIR.SequentialFigure7.WaitStep.commitmentInterval_parTraceReentryMarkedContinuationSiblingExitParentRecursionOutcome`
+
+Kind: theorem.
+
+In the strictly older Wait branch, normalize every active-owned waiting
+future sibling mate to its parent temporal outcome.
+
+```lean
+ProofNetIR.SequentialFigure7.WaitStep.commitmentInterval_parTraceReentryMarkedContinuationSiblingExitParentRecursionOutcome : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before},
+  certificate.DeclarativelyCorrect →
+    certificate.ReferenceSwitchingConnected →
+      ∀ (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+        ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+          ∀ (step : ProofNetIR.SequentialFigure7.WaitStep certificate before after)
+            {component : ProofNetIR.UnificationComponent} {usedLinks owned : List Nat},
+            before.core.components[step.prepared.stackResult.rawAge]? = some (some component) →
+              certificate.ComponentOccurrenceWitness component usedLinks owned →
+                ∀ {position edgeCount : Nat} {first : ProofNetIR.SequentialSchedulerState.RawTokenAge},
+                  0 < edgeCount →
+                    before.stack.sigma[position]? = some first →
+                      before.stack.sigma[position + edgeCount]? = some step.prepared.stackResult.rawAge →
+                        (¬∃ pending,
+                              pending ∈ step.prepared.stackResult.remainingTop ∧ ¬pending ∈ certificate.conclusions) →
+                          tagHistory.CommitmentIntervalParTraceOutcome step.prepared.readyHeadInput step.consumer
+                            position edgeCount first
+                            (¬step.consumer.mate ∈ owned ∧
+                              before.core.marks[step.consumer.mate]? = some (some step.mateRawAge) ∧
+                                before.core.representative step.mateRawAge < step.prepared.stackResult.rawAge ∧
+                                  ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedContinuationSiblingExitParentRecursionTarget
+                                    tagHistory step.prepared.readyHeadInput component owned step.consumer)
+```
+
 ## Marked re-entry target raw-return cyclic reduction
 
 ### `ProofNetIR.SequentialFigure7.MarkedConclusionRawReturnCyclicOutcome`

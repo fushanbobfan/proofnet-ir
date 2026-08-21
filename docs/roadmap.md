@@ -1156,11 +1156,17 @@
     with ownership of the same mate at the active boundary. Retain the exact
     active-owned waiting return and both scheduler locations for older-outside
     mates.
+  - [x] Rebuild the active-owned waiting mate as a marked, non-global
+    active-frontier parent escape and, under ready-tail failure, normalize it
+    through the existing parent temporal outcome. Transport that recursive
+    status through the sibling target and typed Wait trace. Retain older-outside
+    ready/waiting work and the recursive temporal residual; no well-founded
+    repeated normalization is established.
   - [ ] Use the strict cyclic endpoint order and aligned sibling causal witness
     with the retained commitment paths and refined causal/ownership
     classification to eliminate the exact selected/mate return, the remaining
-    older-outside ready/waiting endpoint or active waiting return, or the Wait
-    descent, or recover a distinct ready-tail payer. Then
+    older-outside ready/waiting endpoint or recursive active waiting residual,
+    or the Wait descent, or recover a distinct ready-tail payer. Then
     eliminate the remaining cyclic residuals, other finite exits, and
     equal-final traces. Do not infer
     unconditional dispatcher progress, completion, terminality, later-state

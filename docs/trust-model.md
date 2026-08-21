@@ -1112,6 +1112,17 @@ standard-three, 25 axiom-free, 130 `propext`-only, and 140
 `propext`/`Quot.sound` boundaries. The theorem removes only the active-owned
 ready alternative. It adds no payer, tail-law, completion, progress, or
 totality oracle, and older-outside ready/waiting work remains.
+`SequentialFigure7MarkedTargetRawReturnSiblingExitWaitingMateParentRecursion.lean`
+adds no runtime oracle or native-computed evidence. It uses the existing exact
+waiting span, occurrence provenance, submitted-premise structure, canonical
+raw-mark history, and parent-escape normalization. The standalone mate-status
+carrier is `propext`-only; the sibling carrier and target predicate use the
+standard-three boundary, as do all six registered public theorems. The verified
+combined audit now covers 1063 theorems: 768 standard-three, 25 axiom-free, 130
+`propext`-only, and 140 `propext`/`Quot.sound` boundaries. The result exposes a
+recursive parent temporal status; it does not prove repeated normalization
+well-founded, eliminate active waiting, construct a payer, derive the
+history-tail law, or add completion, progress, or totality.
 `SequentialFigure7CrossRepresentativeWaitPreservation.lean` adds no hidden
 source-region oracle. Its output-work classification follows only from the
 typed destination's exact waiting prepend and unchanged ready/sigma fields;
