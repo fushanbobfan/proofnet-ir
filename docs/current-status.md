@@ -17,7 +17,7 @@ Status date: 2026-08-21
 | Track | Revision | Status | Authority |
 | --- | --- | --- | --- |
 | Stable library | `v0.9.0` / `9b7dc3d104af8f57ea9123aab2e61b42e05d2216` | Released | [v0.9.0 release audit](v0.9-release-audit.md) |
-| Rolling research | `v0.10.0-dev`; proof `0d0703b`; audit `1e46573` | Active | This page/commits |
+| Rolling research | `v0.10.0-dev`; proof `72cbeff`; audit `1e46573` | Active | This page/commits |
 
 Documentation-only commits may descend from the proof checkpoint without
 changing its mathematical authority. The stable release and rolling branch
@@ -349,7 +349,7 @@ from a scheduler-invariant input refutes unrestricted
 same-component locality carrier, but neither refutes direct debt nor supplies
 the required queue-tail or elimination of the classified re-entry failure.
 
-The checkpoint's accumulated public surface is exactly 177 declaration
+The checkpoint's accumulated public surface is exactly 181 declaration
 boundaries:
 
 ```text
@@ -510,6 +510,10 @@ SequentialFigure7.WaitStep.
 SequentialFigure7.FutureWorkAtExactSchedulerLocation
 SequentialFigure7.FutureWorkAt.exactSchedulerLocation
 SequentialFigure7.ConnectiveBelow.premisesMarked_of_futureWork
+SequentialFigure7.UnmarkedOutsideActiveSchedulerStatus
+SequentialFigure7.FutureWorkAt.boundary_lt_active_of_not_owned
+SequentialSchedulerBridge.SchedulerInvariant.mem_queued_iff_exists_futureWorkAt
+SequentialSchedulerBridge.SchedulerInvariant.unmarkedOutsideActiveSchedulerStatus
 SequentialFigure7.ContinuationExitRawOrFutureActiveCarrierScheduledOutcome
 SequentialFigure7.ContinuationExitRawOrFutureActiveCarrierOutcome.scheduledOutcome
 SequentialFigure7.
@@ -892,7 +896,7 @@ or first visit is exposed. Neither branch is eliminated or payer-converted,
 the raw survivor is unchanged, and no history-tail law, progress, completion,
 termination, or totality follows.
 
-The [current checkpoint][wait-right] adds the explicit
+The [preceding stored-right checkpoint][wait-right] adds the explicit
 `current.side = .storedRight` refinement. It removes only the selected-head
 alternative from the containing branch's independent failure-conditioned
 status. The avoiding branch retains a marked historical re-entry classifier at
@@ -907,6 +911,22 @@ path and crossing and of each other. The theorem exposes no occurrence
 position, first visit, or boundary identity. It eliminates neither marked
 target, does not payer-convert either branch, leaves the raw survivor unchanged,
 and proves no history-tail law, progress, completion, termination, or totality.
+
+The current checkpoint adds [future-work queue status][future-queue]. Under
+`SchedulerInvariant`, flattened `queuedVertices` membership is equivalent to a
+proof-relevant `FutureWorkAt` witness at some boundary. Given active component
+lookup and an occurrence witness for a supplied `owned` list, future work
+outside that list lies strictly below the active raw boundary and retains an
+exact ready or initialized-waiting scheduler location.
+
+`UnmarkedOutsideActiveSchedulerStatus` therefore records that an in-bounds
+raw-unmarked vertex outside the supplied list is either currently absent from
+the queue, live frontier, and `Produced`, or has exact future work at some
+strictly older boundary. This is a current-state classifier only: it proves no
+unique or first boundary, historical queue origin, persistence, reachability,
+dispatchability, payer, history-tail law, progress, completion, termination,
+or totality. It has not yet been lifted into either outer marked classifier or
+the waiting-parent and higher scheduler wrappers.
 
 ### Finite ready-head boundary audit
 
@@ -963,6 +983,7 @@ Exact signatures are maintained in the generated API reference for the
 [marked re-entry target sibling open exits][target-open],
 [marked re-entry target sibling temporal exits][target-temporal-open],
 [exact future-work scheduler locations][future-location],
+[future-work queue status][future-queue],
 [marked re-entry target sibling scheduled exits][target-scheduled],
 [marked re-entry target sibling causal ownership][target-causal-ownership],
 [marked re-entry target active-mate ready elimination][target-ready-mate],
@@ -984,13 +1005,15 @@ Exact signatures are maintained in the generated API reference for the
 [endpoint-localized continuation exits](api-reference.md#endpoint-localized-continuation-exits),
 and the retained
 [Wait endpoint-locality obstruction](api-reference.md#wait-endpoint-locality-obstruction).
-The first open proof step is now current-state queue classification and then
-elimination or payer conversion of the refined outer outcomes. A planned
-low-level `SequentialFigure7FutureWorkQueueStatus.lean` module should classify
-an unmarked vertex outside the active carrier as either absent from the current
-queue, live frontier, and produced domain, or as exact strictly older ready or
-waiting work. That module is not part of this checkpoint. The classifier must
-then be lifted through both marked endpoints without inventing witness identity.
+The first open proof step is now to lift
+`UnmarkedOutsideActiveSchedulerStatus` into the raw-unmarked
+target-consumer-mate alternative of both outer marked classifiers, then through
+the waiting-parent target and higher scheduler, sibling, and typed-Wait
+wrappers. The lift must preserve the common exact path, crossing, outer
+membership split, freshness facts, and the branch-local marked classifier at
+its own endpoint; it must not identify that classifier with the common path or
+with the other branch's possible witness. Its exact initialized-waiting leaf
+remains unchanged.
 The avoiding endpoint is `consumer.mate`; the containing endpoint is
 `current.conclusion`, whose membership in the common path remains. The raw
 terminal mate is separately open and must be scheduler-localized, classified as
@@ -1055,6 +1078,10 @@ This checkpoint does not establish any of the following:
   both submitted premises, the exact younger-target/older-mate producer
   orientation, or the older-outside/active-owned mate classification, or
   conversion of those facts into a distinct active payer;
+- a lift of `UnmarkedOutsideActiveSchedulerStatus` into either outer marked
+  classifier or the waiting-parent and higher wrappers; its absent branch is
+  current-state only, and its older-work boundary is existential rather than
+  unique or first;
 - totality of any operational schedule beyond the supplied canonical history,
   elimination of the causal first descent or a raw/future sibling exit, or
   conversion of an earlier event into a distinct ready-tail payer;
@@ -1109,12 +1136,12 @@ plan is maintained in [v0.10-design.md](v0.10-design.md) and
 The exact rolling proof checkpoint is:
 
 ```text
-commit    0d0703b332dbc9174357d6feb2971404ef647717
-tree      d79ad8d21ae9c2c49fed1032f65ebbc649665642
-parent    8e55ffaffee2b70fad762666cb84f8256a68ca8f
-stage     mark stored-right waiting outer split
-delta     17 paths, +381/-42
-manifest  C190605DE3C86BF9E01FBE853766860D7DDD5E338121105EF4B0BB8F25E27DB4
+commit    72cbeff429d6d88290b1d616854f02257c00a3a5
+tree      98bc61d08e5715bc656624a36fcebd63d265cde6
+parent    e0e94b5e50cfa2b70f35b93441023e2d4ca88e69
+stage     classify future-work queue status
+delta     17 paths, +508/-26
+manifest  25F9DBE34AC784CC56C2637DEF92C70A08937D7A9D56FEE72806AF321EBDD20B
 ```
 
 The manifest hashes canonical
@@ -1123,9 +1150,9 @@ The manifest hashes canonical
 The checkpoint source receipts are:
 
 ```text
-stored-right source    65D337365B3789352175C109388FA080D2CF0AC1C84667E18598D2313C12CCB8
-stored-right consumer  C46178BFD82622665D52144D44027B249AE30078D803CD0AE1ACEBF39C4AFBD1
-generated API          707475193AE94D7A44ABDAC91E301A2AC132D25AAA9D8FEF19A8748CAEC51D96
+queue-status source    21E443B0731BB3887FB1C84CC827C4D019FA01B6B1CF63E1DDAFFFAFCD123097
+queue-status consumer  8ACF4A513DE1F5B1B31656EEF694107E5DE5C1918B4254763810F98C98638106
+generated API          9A9AF1E2B84DE47DA208E3EBC4D20A7543D5AFBFB32B111A80A84978DB192CF9
 ```
 
 The separately committed finite-audit evidence is:
@@ -1139,20 +1166,24 @@ delta     3 files, +369/-48
 manifest  4BBAB7FC99D03D2612459A0FD9291990313A05A184F2572A581BC93C6E49DFDD
 ```
 
-Local verification on the committed bytes:
+Local verification of the committed checkpoint, with ignored prototype probes
+included only in the broader source scan:
 
-- full `lake build`: 679/679 jobs;
-- syntax-aware Lean source audit: zero actual `sorry`/`admit` findings across
-  a 337-file non-build superset scan, including zero actual `sorryAx` findings;
-- library inventory: 318 Lean files and 203,815 Lean source lines, including
-  177 module files under `ProofNetIR/`; the public facade imports 172
-  submodules, or 173 modules including the facade itself;
-- generated API reference: current at 100 sections and 1,820 declarations;
-- the runnable stored-right consumer reconstructed the exact marked outer-split
-  theorem through the public surface, checked its standard-three trust
-  boundary, and emitted its kernel-green marker;
-- public theorem audit: 1094 entries total: 797 standard-three, 25 axiom-free,
-  131 `propext`-only, and 141 `propext`/`Quot.sound` boundaries;
+- full `lake build`: 684/684 jobs;
+- pre-push syntax-aware Lean source audit: zero actual `sorry`/`admit`
+  findings across the 340-file local non-build superset present at verification
+  time, including ignored prototype probes and zero actual `sorryAx` findings;
+- library inventory: 320 Lean files and 204,104 Lean source lines, including
+  178 module files under `ProofNetIR/`; the public facade imports 173
+  submodules, or 174 modules including the facade itself;
+- generated API reference: current at 101 sections and 1,824 declarations;
+- the runnable queue-status consumer reconstructed the strict older-boundary,
+  flattened-queue equivalence, and current-state classifier theorems through
+  the public surface; it checked the proposition's `propext`-only boundary and
+  the three theorems' standard-three boundaries and emitted its kernel-green
+  marker;
+- public theorem audit: 1098 entries total: 800 standard-three, 25 axiom-free,
+  132 `propext`-only, and 141 `propext`/`Quot.sound` boundaries;
 - the default, extended, and cross-variant progress audits passed with every
   incomplete visited state carrying an exact ready head and successful
   dispatch and every dispatch-none stop fully marked; they covered 23,184,
@@ -1166,16 +1197,16 @@ Exact-head proof GitHub verification:
 
 - workflow: `Lean CI`;
 - event/ref: `push` / `main`;
-- run: [32525520747](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32525520747);
-- build job: [96906606394][proof-job];
-- exact head: `0d0703b332dbc9174357d6feb2971404ef647717`;
+- run: [32529218196](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32529218196);
+- build job: [96917687092][proof-job];
+- exact head: `72cbeff429d6d88290b1d616854f02257c00a3a5`;
 - result: 36 successful steps, zero failures, and one expected release-ref-only
   skip;
-- run: `2026-08-21T20:49:40Z`-`2026-08-21T21:00:08Z` (10m28s);
-- build job: `2026-08-21T20:49:43Z`-`2026-08-21T21:00:07Z`
-  (10m24s).
+- run: `2026-08-21T21:35:33Z`-`2026-08-21T21:46:53Z` (11m20s);
+- build job: `2026-08-21T21:35:36Z`-`2026-08-21T21:46:52Z`
+  (11m16s).
 
-[proof-job]: https://github.com/fushanbobfan/proofnet-ir/actions/runs/32525520747/job/96906606394
+[proof-job]: https://github.com/fushanbobfan/proofnet-ir/actions/runs/32529218196/job/96917687092
 [reentry-failure]: api-reference.md#commitment-interval-par-guard-re-entry-failure-target
 [reentry-mate-separation]: api-reference.md#commitment-interval-par-guard-re-entry-mate-separation
 [target-temporal]: api-reference.md#commitment-interval-marked-re-entry-target-temporal-reduction
@@ -1192,6 +1223,7 @@ Exact-head proof GitHub verification:
 [target-open]: api-reference.md#marked-re-entry-target-sibling-open-exits
 [target-temporal-open]: api-reference.md#marked-re-entry-target-sibling-temporal-exits
 [future-location]: api-reference.md#exact-future-work-scheduler-locations
+[future-queue]: api-reference.md#future-work-queue-status
 [target-scheduled]: api-reference.md#marked-re-entry-target-sibling-scheduled-exits
 [target-causal-ownership]: api-reference.md#marked-re-entry-target-sibling-causal-ownership
 [target-ready-mate]: api-reference.md#marked-re-entry-target-active-mate-ready-elimination
@@ -1284,10 +1316,15 @@ The project goal remains open. The principal outstanding gates are:
    `current.conclusion` in the containing branch. The explicit stored-right
    premise removes only the containing status's selected-head alternative;
    occurrence localization, witness alignment, elimination, and payer
-   conversion remain open. First classify each exposed unmarked outside-active
-   raw mate against the current queue as absent from queue/live/production or
-   as exact strictly older ready/waiting work. The planned low-level
-   `SequentialFigure7FutureWorkQueueStatus.lean` module has not yet been added.
+   conversion remain open. The low-level
+   `SequentialFigure7FutureWorkQueueStatus.lean` module now provides the
+   reusable current-state classifier for an unmarked vertex outside a supplied
+   active owned list: currently absent from queue/live/`Produced`, or exact
+   scheduler work at some strictly older boundary. It has not yet been applied
+   to the raw-mate leaf of either outer marked classifier. First lift it into
+   both raw-unmarked target-consumer-mate alternatives without identifying a
+   branch classifier with the common path, crossing, or the other branch's
+   possible witness.
    Use the simultaneous endpoint junctions, strict source-before-base order,
    aligned sibling-exit causal witness, retained commitment paths, and refined
    scheduler/ownership classification as applicable. Eliminate the remaining
