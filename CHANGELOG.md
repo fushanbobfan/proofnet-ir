@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- eliminated the ready scheduler subcase for an older future sibling endpoint
+  whose mate belongs to the active occurrence carrier. Exact ready-component
+  occurrence ownership would place that mate at both the strictly older and
+  active live boundaries, contradicting carrier disjointness. The surviving
+  active-owned case is the exact older-terminal-to-active-mate waiting return;
+  an older-outside mate retains its ready or waiting status. This removes one
+  scheduler alternative but does not eliminate the future endpoint or exact
+  raw return, produce a payer, derive the history-tail law, or prove
+  completion/progress. The verified combined theorem audit now covers 1057
+  theorems: 762 standard-three, 25 axiom-free, 130 `propext`-only, and 140
+  `propext`/`Quot.sound` boundaries;
 - authenticated and strictly ordered both raw-mark events below every older
   future sibling endpoint. The outside terminal now has a representative
   strictly below the active boundary; the endpoint mate is either outside at

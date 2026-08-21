@@ -311,6 +311,10 @@ name = "proofnet_ir_marked_target_raw_return_sibling_exit_causal_ownership_tests
 root = "ProofNetIRMarkedTargetRawReturnSiblingExitCausalOwnershipTests"
 
 [[lean_exe]]
+name = "proofnet_ir_marked_target_raw_return_sibling_exit_ready_mate_elimination_tests"
+root = "ProofNetIRMarkedTargetRawReturnSiblingExitReadyMateEliminationTests"
+
+[[lean_exe]]
 name = "proofnet_ir_marked_target_raw_return_cyclic_reduction_tests"
 root = "ProofNetIRMarkedTargetRawReturnCyclicReductionTests"
 

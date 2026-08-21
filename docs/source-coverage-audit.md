@@ -585,6 +585,14 @@ the mate is older outside or active-owned. Active-owned waiting work is forced
 to the older-terminal/younger-mate orientation with active younger boundary.
 The result retains ready work and the future endpoint, so it proves no payer,
 history-tail law, completion, or progress.
+`SequentialFigure7MarkedTargetRawReturnSiblingExitReadyMateElimination.lean`
+adds no source reading. It applies exact ready-component occurrence ownership
+and live-carrier disjointness to rule out ready work for an active-owned mate:
+the endpoint boundary is strictly older, while the same mate belongs to the
+active carrier. The active-owned branch is consequently the exact waiting
+return already carried by the causal/ownership result. Older-outside mates keep
+both ready and waiting locations. The future endpoint, exact raw return,
+distinct payer, history-tail law, completion, and progress remain open.
 Global preservation of the mate-region and older-raw-mark invariants through
 candidate-creating rules remains open, as do queue origin, created-candidate raw
 seams, derivation of the re-entry avoidance premise, marked-history descent,

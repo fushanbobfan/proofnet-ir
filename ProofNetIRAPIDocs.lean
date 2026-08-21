@@ -1176,6 +1176,41 @@ def sections : List Section := [
     ]
   },
   {
+    title := "Marked re-entry target active-mate ready elimination"
+    declarations := [
+      `ProofNetIR.SequentialFigure7.FutureWorkActiveMateWaitingOutcome,
+      Name.str
+        `ProofNetIR.SequentialFigure7.FutureWorkActiveMateSchedulerOutcome
+        "waitingOutcome_of_activeOwned",
+      `ProofNetIR.SequentialFigure7.FutureWorkMateActiveCarrierReadyEliminatedStatus,
+      Name.str
+        `ProofNetIR.SequentialFigure7.FutureWorkMateActiveCarrierScheduledStatus
+        "readyEliminatedStatus",
+      Name.str
+        `ProofNetIR.SequentialFigure7
+        "ContinuationExitRawOrFutureActiveCarrierReadyMateOutcome",
+      Name.str
+        (Name.str
+          `ProofNetIR.SequentialFigure7
+          "ContinuationExitRawOrFutureActiveCarrierCausalOwnershipOutcome")
+        "readyMateOutcome",
+      Name.str
+        `ProofNetIR.SequentialFigure7
+        ("ActiveCarrierExternalReentryMarkedMateSeparatedContinuation" ++
+          "SiblingExitReadyMateTarget"),
+      Name.str
+        (Name.str
+          `ProofNetIR.SequentialFigure7
+          ("ActiveCarrierExternalReentryMarkedMateSeparatedContinuation" ++
+            "SiblingExitCausalOwnershipTarget"))
+        "readyMateTarget",
+      Name.str
+        `ProofNetIR.SequentialFigure7.WaitStep
+        ("commitmentInterval_parTraceReentryMarkedContinuation" ++
+          "SiblingExitReadyMateOutcome")
+    ]
+  },
+  {
     title := "Marked re-entry target raw-return cyclic reduction"
     declarations := [
       `ProofNetIR.SequentialFigure7.MarkedConclusionRawReturnCyclicOutcome,

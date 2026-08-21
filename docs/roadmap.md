@@ -1151,10 +1151,16 @@
     as older outside or active-owned. In the active-owned waiting case, force
     the terminal/mate to the older/younger span orientation and identify the
     younger boundary with the active boundary; retain ready work explicitly.
+  - [x] Eliminate ready work when that older future endpoint has an active-owned
+    mate. Exact live-component ownership at the older ready boundary conflicts
+    with ownership of the same mate at the active boundary. Retain the exact
+    active-owned waiting return and both scheduler locations for older-outside
+    mates.
   - [ ] Use the strict cyclic endpoint order and aligned sibling causal witness
-    with the retained commitment paths and causal/ownership classification to
-    eliminate the exact selected/mate return, the older future endpoint, or
-    the Wait descent, or recover a distinct ready-tail payer. Then
+    with the retained commitment paths and refined causal/ownership
+    classification to eliminate the exact selected/mate return, the remaining
+    older-outside ready/waiting endpoint or active waiting return, or the Wait
+    descent, or recover a distinct ready-tail payer. Then
     eliminate the remaining cyclic residuals, other finite exits, and
     equal-final traces. Do not infer
     unconditional dispatcher progress, completion, terminality, later-state

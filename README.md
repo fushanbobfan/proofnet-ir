@@ -35,9 +35,10 @@ The Nop return remains eliminated. Wait raw work is outside the active carrier
 or returns exactly to the selected/mate pair. Older future work has an exact
 ready component or waiting span and two authenticated, ordered premise marks.
 The outside terminal is strictly older; its mate is older outside or active-owned.
-An active waiting mate is the younger endpoint of an older-to-active span.
-Exact-return, future-endpoint, history-tail, progress, completion, and totality
-gates remain open.
+An active-owned mate cannot remain ready: its surviving case is the exact
+older-terminal-to-active-mate waiting return. An older-outside mate may still be
+ready or waiting. Exact-return, remaining future-endpoint, history-tail,
+progress, completion, and totality gates remain open.
 [Current status](docs/current-status.md) owns exact revision, verification receipt, and gates.
 <!-- ROLLING_MAIN_SUMMARY_END -->
 

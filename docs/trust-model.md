@@ -1101,6 +1101,17 @@ public theorems use the standard-three boundary. The verified combined audit
 now covers 1052 theorems: 757 standard-three, 25 axiom-free, 130
 `propext`-only, and 140 `propext`/`Quot.sound` boundaries. The future endpoint,
 exact raw return, payer, tail law, completion, and progress remain open.
+`SequentialFigure7MarkedTargetRawReturnSiblingExitReadyMateElimination.lean`
+adds no runtime oracle or native-computed evidence. Its ready-case contradiction
+uses the existing exact component-forest occurrence provenance and live-carrier
+disjointness at the strictly older endpoint and active boundaries. The two
+small scheduler-status carriers are `propext`-only; the sibling carrier and
+target predicate use the standard-three boundary, as do five registered public
+theorems. The verified combined audit now covers 1057 theorems: 762
+standard-three, 25 axiom-free, 130 `propext`-only, and 140
+`propext`/`Quot.sound` boundaries. The theorem removes only the active-owned
+ready alternative. It adds no payer, tail-law, completion, progress, or
+totality oracle, and older-outside ready/waiting work remains.
 `SequentialFigure7CrossRepresentativeWaitPreservation.lean` adds no hidden
 source-region oracle. Its output-work classification follows only from the
 typed destination's exact waiting prepend and unchanged ready/sigma fields;

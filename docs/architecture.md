@@ -1696,6 +1696,17 @@ strict span order. Ready work remains an explicit alternative. This is a
 causal/ownership normalization, not elimination of the endpoint or construction
 of a non-global payer.
 
+`SequentialFigure7MarkedTargetRawReturnSiblingExitReadyMateElimination.lean`
+removes the active-owned ready alternative. A ready conclusion's exact live
+component occurrence owns both submitted premises at the endpoint's strictly
+older boundary. If the mate were also active-owned, exact live-carrier
+disjointness would identify one vertex with two different live boundaries.
+Therefore the active-owned branch is precisely the already oriented waiting
+return from the older terminal to the active mate. An older-outside mate keeps
+its ready or waiting scheduler status. This is one scheduler-case elimination,
+not elimination of the future endpoint or exact raw return, construction of a
+payer, derivation of the history-tail law, completion, or progress.
+
 `SequentialFigure7CommitmentBlockerAdvance.lean` joins the global queued-head
 law, the strict `sigma` split, the strict-edge avoiding adapter, and the final
 equal-boundary classification. Under declarative correctness and the complete

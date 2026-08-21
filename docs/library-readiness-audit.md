@@ -1303,6 +1303,18 @@ part of the engineering and proof-identity gap.
    1052 theorems: 757 standard-three, 25 axiom-free, 130 `propext`-only, and
    140 `propext`/`Quot.sound` boundaries. No endpoint, payer, tail law,
    completion, or progress theorem follows.
+   `SequentialFigure7MarkedTargetRawReturnSiblingExitReadyMateElimination.lean`
+   now rules out ready work when the older future endpoint's mate is owned by
+   the active occurrence carrier. Exact live-component occurrence ownership at
+   the older ready boundary conflicts with active ownership of the same mate.
+   The active-owned branch therefore retains only the exact waiting return;
+   older-outside mates may remain ready or waiting. Its runnable consumer
+   destructs the refined scheduler, sibling, target, and typed Wait outcomes.
+   Five registered public theorems use the standard-three boundary. The
+   verified combined audit now covers 1057 theorems: 762 standard-three, 25
+   axiom-free, 130 `propext`-only, and 140 `propext`/`Quot.sound` boundaries.
+   The future endpoint, exact raw return, payer, history-tail law, completion,
+   and progress remain open.
    `SequentialFigure7CommitmentBlockerAdvance.lean` now combines the global
    queued-head law, strict split, and equal-boundary result. Under declarative
    correctness and the complete scheduler invariant, for a supplied canonical
