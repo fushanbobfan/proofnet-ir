@@ -892,6 +892,40 @@ def sections : List Section := [
     ]
   },
   {
+    title := "Marked re-entry target raw-return terminal causal order"
+    declarations := [
+      Name.str
+        `ProofNetIR.SequentialFigure7.CanonicalTagHistory.RawMarkedBefore
+        "trans",
+      Name.str
+        `ProofNetIR.SequentialFigure7.CanonicalTagHistory.RawMarkedBefore
+        "asymmetric",
+      Name.str
+        `ProofNetIR.SequentialFigure7.MarkedConclusionChain
+        "rawMarkedBefore_or_eq",
+      Name.str
+        `ProofNetIR.SequentialFigure7.MarkedConclusionChainFirstCausalDescent
+        "originBeforeTerminal",
+      Name.str
+        `ProofNetIR.SequentialFigure7.MarkedConclusionChainFirstCausalDescent
+        "mateBeforeTerminal",
+      Name.str
+        `ProofNetIR.SequentialFigure7
+        ("ActiveCarrierExternalReentryMarkedMateSeparatedContinuation" ++
+          "TerminalCausalTarget"),
+      Name.str
+        (Name.str
+          `ProofNetIR.SequentialFigure7
+          ("ActiveCarrierExternalReentryMarkedMateSeparatedContinuation" ++
+            "CausalDescentTarget"))
+        "terminalCausalTarget",
+      Name.str
+        `ProofNetIR.SequentialFigure7.WaitStep
+        ("commitmentInterval_parTraceReentryMarkedContinuation" ++
+          "TerminalCausalOutcome")
+    ]
+  },
+  {
     title := "Marked re-entry target raw-return cyclic reduction"
     declarations := [
       `ProofNetIR.SequentialFigure7.MarkedConclusionRawReturnCyclicOutcome,

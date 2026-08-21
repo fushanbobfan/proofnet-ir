@@ -347,6 +347,23 @@ namespace WaitStep
 #print axioms commitmentInterval_parTraceReentryMarkedContinuationCausalDescentOutcome
 end WaitStep
 end ProofNetIR.SequentialFigure7
+namespace ProofNetIR.SequentialFigure7
+namespace CanonicalTagHistory.RawMarkedBefore
+#print axioms trans
+#print axioms asymmetric
+end CanonicalTagHistory.RawMarkedBefore
+#print axioms MarkedConclusionChain.rawMarkedBefore_or_eq
+namespace MarkedConclusionChainFirstCausalDescent
+#print axioms originBeforeTerminal
+#print axioms mateBeforeTerminal
+end MarkedConclusionChainFirstCausalDescent
+namespace ActiveCarrierExternalReentryMarkedMateSeparatedContinuationCausalDescentTarget
+#print axioms terminalCausalTarget
+end ActiveCarrierExternalReentryMarkedMateSeparatedContinuationCausalDescentTarget
+namespace WaitStep
+#print axioms commitmentInterval_parTraceReentryMarkedContinuationTerminalCausalOutcome
+end WaitStep
+end ProofNetIR.SequentialFigure7
 #print axioms
   SequentialFigure7.MarkedConclusionChain.rawReturnCyclicReduction
 #print axioms

@@ -1009,11 +1009,15 @@ of canonical tag history and the scheduler invariants already carried by later
 events. `SequentialFigure7MarkedTargetRawReturnCausalDescent.lean` adds two
 proposition carriers and three standard-three theorems. It combines that order
 with the already authenticated first representative descent and continuation
-exit; no runtime witness or oracle is introduced. The verified combined audit
-covers 1009 theorems: 716 standard-three, 25 axiom-free, 129 `propext`-only,
-and 139 `propext`/`Quot.sound` boundaries. The checkpoint does not claim
-transitivity or totality, eliminate any residual, or derive a tail law or
-progress.
+exit; no runtime witness or oracle is introduced.
+`SequentialFigure7MarkedTargetRawReturnTerminalCausalOrder.lean` adds one
+proposition carrier and seven standard-three theorems. Its private finite-event
+index proves transitivity and asymmetry and composes the first descent through
+the complete marked chain to an authenticated outer-mate terminal. The
+verified combined audit covers 1016 theorems: 723 standard-three, 25
+axiom-free, 129 `propext`-only, and 139 `propext`/`Quot.sound` boundaries. The
+checkpoint does not claim total event order, eliminate any residual, or derive
+a tail law or progress.
 `SequentialFigure7CrossRepresentativeWaitPreservation.lean` adds no hidden
 source-region oracle. Its output-work classification follows only from the
 typed destination's exact waiting prepend and unchanged ready/sigma fields;

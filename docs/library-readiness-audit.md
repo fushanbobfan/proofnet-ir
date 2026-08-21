@@ -1202,9 +1202,14 @@ part of the engineering and proof-identity gap.
    reduction records that the re-entry origin and sibling mate precede its
    older marked parent. The sibling retains a finite continuation exit. The
    generic target adapter and typed Wait theorem expose the same refinement.
-   The event relation is not claimed transitive or total, and the reduction
-   does not eliminate either residual or derive a tail law or progress. The
-   verified combined audit now covers 1009 theorems: 716 standard-three, 25
+   `SequentialFigure7MarkedTargetRawReturnTerminalCausalOrder.lean` proves the
+   strict relation transitive and asymmetric. It orders every distinct
+   marked-chain origin before an authenticated terminal and attaches the outer
+   Wait mate as that terminal. In the retained causal-descent alternative,
+   both the re-entry origin and first sibling precede it. The reduction does
+   not eliminate either residual,
+   establish a total event order, or derive a tail law or progress. The
+   verified combined audit now covers 1016 theorems: 723 standard-three, 25
    axiom-free, 129 `propext`-only, and 139 `propext`/`Quot.sound` boundaries.
    `SequentialFigure7CommitmentBlockerAdvance.lean` now combines the global
    queued-head law, strict split, and equal-boundary result. Under declarative

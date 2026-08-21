@@ -512,11 +512,14 @@ refines the Wait residual without eliminating it or deriving a ready tail.
 `SequentialFigure7MarkedTargetRawReturnCausalDescent.lean` add no source
 reading. They expose the strict order already carried by canonical
 prepared-selection history: both premises of an authentically marked
-connective conclusion occur earlier. The Wait first-descent branch now records
+connective conclusion occur earlier. The Wait first-descent branch records
 that the origin and sibling mate precede the older parent conclusion and keeps
-the sibling's finite continuation exit. This does not eliminate the descent,
-localize the exit into a ready tail, or establish a transitive or total event
-order.
+the sibling's finite continuation exit.
+`SequentialFigure7MarkedTargetRawReturnTerminalCausalOrder.lean` likewise adds
+no source reading. It proves the strict order transitive and asymmetric,
+orders a distinct marked-chain origin before an authenticated terminal, and
+attaches the outer Wait mate as that terminal. This does not eliminate the
+descent, localize the exit into a ready tail, or establish a total event order.
 Global preservation of the mate-region and older-raw-mark invariants through
 candidate-creating rules remains open, as do queue origin, created-candidate raw
 seams, derivation of the re-entry avoidance premise, marked-history descent,

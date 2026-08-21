@@ -24,18 +24,19 @@ latest research surface and are prepared for documented development changes.
 ### Rolling-main summary
 
 Canonical history now orders authentic prepared-selection raw-mark events.
-The order exposes both endpoint events and proves their selected occurrences
-distinct. An authentic mark of a submitted connective conclusion places both
-its queried premise and opposite mate strictly earlier in that history.
-This order enriches the first representative descent retained by Wait: the
-origin and its sibling mate both precede the older marked parent conclusion,
-and the sibling keeps a finite continuation exit. The generic first-descent
-target has the same causal refinement.
-The exact Nop return remains eliminated, while Wait's causal descent, sibling
-exit, raw work outside the active carrier, older future work, and older marked
-global work remain residuals. No transitive or total event order, history-tail
-law, unconditional all-marked, progress, completion, termination, totality, or
-completeness follows.
+The strict order is transitive and asymmetric, exposes both endpoint events,
+and proves their selected occurrences distinct. An authentic mark of a
+submitted connective conclusion places both premises strictly earlier.
+A finite marked-conclusion chain is reflexive or places its origin before an
+authenticated terminal event. The Wait first descent now carries the outer
+mate as that terminal: the re-entry origin and the first connective's sibling
+both precede the complete chain terminal, while the sibling keeps its finite
+continuation exit.
+The exact Nop return remains eliminated, while Wait's terminal-ordered causal
+descent, sibling exit, raw work outside the active carrier, older future work,
+and older marked global work remain residuals. No total event order,
+history-tail law, unconditional all-marked, progress, completion, termination,
+totality, or completeness follows.
 [Current status](docs/current-status.md) owns exact revision, verification receipt, and gates.
 <!-- ROLLING_MAIN_SUMMARY_END -->
 

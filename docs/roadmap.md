@@ -1109,8 +1109,14 @@
     Both submitted premises of an authentically marked connective conclusion
     occur earlier; the Wait first descent now records that order for its origin
     and sibling mate and retains the sibling continuation exit.
-  - [ ] Combine that causal order with the retained cyclic and commitment paths
-    to eliminate the Wait descent or recover a distinct ready-tail payer. Then
+  - [x] Prove that strict event order is transitive and asymmetric. Order a
+    distinct marked-chain origin before its authenticated terminal, and attach
+    the outer Wait mate as that terminal so, in the retained causal-descent
+    alternative, the re-entry origin and first sibling both precede the
+    complete chain endpoint.
+  - [ ] Combine that terminal causal order with the retained cyclic and
+    commitment paths to eliminate the Wait descent or recover a distinct
+    ready-tail payer. Then
     eliminate the remaining cyclic residuals, other finite exits, and
     equal-final traces. Do not infer
     unconditional dispatcher progress, completion, terminality, later-state

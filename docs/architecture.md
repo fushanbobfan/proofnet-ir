@@ -1600,9 +1600,15 @@ authentic raw-mark events.
 with the first representative descent. Both the re-entry origin and its
 sibling mate precede the older marked parent conclusion; the sibling also
 retains its finite continuation exit. The generic first-descent target and the
-typed Wait outcome expose this refinement. No theorem eliminates the descent
-or sibling exit, makes the event order transitive or total, derives a
-ready-tail/history-tail law, or proves completion or progress.
+typed Wait outcome expose this refinement.
+`SequentialFigure7MarkedTargetRawReturnTerminalCausalOrder.lean` proves the
+strict event relation transitive and asymmetric. A finite marked-conclusion
+chain is reflexive or places its origin before an authenticated terminal. The
+target adapter and typed Wait theorem authenticate the outer mate as that
+terminal. In the retained causal-descent alternative, the re-entry origin and
+the first connective's sibling therefore precede the complete chain terminal.
+No theorem eliminates the descent or sibling exit, makes the event order
+total, derives a ready-tail/history-tail law, or proves completion or progress.
 
 `SequentialFigure7CommitmentBlockerAdvance.lean` joins the global queued-head
 law, the strict `sigma` split, the strict-edge avoiding adapter, and the final
