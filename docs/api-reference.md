@@ -8815,6 +8815,38 @@ ProofNetIR.SequentialFigure7.CanonicalTagHistory.commitmentEdge_referencePath_av
                 tagHistory.CommitmentEdgeTargetAvoidingPath parent child consumer.conclusion
 ```
 
+### `ProofNetIR.SequentialFigure7.ReadyHeadInput.connectiveConclusion_not_produced`
+
+Kind: theorem.
+
+The conclusion of any connective consuming the selected ready
+head has no observable production evidence in the current scheduler state.
+
+```lean
+ProofNetIR.SequentialFigure7.ReadyHeadInput.connectiveConclusion_not_produced : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (input : ProofNetIR.SequentialFigure7.ReadyHeadInput state),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+    ∀ (consumer : ProofNetIR.ConnectiveBelow certificate input.vertex),
+      ¬ProofNetIR.SequentialSchedulerBridge.Produced state consumer.conclusion
+```
+
+### `ProofNetIR.SequentialFigure7.ReadyHeadInput.connectiveConclusion_not_owned_of_accounted`
+
+Kind: theorem.
+
+The conclusion of a connective consuming the selected ready head cannot
+belong to any live component carrier with exact occurrence accounting.
+
+```lean
+ProofNetIR.SequentialFigure7.ReadyHeadInput.connectiveConclusion_not_owned_of_accounted : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (input : ProofNetIR.SequentialFigure7.ReadyHeadInput state),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+    ∀ (consumer : ProofNetIR.ConnectiveBelow certificate input.vertex) {index : Nat}
+      {component : ProofNetIR.UnificationComponent} {owned : List ProofNetIR.Vertex},
+      state.core.components[index]? = some (some component) →
+        ProofNetIR.Certificate.OwnedOccurrenceAccounted state.core index component owned → ¬consumer.conclusion ∈ owned
+```
+
 ## Commitment-interval target avoidance
 
 ### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.commitmentInterval_referencePath_avoiding`
@@ -12726,6 +12758,58 @@ ProofNetIR.SequentialFigure7.FutureWorkAtExactWaitingLocation.activeTargetMateOu
                                                     ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedHistoricalTarget
                                                       tagHistory input component owned consumer.mate ∨
                                                   current.conclusion ∈ path.vertices)
+```
+
+## Waiting re-entry continuation outer-containing historical status
+
+### `ProofNetIR.SequentialFigure7.FutureWorkAtExactWaitingLocation.activeTargetMateOuterAvoidingReentryMarkedHistoricalTargetOrContainsFailureHistoricalStatus`
+
+Kind: theorem.
+
+Strengthens the outer-containing branch with a failure-conditioned
+historical status at the outer conclusion while retaining its membership in
+the common exact waiting-mate path. The status does not expose witness identity
+with that common path or its crossing edge.
+
+```lean
+ProofNetIR.SequentialFigure7.FutureWorkAtExactWaitingLocation.activeTargetMateOuterAvoidingReentryMarkedHistoricalTargetOrContainsFailureHistoricalStatus : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history)
+  (input : ProofNetIR.SequentialFigure7.ReadyHeadInput state)
+  (current : ProofNetIR.ConnectiveBelow certificate input.vertex),
+  current.kind = ProofNetIR.SequentialConnectiveKind.par →
+    certificate.DeclarativelyCorrect →
+      ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+        ∀ {component : ProofNetIR.UnificationComponent} {usedLinks owned : List Nat},
+          state.core.components[input.rawAge]? = some (some component) →
+            certificate.ComponentOccurrenceWitness component usedLinks owned →
+              ∀ {boundary targetAge : ProofNetIR.SequentialSchedulerState.RawTokenAge} {target : ProofNetIR.Vertex}
+                (consumer : ProofNetIR.ConnectiveBelow certificate target),
+                ProofNetIR.SequentialFigure7.FutureWorkAtExactWaitingLocation certificate state boundary
+                    consumer.conclusion →
+                  state.core.marks[target]? = some (some targetAge) →
+                    state.core.representative targetAge = input.rawAge →
+                      boundary < input.rawAge →
+                        (¬∃ pending, pending ∈ input.readyTail ∧ ¬pending ∈ certificate.conclusions) →
+                          consumer.kind = ProofNetIR.SequentialConnectiveKind.par ∧
+                            ProofNetIR.Certificate.OwnedOccurrenceAccounted state.core input.rawAge component owned ∧
+                              target ∈ owned ∧
+                                ¬consumer.mate ∈ owned ∧
+                                  ¬ProofNetIR.SequentialSchedulerBridge.Produced state current.conclusion ∧
+                                    ¬current.conclusion ∈ owned ∧
+                                      ∃ path directed,
+                                        path.start = consumer.mate ∧
+                                          path.finish = target ∧
+                                            directed ∈ path.traversed ∧
+                                              ¬directed.source ∈ owned ∧
+                                                directed.target ∈ owned ∧
+                                                  ¬consumer.conclusion ∈ path.vertices ∧
+                                                    (¬current.conclusion ∈ path.vertices ∧
+                                                        ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedHistoricalTarget
+                                                          tagHistory input component owned consumer.mate ∨
+                                                      current.conclusion ∈ path.vertices ∧
+                                                        ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryFailureHistoricalStatus
+                                                          tagHistory input component owned current.conclusion)
 ```
 
 ## Marked re-entry target raw-return cyclic reduction

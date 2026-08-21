@@ -2,6 +2,26 @@
 
 ## Unreleased
 
+- strengthened the outer-containing waiting re-entry branch with an independent
+  failure-conditioned historical status, without adding hypotheses.
+  `SequentialFigure7CommitmentEdgeTargetAvoidance.lean` now exports two generic
+  ready-head facts: the conclusion of any selected `ConnectiveBelow` is not
+  `Produced`, and exact occurrence accounting keeps it outside any supplied
+  owned carrier.
+  `SequentialFigure7WaitingReentryContinuationOuterContainsStatus.lean` adds
+  `FutureWorkAtExactWaitingLocation.activeTargetMateOuterAvoidingReentryMarkedHistoricalTargetOrContainsFailureHistoricalStatus`.
+  The theorem returns both outer-conclusion facts unconditionally and preserves
+  the common exact mate-to-target path, its outside-to-inside edge, inner
+  waiting-conclusion avoidance, and the existing left avoiding classifier. In
+  the right branch it retains `current.conclusion ∈ path.vertices` and
+  separately derives `ActiveCarrierExternalReentryFailureHistoricalStatus`
+  from that conclusion through a suffix and a boundary not claimed to be first.
+  The new status path and edge are not identified with the common path or
+  crossing. All three new public facts have only the standard-three trust
+  boundary; they add no source, oracle, or runtime evidence. The result does
+  not localize an occurrence or first visit, eliminate or payer-convert either
+  branch, change the raw survivor, derive a history-tail law, or prove progress,
+  completion, termination, or totality;
 - split the aligned older-waiting-mate re-entry at the outer selected par
   conclusion without losing its common exact path.
   `SequentialFigure7WaitingReentryContinuationOuterObstruction.lean` adds

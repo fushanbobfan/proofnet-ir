@@ -738,10 +738,28 @@ classifier-path identity; the containing branch proves only list membership
 in `path.vertices`, not occurrence locality or progress. It eliminates or
 payer-converts neither survivor and proves no tail law, completion,
 termination, or totality.
+`SequentialFigure7WaitingReentryContinuationOuterContainsStatus.lean` likewise
+adds no source reading, oracle, or runtime evidence. Reusable
+selected-connective conclusion-freshness APIs prove that the conclusion of a
+connective consuming the selected ready head is not produced and is outside any
+accounted owned carrier.
+The main theorem adds no hypotheses to the outer-obstruction theorem and keeps
+its common exact path, crossing edge, inner avoidance, and avoiding branch. Its
+containing branch retains outer-conclusion membership in `path.vertices` and
+independently derives
+`ActiveCarrierExternalReentryFailureHistoricalStatus` from that conclusion by
+a suffix and a boundary, without a first-boundary guarantee. The classified
+target is the selected raw head or a distinct authentic marked target at the
+active representative. The
+status path and boundary are not identified with the common path or crossing,
+and the interface exposes no occurrence position or first visit. The two
+freshness declarations and the main theorem are standard-three. They eliminate
+neither waiting outcome, do not affect the raw survivor, and prove no payer,
+tail law, progress, completion, termination, or totality.
 Global preservation of the mate-region and older-raw-mark invariants through
 candidate-creating rules remains open, as do queue origin, created-candidate
 raw seams, elimination or payer conversion of the waiting survivor in both the
-marked-classifier and outer-membership branches, marked-history descent,
+marked-classifier and outer-containing-status branches, marked-history descent,
 unconditional active-top completion, progress, later-state totality, fallback
 removal, sequentialization, faithful token-age scheduling, and whole-program
 linearity.

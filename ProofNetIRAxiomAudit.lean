@@ -607,6 +607,8 @@ namespace FutureWorkAtExactWaitingLocation
 #print axioms activeTargetMateAvoidingReentry
 #print axioms
   activeTargetMateOuterAvoidingReentryMarkedHistoricalTargetOrContains
+#print axioms
+  activeTargetMateOuterAvoidingReentryMarkedHistoricalTargetOrContainsFailureHistoricalStatus
 end FutureWorkAtExactWaitingLocation
 end ProofNetIR.SequentialFigure7
 #print axioms
@@ -882,6 +884,8 @@ end ProofNetIR.SequentialFigure7
 #print axioms SequentialFigure7.CanonicalTagHistory.commitmentEdge_referencePath_avoiding
 #print axioms
   SequentialFigure7.CanonicalTagHistory.commitmentEdge_referencePath_avoiding_parConclusion
+#print axioms SequentialFigure7.ReadyHeadInput.connectiveConclusion_not_produced
+#print axioms SequentialFigure7.ReadyHeadInput.connectiveConclusion_not_owned_of_accounted
 #print axioms SequentialFigure7.CanonicalTagHistory.commitmentInterval_referencePath_avoiding
 #print axioms SequentialFigure7.carrierFresh
 #print axioms SequentialFigure7.CanonicalTagHistory.freshSourceLeftRun_carrier_not_touched

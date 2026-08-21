@@ -86,55 +86,79 @@ private theorem tensorConclusion_not_owned
 
 end FutureNewCandidateAt
 
-private theorem ReadyHeadInput.parConclusion_not_owned
+/-- The conclusion of any connective consuming the selected ready
+head has no observable production evidence in the current scheduler state. -/
+theorem ReadyHeadInput.connectiveConclusion_not_produced
+    {certificate : Certificate} {state : ReservationState}
+    (input : ReadyHeadInput state)
+    (invariant : SchedulerInvariant certificate state)
+    (consumer : ConnectiveBelow certificate input.vertex) :
+    ¬ Produced state consumer.conclusion := by
+  have selectedUnmarked : state.core.marks[input.vertex]? = some none :=
+    invariant.queued_vertices_unmarked input.vertex
+      (input.futureWorkAt invariant).mem_queued
+  intro produced
+  have premisesMarked :
+      (∃ leftAge,
+        state.core.marks[consumer.storedLeft]? = some (some leftAge)) ∧
+        ∃ rightAge,
+          state.core.marks[consumer.storedRight]? = some (some rightAge) := by
+    cases kindEq : consumer.kind with
+    | par =>
+        have linkLookup :
+            certificate.links[consumer.linkIndex]? =
+              some (.par consumer.storedLeft consumer.storedRight
+                consumer.conclusion) := by
+          simpa [SequentialConnectiveKind.asLink, kindEq] using
+            consumer.link_eq
+        exact invariant.produced_premises_marked
+          (List.mem_of_getElem? linkLookup) produced
+    | tensor =>
+        have linkLookup :
+            certificate.links[consumer.linkIndex]? =
+              some (.tensor consumer.storedLeft consumer.storedRight
+                consumer.conclusion) := by
+          simpa [SequentialConnectiveKind.asLink, kindEq] using
+            consumer.link_eq
+        exact invariant.produced_premises_marked
+          (List.mem_of_getElem? linkLookup) produced
+  rcases premisesMarked with
+    ⟨⟨_leftAge, leftMarked⟩, _rightAge, rightMarked⟩
+  cases sideEq : consumer.side with
+  | storedLeft =>
+      have selectedEq : input.vertex = consumer.storedLeft := by
+        simpa [TensorPremiseSide.premise, sideEq] using consumer.premise_eq
+      have leftUnmarked :
+          state.core.marks[consumer.storedLeft]? = some none :=
+        (congrArg (fun vertex ↦ state.core.marks[vertex]?) selectedEq).symm.trans
+          selectedUnmarked
+      rw [leftUnmarked] at leftMarked
+      simp at leftMarked
+  | storedRight =>
+      have selectedEq : input.vertex = consumer.storedRight := by
+        simpa [TensorPremiseSide.premise, sideEq] using consumer.premise_eq
+      have rightUnmarked :
+          state.core.marks[consumer.storedRight]? = some none :=
+        (congrArg (fun vertex ↦ state.core.marks[vertex]?) selectedEq).symm.trans
+          selectedUnmarked
+      rw [rightUnmarked] at rightMarked
+      simp at rightMarked
+
+/-- The conclusion of a connective consuming the selected ready head cannot
+belong to any live component carrier with exact occurrence accounting. -/
+theorem ReadyHeadInput.connectiveConclusion_not_owned_of_accounted
     {certificate : Certificate} {state : ReservationState}
     (input : ReadyHeadInput state)
     (invariant : SchedulerInvariant certificate state)
     (consumer : ConnectiveBelow certificate input.vertex)
-    (parEq : consumer.kind = .par)
-    {index : RawTokenAge} {component : UnificationComponent}
-    {owned : List Vertex}
+    {index : Nat} {component : UnificationComponent} {owned : List Vertex}
     (componentLookup :
       state.core.components[index]? = some (some component))
     (accounted :
       Certificate.OwnedOccurrenceAccounted state.core index component owned) :
     consumer.conclusion ∉ owned := by
-  have parLookup :
-      certificate.links[consumer.linkIndex]? =
-        some (.par consumer.storedLeft consumer.storedRight
-          consumer.conclusion) := by
-    simpa [SequentialConnectiveKind.asLink, parEq] using consumer.link_eq
-  have selectedUnmarked : state.core.marks[input.vertex]? = some none :=
-    invariant.queued_vertices_unmarked input.vertex
-      (input.futureWorkAt invariant).mem_queued
-  have conclusionNotProduced : ¬ Produced state consumer.conclusion := by
-    intro produced
-    rcases invariant.produced_premises_marked
-        (List.mem_of_getElem? parLookup) produced with
-      ⟨⟨leftAge, leftMarked⟩, rightAge, rightMarked⟩
-    cases sideEq : consumer.side with
-    | storedLeft =>
-        have selectedEq : input.vertex = consumer.storedLeft := by
-          simpa [TensorPremiseSide.premise, sideEq] using
-            consumer.premise_eq
-        have leftUnmarked :
-            state.core.marks[consumer.storedLeft]? = some none :=
-          (congrArg (fun vertex ↦ state.core.marks[vertex]?)
-            selectedEq).symm.trans selectedUnmarked
-        rw [leftUnmarked] at leftMarked
-        simp at leftMarked
-    | storedRight =>
-        have selectedEq : input.vertex = consumer.storedRight := by
-          simpa [TensorPremiseSide.premise, sideEq] using
-            consumer.premise_eq
-        have rightUnmarked :
-            state.core.marks[consumer.storedRight]? = some none :=
-          (congrArg (fun vertex ↦ state.core.marks[vertex]?)
-            selectedEq).symm.trans selectedUnmarked
-        rw [rightUnmarked] at rightMarked
-        simp at rightMarked
   intro conclusionOwned
-  apply conclusionNotProduced
+  apply input.connectiveConclusion_not_produced invariant consumer
   rcases accounted consumer.conclusion conclusionOwned with marked | raw
   · exact .inl ⟨marked.choose, marked.choose_spec.1⟩
   · exact .inr (mem_liveFrontierVertices_of_raw componentLookup raw.2)
@@ -630,10 +654,10 @@ theorem commitmentEdge_referencePath_avoiding_parConclusion
       childAnchorFinishes, childAnchorWithin, _oldCanonicalStarts,
       _oldCanonicalFinishes, _reachedEndpoint⟩
   have targetNotParentOwned : consumer.conclusion ∉ parentOwned :=
-    input.parConclusion_not_owned invariant consumer parEq
+    input.connectiveConclusion_not_owned_of_accounted invariant consumer
       parentComponentLookup parentAccounted
   have targetNotChildOwned : consumer.conclusion ∉ childOwned :=
-    input.parConclusion_not_owned invariant consumer parEq
+    input.connectiveConclusion_not_owned_of_accounted invariant consumer
       childComponentLookup childAccounted
   have selectedNe :
       edgeStep.stackResult.vertex ≠ consumer.conclusion := by

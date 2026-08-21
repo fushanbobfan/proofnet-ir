@@ -703,7 +703,13 @@ def sections : List Section := [
     declarations := [
       `ProofNetIR.SequentialFigure7.CanonicalTagHistory.CommitmentEdgeTargetAvoidingPath,
       `ProofNetIR.SequentialFigure7.CanonicalTagHistory.commitmentEdge_referencePath_avoiding,
-      `ProofNetIR.SequentialFigure7.CanonicalTagHistory.commitmentEdge_referencePath_avoiding_parConclusion
+      `ProofNetIR.SequentialFigure7.CanonicalTagHistory.commitmentEdge_referencePath_avoiding_parConclusion,
+      Name.str
+        `ProofNetIR.SequentialFigure7.ReadyHeadInput
+        "connectiveConclusion_not_produced",
+      Name.str
+        `ProofNetIR.SequentialFigure7.ReadyHeadInput
+        "connectiveConclusion_not_owned_of_accounted"
     ]
   },
   {
@@ -1469,6 +1475,15 @@ def sections : List Section := [
         `ProofNetIR.SequentialFigure7.FutureWorkAtExactWaitingLocation
         ("activeTargetMateOuterAvoidingReentryMarkedHistoricalTarget" ++
           "OrContains")
+    ]
+  },
+  {
+    title := "Waiting re-entry continuation outer-containing historical status"
+    declarations := [
+      Name.str
+        `ProofNetIR.SequentialFigure7.FutureWorkAtExactWaitingLocation
+        ("activeTargetMateOuterAvoidingReentryMarkedHistoricalTargetOrContains" ++
+          "FailureHistoricalStatus")
     ]
   },
   {

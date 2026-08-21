@@ -1415,15 +1415,19 @@ enabledness, progress, completeness, fallback removal, and complexity remain
 outside this layer.
 
 `SequentialFigure7CommitmentEdgeTargetAvoidance.lean` refines that one-edge
-path under one explicit semantic law. For a supplied `FutureNewCandidateAt`,
-or for the conclusion of a supplied ready-head par consumer, the exact child
-ledger event must leave the target conclusion untouched. Ownership accounting
-keeps either conclusion outside both endpoint carriers; producer uniqueness
-and final mark equations exclude collision with the historical tensor
-conclusion. The proof reconstructs an avoiding middle segment and composes the
-three avoiding paths by verified loop erasure. This does not derive the
-child-event untouched law or its global availability, compose a whole spine,
-recover queue origin, discharge a raw seam, or imply progress.
+path under one explicit semantic law. It also exposes two selector-level facts
+that are independent of connective kind: the conclusion of any
+`ConnectiveBelow` consuming the selected ready head is not `Produced`, and
+exact occurrence accounting keeps that conclusion outside any supplied owned
+carrier. For a supplied `FutureNewCandidateAt`, or for the conclusion of a
+supplied ready-head par consumer, the exact child ledger event must leave the
+target conclusion untouched. Ownership accounting keeps either conclusion
+outside both endpoint carriers; producer uniqueness and final mark equations
+exclude collision with the historical tensor conclusion. The proof
+reconstructs an avoiding middle segment and composes the three avoiding paths
+by verified loop erasure. This does not derive the child-event untouched law or
+its global availability, compose a whole spine, recover queue origin, discharge
+a raw seam, or imply progress.
 
 `SequentialFigure7CommitmentIntervalTargetAvoidance.lean` supplies the
 composition combinator for any positive-length retained-`sigma` interval. A
@@ -1874,6 +1878,20 @@ other branch says only that the outer conclusion belongs to `path.vertices`;
 it gives no occurrence localization or first-visit fact. Neither branch
 eliminates or payer-converts the waiting target, the raw survivor is unchanged,
 and no history-tail law, progress, completion, termination, or totality follows.
+
+`SequentialFigure7WaitingReentryContinuationOuterContainsStatus.lean`
+strengthens that split without adding hypotheses. The generic selected-
+connective facts above show unconditionally that the outer conclusion is not
+`Produced` and lies outside the active owned carrier. The common exact path,
+outside-to-inside edge, inner avoidance, and left avoiding classifier remain
+unchanged. In the containing branch, outer-conclusion membership is retained
+while a suffix toward the known owned target supplies a separate boundary from
+outside to inside. That boundary is not claimed to be the first one, and the
+resulting `ActiveCarrierExternalReentryFailureHistoricalStatus` does not expose
+identity between its internal path or edge and the common path or crossing.
+The theorem still gives no occurrence localization, first visit, elimination,
+payer, tail law, progress, completion, termination, or totality, and it leaves
+the raw survivor unchanged.
 
 `SequentialFigure7CommitmentBlockerAdvance.lean` joins the global queued-head
 law, the strict `sigma` split, the strict-edge avoiding adapter, and the final

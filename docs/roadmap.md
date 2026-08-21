@@ -1241,18 +1241,35 @@
     obtain the existential marked inbound-edge historical-target classifier;
     its interface does not expose classifier-path identity. In the containing
     branch retain only membership of the outer conclusion in `path.vertices`.
+  - [x] Strengthen the outer-containing branch without adding hypotheses.
+    General selected-connective conclusion-freshness APIs prove that the
+    conclusion of a connective consuming the selected ready head is not
+    produced and is outside any accounted owned carrier. Retain the same common
+    path, crossing edge, inner
+    avoidance, and avoiding branch. In the containing branch keep the original
+    outer-conclusion membership and independently derive
+    `ActiveCarrierExternalReentryFailureHistoricalStatus` from that conclusion
+    through a suffix and a boundary, without a first-boundary guarantee. Its
+    target remains either the selected raw head or a distinct authentic marked
+    target at the active representative. The status witnesses are not
+    identified with the common path or crossing, and expose no occurrence
+    position or first visit. This is
+    a standard-three code consequence with no source, oracle, or runtime
+    addition; the raw survivor is unchanged.
   - [ ] Eliminate or payer-convert both waiting-branch outcomes and separately
     eliminate or convert the raw survivor. The avoiding side now has a marked
     inbound-edge historical-target classifier, but that classifier is not
     target elimination and does not expose identity with the retained exact
-    path. The containing side is only vertex-list membership, with no
-    occurrence localization or first-visit fact. Then eliminate the remaining
-    cyclic residuals, broader exact selected/mate raw returns, and equal-final
-    traces, and close the history-tail law. Do not infer unconditional
-    dispatcher progress, completion, termination, later-state totality, global
-    raw seams, fallback removal, Figure-7 pure-worklist completeness,
-    sequentialization, faithful token-age scheduling, or whole-program
-    linearity from this split.
+    path. The containing side now combines vertex-list membership with an
+    independent failure-conditioned historical status, but does not identify
+    the status suffix or boundary with the retained path or crossing and gives
+    no occurrence localization or first-visit fact. Then eliminate the
+    remaining cyclic residuals, broader exact selected/mate raw returns, and
+    equal-final traces, and close the history-tail law. Do not infer
+    unconditional dispatcher progress, completion, termination, later-state
+    totality, global raw seams, fallback removal, Figure-7 pure-worklist
+    completeness, sequentialization, faithful token-age scheduling, or
+    whole-program linearity from this split.
   - [x] Isolate unused waiting storage as the history-preserved predicate
     `FutureWaitingUndefined`. Prove it for empty/initial states and preserve it
     through Prepared, all six successful rules, dispatcher steps,
@@ -1581,9 +1598,12 @@
     outer selected parent conclusion under canonical history and exact
     ready-tail failure: outer avoidance separately yields an existential marked
     inbound-edge historical-target classifier whose interface does not expose
-    classifier-path identity, while the other branch retains only outer-
-    conclusion membership in the common path. Both waiting outcomes and the
-    raw survivor remain. Next eliminate or payer-convert those outcomes and
+    classifier-path identity. The containing branch retains outer-conclusion
+    membership in the common path and independently derives a
+    failure-conditioned historical re-entry status from that conclusion; its
+    suffix and boundary witnesses are not identified with the common path or
+    crossing, and no first-boundary fact is exported. Both waiting outcomes and
+    the raw survivor remain. Next eliminate or payer-convert those outcomes and
     resolve equal-final traces and the history-tail law before claiming
     exhaustive progress on incomplete, correct, certified-reachable states.
     Exact source-left complexity descent, last-step decomposition, and

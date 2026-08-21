@@ -1256,6 +1256,24 @@ path identity with the retained path. The other branch is only
 `current.conclusion ∈ path.vertices`. No target or raw-survivor elimination,
 payer, history-tail law, progress, completion, termination, or totality enters
 the trust claim.
+`SequentialFigure7WaitingReentryContinuationOuterContainsStatus.lean` adds no
+runtime oracle, native-computed evidence, or new trusted source. The refactored
+generic selected-connective APIs prove that the conclusion of a connective
+consuming the selected ready head is not produced and is outside an arbitrary
+accounted owned carrier.
+Those two declarations and the module's main theorem print with `propext`,
+`Classical.choice`, and `Quot.sound`. The main theorem adds no hypotheses to the
+outer-obstruction boundary and retains its common exact path, crossing edge,
+inner avoidance, and avoiding branch. The containing branch keeps the original
+outer-conclusion membership and independently obtains
+`ActiveCarrierExternalReentryFailureHistoricalStatus` from that conclusion via
+a suffix and a boundary, without a first-boundary guarantee. Its classified
+target is the selected raw head or a distinct authentic marked target at the
+active representative. No
+status witness is identified with the common path or crossing, and no occurrence
+position or first visit is exposed. The theorem eliminates neither branch,
+leaves the raw survivor unchanged, and establishes no payer, tail law, progress,
+completion, termination, or totality.
 `SequentialFigure7CrossRepresentativeWaitPreservation.lean` adds no hidden
 source-region oracle. Its output-work classification follows only from the
 typed destination's exact waiting prepend and unchanged ready/sigma fields;

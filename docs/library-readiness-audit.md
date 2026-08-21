@@ -879,12 +879,15 @@ part of the engineering and proof-identity gap.
    target avoidance, whole-spine composition, queue origin, any raw seam,
    enabledness, progress, completeness, fallback removal, or complexity.
    `SequentialFigure7CommitmentEdgeTargetAvoidance.lean` now gives the exact
-   conditional one-edge refinement. If the authentic child ledger event does
-   not touch a supplied future candidate's tensor conclusion, Lean constructs
-   the same canonical endpoint path while omitting that conclusion. The law is
-   an explicit input rather than a history consequence; its global availability,
-   arbitrary multi-edge composition, queue origin, the raw seams, enabledness,
-   progress, completeness, fallback removal, and complexity remain open.
+   conditional one-edge refinement. It also exposes generic ready-head facts
+   for any selected `ConnectiveBelow`: its conclusion is not `Produced`, and
+   exact occurrence accounting keeps that conclusion outside any supplied
+   owned carrier. If the authentic child ledger event does not touch a supplied
+   future candidate's tensor conclusion, Lean constructs the same canonical
+   endpoint path while omitting that conclusion. The law is an explicit input
+   rather than a history consequence; its global availability, arbitrary
+   multi-edge composition, queue origin, the raw seams, enabledness, progress,
+   completeness, fallback removal, and complexity remain open.
    `SequentialFigure7CommitmentIntervalTargetAvoidance.lean` now closes the
    composition operation for a supplied positive-length retained-`sigma`
    interval. Its callback must provide every adjacent avoiding witness. Exact
@@ -1480,6 +1483,19 @@ part of the engineering and proof-identity gap.
    `current.conclusion ∈ path.vertices`. This advances the continuation gate to
    an explicit outer split but provides no target or raw-survivor elimination,
    payer conversion, tail law, progress, completion, termination, or totality.
+   `SequentialFigure7WaitingReentryContinuationOuterContainsStatus.lean` adds
+   no hypotheses to that split and no source reading, oracle, runtime evidence,
+   or trusted primitive. Its runnable consumer checks the two generic
+   conclusion-freshness helpers and the new main theorem at the standard-three
+   trust boundary. The main theorem returns unconditionally that the outer
+   conclusion is not `Produced` and lies outside the active owned carrier. It
+   retains the common exact path, edge, inner avoidance, and left avoiding
+   classifier. The right branch keeps outer-conclusion membership and derives
+   a separate `ActiveCarrierExternalReentryFailureHistoricalStatus` through a
+   suffix and a boundary not claimed to be first. The status witnesses are not
+   identified with the common path or crossing. There is still no occurrence
+   localization, first visit, elimination, payer, tail law, progress,
+   completion, termination, or totality, and the raw survivor is unchanged.
    `SequentialFigure7CommitmentBlockerAdvance.lean` now combines the global
    queued-head law, strict split, and equal-boundary result. Under declarative
    correctness and the complete scheduler invariant, for a supplied canonical

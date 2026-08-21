@@ -328,6 +328,9 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "ProofNetIR.SequentialFigure7.FutureWorkAtExactWaitingLocation."
     "activeTargetMateOuterAvoidingReentryMarkedHistoricalTarget"
     "OrContains",
+    "ProofNetIR.SequentialFigure7.FutureWorkAtExactWaitingLocation."
+    "activeTargetMateOuterAvoidingReentryMarkedHistoricalTarget"
+    "OrContainsFailureHistoricalStatus",
     "ProofNetIR.SequentialFigure7.MarkedConclusionChain."
     "rawReturnCyclicReduction",
     "ProofNetIR.SequentialFigure7.MarkedConclusionChain."
@@ -593,6 +596,10 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "ProofNetIR.SequentialFigure7.CanonicalTagHistory.commitmentEdge_referencePath_avoiding",
     "ProofNetIR.SequentialFigure7.CanonicalTagHistory."
     "commitmentEdge_referencePath_avoiding_parConclusion",
+    "ProofNetIR.SequentialFigure7.ReadyHeadInput."
+    "connectiveConclusion_not_produced",
+    "ProofNetIR.SequentialFigure7.ReadyHeadInput."
+    "connectiveConclusion_not_owned_of_accounted",
     "ProofNetIR.SequentialFigure7.CanonicalTagHistory.commitmentInterval_referencePath_avoiding",
     "ProofNetIR.SequentialFigure7.CanonicalTagHistory.freshSourceLeftRun_carrier_not_touched",
     "ProofNetIR.SequentialFigure7.carrier_not_exactMarkedOccurrenceOwner",

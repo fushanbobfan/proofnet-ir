@@ -56,14 +56,19 @@ is exactly the younger premise and its consumer mate is the older premise, with 
 representative equations exposed. Under `DeclarativelyCorrect`, the exact location gives a
 mate-to-target reference path avoiding the inner waiting conclusion. With an explicit
 active-carrier lookup and occurrence witness, forest ownership aligns the target inside
-that carrier and the older mate outside. With canonical history, a selected outer par, and
-exact ready-tail failure, the next theorem retains that common exact path,
-`path.finish = target`, its outside-to-inside edge, and its inner avoidance before splitting
-on the outer conclusion. Outer avoidance separately yields an existential marked
-inbound-edge target classifier whose interface does not expose classifier-path identity;
-otherwise the outer conclusion is only a member of `path.vertices`. Neither branch
-eliminates or payer-converts the waiting target, the raw survivor remains, and no
-history-tail law, progress, completion, termination, or totality follows.
+that carrier and the older mate outside. Two generic ready-head lemmas show that any
+selected connective conclusion is not `Produced` and, under exact occurrence accounting,
+lies outside any supplied owned carrier. They strengthen the outer split without adding
+hypotheses. Under canonical history, a selected outer par, and exact ready-tail failure,
+the theorem returns those outer-conclusion facts unconditionally and retains the common
+exact path, target finish, outside-to-inside edge, and inner avoidance. Outer avoidance
+separately yields the marked historical-target classifier. The containing branch keeps
+outer-conclusion membership and separately derives
+`ActiveCarrierExternalReentryFailureHistoricalStatus` through a suffix and a boundary not
+claimed to be first. Its witnesses are not identified with the common path or crossing.
+Neither branch localizes an occurrence or first visit, eliminates or payer-converts the
+waiting target, changes the raw survivor, or proves a tail law, progress, completion,
+termination, or totality.
 [Current status](docs/current-status.md) owns exact revision, verification receipt, and gates.
 <!-- ROLLING_MAIN_SUMMARY_END -->
 
