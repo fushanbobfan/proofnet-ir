@@ -17,7 +17,7 @@ Status date: 2026-08-21
 | Track | Revision | Status | Authority |
 | --- | --- | --- | --- |
 | Stable library | `v0.9.0` / `9b7dc3d104af8f57ea9123aab2e61b42e05d2216` | Released | [v0.9.0 release audit](v0.9-release-audit.md) |
-| Rolling research | `v0.10.0-dev`; proof `b03206c`; audit `1e46573` | Active | This page/commits |
+| Rolling research | `v0.10.0-dev`; proof `6420156`; audit `1e46573` | Active | This page/commits |
 
 Documentation-only commits may descend from the proof checkpoint without
 changing its mathematical authority. The stable release and rolling branch
@@ -349,7 +349,7 @@ from a scheduler-invariant input refutes unrestricted
 same-component locality carrier, but neither refutes direct debt nor supplies
 the required queue-tail or elimination of the classified re-entry failure.
 
-The checkpoint's accumulated public surface is exactly 154 declaration
+The checkpoint's accumulated public surface is exactly 164 declaration
 boundaries:
 
 ```text
@@ -567,6 +567,25 @@ SequentialFigure7.ActiveCarrierExternalEndpointCrossing.reentry
 SequentialFigure7.ActiveMateWaitingParentExternalCommitmentReentryFailureOutcome
 SequentialFigure7.ActiveMateWaitingParentExternalTemporalOutcome.
   commitmentReentryFailureOutcome
+SequentialFigure7.ActiveCarrierExternalReentryFailureHistoricalStatus.
+  markedHistoricalTarget_of_storedRight
+SequentialFigure7.ActiveMateWaitingParentExternalCommitmentReentryMarkedOutcome
+SequentialFigure7.ActiveMateWaitingParentExternalCommitmentReentryFailureOutcome.
+  markedOutcome_of_storedRight
+SequentialFigure7.FutureWorkMateActiveCarrierExternalCommitmentReentryMarkedStatus
+SequentialFigure7.FutureWorkMateActiveCarrierExternalTemporalStatus.
+  commitmentReentryMarkedStatus_of_storedRight
+SequentialFigure7.
+  ContinuationExitRawOrFutureActiveCarrierExternalCommitmentReentryMarkedOutcome
+SequentialFigure7.ContinuationExitRawOrFutureActiveCarrierExternalTemporalOutcome.
+  commitmentReentryMarkedOutcome_of_storedRight
+SequentialFigure7.
+  ActiveCarrierExternalReentryMarkedMateSeparatedContinuationSiblingExitWaitingMarkedTarget
+SequentialFigure7.
+  ActiveCarrierExternalReentryMarkedMateSeparatedContinuationSiblingExitExternalTemporalTarget.
+    waitingMarkedTarget_of_storedRight
+SequentialFigure7.WaitStep.
+  commitmentInterval_parTraceReentryMarkedContinuationSiblingExitWaitingMarkedOutcome
 ```
 
 The earlier parent-escape, source-temporal, debt, history-tail,
@@ -714,7 +733,7 @@ still be ready or waiting; broader selected/mate raw returns, external temporal
 endpoints, the history-tail law, completion, progress, and totality remain
 open.
 
-The current checkpoint advances both constructors of that exact waiting
+The preceding checkpoint advances both constructors of that exact waiting
 endpoint through the strict commitment and failure-conditioned re-entry
 pipeline. The future or marked `consumer.conclusion` now retains its exact
 `StrictOlderCommitmentSplit`. Supplied reference-switching connectedness gives
@@ -732,6 +751,30 @@ Neither target is eliminated, and this refinement has not yet been transported
 through the outer scheduler-status, sibling-target, or typed-Wait wrappers. It
 derives no payer, history-tail law, completion, progress, termination, or
 totality theorem.
+
+The current checkpoint eliminates the selected raw-unmarked alternative from
+that failure-conditioned historical re-entry status when the enclosing
+selected connective is a structurally well-formed stored-right `par`. The
+generic
+`ActiveCarrierExternalReentryFailureHistoricalStatus.markedHistoricalTarget_of_storedRight`
+theorem uses structural inbound-parent-edge separation. Beyond the supplied
+failure status, it needs only structural well-formedness, the current
+connective's `par` kind, and its `.storedRight` side. It requires no avoiding
+path or sibling-path alignment.
+
+The exact future/marked waiting endpoints retain their older boundary or
+representative, externality, `StrictOlderCommitmentSplit`, owned-to-external
+crossing, and reverse re-entry. Only the nested failure status is replaced by
+`ActiveCarrierExternalReentryMarkedHistoricalTarget`; crossing and re-entry
+witnesses remain existentially separate. The refinement is transported
+through the active future-work mate status, continuation sibling target, and
+typed Wait older-mate trace. Older-outside, raw-outside, selected-return,
+future/marked sibling exits, avoiding/equal-final trace branches, and the
+causal-descent/cyclic-junction receipts remain unchanged. The surviving target
+is a distinct canonical-history-authenticated mark at the active
+representative. It is neither eliminated nor converted into a payer, and no
+history-tail law, completion, progress, termination, or totality theorem
+follows.
 
 ### Finite ready-head boundary audit
 
@@ -794,22 +837,21 @@ Exact signatures are maintained in the generated API reference for the
 [marked re-entry target active-mate waiting parent recursion][target-wait-parent],
 [marked re-entry target active-mate waiting external temporal outcome][wait-ext],
 [active-mate waiting external commitment re-entry failure][wait-ext-reentry],
+[stored-right waiting commitment re-entry marked target][wait-ext-marked],
 [marked re-entry target raw-return cyclic reduction][target-cycle],
 [branch-local continuation credit](api-reference.md#branch-local-continuation-credit),
 [continuation-credit preservation](api-reference.md#continuation-credit-preservation),
 [endpoint-localized continuation exits](api-reference.md#endpoint-localized-continuation-exits),
 and the retained
 [Wait endpoint-locality obstruction](api-reference.md#wait-endpoint-locality-obstruction).
-The first open proof step is now to lift this narrowed failure carrier under
-the outer strictly older stored-right orientation. A generic narrowing lemma
-must be published and used to align the inherited failure status and eliminate
-the selected raw target without widening the exact two-case endpoint. The
-retained re-entry has no current par-conclusion avoidance proof, and the sibling
-causal witness alone does not align itself with that path, so neither route is
-available by itself. The distinct canonical-history-authenticated mark at the
-active representative remains to be eliminated or converted into a distinct
-ready-tail payer. Transport through the outer scheduler-status, sibling-target,
-and typed-Wait wrappers also remains open.
+The first open proof step is now to eliminate the surviving distinct
+canonical-history-authenticated mark at the active representative or convert
+it into the exact distinct ready-tail payer. The generic stored-right
+narrowing is published and transported through the outer active scheduler
+status, continuation sibling target, and typed Wait trace. The retained
+re-entry still has no current par-conclusion avoiding witness or aligned path;
+the causal/cyclic receipts are preserved rather than used to discharge the
+target.
 An older-outside mate may still be ready or waiting, while the broader
 selected/mate raw-return, other external temporal, and Wait first-descent
 branches remain open.
@@ -840,12 +882,13 @@ This checkpoint does not establish any of the following:
 - elimination of
   `ActiveMateWaitingParentExternalTemporalOutcome` or the broader
   `ActiveCarrierParentExternalTemporalOutcome`; the exact waiting-mate
-  future/marked endpoints now retain crossing, reverse re-entry, and historical
-  failure evidence, but their selected-or-marked target split is not eliminated
-  and no generic raw/waiting endpoint supplies a distinct ready-tail payer;
-- transport of the new waiting-mate commitment/re-entry failure carrier through
-  the outer scheduler-status, sibling-target, or typed-Wait wrappers;
-- elimination of the prior-concrete-mark target in the strictly older re-entry,
+  future/marked endpoints now retain crossing, reverse re-entry, and a marked
+  historical target under the exact stored-right/no-tail refinement, but the
+  broader carriers remain and no generic raw/waiting endpoint supplies a
+  distinct ready-tail payer;
+- elimination or payer conversion of the surviving distinct authenticated
+  active-representative mark, derivation of an avoiding or path-aligned
+  re-entry,
   elimination of either equal-final conclusion-to-selected or
   conclusion-to-mate trace, elimination of the finite raw-outside,
   older-future, or older-marked-global continuation alternatives, or the
@@ -908,12 +951,12 @@ plan is maintained in [v0.10-design.md](v0.10-design.md) and
 The exact rolling proof checkpoint is:
 
 ```text
-commit    b03206c5364930de03f941e3ac6a0f2079bc0dca
-tree      d06f2ea0ae54f28268f8d2294923511b97f06eb2
-parent    6c630148a6601f9b987daff8426682a96daa87a5
-stage     refine waiting endpoints through re-entry
-delta     17 paths, +588/-44
-manifest  493028D036BC7DD144FF692B8FE46BA04757045C84EF6E8F50BDC901BDE131A0
+commit    64201566812fce500228db79e71a1755bc7f0450
+tree      05db08a28cf8860cf1c264b2894a6268728701a3
+parent    26cde33cc32d018a6f13fb1449ffa7e400917f28
+stage     eliminate stored-right waiting selected target
+delta     18 paths, +1291/-23
+manifest  66191B510C5313E555EACEAA86F04E552F579397891AB2900D5581BC78679BA3
 ```
 
 The manifest hashes canonical
@@ -922,9 +965,10 @@ The manifest hashes canonical
 The checkpoint source receipts are:
 
 ```text
-waiting re-entry source    9142AB2BD2EDE93A52BE4BC820B926614B1AF9B87240C570149C08404BC789F1
-waiting re-entry consumer  3FA6F418AB292BA922D0E22239F20ECE2F9A8449A79C97B19D2C835FB0F7FA7B
-generated API              99234D81D8ACA7411F49B274B8BC07E32C238BAEF7685D9BD84CFB9BA21DC3C4
+stored-right generic source  FE7A9C88513427C8BDE2C04094F7FEE7A878D64494B302775F046EA4D43C96F6
+waiting marked source        BC9488D76CCF469312AD02C366D0DB6BF2D7706E30A8AC1B152FDBADED25D77C
+waiting marked consumer      83717430494782BB6BEC0A9481CB3789A7A5AF9E1DAA685CEC787E2F857F4F65
+generated API                3CF28A50B0E771CDF94AD393E0F65F2A99C497F2C3356DCD7FA82AF85256796E
 ```
 
 The separately committed finite-audit evidence is:
@@ -940,20 +984,21 @@ manifest  4BBAB7FC99D03D2612459A0FD9291990313A05A184F2572A581BC93C6E49DFDD
 
 Local verification on the committed bytes:
 
-- full `lake build`: 634/634 jobs;
-- Lean source audit: zero actual `sorry`/`admit` findings across 300 tracked
-  Lean files and 199,174 tracked Lean source lines;
-- library inventory: 168 module files under `ProofNetIR/`; the public facade
-  imports 164 submodules, or 165 modules including the facade itself;
-- generated API reference: current at 91 sections and 1,785 declarations;
-- the runnable waiting-external-commitment-reentry consumer reconstructed or
-  destructed all three new public declarations, invoked both registered public
-  theorems, and emitted its kernel-green marker;
-- public theorem audit: 1071 entries total: 774 full-classical, 25 axiom-free,
-  131 `propext`-only, and 141 `propext` plus `Quot.sound`;
+- full `lake build`: 639/639 jobs;
+- Lean source audit: zero actual `sorry`/`admit` findings across 302 tracked
+  Lean files and 200,064 tracked Lean source lines;
+- library inventory: 169 module files under `ProofNetIR/`; the public facade
+  imports 165 submodules, or 166 modules including the facade itself;
+- generated API reference: current at 92 sections and 1,795 declarations;
+- the runnable stored-right waiting-re-entry marked-target consumer
+  reconstructed or destructed all 10 new public declarations, invoked all six
+  registered public theorems, and emitted its kernel-green marker;
+- public theorem audit: 1077 entries total: 780 standard-three, 25 axiom-free,
+  131 `propext`-only, and 141 `propext`/`Quot.sound` boundaries;
 - the default, extended, and cross-variant progress audits passed with every
   incomplete visited state carrying an exact ready head and successful
-  dispatch, every dispatch-none stop fully marked, and zero missing-head,
+  dispatch, every dispatch-none stop fully marked, and the cross-variant replay
+  covering 1,182,816 states; all three modes had zero missing-head,
   incomplete-dispatch-none, cycle, or truncation findings;
 - facade, generated API, consumer, and axiom-audit entry points passed under
   the checkpoint's trust-zero and warnings-as-errors gates.
@@ -962,16 +1007,16 @@ Exact-head proof GitHub verification:
 
 - workflow: `Lean CI`;
 - event/ref: `push` / `main`;
-- run: [32485877288](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32485877288);
-- build job: [96782134161][proof-job];
-- exact head: `b03206c5364930de03f941e3ac6a0f2079bc0dca`;
+- run: [32490758722](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32490758722);
+- build job: [96797567707][proof-job];
+- exact head: `64201566812fce500228db79e71a1755bc7f0450`;
 - result: 36 successful steps, zero failures, and one expected release-ref-only
   skip;
-- run: `2026-08-21T13:15:15Z`-`2026-08-21T13:29:39Z` (14m24s);
-- build job: `2026-08-21T13:15:19Z`-`2026-08-21T13:29:38Z`
-  (14m19s).
+- run: `2026-08-21T14:11:03Z`-`2026-08-21T14:24:03Z` (13m00s);
+- build job: `2026-08-21T14:11:07Z`-`2026-08-21T14:24:03Z`
+  (12m56s).
 
-[proof-job]: https://github.com/fushanbobfan/proofnet-ir/actions/runs/32485877288/job/96782134161
+[proof-job]: https://github.com/fushanbobfan/proofnet-ir/actions/runs/32490758722/job/96797567707
 [reentry-failure]: api-reference.md#commitment-interval-par-guard-re-entry-failure-target
 [reentry-mate-separation]: api-reference.md#commitment-interval-par-guard-re-entry-mate-separation
 [target-temporal]: api-reference.md#commitment-interval-marked-re-entry-target-temporal-reduction
@@ -994,6 +1039,7 @@ Exact-head proof GitHub verification:
 [target-wait-parent]: api-reference.md#marked-re-entry-target-active-mate-waiting-parent-recursion
 [wait-ext]: api-reference.md#marked-re-entry-target-active-mate-waiting-external-temporal-outcome
 [wait-ext-reentry]: api-reference.md#active-mate-waiting-external-commitment-re-entry-failure
+[wait-ext-marked]: api-reference.md#stored-right-waiting-commitment-re-entry-marked-target
 [target-cycle]: api-reference.md#marked-re-entry-target-raw-return-cyclic-reduction
 
 Exact-head finite-audit GitHub verification:
@@ -1061,18 +1107,16 @@ deployment.
 
 The project goal remains open. The principal outstanding gates are:
 
-1. use the simultaneous endpoint junctions, strict source-before-base order,
-   aligned sibling-exit causal witness, retained commitment paths, and refined
-   scheduler/ownership classification; lift the active-owned waiting mate's
-   narrowed commitment/re-entry failure carrier under the outer strictly older
-   stored-right orientation, publish and use the generic narrowing needed to
-   eliminate its selected raw target, and then eliminate its distinct
-   authenticated active-representative marked target or recover a payer. The
-   current re-entry has no avoiding witness, and the sibling causal evidence
-   alone is not path-aligned. Transport through the higher scheduler, sibling,
-   and typed-Wait wrappers remains open. Eliminate the remaining older-outside
-   ready/waiting endpoint or broader selected/mate raw return, or recover a
-   distinct ready-tail payer; discharge
+1. eliminate the distinct authenticated active-representative marked target
+   retained by the stored-right waiting commitment/re-entry lift, or recover
+   the exact distinct payer needed from it. The generic narrowing and transport
+   through the higher scheduler, sibling, and typed-Wait wrappers are complete,
+   but the current re-entry has no avoiding witness or aligned path. Use the
+   simultaneous endpoint junctions, strict source-before-base order, aligned
+   sibling-exit causal witness, retained commitment paths, and refined
+   scheduler/ownership classification as applicable. Eliminate the remaining
+   older-outside ready/waiting endpoint or broader selected/mate raw return, or
+   recover a distinct ready-tail payer; discharge
    the par-pair residual and the
    mate-separated target's
    finite raw-outside,
