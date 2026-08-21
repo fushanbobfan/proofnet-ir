@@ -1278,9 +1278,14 @@
     only `currentMateOutside : current.mate ∉ owned` to the final theorem. Its
     result remains branch-disjunctive rather than a simultaneous classifier
     pair.
-  - [ ] Transport the branch-local queue-status result through the higher
-    scheduler, sibling, and typed-Wait wrappers without identifying either
-    classifier with the common path, crossing, or the other branch.
+  - [x] Transport the nested queue-status target through the two-case waiting-
+    parent external-reentry temporal outcome. Preserve both older-future and
+    older-marked payloads without identifying the outer crossing with the
+    nested target path or either existential future-work boundary with the
+    other.
+  - [ ] Transport that outcome through the active future-work-mate scheduler,
+    continuation, sibling, and typed-Wait wrappers without inventing a common-
+    path alignment absent from those carriers.
   - [ ] Eliminate or payer-convert the currently absent and exact older-work
     alternatives, both marked historical targets, and the remaining raw
     survivor; resolve the cyclic, selected/mate-return, and equal-final
@@ -1633,10 +1638,13 @@
     each branch-local stored-right classifier; the exact initialized-waiting
     conclusion leaf is unchanged. The result is still a branch disjunction,
     and its classifier witnesses remain independent of the common path and of
-    each other. Higher wrapper transport, both outcomes, and the raw survivor
-    remain. Next eliminate or payer-convert those outcomes, resolve equal-final
-    traces, and close the history-tail law before claiming exhaustive progress
-    on incomplete, correct, certified-reachable states.
+    each other. The nested target is now transported through the two-case
+    waiting-parent external-reentry outcome with its older-future and older-
+    marked payloads unchanged. Active scheduler, continuation, sibling, and
+    typed-Wait transport, both outcomes, and the raw survivor remain. Next
+    eliminate or payer-convert those outcomes, resolve equal-final traces, and
+    close the history-tail law before claiming exhaustive progress on
+    incomplete, correct, certified-reachable states.
     Exact source-left complexity descent, last-step decomposition, and
     recursive visited-route separation from the selected head are now proved.
     Reference-switching geometry now also excludes a terminal axiom partner

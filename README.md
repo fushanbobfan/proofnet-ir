@@ -78,8 +78,11 @@ containing branch keeps outer-conclusion membership and classifies `current.conc
 The exact initialized-waiting conclusion leaf is unchanged. The common path and crossing are
 preserved, and neither branch-local classifier is identified with them or with the other
 branch. The queue-status leaf supplies no unique boundary, queue history, persistence,
-reachability, elimination, payer, tail law, or progress; completion, termination, and totality
-remain open.
+reachability, elimination, payer, tail law, or progress. That nested target is now transported
+through the two-case waiting-parent external-reentry outcome without changing its older-future
+or older-marked receipts or identifying the outer crossing with the target's internal path.
+Higher scheduler, sibling, and typed-Wait transport remains open, as do completion,
+termination, and totality.
 [Current status](docs/current-status.md) owns exact revision, verification receipt, and gates.
 <!-- ROLLING_MAIN_SUMMARY_END -->
 

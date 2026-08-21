@@ -1529,9 +1529,15 @@ part of the engineering and proof-identity gap.
    `current.conclusion` in the containing branch. It does not return both
    classifiers simultaneously or identify either with the common path or
    crossing. All three declarations use the standard-three trust boundary. The
-   higher scheduler, sibling, and typed-Wait wrappers remain open, as do target
-   elimination, payer recovery, a history-tail law, progress, completion,
-   termination, and totality.
+   immediate endpoint wrapper is now provided by
+   `SequentialFigure7MarkedTargetWaitingMateExternalCommitmentReentryQueueStatus.lean`.
+   Its public two-case outcome and adapter preserve every older-future or
+   older-marked field and replace only the nested temporal target. They require
+   no new mate-outside or geometric premise, use the standard-three boundary,
+   and do not align the outer crossing with the nested target path. The active
+   future-work-mate scheduler, continuation, sibling, and typed-Wait wrappers
+   remain open, as do target elimination, payer recovery, a history-tail law,
+   progress, completion, termination, and totality.
    `SequentialFigure7CommitmentBlockerAdvance.lean` now combines the global
    queued-head law, strict split, and equal-boundary result. Under declarative
    correctness and the complete scheduler invariant, for a supplied canonical

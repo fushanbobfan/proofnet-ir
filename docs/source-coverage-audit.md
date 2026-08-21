@@ -791,6 +791,19 @@ is existential and not proved unique. No new queue history, persistence,
 reachability, elimination, payer, history-tail law, progress, completion,
 termination, or totality fact is derived. Higher-wrapper transport remains
 separate.
+`SequentialFigure7MarkedTargetWaitingMateExternalCommitmentReentryQueueStatus.lean`
+adds no source reading, oracle, runtime evidence, or experiment. It maps the
+existing two-case endpoint carrier by preserving the older-future or older-
+marked work, order, outside-membership, commitment split, crossing, and
+re-entry receipts verbatim. The only changed field is the nested temporal
+target, which is normalized through the already-audited continuation-exit,
+waiting-parent, and queue-status theorems. The map assumes only the scheduler
+invariant, component lookup, occurrence witness, and existing no-tail premise.
+It does not relate the outer crossing to the nested target path or equate the
+outer older-future boundary with a nested queue boundary. Scheduler,
+continuation, sibling, and typed-Wait transport remains separate, as do all
+elimination, payer, history-tail, progress, completion, termination, and
+totality obligations.
 Global preservation of the mate-region and older-raw-mark invariants through
 candidate-creating rules remains open, as do queue origin, created-candidate
 raw seams, elimination or payer conversion of the waiting survivor in both

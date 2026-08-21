@@ -1950,6 +1950,24 @@ completion, termination, or totality follows.
 Transport through the higher scheduler, sibling, and typed-Wait interfaces
 remains open.
 
+`SequentialFigure7MarkedTargetWaitingMateExternalCommitmentReentryQueueStatus.lean`
+performs the first such wrapper transport. Its two-case endpoint outcome keeps
+the existing older-future or older-marked work, order, outside-membership,
+commitment split, crossing, and re-entry payload. Only the nested temporal
+target is normalized through its finite continuation exit, exact waiting
+parent, and queue-status adapter. The theorem uses the existing scheduler
+invariant, component lookup, occurrence witness, and no-tail premise; it adds no
+new mate-outside, correctness, connectedness, par-kind, or side premise.
+
+The outcome's crossing and re-entry witnesses remain separate from the nested
+target's internal path. Its outer older-future boundary is likewise not
+identified with any existential boundary inside the queue-status leaf. This is
+only the immediate endpoint-outcome map. The active future-work-mate scheduler,
+continuation, sibling, and typed-Wait carriers still contain the preceding
+temporal shape and require separate transport. No target is eliminated or
+payer-converted, and no history-tail, progress, completion, termination, or
+totality result follows.
+
 `SequentialFigure7CommitmentBlockerAdvance.lean` joins the global queued-head
 law, the strict `sigma` split, the strict-edge avoiding adapter, and the final
 equal-boundary classification. Under declarative correctness and the complete

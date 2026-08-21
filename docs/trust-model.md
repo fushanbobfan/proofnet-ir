@@ -1309,6 +1309,18 @@ leaf remains a current-state status. When it contains future work, its boundary
 is existential and not proved unique. No elimination, payer, queue-history,
 persistence, reachability, history-tail, progress, completion, termination, or
 totality assumption or conclusion is added.
+`SequentialFigure7MarkedTargetWaitingMateExternalCommitmentReentryQueueStatus.lean`
+adds one inductive public outcome and one public adapter, both with exactly the
+standard-three boundary: `propext`, `Classical.choice`, and `Quot.sound`. The
+adapter takes an existing kernel-checked temporal target and composes the
+continuation-exit, waiting-parent, and queue-status theorems. It adds no runtime
+oracle, native computation, source fact, correctness premise, additional
+current-mate-outside premise, or geometric premise. The outer older-future or
+older-marked payload is copied
+verbatim, and no equality is introduced between its crossing and the nested
+target path or between distinct future-work boundaries. Higher wrapper
+transport, elimination, payer conversion, tail law, progress, completion,
+termination, and totality remain unproved.
 `SequentialFigure7CrossRepresentativeWaitPreservation.lean` adds no hidden
 source-region oracle. Its output-work classification follows only from the
 typed destination's exact waiting prepend and unchanged ready/sigma fields;

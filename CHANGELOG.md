@@ -2,6 +2,25 @@
 
 ## Unreleased
 
+- transported the nested waiting-parent queue-status target through the exact
+  two-case external-reentry temporal outcome.
+  `SequentialFigure7MarkedTargetWaitingMateExternalCommitmentReentryQueueStatus.lean`
+  adds
+  `ActiveMateWaitingParentExternalCommitmentReentryQueueStatusOutcome` and
+  `ActiveMateWaitingParentExternalCommitmentReentryTemporalOutcome.queueStatusOutcome`.
+  The new carrier preserves each older-future or older-marked endpoint's work,
+  order, outside-membership, commitment split, crossing, and re-entry fields;
+  only its nested temporal target is normalized through the finite continuation
+  exit, exact waiting parent, and current queue status. The adapter needs the
+  existing scheduler invariant, component lookup, occurrence witness, and
+  no-tail premise. It requires no new mate-outside, correctness, par-side, or
+  connectivity premise. The outer crossing is not identified with the nested
+  target path, and the nested future-work boundary is not identified with the
+  outcome's older-future boundary. Both declarations use the standard-three
+  trust boundary and prove no queue history, persistence, reachability,
+  boundary uniqueness, elimination, payer, tail law, progress, completion,
+  termination, or totality. Higher scheduler, sibling, and typed-Wait transport
+  remains open;
 - lifted the current-state queue classifier through the stored-right outer
   waiting split. `SequentialFigure7WaitingReentryContinuationOuterQueueStatus.lean`
   adds

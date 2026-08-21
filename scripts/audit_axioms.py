@@ -347,6 +347,11 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "queueStatusTarget",
     "ProofNetIR.SequentialFigure7.FutureWorkAtExactWaitingLocation."
     "activeTargetMateOuterWaitingParentQueueStatus_of_storedRight",
+    "ProofNetIR.SequentialFigure7."
+    "ActiveMateWaitingParentExternalCommitmentReentryQueueStatusOutcome",
+    "ProofNetIR.SequentialFigure7."
+    "ActiveMateWaitingParentExternalCommitmentReentryTemporalOutcome."
+    "queueStatusOutcome",
     "ProofNetIR.SequentialFigure7.MarkedConclusionChain."
     "rawReturnCyclicReduction",
     "ProofNetIR.SequentialFigure7.MarkedConclusionChain."

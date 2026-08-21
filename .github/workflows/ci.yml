@@ -137,6 +137,8 @@ jobs:
           ~/.elan/bin/lake exe \
             proofnet_ir_waiting_reentry_continuation_outer_queue_status_tests
           ~/.elan/bin/lake exe \
+            proofnet_ir_marked_target_waiting_mate_external_commitment_reentry_queue_status_tests
+          ~/.elan/bin/lake exe \
             proofnet_ir_marked_target_raw_return_cyclic_reduction_tests
           ~/.elan/bin/lake exe proofnet_ir_commitment_blocker_advance_tests
           ~/.elan/bin/lake exe proofnet_ir_commitment_blocker_maximality_tests
