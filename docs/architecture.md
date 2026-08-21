@@ -1922,9 +1922,33 @@ records an unmarked vertex outside the supplied list together with either
 current absence from the queue, live frontier, and `Produced`, or exact older
 future work and its exact scheduler location. The existential boundary is not
 proved unique, and the absent branch is not historical, persistent, terminal,
-or unreachable. This generic module does not yet replace the raw branch inside
-either outer marked classifier or transport through the higher scheduler,
-sibling, or typed-Wait interfaces.
+or unreachable. This generic module alone does not replace the raw branch
+inside an outer marked classifier.
+
+`SequentialFigure7WaitingReentryContinuationOuterQueueStatus.lean` performs
+that replacement at the exact waiting-location layer. Its queue-status target
+copies the existing marked-parent path, inbound edge, authentic mark,
+representative, and target-consumer fields. Only the raw-unmarked
+`targetConsumer.mate` leaf is refined to
+`UnmarkedOutsideActiveSchedulerStatus`; the exact initialized-waiting leaf at
+`targetConsumer.conclusion` is preserved unchanged. The adapter theorem makes
+this refinement under the existing scheduler invariant, active-component
+lookup, and occurrence witness. The final theorem starts from the stored-right
+outer split and adds only `currentMateOutside : current.mate ∉ owned`.
+
+The final output is still a disjunction. The avoiding side carries its
+queue-status target at `consumer.mate`; the containing side retains
+`current.conclusion ∈ path.vertices` and carries its queue-status target at
+`current.conclusion`. Thus no simultaneous pair of branch classifiers is
+exported. The common path, crossing, inner avoidance, and outer membership
+split are unchanged, while each classifier's internal witnesses remain
+independent of that path and of the other branch. The newly classified leaf is
+current-state only. In its future-work alternative, the scheduler boundary is
+existential and not proved unique. No target is eliminated or payer-converted,
+and no queue history, persistence, reachability, history-tail law, progress,
+completion, termination, or totality follows.
+Transport through the higher scheduler, sibling, and typed-Wait interfaces
+remains open.
 
 `SequentialFigure7CommitmentBlockerAdvance.lean` joins the global queued-head
 law, the strict `sigma` split, the strict-edge avoiding adapter, and the final

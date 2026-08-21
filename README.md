@@ -71,10 +71,15 @@ identify `queuedVertices` membership with proof-relevant `FutureWorkAt` at some 
 boundary. Given component lookup and occurrence evidence that identifies a supplied `owned`
 list as the active carrier, an unmarked vertex outside it is either currently absent from the
 queue and live-production domains or has exact ready or waiting work at a strictly older
-boundary. This supplies no unique boundary, history,
-persistence, reachability, or progress, and its high-level waiting-branch lift remains open.
-Neither outer branch localizes a first visit, eliminates or payer-converts its marked target
-or the raw survivor, derives a tail law, or proves completion, termination, or totality.
+boundary. The stored-right outer result now lifts only the raw-unmarked mate leaf to this
+status, with `currentMateOutside : current.mate ∉ owned` as its sole added hypothesis. The
+result remains a disjunction: the avoiding branch classifies `consumer.mate`, while the
+containing branch keeps outer-conclusion membership and classifies `current.conclusion`.
+The exact initialized-waiting conclusion leaf is unchanged. The common path and crossing are
+preserved, and neither branch-local classifier is identified with them or with the other
+branch. The queue-status leaf supplies no unique boundary, queue history, persistence,
+reachability, elimination, payer, tail law, or progress; completion, termination, and totality
+remain open.
 [Current status](docs/current-status.md) owns exact revision, verification receipt, and gates.
 <!-- ROLLING_MAIN_SUMMARY_END -->
 

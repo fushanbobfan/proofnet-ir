@@ -59,6 +59,7 @@ defaultTargets = [
   "proofnet_ir_waiting_reentry_continuation_outer_obstruction_tests",
   "proofnet_ir_waiting_reentry_continuation_outer_contains_status_tests",
   "proofnet_ir_waiting_reentry_continuation_outer_contains_marked_stored_right_tests",
+  "proofnet_ir_waiting_reentry_continuation_outer_queue_status_tests",
   "proofnet_ir_marked_target_raw_return_cyclic_reduction_tests",
   "proofnet_ir_commitment_blocker_advance_tests",
   "proofnet_ir_commitment_blocker_maximality_tests",
@@ -375,6 +376,10 @@ root = "ProofNetIRWaitingReentryContinuationOuterContainsStatusTests"
 [[lean_exe]]
 name = "proofnet_ir_waiting_reentry_continuation_outer_contains_marked_stored_right_tests"
 root = "ProofNetIRWaitingReentryContinuationOuterContainsMarkedStoredRightTests"
+
+[[lean_exe]]
+name = "proofnet_ir_waiting_reentry_continuation_outer_queue_status_tests"
+root = "ProofNetIRWaitingReentryContinuationOuterQueueStatusTests"
 
 [[lean_exe]]
 name = "proofnet_ir_marked_target_raw_return_cyclic_reduction_tests"

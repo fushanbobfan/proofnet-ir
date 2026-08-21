@@ -775,7 +775,21 @@ classifier. The result concerns one supplied state only. Currently not queued
 does not mean never queued, persistently absent, unreachable, or terminal; the
 proof-relevant future-work boundary is some boundary, not a proved unique one;
 and no `ExecutedHistory`, canonical provenance, payer, tail law, or progress
-fact is derived. The later waiting-parent and outer-branch transport remains
+fact is derived.
+`SequentialFigure7WaitingReentryContinuationOuterQueueStatus.lean` adds no
+source reading, oracle, runtime evidence, or experiment. It composes the
+low-level status, existing waiting-parent normalization, and stored-right outer
+split. The adapter changes only the raw-unmarked `targetConsumer.mate` leaf;
+the exact initialized-waiting `targetConsumer.conclusion` leaf is transported
+unchanged. The final theorem adds only the supplied
+`currentMateOutside : current.mate ∉ owned` premise. Its output is a branch
+disjunction, not simultaneous evidence for both classifiers, and the common
+path and crossing are preserved without witness identification. Only the raw
+leaf is current-state: the surrounding target retains its existing canonical
+history evidence. When the status carries future work, its scheduler boundary
+is existential and not proved unique. No new queue history, persistence,
+reachability, elimination, payer, history-tail law, progress, completion,
+termination, or totality fact is derived. Higher-wrapper transport remains
 separate.
 Global preservation of the mate-region and older-raw-mark invariants through
 candidate-creating rules remains open, as do queue origin, created-candidate

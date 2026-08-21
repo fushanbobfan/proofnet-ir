@@ -1271,18 +1271,24 @@
     ready or initialized-waiting location.
     Make no unique-boundary, history, persistence, reachability, or progress
     claim.
-  - [ ] Lift `UnmarkedOutsideActiveSchedulerStatus` into the raw-unmarked
-    target-consumer-mate alternative of both outer marked classifiers, then
-    through the waiting-parent target and higher scheduler, sibling, and typed-
-    Wait wrappers. Preserve the common path, crossing, outer membership split,
-    and independent marked classifiers. Then eliminate or payer-convert the
-    currently absent and exact older-work alternatives, both marked historical
-    targets, and the remaining raw survivor; resolve the cyclic and equal-final
+  - [x] Lift `UnmarkedOutsideActiveSchedulerStatus` into the waiting-parent
+    target's raw-unmarked mate leaf and both branches of the stored-right outer
+    split. Preserve the exact initialized-waiting conclusion leaf, common path,
+    crossing, outer membership split, and independent marked classifiers. Add
+    only `currentMateOutside : current.mate ∉ owned` to the final theorem. Its
+    result remains branch-disjunctive rather than a simultaneous classifier
+    pair.
+  - [ ] Transport the branch-local queue-status result through the higher
+    scheduler, sibling, and typed-Wait wrappers without identifying either
+    classifier with the common path, crossing, or the other branch.
+  - [ ] Eliminate or payer-convert the currently absent and exact older-work
+    alternatives, both marked historical targets, and the remaining raw
+    survivor; resolve the cyclic, selected/mate-return, and equal-final
     residuals and close the history-tail law. Do not infer unconditional
     dispatcher progress, completion, termination, later-state totality, global
     raw seams, fallback removal, Figure-7 pure-worklist completeness,
     sequentialization, faithful token-age scheduling, or whole-program
-    linearity from the low-level classifier.
+    linearity from the classifier lift.
   - [x] Isolate unused waiting storage as the history-preserved predicate
     `FutureWaitingUndefined`. Prove it for empty/initial states and preserve it
     through Prepared, all six successful rules, dispatcher steps,
@@ -1619,15 +1625,18 @@
     right orientation, that independent status narrows to a marked historical
     re-entry target, so both outer outcomes retain marked classifiers at their
     respective endpoints. Those classifiers remain unaligned with the common
-    path. A separate current-state API now classifies an unmarked vertex outside
-    a supplied `owned` list as currently queue/live-production absent or as
+    path. A separate current-state API classifies an unmarked vertex outside a
+    supplied `owned` list as currently queue/live-production absent or as
     proof-relevant exact scheduler work at some older boundary, once active
-    occurrence evidence identifies that list with the active carrier. That
-    status has not yet been threaded into either marked-classifier waiting
-    outcome. Both outcomes and the raw survivor remain. Next lift and then
-    eliminate or payer-convert those outcomes, resolve equal-final traces, and
-    close the history-tail law before claiming exhaustive progress on
-    incomplete, correct, certified-reachable states.
+    occurrence evidence identifies that list with the active carrier. At the
+    exact waiting-location layer, that status now replaces the raw-mate leaf in
+    each branch-local stored-right classifier; the exact initialized-waiting
+    conclusion leaf is unchanged. The result is still a branch disjunction,
+    and its classifier witnesses remain independent of the common path and of
+    each other. Higher wrapper transport, both outcomes, and the raw survivor
+    remain. Next eliminate or payer-convert those outcomes, resolve equal-final
+    traces, and close the history-tail law before claiming exhaustive progress
+    on incomplete, correct, certified-reachable states.
     Exact source-left complexity descent, last-step decomposition, and
     recursive visited-route separation from the selected head are now proved.
     Reference-switching geometry now also excludes a terminal axiom partner

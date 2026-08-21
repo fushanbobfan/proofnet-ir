@@ -1511,6 +1511,25 @@ def sections : List Section := [
     ]
   },
   {
+    title := "Waiting re-entry continuation outer queue status"
+    declarations := [
+      Name.str
+        `ProofNetIR.SequentialFigure7
+        ("ActiveCarrierExternalReentryMarkedOuterMateSeparated" ++
+          "WaitingParentQueueStatusTarget"),
+      Name.str
+        (Name.str
+          `ProofNetIR.SequentialFigure7
+          ("ActiveCarrierExternalReentryMarkedOuterMateSeparated" ++
+            "WaitingParentTarget"))
+        "queueStatusTarget",
+      Name.str
+        `ProofNetIR.SequentialFigure7.FutureWorkAtExactWaitingLocation
+        ("activeTargetMateOuterWaitingParentQueueStatus" ++
+          "_of_storedRight")
+    ]
+  },
+  {
     title := "Marked re-entry target raw-return cyclic reduction"
     declarations := [
       `ProofNetIR.SequentialFigure7.MarkedConclusionRawReturnCyclicOutcome,

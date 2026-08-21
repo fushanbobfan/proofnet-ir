@@ -1291,9 +1291,24 @@ exact-location interface. The status is parameterized by a supplied `owned`
 list; the classifier's active component lookup and occurrence witness establish
 when that list is the active owned carrier. The proposition is state-indexed
 and contains no hidden history, reachability, uniqueness, persistence, or
-progress field. The module does not lift the status into the waiting re-entry
-theorem or add target elimination, payer, tail-law, completion, or progress
-assumptions.
+progress field. By itself, the module does not lift the status into a marked
+waiting re-entry theorem.
+`SequentialFigure7WaitingReentryContinuationOuterQueueStatus.lean` adds no
+runtime oracle, native-computed evidence, or new trusted source. Its new target
+definition, waiting-parent adapter, and stored-right two-branch theorem all use
+exactly the standard-three boundary: `propext`, `Classical.choice`, and
+`Quot.sound`. The adapter replaces only the raw-unmarked mate leaf; the exact
+initialized-waiting conclusion leaf and all retained historical fields are
+unchanged. The final theorem adds only
+`currentMateOutside : current.mate ∉ owned` to the preceding stored-right
+surface. Its result is branch-disjunctive: each outcome retains a classifier at
+its own endpoint, rather than producing both classifiers simultaneously. The
+common path and crossing are transported without identifying either
+classifier's internal witnesses with them or with the other branch. The raw
+leaf remains a current-state status. When it contains future work, its boundary
+is existential and not proved unique. No elimination, payer, queue-history,
+persistence, reachability, history-tail, progress, completion, termination, or
+totality assumption or conclusion is added.
 `SequentialFigure7CrossRepresentativeWaitPreservation.lean` adds no hidden
 source-region oracle. Its output-work classification follows only from the
 typed destination's exact waiting prepend and unchanged ready/sigma fields;

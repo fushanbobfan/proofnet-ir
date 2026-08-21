@@ -2,6 +2,26 @@
 
 ## Unreleased
 
+- lifted the current-state queue classifier through the stored-right outer
+  waiting split. `SequentialFigure7WaitingReentryContinuationOuterQueueStatus.lean`
+  adds
+  `ActiveCarrierExternalReentryMarkedOuterMateSeparatedWaitingParentQueueStatusTarget`,
+  `ActiveCarrierExternalReentryMarkedOuterMateSeparatedWaitingParentTarget.queueStatusTarget`,
+  and
+  `FutureWorkAtExactWaitingLocation.activeTargetMateOuterWaitingParentQueueStatus_of_storedRight`.
+  The adapter replaces only the raw-unmarked `targetConsumer.mate` leaf with
+  `UnmarkedOutsideActiveSchedulerStatus`; the alternative exact
+  initialized-waiting leaf at `targetConsumer.conclusion` is unchanged. The
+  final theorem adds only `currentMateOutside : current.mate ∉ owned` to the
+  preceding stored-right theorem. Its output remains disjunctive and
+  branch-local: the avoiding side classifies `consumer.mate`, while the
+  containing side preserves `current.conclusion ∈ path.vertices` and classifies
+  `current.conclusion`. The common path and crossing are preserved, but neither
+  classifier is identified with them or with the other branch. All three new
+  declarations use the standard-three trust boundary and add no source,
+  oracle, or runtime evidence. The current-state leaf proves no unique boundary,
+  queue history, persistence, reachability, elimination, payer, history-tail
+  law, progress, completion, termination, or totality;
 - added a reusable current-state classification for an unmarked vertex outside
   a supplied `owned` list. `SequentialFigure7FutureWorkQueueStatus.lean`
   introduces `UnmarkedOutsideActiveSchedulerStatus`, proves
@@ -14,10 +34,8 @@
   carrier, queued outside work is at a strictly older boundary and has an exact
   ready or initialized-waiting location; otherwise the unmarked vertex is
   currently absent from the queue, live frontier, and `Produced` domains. The
-  API proves no unique boundary,
-  history, persistence, reachability, elimination, payer, history-tail law, or
-  progress. Its lift into the waiting-parent and outer stored-right classifiers
-  remains a later checkpoint;
+  API proves no unique boundary, history, persistence, reachability,
+  elimination, payer, history-tail law, or progress;
 - under an explicit `.storedRight` orientation, refined both branches of the
   outer waiting-path split to retain marked historical re-entry targets.
   `SequentialFigure7WaitingReentryContinuationOuterContainsMarkedStoredRight.lean`

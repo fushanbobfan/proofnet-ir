@@ -1516,9 +1516,22 @@ part of the engineering and proof-identity gap.
    ready or initialized-waiting location. The API does not require or
    reconstruct canonical history,
    certified reachability, or declarative correctness. It establishes neither
-   boundary uniqueness nor historical queue provenance or persistence, and it
-   has not yet been lifted into the waiting-parent, outer-branch, or typed-Wait
-   results.
+   boundary uniqueness nor historical queue provenance or persistence.
+   `SequentialFigure7WaitingReentryContinuationOuterQueueStatus.lean` adds one
+   public proposition, two public theorems, and a runnable consumer. It replaces
+   only the waiting-parent target's raw-unmarked mate leaf with that current-state
+   status and preserves the exact initialized-waiting conclusion leaf unchanged.
+   Under the existing `SchedulerInvariant` and stored-right assumptions, the
+   final theorem adds only
+   `currentMateOutside : current.mate ∉ owned` and returns the same outer
+   disjunction: a classifier at `consumer.mate` in the avoiding branch, or
+   retained outer-conclusion membership and a classifier at
+   `current.conclusion` in the containing branch. It does not return both
+   classifiers simultaneously or identify either with the common path or
+   crossing. All three declarations use the standard-three trust boundary. The
+   higher scheduler, sibling, and typed-Wait wrappers remain open, as do target
+   elimination, payer recovery, a history-tail law, progress, completion,
+   termination, and totality.
    `SequentialFigure7CommitmentBlockerAdvance.lean` now combines the global
    queued-head law, strict split, and equal-boundary result. Under declarative
    correctness and the complete scheduler invariant, for a supplied canonical
