@@ -1440,6 +1440,21 @@ part of the engineering and proof-identity gap.
    source, oracle, or runtime evidence and does not eliminate the target,
    recover a payer, align witnesses or paths, derive a history-tail law, or
    prove progress, completion, termination, or totality.
+   `SequentialFigure7WaitingReentryContinuationProducerOrientation.lean`
+   now exposes the assumption-minimal orientation of the remaining older
+   waiting producer. Its one public theorem preserves the exact initialized
+   waiting payload, par/source data, marks, and boundary order, then identifies
+   the active-representative target as the younger premise and the consumer
+   mate as the older premise. It additionally proves
+   `targetAge = youngerAge`, `youngerBoundary = active`, and the older/younger
+   representative equations at the older/active boundaries. The runnable
+   consumer invokes the theorem and audits its standard-three trust boundary.
+   Only `SchedulerInvariant`, the exact location, target mark,
+   active-representative equality, and strict older-boundary inequality are
+   assumed; no carrier, component lookup, occurrence witness, history,
+   `noTail`, or declarative correctness enters the interface. The theorem does
+   not eliminate a survivor, recover a payer, align paths or witnesses, derive
+   a tail law, or prove progress. In particular, the raw survivor is unchanged.
    `SequentialFigure7CommitmentBlockerAdvance.lean` now combines the global
    queued-head law, strict split, and equal-boundary result. Under declarative
    correctness and the complete scheduler invariant, for a supplied canonical

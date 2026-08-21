@@ -1441,6 +1441,14 @@ def sections : List Section := [
     ]
   },
   {
+    title := "Waiting re-entry continuation producer orientation"
+    declarations := [
+      Name.str
+        `ProofNetIR.SequentialFigure7.FutureWorkAtExactWaitingLocation
+        "activeTargetProducerOrientation"
+    ]
+  },
+  {
     title := "Marked re-entry target raw-return cyclic reduction"
     declarations := [
       `ProofNetIR.SequentialFigure7.MarkedConclusionRawReturnCyclicOutcome,

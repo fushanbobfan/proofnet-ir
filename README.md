@@ -51,8 +51,12 @@ This removes the selected/current-mate and marked-global exits and rules out an 
 future endpoint. Exactly two parent forms remain: a raw-unmarked target consumer mate
 outside active ownership, or its conclusion as strictly older future work in an exact
 initialized waiting cell retaining payload, par/source data, oriented marked premises,
-and boundary equations. The target itself, payer recovery, witness/path alignment,
-history-tail, progress, completion, termination, and totality remain open.
+and boundary equations. In that older waiting producer, the active-representative target
+is exactly the younger premise and its consumer mate is the older premise, with
+`targetAge = youngerAge`, `youngerBoundary = active`, and both representative equations.
+It uses only scheduler/location/mark/order data, without carrier, history, `noTail`, or
+correctness assumptions. The raw survivor is untouched, and no target elimination, payer,
+path or witness alignment, tail law, progress, completion, termination, or totality follows.
 [Current status](docs/current-status.md) owns exact revision, verification receipt, and gates.
 <!-- ROLLING_MAIN_SUMMARY_END -->
 

@@ -53,6 +53,7 @@ defaultTargets = [
   "proofnet_ir_marked_target_waiting_mate_external_commitment_reentry_temporal_tests",
   "proofnet_ir_marked_target_waiting_mate_external_commitment_reentry_continuation_exit_tests",
   "proofnet_ir_marked_target_waiting_mate_external_commitment_reentry_continuation_waiting_tests",
+  "proofnet_ir_waiting_reentry_continuation_producer_orientation_tests",
   "proofnet_ir_marked_target_raw_return_cyclic_reduction_tests",
   "proofnet_ir_commitment_blocker_advance_tests",
   "proofnet_ir_commitment_blocker_maximality_tests",
@@ -345,6 +346,10 @@ root = "ProofNetIRMarkedTargetWaitingMateExternalCommitmentReentryContinuationEx
 [[lean_exe]]
 name = "proofnet_ir_marked_target_waiting_mate_external_commitment_reentry_continuation_waiting_tests"
 root = "ProofNetIRMarkedTargetWaitingMateExternalCommitmentReentryContinuationWaitingTests"
+
+[[lean_exe]]
+name = "proofnet_ir_waiting_reentry_continuation_producer_orientation_tests"
+root = "ProofNetIRWaitingReentryContinuationProducerOrientationTests"
 
 [[lean_exe]]
 name = "proofnet_ir_marked_target_raw_return_cyclic_reduction_tests"

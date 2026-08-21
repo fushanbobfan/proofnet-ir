@@ -12551,6 +12551,51 @@ ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedOuterMateSeparate
               tagHistory input component owned endpoint current
 ```
 
+## Waiting re-entry continuation producer orientation
+
+### `ProofNetIR.SequentialFigure7.FutureWorkAtExactWaitingLocation.activeTargetProducerOrientation`
+
+Kind: theorem.
+
+An exact older waiting conclusion whose consumed target is represented at an
+active boundary has that target as its younger premise and the opposite mate
+as its older premise.
+
+```lean
+ProofNetIR.SequentialFigure7.FutureWorkAtExactWaitingLocation.activeTargetProducerOrientation : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {active boundary targetAge : ProofNetIR.SequentialSchedulerState.RawTokenAge} {target : ProofNetIR.Vertex},
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+    ∀ (consumer : ProofNetIR.ConnectiveBelow certificate target),
+      ProofNetIR.SequentialFigure7.FutureWorkAtExactWaitingLocation certificate state boundary consumer.conclusion →
+        state.core.marks[target]? = some (some targetAge) →
+          state.core.representative targetAge = active →
+            boundary < active →
+              ∃ payload linkIndex left right olderPremise youngerPremise olderAge youngerAge youngerBoundary,
+                state.stack.waiting[boundary]? =
+                    some (ProofNetIR.SequentialSchedulerState.WaitingCell.initialized payload) ∧
+                  consumer.conclusion ∈ payload ∧
+                    certificate.links[linkIndex]? = some (ProofNetIR.Link.par left right consumer.conclusion) ∧
+                      (ProofNetIR.SequentialUnification.sourceIndex certificate)[consumer.conclusion]? =
+                          some
+                            [{ linkIndex := linkIndex, link := ProofNetIR.Link.par left right consumer.conclusion }] ∧
+                        state.core.marks[consumer.conclusion]? = some none ∧
+                          (olderPremise = left ∧ youngerPremise = right ∨
+                              olderPremise = right ∧ youngerPremise = left) ∧
+                            state.core.marks[olderPremise]? = some (some olderAge) ∧
+                              state.core.marks[youngerPremise]? = some (some youngerAge) ∧
+                                ProofNetIR.SequentialSchedulerState.sigmaBoundary? state.stack.sigma olderAge =
+                                    some boundary ∧
+                                  ProofNetIR.SequentialSchedulerState.sigmaBoundary? state.stack.sigma youngerAge =
+                                      some youngerBoundary ∧
+                                    boundary < youngerBoundary ∧
+                                      target = youngerPremise ∧
+                                        consumer.mate = olderPremise ∧
+                                          targetAge = youngerAge ∧
+                                            youngerBoundary = active ∧
+                                              state.core.representative olderAge = boundary ∧
+                                                state.core.representative youngerAge = active
+```
+
 ## Marked re-entry target raw-return cyclic reduction
 
 ### `ProofNetIR.SequentialFigure7.MarkedConclusionRawReturnCyclicOutcome`

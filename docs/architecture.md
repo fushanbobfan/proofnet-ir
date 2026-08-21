@@ -1833,6 +1833,23 @@ and one standard-three theorem. It does not eliminate the target, identify a
 payer, align witnesses or paths, derive a history-tail law, or establish
 progress, completion, termination, or totality.
 
+`SequentialFigure7WaitingReentryContinuationProducerOrientation.lean` then
+orients the exact producer inside the older waiting branch without importing
+the surrounding carrier or history geometry. If the consumed target is marked
+at an age represented by the active boundary while the exact waiting location
+is strictly older, producer uniqueness and the waiting premise orientation
+rule out the target as the older premise. The theorem returns every exact
+location field together with `target = youngerPremise`,
+`consumer.mate = olderPremise`, `targetAge = youngerAge`, and
+`youngerBoundary = active`; the older and younger mark representatives are the
+older and active boundaries respectively. Its inputs are only the scheduler
+invariant, exact location, target mark, active-representative equation, and
+strict boundary order. It requires no component lookup, carrier occurrence,
+canonical history, `noTail`, or declarative correctness. This local
+orientation leaves the raw survivor intact and proves no target elimination,
+payer, path or witness alignment, history-tail law, progress, completion,
+termination, or totality.
+
 `SequentialFigure7CommitmentBlockerAdvance.lean` joins the global queued-head
 law, the strict `sigma` split, the strict-edge avoiding adapter, and the final
 equal-boundary classification. Under declarative correctness and the complete

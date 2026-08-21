@@ -1219,6 +1219,14 @@
     work at that exact initialized waiting location. Expose one
     exact-waiting-location definition, one two-case target definition, and one
     standard-three theorem.
+  - [x] Orient the exact producer in the older waiting branch. From only the
+    scheduler invariant, exact location, target mark, active-representative
+    equation, and strict older-boundary order, prove
+    `target = youngerPremise`, `consumer.mate = olderPremise`,
+    `targetAge = youngerAge`, and `youngerBoundary = active`, together with
+    both representative equations. Require no carrier, component lookup,
+    occurrence witness, history, `noTail`, or declarative correctness. Preserve
+    every exact-location field and leave the raw survivor unchanged.
   - [ ] Eliminate the surviving two-case target or derive the exact distinct
     payer needed from it. The reduction supplies no avoiding witness or aligned
     re-entry path. Then eliminate the remaining cyclic residuals, broader exact
@@ -1545,8 +1553,13 @@
     has exactly two parent forms: a raw-unmarked consumer mate outside active
     ownership, or its conclusion as strictly older future work in an exact
     initialized waiting cell retaining the submitted par data and boundary
-    equations. Broader equal-final selected/mate traces and the inclusive outer
-    split remain. Next eliminate this two-case target or recover a payer,
+    equations. The older waiting producer is now oriented without carrier or
+    history assumptions: its active-representative target is the younger
+    premise, the consumer mate is the older premise, its target age is the
+    younger age, and the younger boundary is active, with both representative
+    equations exposed. The raw survivor, broader equal-final selected/mate
+    traces, and the inclusive outer split remain. Next eliminate this two-case
+    target or recover a payer,
     eliminate the equal-final traces, and close the tail law before
     claiming exhaustive progress on incomplete, correct, certified-reachable states.
     Exact source-left complexity descent, last-step decomposition, and

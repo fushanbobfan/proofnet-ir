@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+- oriented the exact producer of the strictly older waiting continuation.
+  `SequentialFigure7WaitingReentryContinuationProducerOrientation.lean` adds
+  `FutureWorkAtExactWaitingLocation.activeTargetProducerOrientation`. For an
+  active-representative marked target consumed below a strictly older exact
+  waiting location, it preserves every location field and proves that the
+  target is the younger premise, the consumer mate is the older premise,
+  `targetAge = youngerAge`, and `youngerBoundary = active`; it also returns the
+  older and younger representative equations at the older and active
+  boundaries. The theorem assumes only `SchedulerInvariant`, the exact
+  location, the target mark, its active-representative equation, and the strict
+  boundary order. It needs no carrier occurrence, component lookup, history,
+  `noTail`, or declarative correctness. This orientation does not eliminate
+  either surviving parent form: the raw survivor is unchanged, and no payer,
+  path or witness alignment, tail law, progress, completion, termination, or
+  totality follows;
 - collapsed the carrier-disjoint continuation-waiting target to exactly two
   parent forms.
   `SequentialFigure7MarkedTargetWaitingMateExternalCommitmentReentryContinuationWaiting.lean`

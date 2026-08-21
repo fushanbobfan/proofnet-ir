@@ -1219,6 +1219,22 @@ cell. The waiting definition records the payload, submitted par/source data,
 oriented marked premises, and boundary equations. This does not eliminate the
 target, identify a payer, align witnesses or paths, derive a history-tail law,
 or establish progress, completion, termination, or totality.
+`SequentialFigure7WaitingReentryContinuationProducerOrientation.lean` adds no
+runtime oracle, native-computed evidence, or new trusted source. Its single
+public theorem prints with the standard-three boundary. The proof uses the
+scheduler realization to identify the representatives of both marked waiting
+premises, and structural producer uniqueness to orient the consumed target. If
+the active-representative target were the older premise, strict
+`boundary < active` would be impossible. Thus the target is the younger
+premise, its consumer mate is the older premise, `targetAge = youngerAge`, and
+`youngerBoundary = active`; the theorem also returns both representative
+equations and every exact-location field. Its assumptions are only
+`SchedulerInvariant`, the location, target mark, active-representative
+equation, and strict boundary order. There is no carrier or component lookup,
+occurrence witness, history, `noTail`, or declarative-correctness input. The
+result leaves the raw survivor untouched and proves no target elimination,
+payer, path or witness alignment, tail law, progress, completion, termination,
+or totality.
 `SequentialFigure7CrossRepresentativeWaitPreservation.lean` adds no hidden
 source-region oracle. Its output-work classification follows only from the
 typed destination's exact waiting prepend and unchanged ready/sigma fields;

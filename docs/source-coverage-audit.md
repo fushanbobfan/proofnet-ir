@@ -701,6 +701,20 @@ public addition is one exact-waiting-location definition, one two-case target
 definition, and one standard-three theorem. It does not eliminate the target,
 recover a payer, align witnesses or paths, derive a history-tail law, or prove
 progress, completion, termination, or totality.
+`SequentialFigure7WaitingReentryContinuationProducerOrientation.lean` also
+adds no source reading, oracle, or runtime evidence. It uses only the existing
+scheduler realization and structural producer uniqueness. For a marked target
+whose representative is active and whose exact waiting location is strictly
+older, the older-premise orientation would identify the active representative
+with the older boundary and contradict strict order. The surviving orientation
+has `target = youngerPremise`, `consumer.mate = olderPremise`,
+`targetAge = youngerAge`, and `youngerBoundary = active`; both premise-mark
+representatives are returned at the older and active boundaries. The theorem
+preserves every exact-location field and assumes only `SchedulerInvariant`,
+the location, target mark, representative equation, and boundary order. It
+uses no carrier, component lookup, occurrence witness, history, `noTail`, or
+declarative correctness. This is not target elimination: the raw survivor is
+untouched, and no payer, path, tail law, or progress theorem follows.
 Global preservation of the mate-region and older-raw-mark invariants through
 candidate-creating rules remains open, as do queue origin, created-candidate raw
 seams, derivation of the re-entry avoidance premise, marked-history descent,
