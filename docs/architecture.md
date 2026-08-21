@@ -1863,6 +1863,18 @@ waiting-branch avoidance/re-entry premise. It does not show that the path
 avoids the outer selected parent conclusion, eliminate the raw or waiting
 survivor, recover a payer, or close the history-tail or progress gates.
 
+`SequentialFigure7WaitingReentryContinuationOuterObstruction.lean` then
+performs the outer selected-par split under canonical history and exact
+ready-tail failure. Its theorem retains one common exact mate-to-target path,
+including `path.finish = target`, the outside-to-inside edge, and inner
+waiting-conclusion avoidance. In the avoiding branch it separately derives an
+existential marked inbound-edge historical-target classifier; the classifier
+interface does not expose classifier-path identity with the retained path. The
+other branch says only that the outer conclusion belongs to `path.vertices`;
+it gives no occurrence localization or first-visit fact. Neither branch
+eliminates or payer-converts the waiting target, the raw survivor is unchanged,
+and no history-tail law, progress, completion, termination, or totality follows.
+
 `SequentialFigure7CommitmentBlockerAdvance.lean` joins the global queued-head
 law, the strict `sigma` split, the strict-edge avoiding adapter, and the final
 equal-boundary classification. Under declarative correctness and the complete

@@ -1234,16 +1234,25 @@
     externality and retain an outside-to-inside directed occurrence on that
     same path; package the existing avoiding-re-entry carrier without choosing
     another witness.
-  - [ ] Consume the aligned waiting re-entry through the historical/`noTail`
-    target classification and eliminate or payer-convert that survivor, while
-    separately eliminating or converting the raw survivor. The current path
-    avoids the inner waiting conclusion, not yet the outer selected parent
-    conclusion. Then eliminate the remaining cyclic residuals, broader exact
-    selected/mate raw returns, and equal-final traces, and close the history-tail
-    law. Do not infer unconditional dispatcher progress, completion,
-    termination, later-state totality, global raw seams, fallback removal,
-    Figure-7 pure-worklist completeness, sequentialization, faithful token-age
-    scheduling, or whole-program linearity from the current reduction.
+  - [x] Split the retained exact waiting-mate re-entry at the outer selected par
+    conclusion under canonical history and exact ready-tail failure. Keep one
+    common path with `path.finish = target`, its outside-to-inside edge, and
+    inner waiting-conclusion avoidance. In the avoiding branch separately
+    obtain the existential marked inbound-edge historical-target classifier;
+    its interface does not expose classifier-path identity. In the containing
+    branch retain only membership of the outer conclusion in `path.vertices`.
+  - [ ] Eliminate or payer-convert both waiting-branch outcomes and separately
+    eliminate or convert the raw survivor. The avoiding side now has a marked
+    inbound-edge historical-target classifier, but that classifier is not
+    target elimination and does not expose identity with the retained exact
+    path. The containing side is only vertex-list membership, with no
+    occurrence localization or first-visit fact. Then eliminate the remaining
+    cyclic residuals, broader exact selected/mate raw returns, and equal-final
+    traces, and close the history-tail law. Do not infer unconditional
+    dispatcher progress, completion, termination, later-state totality, global
+    raw seams, fallback removal, Figure-7 pure-worklist completeness,
+    sequentialization, faithful token-age scheduling, or whole-program
+    linearity from this split.
   - [x] Isolate unused waiting storage as the history-preserved predicate
     `FutureWaitingUndefined`. Prove it for empty/initial states and preserve it
     through Prepared, all six successful rules, dispatcher steps,
@@ -1568,14 +1577,15 @@
     avoiding that inner waiting conclusion. With the explicit active-carrier
     occurrence, forest ownership places the target inside and the mate outside,
     retaining an outside-to-inside edge on that same path and packaging the
-    existing avoiding-re-entry carrier. This discharges the waiting branch's
-    missing inner path/re-entry input, but the path is not yet aligned against
-    the outer selected parent conclusion and both survivors remain. Next
-    consume the aligned re-entry through the existing `noTail`/historical
-    target classification and then eliminate or payer-convert that branch;
-    separately resolve the raw survivor, equal-final traces, and history-tail
-    law before claiming exhaustive progress on incomplete, correct,
-    certified-reachable states.
+    existing avoiding-re-entry carrier. The retained path is now split at the
+    outer selected parent conclusion under canonical history and exact
+    ready-tail failure: outer avoidance separately yields an existential marked
+    inbound-edge historical-target classifier whose interface does not expose
+    classifier-path identity, while the other branch retains only outer-
+    conclusion membership in the common path. Both waiting outcomes and the
+    raw survivor remain. Next eliminate or payer-convert those outcomes and
+    resolve equal-final traces and the history-tail law before claiming
+    exhaustive progress on incomplete, correct, certified-reachable states.
     Exact source-left complexity descent, last-step decomposition, and
     recursive visited-route separation from the selected head are now proved.
     Reference-switching geometry now also excludes a terminal axiom partner

@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+- split the aligned older-waiting-mate re-entry at the outer selected par
+  conclusion without losing its common exact path.
+  `SequentialFigure7WaitingReentryContinuationOuterObstruction.lean` adds
+  `FutureWorkAtExactWaitingLocation.activeTargetMateOuterAvoidingReentryMarkedHistoricalTargetOrContains`.
+  Under canonical history, exact ready-tail failure, declarative correctness,
+  the complete scheduler invariant, and the existing active-carrier witnesses,
+  it retains `path.start = consumer.mate`, `path.finish = target`, the
+  outside-to-inside edge, and inner waiting-conclusion avoidance. If that path
+  avoids the outer conclusion, the theorem separately obtains an existential
+  `ActiveCarrierExternalReentryMarkedHistoricalTarget`; that classifier does
+  not expose identity between its internal path and the retained exact path.
+  Otherwise it proves only `current.conclusion ∈ path.vertices`. The
+  standard-three theorem does not localize a first occurrence, eliminate or
+  payer-convert either survivor, derive a history-tail law, or prove progress,
+  completion, termination, or totality;
 - derived the exact conclusion-avoiding mate route and aligned active-carrier
   re-entry for the older waiting continuation.
   `SequentialFigure7WaitingReentryContinuationMateAvoiding.lean` adds three

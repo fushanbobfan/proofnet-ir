@@ -726,11 +726,25 @@ predicate. This derives the previously open inner re-entry-avoidance witness
 but does not show avoidance of the outer selected parent conclusion or
 eliminate or payer-convert either survivor. Global preservation of the
 mate-region and older-raw-mark invariants through candidate-creating rules
-remains open, as do queue origin, created-candidate raw seams, consumption of
-the aligned waiting re-entry into elimination or payer recovery,
-marked-history descent, unconditional active-top completion, progress,
-later-state totality, fallback removal, sequentialization, faithful token-age
-scheduling, and whole-program linearity.
+remains open.
+`SequentialFigure7WaitingReentryContinuationOuterObstruction.lean` likewise
+adds no source reading, oracle, or runtime evidence. It reuses the existing
+canonical history, scheduler invariant, exact-`noTail` classifier, and aligned
+mate path. Its theorem retains one common exact path with
+`path.finish = target`, the outside-to-inside edge, and inner avoidance before
+splitting on the outer conclusion. The avoiding branch separately obtains an
+existential marked inbound-edge historical-target classifier without exposing
+classifier-path identity; the containing branch proves only list membership
+in `path.vertices`, not occurrence locality or progress. It eliminates or
+payer-converts neither survivor and proves no tail law, completion,
+termination, or totality.
+Global preservation of the mate-region and older-raw-mark invariants through
+candidate-creating rules remains open, as do queue origin, created-candidate
+raw seams, elimination or payer conversion of the waiting survivor in both the
+marked-classifier and outer-membership branches, marked-history descent,
+unconditional active-top completion, progress, later-state totality, fallback
+removal, sequentialization, faithful token-age scheduling, and whole-program
+linearity.
 The future-head-touch invariant is
 preserved through New and through
 Wait, Forward, and UnifyPayload after structurally deriving their created-head

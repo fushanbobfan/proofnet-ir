@@ -605,6 +605,8 @@ namespace FutureWorkAtExactWaitingLocation
 #print axioms mateToTargetAvoidingPath
 #print axioms activeTargetMateAlignedAvoidingReentry
 #print axioms activeTargetMateAvoidingReentry
+#print axioms
+  activeTargetMateOuterAvoidingReentryMarkedHistoricalTargetOrContains
 end FutureWorkAtExactWaitingLocation
 end ProofNetIR.SequentialFigure7
 #print axioms

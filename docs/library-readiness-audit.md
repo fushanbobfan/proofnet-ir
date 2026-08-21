@@ -1468,6 +1468,18 @@ part of the engineering and proof-identity gap.
    gate: the path is not shown to avoid the outer selected parent conclusion,
    neither survivor is eliminated or payer-converted, and no tail law or
    progress theorem follows.
+   `SequentialFigure7WaitingReentryContinuationOuterObstruction.lean` adds no
+   source reading, oracle, runtime evidence, or trusted primitive. Its one
+   public theorem and runnable consumer audit the standard-three boundary.
+   Under the existing canonical-history, selected-par, exact-`noTail`,
+   correctness, invariant, and carrier hypotheses, it retains a common exact
+   mate-to-target path with target finish, outside-to-inside edge, and inner
+   avoidance. Outer avoidance separately yields an existential marked
+   inbound-edge historical-target classifier, whose interface does not expose
+   classifier-path identity; the other branch supplies only
+   `current.conclusion ∈ path.vertices`. This advances the continuation gate to
+   an explicit outer split but provides no target or raw-survivor elimination,
+   payer conversion, tail law, progress, completion, termination, or totality.
    `SequentialFigure7CommitmentBlockerAdvance.lean` now combines the global
    queued-head law, strict split, and equal-boundary result. Under declarative
    correctness and the complete scheduler invariant, for a supplied canonical

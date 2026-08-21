@@ -53,14 +53,17 @@ outside active ownership, or its conclusion as strictly older future work in an 
 initialized waiting cell retaining payload, par/source data, oriented marked premises,
 and boundary equations. In that older waiting producer, the active-representative target
 is exactly the younger premise and its consumer mate is the older premise, with both
-representative equations exposed. Under `DeclarativelyCorrect`, the exact location also
-gives a mate-to-target reference path avoiding the inner waiting conclusion. With an
-explicit active-carrier lookup and occurrence witness, forest ownership aligns the target
-inside that carrier and the older mate outside, retaining on the same path an
-outside-to-inside edge and packaging the existing avoiding re-entry carrier. This does not
-align avoidance with the outer selected parent conclusion or eliminate either survivor:
-the raw and waiting forms remain, with no payer, history-tail law, progress, completion,
-termination, or totality.
+representative equations exposed. Under `DeclarativelyCorrect`, the exact location gives a
+mate-to-target reference path avoiding the inner waiting conclusion. With an explicit
+active-carrier lookup and occurrence witness, forest ownership aligns the target inside
+that carrier and the older mate outside. With canonical history, a selected outer par, and
+exact ready-tail failure, the next theorem retains that common exact path,
+`path.finish = target`, its outside-to-inside edge, and its inner avoidance before splitting
+on the outer conclusion. Outer avoidance separately yields an existential marked
+inbound-edge target classifier whose interface does not expose classifier-path identity;
+otherwise the outer conclusion is only a member of `path.vertices`. Neither branch
+eliminates or payer-converts the waiting target, the raw survivor remains, and no
+history-tail law, progress, completion, termination, or totality follows.
 [Current status](docs/current-status.md) owns exact revision, verification receipt, and gates.
 <!-- ROLLING_MAIN_SUMMARY_END -->
 

@@ -1245,6 +1245,17 @@ witnesses without choosing another path. All three declarations print with
 inner waiting-branch avoiding re-entry, but does not establish avoidance of the
 outer selected parent conclusion or prove survivor elimination, a payer,
 history-tail law, or progress.
+`SequentialFigure7WaitingReentryContinuationOuterObstruction.lean` adds no
+runtime oracle, native-computed evidence, or new trusted source. Its single
+public theorem prints with `propext`, `Classical.choice`, and `Quot.sound`. The
+proof retains the existing common exact mate-to-target path, target finish,
+crossing edge, and inner avoidance. Under outer avoidance it separately invokes
+the existing exact-`noTail` theorem to obtain an existential marked inbound-
+edge historical-target classifier; that predicate does not expose classifier-
+path identity with the retained path. The other branch is only
+`current.conclusion ∈ path.vertices`. No target or raw-survivor elimination,
+payer, history-tail law, progress, completion, termination, or totality enters
+the trust claim.
 `SequentialFigure7CrossRepresentativeWaitPreservation.lean` adds no hidden
 source-region oracle. Its output-work classification follows only from the
 typed destination's exact waiting prepend and unchanged ready/sigma fields;
