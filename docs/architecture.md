@@ -1672,6 +1672,18 @@ raw, future, and older marked-global branches are unchanged, and the exact raw
 return remains an open residual; no payer, tail law, completion, or progress
 follows.
 
+`SequentialFigure7FutureWorkExactLocation.lean` then unfolds the scheduler
+semantics hidden by `FutureWorkAt`. Ready work retains its exact sigma slot,
+ready bucket, live component frontier, and raw-unmarked conclusion. Waiting
+work retains its exact cell, submitted par producer, oriented marked premises,
+and strict younger-boundary comparison. In either location, a connective
+conclusion stored as future work has both premises concretely marked.
+`SequentialFigure7MarkedTargetRawReturnSiblingExitScheduled.lean` transports
+that information into the older future sibling branch and the typed Wait
+target. Raw-outside and exact selected/mate-return branches are unchanged.
+This is a scheduler classification, not endpoint elimination, a ready-tail
+witness, a history-tail law, completion, or progress.
+
 `SequentialFigure7CommitmentBlockerAdvance.lean` joins the global queued-head
 law, the strict `sigma` split, the strict-edge avoiding adapter, and the final
 equal-boundary classification. Under declarative correctness and the complete

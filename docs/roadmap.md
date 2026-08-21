@@ -1141,10 +1141,15 @@
     carrier under exact ready-tail failure. Raw work is outside or returns
     exactly to the selected/mate pair; outside future work is strictly older.
     Retain the exact return and every separate target branch as residuals.
+  - [x] Expose the exact scheduler location of the older future sibling
+    endpoint. Distinguish an exact ready bucket/component frontier from an
+    exact waiting span, and prove that both premises of its connective
+    consumer are concretely marked. Preserve the raw-outside and exact-return
+    branches unchanged.
   - [ ] Use the strict cyclic endpoint order and aligned sibling causal witness
-    with the retained commitment paths to eliminate the exact selected/mate
-    return, the older future endpoint, or the Wait descent, or recover a
-    distinct ready-tail payer. Then
+    with the retained commitment paths and exact scheduler location to
+    eliminate the exact selected/mate return, the older future endpoint, or
+    the Wait descent, or recover a distinct ready-tail payer. Then
     eliminate the remaining cyclic residuals, other finite exits, and
     equal-final traces. Do not infer
     unconditional dispatcher progress, completion, terminality, later-state

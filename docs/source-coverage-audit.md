@@ -569,6 +569,14 @@ is outside the active carrier or returns exactly to the selected/mate pair;
 future work outside the carrier is strictly older. The separate target
 branches and exact raw return remain, so this is not a payer, history-tail,
 completion, or progress theorem.
+`SequentialFigure7FutureWorkExactLocation.lean` adds no source reading. It
+extracts the existing scheduler invariant's exact ready-bucket/frontier or
+waiting-span witness from `FutureWorkAt`, then uses produced-premise marking
+and submitted-producer uniqueness to concrete-mark both consumer premises.
+`SequentialFigure7MarkedTargetRawReturnSiblingExitScheduled.lean` only
+transports that existing information into the older future sibling endpoint.
+It neither eliminates that endpoint or the exact selected/mate return nor
+derives a payer, history-tail law, completion, or progress.
 Global preservation of the mate-region and older-raw-mark invariants through
 candidate-creating rules remains open, as do queue origin, created-candidate raw
 seams, derivation of the re-entry avoidance premise, marked-history descent,

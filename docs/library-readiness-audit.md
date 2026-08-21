@@ -1279,6 +1279,19 @@ part of the engineering and proof-identity gap.
    open. The verified combined audit now covers 1042
    theorems: 747 standard-three, 25 axiom-free, 130 `propext`-only, and 140
    `propext`/`Quot.sound` boundaries.
+   `SequentialFigure7FutureWorkExactLocation.lean` exposes the exact ready or
+   waiting scheduler location behind every `FutureWorkAt`. The ready case
+   carries its sigma slot, bucket, live component frontier, and unmarked
+   conclusion; the waiting case carries its exact cell, submitted par
+   producer, oriented marked premises, and strict boundary order. Both
+   premises of any connective conclusion stored as future work are concrete-
+   marked. `SequentialFigure7MarkedTargetRawReturnSiblingExitScheduled.lean`
+   transports those facts into the older future sibling endpoint and typed
+   Wait theorem without changing raw-outside or exact-return cases. The
+   verified combined audit now covers 1047 theorems: 752
+   standard-three, 25 axiom-free, 130 `propext`-only, and 140
+   `propext`/`Quot.sound` boundaries. No endpoint is eliminated and no payer,
+   tail law, completion, or progress result follows.
    `SequentialFigure7CommitmentBlockerAdvance.lean` now combines the global
    queued-head law, strict split, and equal-boundary result. Under declarative
    correctness and the complete scheduler invariant, for a supplied canonical

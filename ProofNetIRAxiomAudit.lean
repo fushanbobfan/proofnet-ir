@@ -451,6 +451,24 @@ namespace WaitStep
   commitmentInterval_parTraceReentryMarkedContinuationSiblingExitTemporalOutcome
 end WaitStep
 end ProofNetIR.SequentialFigure7
+namespace ProofNetIR.SequentialFigure7
+namespace FutureWorkAt
+#print axioms exactSchedulerLocation
+end FutureWorkAt
+namespace ConnectiveBelow
+#print axioms premisesMarked_of_futureWork
+end ConnectiveBelow
+namespace ContinuationExitRawOrFutureActiveCarrierOutcome
+#print axioms scheduledOutcome
+end ContinuationExitRawOrFutureActiveCarrierOutcome
+namespace ActiveCarrierExternalReentryMarkedMateSeparatedContinuationSiblingExitTemporalTarget
+#print axioms scheduledTarget
+end ActiveCarrierExternalReentryMarkedMateSeparatedContinuationSiblingExitTemporalTarget
+namespace WaitStep
+#print axioms
+  commitmentInterval_parTraceReentryMarkedContinuationSiblingExitScheduledOutcome
+end WaitStep
+end ProofNetIR.SequentialFigure7
 #print axioms
   SequentialFigure7.MarkedConclusionChain.rawReturnCyclicReduction
 #print axioms

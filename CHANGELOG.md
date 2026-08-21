@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- exposed the exact scheduler location of every `FutureWorkAt`: either its
+  ready slot, bucket, live component frontier, and raw-unmarked conclusion, or
+  its exact waiting span, submitted par producer, oriented marked premises,
+  and strict boundary order. Both premises of a connective conclusion stored
+  as future work are therefore concretely marked. The older future sibling
+  exit now carries those fields, while raw-outside and exact selected/mate
+  return remain unchanged. This classifies but does not eliminate future work,
+  derive a payer or history-tail law, or prove completion/progress. The
+  verified combined theorem audit now covers 1047
+  theorems: 752 standard-three, 25 axiom-free, 130 `propext`-only, and 140
+  `propext`/`Quot.sound` boundaries;
 - normalized the two open first-descent sibling endpoints relative to the
   active occurrence carrier under exact ready-tail failure. Raw work now lies
   outside the carrier or returns exactly to the current selected/mate pair;

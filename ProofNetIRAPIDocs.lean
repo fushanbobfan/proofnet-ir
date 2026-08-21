@@ -1101,6 +1101,45 @@ def sections : List Section := [
     ]
   },
   {
+    title := "Exact future-work scheduler locations"
+    declarations := [
+      `ProofNetIR.SequentialFigure7.FutureWorkAtExactSchedulerLocation,
+      Name.str
+        `ProofNetIR.SequentialFigure7.FutureWorkAt
+        "exactSchedulerLocation",
+      Name.str
+        `ProofNetIR.SequentialFigure7.ConnectiveBelow
+        "premisesMarked_of_futureWork"
+    ]
+  },
+  {
+    title := "Marked re-entry target sibling scheduled exits"
+    declarations := [
+      Name.str
+        `ProofNetIR.SequentialFigure7
+        "ContinuationExitRawOrFutureActiveCarrierScheduledOutcome",
+      Name.str
+        (Name.str
+          `ProofNetIR.SequentialFigure7
+          "ContinuationExitRawOrFutureActiveCarrierOutcome")
+        "scheduledOutcome",
+      Name.str
+        `ProofNetIR.SequentialFigure7
+        ("ActiveCarrierExternalReentryMarkedMateSeparatedContinuation" ++
+          "SiblingExitScheduledTarget"),
+      Name.str
+        (Name.str
+          `ProofNetIR.SequentialFigure7
+          ("ActiveCarrierExternalReentryMarkedMateSeparatedContinuation" ++
+            "SiblingExitTemporalTarget"))
+        "scheduledTarget",
+      Name.str
+        `ProofNetIR.SequentialFigure7.WaitStep
+        ("commitmentInterval_parTraceReentryMarkedContinuation" ++
+          "SiblingExitScheduledOutcome")
+    ]
+  },
+  {
     title := "Marked re-entry target raw-return cyclic reduction"
     declarations := [
       `ProofNetIR.SequentialFigure7.MarkedConclusionRawReturnCyclicOutcome,

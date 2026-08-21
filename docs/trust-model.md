@@ -1080,6 +1080,18 @@ use the standard-three boundary. The verified combined audit now covers 1042
 theorems: 747 standard-three, 25 axiom-free, 130
 `propext`-only, and 140 `propext`/`Quot.sound` boundaries. The exact raw return
 and all separate target residuals remain open.
+`SequentialFigure7FutureWorkExactLocation.lean` and
+`SequentialFigure7MarkedTargetRawReturnSiblingExitScheduled.lean` add no
+runtime oracle or native-computed evidence. Exact ready-component and waiting-
+span data come from the existing scheduler invariant; produced-premise marking
+and producer uniqueness establish concrete marks for both connective premises.
+The two new proposition carriers are `propext`-only, while five registered
+public theorems use the standard-three boundary. The verified combined audit
+now covers 1047 theorems: 752 standard-three, 25
+axiom-free, 130 `propext`-only, and 140 `propext`/`Quot.sound` boundaries.
+The checkpoint classifies the older future endpoint but does not eliminate it,
+the exact raw return, or any separate target residual, and proves no payer,
+tail law, completion, or progress.
 `SequentialFigure7CrossRepresentativeWaitPreservation.lean` adds no hidden
 source-region oracle. Its output-work classification follows only from the
 typed destination's exact waiting prepend and unchanged ready/sigma fields;
