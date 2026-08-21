@@ -17,7 +17,7 @@ Status date: 2026-08-21
 | Track | Revision | Status | Authority |
 | --- | --- | --- | --- |
 | Stable library | `v0.9.0` / `9b7dc3d104af8f57ea9123aab2e61b42e05d2216` | Released | [v0.9.0 release audit](v0.9-release-audit.md) |
-| Rolling research | `v0.10.0-dev`; proof `93d6baa`; audit `1e46573` | Active | This page/commits |
+| Rolling research | `v0.10.0-dev`; proof `660e887`; audit `1e46573` | Active | This page/commits |
 
 Documentation-only commits may descend from the proof checkpoint without
 changing its mathematical authority. The stable release and rolling branch
@@ -851,17 +851,21 @@ boundary order. Neither survivor is eliminated or converted into a payer, and
 the theorem derives no avoiding witness, aligned re-entry path, history-tail
 law, progress, completion, termination, or totality result.
 
-The current checkpoint orients the producer retained by the exact older
-waiting survivor. From only the scheduler invariant, the submitted consumer,
-the exact waiting location, the target mark represented by the active age, and
-the strict older-boundary order, the target is the producer's younger premise
-and the target consumer's mate is its older premise. Their mark ages are the
-stored younger and older ages; the younger representative is active and the
-older representative is the waiting boundary. Every exact waiting-location
-field is retained unchanged. This orientation does not add component
-ownership, occurrence, carrier, history, no-tail, correctness, connectedness,
-or path assumptions, and it does not itself eliminate either survivor or
-construct a payer or re-entry path.
+The [current checkpoint][wait-mate-avoidance] derives the exact inner
+waiting-branch avoidance and aligns it with the active carrier. Given the
+submitted consumer, declarative correctness and the exact waiting location
+produce a reference path from the older consumer mate to the active target
+that avoids the waiting consumer's conclusion. With the scheduler invariant,
+explicit active-component lookup and occurrence witness,
+target mark at the active representative, and strict older-boundary order,
+the target is owned by that active carrier, the older mate is outside, and an
+outside-to-inside directed edge is retained on that same exact path. A public
+corollary packages the same witnesses as the existing avoiding-re-entry
+carrier. No history, ready-head, `noTail`, or separate connectedness witness is
+required. The avoided vertex is the inner waiting conclusion, not yet the
+outer current selected-parent conclusion; both raw and waiting survivors
+remain, with no target elimination, payer, history-tail law, progress, completion,
+termination, or totality result.
 
 ### Finite ready-head boundary audit
 
@@ -1049,12 +1053,12 @@ plan is maintained in [v0.10-design.md](v0.10-design.md) and
 The exact rolling proof checkpoint is:
 
 ```text
-commit    93d6baaf31291ef0fc7ec128e33758857718db83
-tree      574dd85376f67ef9d2d2dd2910eab0aee191458a
-parent    55694692fa22accdd7500997f60e498a0d0f5643
-stage     orient waiting continuation producer
-delta     17 paths, +412/-6
-manifest  96827CFC653AE07311A31D90A4F102EAF8D3D55F42D8338463487AC61DCC7C16
+commit    660e887701cb8325af5293d7627fa8e6a6135c5b
+tree      144548624e32f3e9e796ab1599f50f1f498e0f67
+parent    35a14a3ac27d4b71635931d08df03f5ad8afe377
+stage     align waiting continuation reentry
+delta     17 paths, +600/-47
+manifest  729793079A42561C74F3E0B66697D39AC6E6063CFEDC49B3E0986EF6DCA5B2C7
 ```
 
 The manifest hashes canonical
@@ -1063,9 +1067,9 @@ The manifest hashes canonical
 The checkpoint source receipts are:
 
 ```text
-orientation source    C170D28DF586A7F0CF9EF947AE92598983131711721763A190626F5D8C364166
-orientation consumer  DCB3238E5FEB8BFC06E58DFD79A674D0E54C210FD659A178DCC2DD5CED2AA2DF
-generated API         923CF8EE72F9B2EE1831BF3FAE5C488B61F4642DE5DEE0AA7AE0F642710D2F6E
+mate-avoidance source    DBAC50754F4D7F201D774BCAAAD19C41B93FA7B2C8EE9FD72D597D1457A0750E
+mate-avoidance consumer  2F66B0B35CDBA20D5AEC05CD24271228D55B52C565E7B6A3095ABB05543543D5
+generated API            6060D0FD3858AA9CFB0C1C012A6BF962680019DCB86099264DEC5E4A1F0E83C0
 ```
 
 The separately committed finite-audit evidence is:
@@ -1081,17 +1085,17 @@ manifest  4BBAB7FC99D03D2612459A0FD9291990313A05A184F2572A581BC93C6E49DFDD
 
 Local verification on the committed bytes:
 
-- full `lake build`: 659/659 jobs;
+- full `lake build`: 664/664 jobs;
 - syntax-aware Lean source audit: zero actual `sorry`/`admit` findings across
-  a 317-file superset scan;
-- library inventory: 310 Lean files and 202,759 Lean source lines, including
-  173 module files under `ProofNetIR/`; the public facade imports 169
+  a 323-file superset scan;
+- library inventory: 312 Lean files and 203,122 Lean source lines, including
+  174 module files under `ProofNetIR/`; the public facade imports 169
   submodules, or 170 modules including the facade itself;
-- generated API reference: current at 96 sections and 1,812 declarations;
-- the runnable orientation consumer reconstructed the public proposition,
-  invoked the orientation theorem through the public surface, checked its
-  standard-three trust boundary, and emitted its kernel-green marker;
-- public theorem audit: 1086 entries total: 789 standard-three, 25 axiom-free,
+- generated API reference: current at 97 sections and 1,815 declarations;
+- the runnable mate-avoidance consumer reconstructed all three public
+  declarations, invoked them through the public surface, checked their
+  standard-three trust boundaries, and emitted its kernel-green marker;
+- public theorem audit: 1089 entries total: 792 standard-three, 25 axiom-free,
   131 `propext`-only, and 141 `propext`/`Quot.sound` boundaries;
 - the default, extended, and cross-variant progress audits passed with every
   incomplete visited state carrying an exact ready head and successful
@@ -1105,16 +1109,16 @@ Exact-head proof GitHub verification:
 
 - workflow: `Lean CI`;
 - event/ref: `push` / `main`;
-- run: [32507436118](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32507436118);
-- build job: [96850658404][proof-job];
-- exact head: `93d6baaf31291ef0fc7ec128e33758857718db83`;
+- run: [32511587012](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32511587012);
+- build job: [96863697391][proof-job];
+- exact head: `660e887701cb8325af5293d7627fa8e6a6135c5b`;
 - result: 36 successful steps, zero failures, and one expected release-ref-only
   skip;
-- run: `2026-08-21T17:18:04Z`-`2026-08-21T17:32:45Z` (14m41s);
-- build job: `2026-08-21T17:18:08Z`-`2026-08-21T17:32:44Z`
-  (14m36s).
+- run: `2026-08-21T18:05:55Z`-`2026-08-21T18:20:11Z` (14m16s);
+- build job: `2026-08-21T18:05:59Z`-`2026-08-21T18:20:11Z`
+  (14m12s).
 
-[proof-job]: https://github.com/fushanbobfan/proofnet-ir/actions/runs/32507436118/job/96850658404
+[proof-job]: https://github.com/fushanbobfan/proofnet-ir/actions/runs/32511587012/job/96863697391
 [reentry-failure]: api-reference.md#commitment-interval-par-guard-re-entry-failure-target
 [reentry-mate-separation]: api-reference.md#commitment-interval-par-guard-re-entry-mate-separation
 [target-temporal]: api-reference.md#commitment-interval-marked-re-entry-target-temporal-reduction
@@ -1142,6 +1146,7 @@ Exact-head proof GitHub verification:
 [wait-cont]: api-reference.md#waiting-commitment-re-entry-marked-target-finite-continuation-exit
 [wait-cont-waiting]: api-reference.md#waiting-commitment-re-entry-marked-target-continuation-waiting
 [wait-producer-orientation]: api-reference.md#waiting-re-entry-continuation-producer-orientation
+[wait-mate-avoidance]: api-reference.md#waiting-re-entry-continuation-mate-avoidance
 [target-cycle]: api-reference.md#marked-re-entry-target-raw-return-cyclic-reduction
 
 Exact-head finite-audit GitHub verification:
