@@ -602,6 +602,25 @@ The sibling target and typed Wait trace retain that recursive status.
 Older-outside ready/waiting endpoints, exact return, a distinct payer, the
 history-tail law, well-founded repeated normalization, completion, and progress
 remain open.
+`SequentialFigure7MarkedTargetWaitingMateExternalTemporal.lean` adds no source
+reading. Its two-constructor
+`ActiveMateWaitingParentExternalTemporalOutcome` is fixed to
+`consumer.conclusion` and formally excludes raw work; the explicit
+`propext`-only `.activeCarrierOutcome` map forgets that narrowed carrier into
+the existing broader interface. The proof combines the exact waiting span's
+two concrete marks, canonical continuation credit for the non-global mate,
+connective-opposite identity, and active-carrier chronology. A raw-mate
+continuation would make the already marked older terminal raw-unmarked, so the
+continuation instead reaches the submitted conclusion outside the active
+carrier as strictly older future work or a strictly older concrete mark. The
+direct theorem and active scheduler status return or store the narrowed
+carrier. The direct bridge needs
+`CanonicalTagHistory`, `SchedulerInvariant`, active component lookup and
+occurrence, the outside-conclusion premise, and the waiting witness, but not
+`DeclarativelyCorrect`, `noTail`, or an explicit `mateActive` premise.
+Older-outside mates may still be ready or waiting. Broader exact selected/mate
+raw returns, external temporal endpoints, a distinct payer, the history-tail
+law, completion, progress, and totality remain open.
 Global preservation of the mate-region and older-raw-mark invariants through
 candidate-creating rules remains open, as do queue origin, created-candidate raw
 seams, derivation of the re-entry avoidance premise, marked-history descent,

@@ -1719,6 +1719,27 @@ result does not eliminate waiting or the recursive temporal residual, produce
 a payer, prove repeated normalization well-founded, derive the history-tail
 law, or prove completion or progress.
 
+`SequentialFigure7MarkedTargetWaitingMateExternalTemporal.lean` closes the raw
+credit subcase inside that active-owned waiting return in its public contract.
+The two-constructor `ActiveMateWaitingParentExternalTemporalOutcome` is fixed
+to `consumer.conclusion` and contains only `olderFuture` and `olderMarked`; the
+explicit `propext`-only `.activeCarrierOutcome` map forgets it into the broader
+parent temporal carrier. The waiting span marks both the older terminal and
+the active mate. Canonical continuation credit for the marked non-global mate cannot
+return raw: connective-opposite identity
+would make the already marked older terminal raw-unmarked. The narrowed result
+therefore reaches the submitted conclusion outside the active carrier, either
+as future work at a strictly older boundary or as a concrete mark at a
+strictly older representative. The direct theorem and active scheduler status
+return or store that narrowed carrier. The direct bridge needs only
+`CanonicalTagHistory`, `SchedulerInvariant`, active component lookup and
+occurrence, the outside-conclusion premise, and the waiting witness. It needs
+neither `DeclarativelyCorrect`, `noTail`, nor an explicit `mateActive` premise.
+The refinement is lifted through the scheduler status, sibling-exit target,
+and typed Wait trace. It leaves older-outside mates ready or waiting and does
+not discharge the broader exact selected/mate raw returns, external temporal
+endpoints, history-tail law, progress, completion, or totality.
+
 `SequentialFigure7CommitmentBlockerAdvance.lean` joins the global queued-head
 law, the strict `sigma` split, the strict-edge avoiding adapter, and the final
 equal-boundary classification. Under declarative correctness and the complete

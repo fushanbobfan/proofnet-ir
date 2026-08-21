@@ -2,6 +2,25 @@
 
 ## Unreleased
 
+- eliminated the raw-continuation return from an exact active-owned waiting
+  mate to its already concrete-marked older terminal. The new two-constructor
+  `ActiveMateWaitingParentExternalTemporalOutcome` makes that guarantee part
+  of the public result type, fixed to `consumer.conclusion`: canonical
+  continuation credit reaches that submitted conclusion outside the active
+  carrier as `olderFuture` or `olderMarked`. The direct theorem and active
+  scheduler status return or store this narrowed carrier.
+  The `propext`-only `.activeCarrierOutcome` explicitly forgets it into the
+  broader parent temporal carrier when compatibility is needed.
+  The direct bridge requires only `CanonicalTagHistory`, `SchedulerInvariant`,
+  active component lookup and occurrence, the outside-conclusion premise, and
+  the waiting witness; it does not require `DeclarativelyCorrect`, `noTail`, or
+  a separate mate-active premise. Its runnable consumer exercises all ten
+  public declarations, including the six registered public theorems. The
+  verified combined theorem audit now covers 1069 theorems: 773 standard-three,
+  25 axiom-free, 131 `propext`-only, and 140 `propext`/`Quot.sound` boundaries.
+  Older-outside mates may still be ready or waiting; the broader exact
+  selected/mate raw returns, external temporal endpoints, history-tail law,
+  progress, completion, and totality remain open;
 - rebuilt the active-owned waiting future mate left after ready-case
   elimination as a marked, non-global active-frontier parent escape. Under
   exact ready-tail failure it now normalizes through the existing parent

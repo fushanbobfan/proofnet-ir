@@ -1123,6 +1123,24 @@ combined audit now covers 1063 theorems: 768 standard-three, 25 axiom-free, 130
 recursive parent temporal status; it does not prove repeated normalization
 well-founded, eliminate active waiting, construct a payer, derive the
 history-tail law, or add completion, progress, or totality.
+`SequentialFigure7MarkedTargetWaitingMateExternalTemporal.lean` adds no runtime
+or native-computed oracle. The two-constructor
+`ActiveMateWaitingParentExternalTemporalOutcome`, fixed to
+`consumer.conclusion`, makes raw exclusion a public type guarantee;
+`.activeCarrierOutcome` is the explicit `propext`-only forgetful map to the
+broader carrier. Its direct bridge uses `CanonicalTagHistory`,
+`SchedulerInvariant`, active component lookup and occurrence, the
+outside-conclusion premise, and the exact waiting witness. It does not assume
+`DeclarativelyCorrect`, `noTail`, or an explicit `mateActive` premise. The
+standalone mate-status carrier and narrowed carrier are `propext`-only. The
+forgetful theorem is also `propext`-only; the direct theorem and remaining
+higher public declarations use the standard-three boundary. All six public
+theorems are registered, and the verified combined audit now covers 1069
+theorems: 773 standard-three, 25 axiom-free, 131 `propext`-only, and 140
+`propext`/`Quot.sound` boundaries. The result rules out only the raw credit back
+to the already marked older terminal. Older-outside ready/waiting work,
+broader exact selected/mate raw returns, external temporal endpoints, the
+history-tail law, completion, progress, and totality remain open.
 `SequentialFigure7CrossRepresentativeWaitPreservation.lean` adds no hidden
 source-region oracle. Its output-work classification follows only from the
 typed destination's exact waiting prepend and unchanged ready/sigma fields;

@@ -262,6 +262,18 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "parentRecursionTarget",
     "ProofNetIR.SequentialFigure7.WaitStep."
     "commitmentInterval_parTraceReentryMarkedContinuationSiblingExitParentRecursionOutcome",
+    "ProofNetIR.SequentialFigure7.FutureWorkActiveMateWaitingOutcome."
+    "parentExternalTemporalOutcome",
+    "ProofNetIR.SequentialFigure7.FutureWorkMateActiveCarrierReadyEliminatedStatus."
+    "externalTemporalStatus",
+    "ProofNetIR.SequentialFigure7."
+    "ContinuationExitRawOrFutureActiveCarrierReadyMateOutcome."
+    "externalTemporalOutcome",
+    "ProofNetIR.SequentialFigure7."
+    "ActiveCarrierExternalReentryMarkedMateSeparatedContinuationSiblingExitReadyMateTarget."
+    "externalTemporalTarget",
+    "ProofNetIR.SequentialFigure7.WaitStep."
+    "commitmentInterval_parTraceReentryMarkedContinuationSiblingExitExternalTemporalOutcome",
     "ProofNetIR.SequentialFigure7.MarkedConclusionChain."
     "rawReturnCyclicReduction",
     "ProofNetIR.SequentialFigure7.MarkedConclusionChain."
@@ -1023,6 +1035,8 @@ EXPECTED_AXIOM_FREE_THEOREMS = {
     "ProofNetIR.SequentialFigure7.ReadyHeadInput.stackResult_after",
 }
 EXPECTED_PROPEXT_ONLY_THEOREMS = {
+    "ProofNetIR.SequentialFigure7.ActiveMateWaitingParentExternalTemporalOutcome."
+    "activeCarrierOutcome",
     "ProofNetIR.SequentialFigure7.MarkedConclusionChain.terminal_marked_of_ne",
     "ProofNetIR.SequentialFigure7.MarkedConclusionChain.terminalComparable",
     "ProofNetIR.SequentialFigure7.empty_olderRawMarkedRegionSeparated",

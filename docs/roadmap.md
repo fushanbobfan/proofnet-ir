@@ -1162,11 +1162,22 @@
     status through the sibling target and typed Wait trace. Retain older-outside
     ready/waiting work and the recursive temporal residual; no well-founded
     repeated normalization is established.
+  - [x] Eliminate the raw-continuation return from the exact active-owned
+    waiting mate to its already marked older terminal in a two-constructor
+    public result fixed to `consumer.conclusion` and containing only the
+    strictly older future and marked cases. Return or store that narrowed
+    carrier in the direct bridge and active scheduler status, with the
+    `propext`-only `.activeCarrierOutcome` forgetful map to the broader parent
+    temporal carrier. The direct bridge uses
+    `CanonicalTagHistory`, `SchedulerInvariant`, active component lookup and
+    occurrence, the outside-conclusion premise, and the waiting witness; it
+    does not need `DeclarativelyCorrect`, `noTail`, or an explicit `mateActive`
+    premise.
   - [ ] Use the strict cyclic endpoint order and aligned sibling causal witness
     with the retained commitment paths and refined causal/ownership
     classification to eliminate the exact selected/mate return, the remaining
-    older-outside ready/waiting endpoint or recursive active waiting residual,
-    or the Wait descent, or recover a distinct ready-tail payer. Then
+    older-outside ready/waiting endpoint, the returned external temporal
+    endpoint, or the Wait descent, or recover a distinct ready-tail payer. Then
     eliminate the remaining cyclic residuals, other finite exits, and
     equal-final traces. Do not infer
     unconditional dispatcher progress, completion, terminality, later-state

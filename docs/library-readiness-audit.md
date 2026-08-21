@@ -1328,6 +1328,25 @@ part of the engineering and proof-identity gap.
    not eliminated, and no well-founded repeated normalization is proved;
    older-outside endpoints, exact return, a payer, the history-tail law,
    completion, and progress remain open.
+   `SequentialFigure7MarkedTargetWaitingMateExternalTemporal.lean` now rules
+   out a raw continuation from the exact active-owned waiting mate to its
+   already concrete-marked older terminal in the public result type. The
+   two-constructor `ActiveMateWaitingParentExternalTemporalOutcome` is fixed to
+   `consumer.conclusion` and contains only `olderFuture` and `olderMarked`.
+   The `propext`-only `.activeCarrierOutcome` explicitly forgets it into the
+   broader parent temporal carrier. From
+   `CanonicalTagHistory`, `SchedulerInvariant`, active component lookup and
+   occurrence, the outside-conclusion premise, and the waiting witness, the
+   direct theorem and active scheduler status return or store that narrowed
+   carrier. It requires neither
+   `DeclarativelyCorrect`, `noTail`, nor an explicit `mateActive` premise. The
+   runnable consumer reconstructs or destructs all ten public declarations and
+   invokes all six registered public theorems. The verified combined audit now
+   covers 1069 theorems: 773 standard-three, 25 axiom-free,
+   131 `propext`-only, and 140 `propext`/`Quot.sound` boundaries. Older-outside
+   mates may still be ready or waiting; broader exact selected/mate raw
+   returns, external temporal endpoints, the history-tail law, completion,
+   progress, and totality remain open.
    `SequentialFigure7CommitmentBlockerAdvance.lean` now combines the global
    queued-head law, strict split, and equal-boundary result. Under declarative
    correctness and the complete scheduler invariant, for a supplied canonical
