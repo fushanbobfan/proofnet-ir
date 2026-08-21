@@ -669,6 +669,19 @@ raw/future/marked exits, avoiding/equal trace branches, and causal/cyclic
 receipts are unchanged. The result neither eliminates the marked target nor
 recovers a payer, aligns arbitrary witnesses, derives the history-tail law, or
 proves progress, completion, termination, or totality.
+`SequentialFigure7MarkedTargetWaitingMateExternalCommitmentReentryContinuationExit.lean`
+adds no source reading, oracle, or runtime evidence. It preserves
+`path.start = endpoint` for the arbitrary endpoint and, under retained exact
+ready-tail failure, uses existing finite marked-conclusion continuation,
+structural ownership, scheduler, and canonical-history theorems.
+The resulting chain ends with a raw-unmarked terminal consumer mate outside
+the active carrier; an exact selected/current-mate return with
+current-conclusion alignment and strict target-to-terminal complexity growth;
+older future work outside; or older marked-global work outside. The public
+addition is one proposition carrier and one standard-three theorem. Every exit
+remains present: the result supplies no avoiding witness or aligned re-entry
+path, recovers no payer, and derives no
+history-tail law, progress, completion, termination, or totality.
 Global preservation of the mate-region and older-raw-mark invariants through
 candidate-creating rules remains open, as do queue origin, created-candidate raw
 seams, derivation of the re-entry avoidance premise, marked-history descent,

@@ -1410,6 +1410,18 @@ part of the engineering and proof-identity gap.
    six public theorems. The target remains an authenticated mark represented
    at the active boundary; no payer, witness alignment, history-tail law,
    progress, completion, termination, or totality result follows.
+   `SequentialFigure7MarkedTargetWaitingMateExternalCommitmentReentryContinuationExit.lean`
+   now retains exact ready-tail failure, preserves `path.start = endpoint` for
+   that target's arbitrary endpoint, and normalizes its finite
+   `MarkedConclusionChain`. It ends with a raw-unmarked terminal consumer mate
+   outside the active carrier; an exact selected/current-mate return with
+   current-conclusion alignment and strict target-to-terminal complexity
+   growth; future work outside at a strictly older boundary; or a marked-global
+   conclusion outside at a strictly older representative. The public surface
+   is one proposition carrier plus one standard-three theorem, both exercised
+   by the runnable consumer. No exit is eliminated. The result derives no
+   payer, avoiding witness or aligned re-entry path, history-tail law,
+   progress, completion, termination, or totality.
    `SequentialFigure7CommitmentBlockerAdvance.lean` now combines the global
    queued-head law, strict split, and equal-boundary result. Under declarative
    correctness and the complete scheduler invariant, for a supplied canonical

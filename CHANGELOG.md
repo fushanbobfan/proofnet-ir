@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+- finitely normalized the endpoint-parametric marked re-entry target while
+  preserving `path.start = endpoint` for the arbitrary endpoint.
+  `SequentialFigure7MarkedTargetWaitingMateExternalCommitmentReentryContinuationExit.lean`
+  retains the exact ready-tail-failure premise and follows a finite
+  `MarkedConclusionChain` to a terminal whose consumer mate is raw-unmarked
+  outside the active carrier; returns exactly to the
+  selected/current-mate pair with current-conclusion alignment and strict
+  target-to-terminal formula-complexity growth; reaches older future work
+  outside the carrier; or reaches an older marked-global conclusion outside
+  the carrier. The module adds one proposition carrier and one standard-three
+  theorem. All four exits remain explicit: the checkpoint eliminates no exit,
+  recovers no payer, supplies no avoiding witness or aligned re-entry path,
+  and proves no history-tail law, progress, completion, termination, or
+  totality;
 - normalized the surviving marked re-entry target through its unique submitted
   parent at every retained waiting endpoint.
   `SequentialFigure7MarkedTargetWaitingMateExternalCommitmentReentryTemporal.lean`

@@ -1190,6 +1190,18 @@ all unrelated trace branches and
 causal/cyclic receipts. No theorem eliminates the marked target, identifies a
 payer, aligns arbitrary crossing/re-entry witnesses, derives the history-tail
 law, or establishes progress, completion, termination, or totality.
+`SequentialFigure7MarkedTargetWaitingMateExternalCommitmentReentryContinuationExit.lean`
+adds no runtime oracle, native-computed evidence, or new trusted source. Its
+public surface is one proposition-valued carrier definition and one theorem;
+the theorem prints with the standard-three boundary. The proof preserves
+`path.start = endpoint` for the arbitrary endpoint and, under retained exact
+ready-tail failure, normalizes an existing temporal target through a finite
+`MarkedConclusionChain` to a raw-unmarked terminal consumer mate outside the
+active carrier; an exact selected/current-mate return with current-conclusion
+alignment and strict target-to-terminal complexity growth; older future work
+outside; or older marked-global work outside. It eliminates no exit, recovers
+no payer, supplies no avoiding witness or aligned re-entry path, and derives
+no history-tail law, progress, completion, termination, or totality.
 `SequentialFigure7CrossRepresentativeWaitPreservation.lean` adds no hidden
 source-region oracle. Its output-work classification follows only from the
 typed destination's exact waiting prepend and unchanged ready/sigma fields;

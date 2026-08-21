@@ -12449,6 +12449,51 @@ ProofNetIR.SequentialFigure7.WaitStep.commitmentInterval_parTraceReentryMarkedCo
                                     tagHistory step.prepared.readyHeadInput component owned step.consumer)
 ```
 
+## Waiting commitment re-entry marked-target finite continuation exit
+
+### `ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedOuterMateSeparatedContinuationExitTarget`
+
+Kind: definition.
+
+Finite continuation normalization of the exact mate-separated marked
+re-entry target.
+
+```lean
+ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedOuterMateSeparatedContinuationExitTarget : {certificate : ProofNetIR.Certificate} →
+  {state : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+    {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state} →
+      ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history →
+        (input : ProofNetIR.SequentialFigure7.ReadyHeadInput state) →
+          ProofNetIR.UnificationComponent →
+            List ProofNetIR.Vertex → ProofNetIR.Vertex → ProofNetIR.ConnectiveBelow certificate input.vertex → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedOuterMateSeparatedTemporalTarget.continuationExitTarget`
+
+Kind: theorem.
+
+Normalize the target-bound marked-parent branch through its finite
+continuation chain. A raw endpoint is outside the carrier or returns exactly
+to the current selected/mate pair; future and marked-global endpoints remain
+outside at a strictly older boundary or representative.
+
+```lean
+ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedOuterMateSeparatedTemporalTarget.continuationExitTarget : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  {tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history}
+  {input : ProofNetIR.SequentialFigure7.ReadyHeadInput state} {component : ProofNetIR.UnificationComponent}
+  {usedLinks owned : List Nat} {endpoint : ProofNetIR.Vertex},
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+    ∀ (current : ProofNetIR.ConnectiveBelow certificate input.vertex),
+      state.core.components[input.rawAge]? = some (some component) →
+        certificate.ComponentOccurrenceWitness component usedLinks owned →
+          ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedOuterMateSeparatedTemporalTarget tagHistory
+              input component owned endpoint current →
+            (¬∃ pending, pending ∈ input.readyTail ∧ ¬pending ∈ certificate.conclusions) →
+              ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedOuterMateSeparatedContinuationExitTarget
+                tagHistory input component owned endpoint current
+```
+
 ## Marked re-entry target raw-return cyclic reduction
 
 ### `ProofNetIR.SequentialFigure7.MarkedConclusionRawReturnCyclicOutcome`

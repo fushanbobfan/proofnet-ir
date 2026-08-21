@@ -1796,6 +1796,21 @@ transport this endpoint-parametric status without changing unrelated branches.
 The marked target is not eliminated, and no payer, arbitrary witness alignment,
 history-tail law, progress, completion, termination, or totality follows.
 
+`SequentialFigure7MarkedTargetWaitingMateExternalCommitmentReentryContinuationExit.lean`
+retains exact ready-tail failure, preserves `path.start = endpoint` for the
+temporal target's arbitrary endpoint, and follows its finite
+`MarkedConclusionChain`. A raw-unmarked terminal consumer mate is either
+outside the active carrier or exactly the selected head, in which latter case
+the chain terminal is `current.mate`, its submitted conclusion is
+`current.conclusion`, and target-to-terminal formula complexity grows strictly.
+The other exits place the terminal consumer's conclusion outside the carrier
+as future work at a strictly older boundary or as a marked-global conclusion
+at a strictly older representative. One proposition carrier and one
+standard-three theorem expose this normalization. No exit is eliminated, and
+the result recovers no payer, supplies no avoiding witness or aligned re-entry
+path, and derives no history-tail law, progress, completion, termination, or
+totality.
+
 `SequentialFigure7CommitmentBlockerAdvance.lean` joins the global queued-head
 law, the strict `sigma` split, the strict-edge avoiding adapter, and the final
 equal-boundary classification. Under declarative correctness and the complete

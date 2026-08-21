@@ -594,6 +594,9 @@ namespace WaitStep
 #print axioms
   commitmentInterval_parTraceReentryMarkedContinuationSiblingExitWaitingTemporalOutcome
 end WaitStep
+namespace ActiveCarrierExternalReentryMarkedOuterMateSeparatedTemporalTarget
+#print axioms continuationExitTarget
+end ActiveCarrierExternalReentryMarkedOuterMateSeparatedTemporalTarget
 end ProofNetIR.SequentialFigure7
 #print axioms
   SequentialFigure7.MarkedConclusionChain.rawReturnCyclicReduction

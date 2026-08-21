@@ -42,9 +42,14 @@ may start at its waiting consumer conclusion. Frontier ownership and the enclosi
 mate's externality separate the marked target from that mate; unique parent alignment
 then makes its continuation raw-unmarked outside, future at a strictly older boundary,
 or marked at a strictly older representative. This status reaches the typed Wait trace
-without changing unrelated trace branches or causal/cyclic receipts. The target itself,
-broader exact selected/mate raw returns, avoidance, payer, history-tail, progress,
-completion, termination, and totality remain open.
+without changing unrelated trace branches or causal/cyclic receipts. Under the same
+exact ready-tail failure, preserving the arbitrary endpoint as the path start, finite
+marked-conclusion normalization now ends at a raw-unmarked terminal consumer mate
+outside the active carrier; an exact selected/current-mate return aligned with the
+current conclusion and strictly
+greater terminal complexity, older future work outside, or older marked-global work
+outside. No exit is eliminated; the target itself, avoidance and re-entry-path alignment,
+payer recovery, history-tail, progress, completion, termination, and totality remain open.
 [Current status](docs/current-status.md) owns exact revision, verification receipt, and gates.
 <!-- ROLLING_MAIN_SUMMARY_END -->
 

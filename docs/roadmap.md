@@ -1195,12 +1195,20 @@
     strictly older boundary, or a marked conclusion at a strictly older
     representative. Lift the result to typed
     Wait without changing unrelated exits or causal/cyclic receipts.
-  - [ ] Eliminate the surviving distinct canonical-history-authenticated mark
-    at the active representative or derive the exact distinct payer needed from
-    it. The temporal parent split supplies no avoiding witness or aligned
-    re-entry path. Then eliminate the remaining cyclic residuals, other finite
-    exits, broader exact selected/mate raw returns, and equal-final traces, and
-    close the history-tail law. Do not infer unconditional dispatcher progress,
+  - [x] Under retained exact ready-tail failure, preserve
+    `path.start = endpoint` for the arbitrary endpoint and normalize the target
+    through its finite `MarkedConclusionChain`. Retain exactly four
+    terminal forms: a raw-unmarked terminal consumer mate outside the active
+    carrier; an exact selected/current-mate return with current-conclusion
+    alignment and strict target-to-terminal complexity growth; older future
+    work outside; or older marked-global work outside.
+    Expose one proposition carrier and one standard-three theorem without
+    eliminating any exit.
+  - [ ] Eliminate the surviving finite exits or derive the exact distinct payer
+    needed from them. The endpoint-parametric normalization supplies no avoiding
+    witness or aligned re-entry path. Then eliminate the remaining cyclic
+    residuals, broader exact selected/mate raw returns, and equal-final traces,
+    and close the history-tail law. Do not infer unconditional dispatcher progress,
     completion, termination, later-state totality, global raw seams, fallback
     removal, Figure-7 pure-worklist completeness, sequentialization, faithful
     token-age scheduling, or whole-program linearity from the current
@@ -1513,10 +1521,14 @@
     endpoint, frontier ownership separates that mark from the enclosing mate,
     and, under exact ready-tail failure, unique parent alignment exposes an
     unmarked raw mate outside, older future work, or an older marked conclusion.
-    Equal-final selected/mate traces
-    and the inclusive outer split remain. Next use that temporal parent split
-    to eliminate the marked target or recover a payer, eliminate the equal-final
-    traces, and close the tail law before
+    Endpoint-parametric finite-chain normalization now preserves
+    `path.start = endpoint` and reaches a raw-unmarked terminal consumer mate
+    outside the active carrier, an exact selected/current-mate return with
+    current-conclusion alignment and strict target-to-terminal complexity
+    growth, older future work outside, or older marked-global work outside.
+    Equal-final selected/mate traces and the inclusive outer split remain.
+    Next eliminate those finite exits or recover a payer, eliminate the
+    equal-final traces, and close the tail law before
     claiming exhaustive progress on incomplete, correct, certified-reachable states.
     Exact source-left complexity descent, last-step decomposition, and
     recursive visited-route separation from the selected head are now proved.
