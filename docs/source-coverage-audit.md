@@ -682,6 +682,25 @@ addition is one proposition carrier and one standard-three theorem. Every exit
 remains present: the result supplies no avoiding witness or aligned re-entry
 path, recovers no payer, and derives no
 history-tail law, progress, completion, termination, or totality.
+`SequentialFigure7MarkedTargetWaitingMateExternalCommitmentReentryContinuationWaiting.lean`
+also adds no source reading, oracle, or runtime evidence. It combines the
+existing component-forest provenance, finite marked-conclusion normalization,
+and exact scheduler-location results. Carrier-forest marked ownership assigns
+the first marked known-outside parent conclusion to an owner. An active owner
+contradicts the outside premise; a distinct live owner receives the active
+origin by connective ownership closure and contradicts live-carrier
+disjointness. Every retained chain is therefore reflexive, eliminating the
+exact selected/current-mate return and marked-global endpoint. Live-carrier
+disjointness also makes an older ready future location impossible. The
+resulting target has exactly two cases: a raw-unmarked target-consumer mate
+outside active ownership, or its conclusion
+as strictly older `FutureWorkAt` in an exact initialized waiting cell. The
+waiting record preserves the initialized payload, submitted par lookup and
+source-index entry, oriented marked premises, and boundary equations. The
+public addition is one exact-waiting-location definition, one two-case target
+definition, and one standard-three theorem. It does not eliminate the target,
+recover a payer, align witnesses or paths, derive a history-tail law, or prove
+progress, completion, termination, or totality.
 Global preservation of the mate-region and older-raw-mark invariants through
 candidate-creating rules remains open, as do queue origin, created-candidate raw
 seams, derivation of the re-entry avoidance premise, marked-history descent,

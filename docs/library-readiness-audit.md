@@ -1422,6 +1422,24 @@ part of the engineering and proof-identity gap.
    by the runnable consumer. No exit is eliminated. The result derives no
    payer, avoiding witness or aligned re-entry path, history-tail law,
    progress, completion, termination, or totality.
+   `SequentialFigure7MarkedTargetWaitingMateExternalCommitmentReentryContinuationWaiting.lean`
+   combines carrier-forest marked ownership with live-carrier disjointness. A
+   nontrivial chain first marks the known-outside parent conclusion. An active
+   owner contradicts that outside premise; a distinct live owner receives the
+   active origin by connective ownership closure and contradicts carrier
+   disjointness. Every retained chain is therefore reflexive. This eliminates
+   the exact selected/current-mate return and marked-global endpoint. Exact scheduler
+   localization further excludes older ready future work because its live
+   carrier would also own the active-frontier origin. Exactly two parent forms
+   remain: a raw-unmarked target-consumer mate outside active ownership, or the
+   target-consumer conclusion as strictly older `FutureWorkAt` in an exact
+   initialized waiting cell. The waiting receipt preserves its payload,
+   submitted par/source data, oriented marked premises, and boundary equations.
+   The public surface is one exact-waiting-location definition, one two-case
+   target definition, and one standard-three theorem. The result adds no
+   source, oracle, or runtime evidence and does not eliminate the target,
+   recover a payer, align witnesses or paths, derive a history-tail law, or
+   prove progress, completion, termination, or totality.
    `SequentialFigure7CommitmentBlockerAdvance.lean` now combines the global
    queued-head law, strict split, and equal-boundary result. Under declarative
    correctness and the complete scheduler invariant, for a supplied canonical

@@ -1811,6 +1811,28 @@ the result recovers no payer, supplies no avoiding witness or aligned re-entry
 path, and derives no history-tail law, progress, completion, termination, or
 totality.
 
+`SequentialFigure7MarkedTargetWaitingMateExternalCommitmentReentryContinuationWaiting.lean`
+then combines carrier-forest marked ownership with live-carrier disjointness.
+A nontrivial chain first marks the known-outside parent conclusion. Its owner
+cannot be the active carrier, because that contradicts the outside premise. If
+the owner is a distinct live carrier, connective ownership closure also places
+the active-frontier origin there, contradicting its ownership by the active
+carrier and disjointness. Thus every retained `MarkedConclusionChain` is
+reflexive, and its terminal consumer is the target consumer. The exact
+selected/current-mate return contradicts the retained mate separation, and a
+marked-global conclusion contradicts the same ownership argument. Decomposing
+strictly older `FutureWorkAt` into its exact scheduler location also rules out
+the ready case: it would place the chain origin in both the older and active
+live carriers. The waiting case retains the initialized payload, submitted par
+lookup and source-index entry, oriented marked premises, and both `sigma`
+boundary equations. The resulting target has exactly two forms: a
+raw-unmarked target-consumer mate outside active ownership, or its conclusion
+as strictly older future work at that exact initialized waiting location. The
+module exposes one exact-location definition, one two-case target definition,
+and one standard-three theorem. It does not eliminate the target, identify a
+payer, align witnesses or paths, derive a history-tail law, or establish
+progress, completion, termination, or totality.
+
 `SequentialFigure7CommitmentBlockerAdvance.lean` joins the global queued-head
 law, the strict `sigma` split, the strict-edge avoiding adapter, and the final
 equal-boundary classification. Under declarative correctness and the complete

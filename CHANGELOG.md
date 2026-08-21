@@ -2,6 +2,26 @@
 
 ## Unreleased
 
+- collapsed the carrier-disjoint continuation-waiting target to exactly two
+  parent forms.
+  `SequentialFigure7MarkedTargetWaitingMateExternalCommitmentReentryContinuationWaiting.lean`
+  combines carrier-forest marked ownership with live-carrier disjointness. A
+  nontrivial chain first marks the known-outside parent conclusion. An active
+  owner contradicts the outside premise; a distinct live owner receives the
+  active origin by connective closure and contradicts disjointness. Thus every
+  retained `MarkedConclusionChain` is reflexive, and the exact
+  selected/current-mate return and marked-global endpoint are impossible.
+  Exact scheduler-location analysis also excludes older ready future work by
+  disjoint ownership of distinct live components. The remaining target has
+  either a raw-unmarked consumer mate outside active ownership or a
+  consumer conclusion that is strictly older `FutureWorkAt` in an exact
+  initialized waiting cell. That waiting receipt retains its payload,
+  submitted par link and source-index entry, oriented marked premises, and
+  boundary equations. The public surface is one exact-waiting-location
+  definition, one two-case target definition, and one standard-three theorem;
+  it adds no source, oracle, or runtime evidence. The checkpoint does not
+  eliminate the target, recover a payer, align witnesses or paths, derive a
+  history-tail law, or prove progress, completion, termination, or totality;
 - finitely normalized the endpoint-parametric marked re-entry target while
   preserving `path.start = endpoint` for the arbitrary endpoint.
   `SequentialFigure7MarkedTargetWaitingMateExternalCommitmentReentryContinuationExit.lean`

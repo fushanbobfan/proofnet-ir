@@ -314,6 +314,9 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "ProofNetIR.SequentialFigure7."
     "ActiveCarrierExternalReentryMarkedOuterMateSeparatedTemporalTarget."
     "continuationExitTarget",
+    "ProofNetIR.SequentialFigure7."
+    "ActiveCarrierExternalReentryMarkedOuterMateSeparatedContinuationExitTarget."
+    "waitingParentTarget",
     "ProofNetIR.SequentialFigure7.MarkedConclusionChain."
     "rawReturnCyclicReduction",
     "ProofNetIR.SequentialFigure7.MarkedConclusionChain."

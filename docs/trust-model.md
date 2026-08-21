@@ -1202,6 +1202,23 @@ alignment and strict target-to-terminal complexity growth; older future work
 outside; or older marked-global work outside. It eliminates no exit, recovers
 no payer, supplies no avoiding witness or aligned re-entry path, and derives
 no history-tail law, progress, completion, termination, or totality.
+`SequentialFigure7MarkedTargetWaitingMateExternalCommitmentReentryContinuationWaiting.lean`
+adds no runtime oracle, native-computed evidence, or new trusted source. Its
+public surface has two proposition-valued definitions and one standard-three
+theorem. For a nontrivial chain, carrier-forest marked ownership assigns the
+first marked known-outside parent conclusion to an owner. The active owner
+contradicts the outside premise. A distinct live owner receives the
+active-frontier origin by connective ownership closure. This contradicts its
+ownership by the active carrier and live-carrier disjointness. Every retained
+chain is therefore reflexive. The retained mate inequality then excludes the
+exact selected/current-mate return. Exact scheduler localization similarly rejects
+older ready future work by live-carrier disjointness. The only remaining cases
+are a raw-unmarked target-consumer mate outside active ownership or its
+conclusion as strictly older `FutureWorkAt` in an exact initialized waiting
+cell. The waiting definition records the payload, submitted par/source data,
+oriented marked premises, and boundary equations. This does not eliminate the
+target, identify a payer, align witnesses or paths, derive a history-tail law,
+or establish progress, completion, termination, or totality.
 `SequentialFigure7CrossRepresentativeWaitPreservation.lean` adds no hidden
 source-region oracle. Its output-work classification follows only from the
 typed destination's exact waiting prepend and unchanged ready/sigma fields;

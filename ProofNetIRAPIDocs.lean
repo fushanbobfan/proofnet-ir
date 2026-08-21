@@ -1425,6 +1425,22 @@ def sections : List Section := [
     ]
   },
   {
+    title := "Waiting commitment re-entry marked-target continuation waiting"
+    declarations := [
+      `ProofNetIR.SequentialFigure7.FutureWorkAtExactWaitingLocation,
+      Name.str
+        `ProofNetIR.SequentialFigure7
+        ("ActiveCarrierExternalReentryMarkedOuterMateSeparated" ++
+          "WaitingParentTarget"),
+      Name.str
+        (Name.str
+          `ProofNetIR.SequentialFigure7
+          ("ActiveCarrierExternalReentryMarkedOuterMateSeparated" ++
+            "ContinuationExitTarget"))
+        "waitingParentTarget"
+    ]
+  },
+  {
     title := "Marked re-entry target raw-return cyclic reduction"
     declarations := [
       `ProofNetIR.SequentialFigure7.MarkedConclusionRawReturnCyclicOutcome,
