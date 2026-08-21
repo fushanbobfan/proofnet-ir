@@ -17,7 +17,7 @@ Status date: 2026-08-21
 | Track | Revision | Status | Authority |
 | --- | --- | --- | --- |
 | Stable library | `v0.9.0` / `9b7dc3d104af8f57ea9123aab2e61b42e05d2216` | Released | [v0.9.0 release audit](v0.9-release-audit.md) |
-| Rolling research | `v0.10.0-dev`; proof `72cbeff`; audit `1e46573` | Active | This page/commits |
+| Rolling research | `v0.10.0-dev`; proof `96de7bb`; audit `1e46573` | Active | This page/commits |
 
 Documentation-only commits may descend from the proof checkpoint without
 changing its mathematical authority. The stable release and rolling branch
@@ -349,8 +349,9 @@ from a scheduler-invariant input refutes unrestricted
 same-component locality carrier, but neither refutes direct debt nor supplies
 the required queue-tail or elimination of the classified re-entry failure.
 
-The checkpoint's accumulated public surface is exactly 181 declaration
-boundaries:
+The earlier focused boundary ledger below records 181 declarations through the
+continuation-exit layer together with the reusable queue-status primitives. The
+generated API reference is authoritative for the complete public surface:
 
 ```text
 Certificate.OccurrenceDerivation.connectivePremises_owned_of_conclusion_owned
@@ -912,7 +913,7 @@ position, first visit, or boundary identity. It eliminates neither marked
 target, does not payer-convert either branch, leaves the raw survivor unchanged,
 and proves no history-tail law, progress, completion, termination, or totality.
 
-The current checkpoint adds [future-work queue status][future-queue]. Under
+The preceding checkpoint adds [future-work queue status][future-queue]. Under
 `SchedulerInvariant`, flattened `queuedVertices` membership is equivalent to a
 proof-relevant `FutureWorkAt` witness at some boundary. Given active component
 lookup and an occurrence witness for a supplied `owned` list, future work
@@ -922,11 +923,36 @@ exact ready or initialized-waiting scheduler location.
 `UnmarkedOutsideActiveSchedulerStatus` therefore records that an in-bounds
 raw-unmarked vertex outside the supplied list is either currently absent from
 the queue, live frontier, and `Produced`, or has exact future work at some
-strictly older boundary. This is a current-state classifier only: it proves no
-unique or first boundary, historical queue origin, persistence, reachability,
-dispatchability, payer, history-tail law, progress, completion, termination,
-or totality. It has not yet been lifted into either outer marked classifier or
-the waiting-parent and higher scheduler wrappers.
+strictly older boundary. The low-level status is a current-state classifier
+only: it proves no unique or first boundary, historical queue origin,
+persistence, reachability, dispatchability, payer, history-tail law, progress,
+completion, termination, or totality.
+
+The current [outer queue-status checkpoint][wait-outer-queue] lifts that status
+through the exact waiting-parent target and both branches of the stored-right
+outer split. The new queue-status target preserves the marked-parent path,
+inbound edge, authentic mark, representative, and target consumer. It replaces
+only the raw-unmarked `targetConsumer.mate` leaf with
+`UnmarkedOutsideActiveSchedulerStatus`; the exact initialized-waiting
+`targetConsumer.conclusion` alternative is unchanged. The adapter uses the
+existing scheduler invariant, component lookup, and occurrence witness.
+
+The final theorem starts from the stored-right outer result and adds only
+`currentMateOutside : current.mate ∉ owned`. Its output remains a disjunction:
+the avoiding branch carries its queue-status target at `consumer.mate`, while
+the containing branch retains `current.conclusion ∈ path.vertices` and carries
+its target at `current.conclusion`. It does not export both classifiers
+simultaneously. The common path, crossing, inner avoidance, ownership, and
+freshness facts are preserved, while each target's internal witnesses remain
+independent of that path, crossing, and the other branch.
+
+Only the replaced raw leaf is current-state; the surrounding target retains
+its canonical history evidence. A future-work boundary inside that leaf is
+existential and not proved first, unique, or canonical. No queue origin,
+persistence, reachability, dispatchability, elimination, payer, history-tail
+law, progress, completion, termination, or totality follows. Transport through
+the higher external-reentry, scheduler, sibling, and typed-Wait wrappers
+remains open.
 
 ### Finite ready-head boundary audit
 
@@ -999,26 +1025,27 @@ Exact signatures are maintained in the generated API reference for the
 [waiting re-entry continuation outer obstruction][wait-outer-obstruction],
 [waiting re-entry continuation outer-containing historical status][wait-contains],
 [waiting re-entry continuation stored-right marked outer split][wait-right],
+[waiting re-entry continuation outer queue status][wait-outer-queue],
 [marked re-entry target raw-return cyclic reduction][target-cycle],
 [branch-local continuation credit](api-reference.md#branch-local-continuation-credit),
 [continuation-credit preservation](api-reference.md#continuation-credit-preservation),
 [endpoint-localized continuation exits](api-reference.md#endpoint-localized-continuation-exits),
 and the retained
 [Wait endpoint-locality obstruction](api-reference.md#wait-endpoint-locality-obstruction).
-The first open proof step is now to lift
-`UnmarkedOutsideActiveSchedulerStatus` into the raw-unmarked
-target-consumer-mate alternative of both outer marked classifiers, then through
-the waiting-parent target and higher scheduler, sibling, and typed-Wait
-wrappers. The lift must preserve the common exact path, crossing, outer
-membership split, freshness facts, and the branch-local marked classifier at
-its own endpoint; it must not identify that classifier with the common path or
-with the other branch's possible witness. Its exact initialized-waiting leaf
-remains unchanged.
-The avoiding endpoint is `consumer.mate`; the containing endpoint is
-`current.conclusion`, whose membership in the common path remains. The raw
-terminal mate is separately open and must be scheduler-localized, classified as
-unopened work, or payer-converted. The causal/cyclic receipts remain preserved
-rather than discharging either target.
+The first open proof step is now to transport the branch-local queue-status
+target through the higher waiting-parent external-reentry outcome, then through
+the active future-work-mate scheduler, sibling, and typed-Wait wrappers. This
+must be a shape-preserving wrapper map: the next outcome does not store the
+outer theorem's separate common path, so transport cannot invent or identify
+that witness. The existing older-future and older-marked branch payloads must
+remain unchanged.
+
+The currently absent and exact older-work leaves still require elimination or
+payer conversion, as does the exact initialized-waiting conclusion alternative.
+The avoiding endpoint remains `consumer.mate`; the containing endpoint remains
+`current.conclusion`, whose common-path membership is retained only by the
+outer theorem. The causal/cyclic receipts remain preserved rather than
+discharging either target.
 Broader selected/mate raw returns, other external temporal alternatives, and
 Wait first-descent branches remain open. The surviving marked omitted-right
 source must likewise be eliminated or converted into a distinct payer. Both
@@ -1056,14 +1083,17 @@ This checkpoint does not establish any of the following:
   and marked-global work, while the raw-outside mate and exact older waiting
   conclusion remain unresolved; the latter's producer is oriented exactly and
   yields an inner-conclusion-avoiding older-mate-to-target path. That path now
-  splits at the outer selected conclusion into a marked historical classifier
-  at `consumer.mate` in the avoiding branch, or outer-conclusion membership and
-  a marked historical classifier at `current.conclusion` in the containing
-  branch. The stored-right premise removes only the selected-head alternative
-  from the containing branch's prior failure status. Neither classifier exposes
-  an occurrence position or first visit, and neither is identified with the
-  common path, crossing, or the other classifier. Neither outcome eliminates
-  the survivor;
+  splits at the outer selected conclusion into a branch-local queue-status
+  waiting-parent target at `consumer.mate`, or outer-conclusion membership and
+  the same target shape at `current.conclusion`. Each target retains its
+  independently witnessed marked parent. Only its raw mate leaf is
+  current-state queue-classified, and its exact initialized-waiting conclusion
+  leaf is unchanged. The stored-right premise removes only the selected-head
+  alternative from the containing branch's prior failure status. Neither target
+  exposes an occurrence position or first visit, and neither is identified with
+  the common path, crossing, or the other branch. The disjunction does not
+  provide both targets simultaneously, and neither outcome eliminates the
+  survivor;
 - elimination or payer conversion of the surviving re-entry targets: the
   independently witnessed marked classifier at each outer endpoint;
   localization and elimination of the outer-conclusion membership;
@@ -1078,10 +1108,10 @@ This checkpoint does not establish any of the following:
   both submitted premises, the exact younger-target/older-mate producer
   orientation, or the older-outside/active-owned mate classification, or
   conversion of those facts into a distinct active payer;
-- a lift of `UnmarkedOutsideActiveSchedulerStatus` into either outer marked
-  classifier or the waiting-parent and higher wrappers; its absent branch is
-  current-state only, and its older-work boundary is existential rather than
-  unique or first;
+- transport of the branch-local queue-status waiting-parent target through the
+  higher external-reentry, scheduler, sibling, or typed-Wait wrappers; its
+  absent branch is current-state only, and its older-work boundary is
+  existential rather than unique or first;
 - totality of any operational schedule beyond the supplied canonical history,
   elimination of the causal first descent or a raw/future sibling exit, or
   conversion of an earlier event into a distinct ready-tail payer;
@@ -1136,12 +1166,12 @@ plan is maintained in [v0.10-design.md](v0.10-design.md) and
 The exact rolling proof checkpoint is:
 
 ```text
-commit    72cbeff429d6d88290b1d616854f02257c00a3a5
-tree      98bc61d08e5715bc656624a36fcebd63d265cde6
-parent    e0e94b5e50cfa2b70f35b93441023e2d4ca88e69
-stage     classify future-work queue status
-delta     17 paths, +508/-26
-manifest  25F9DBE34AC784CC56C2637DEF92C70A08937D7A9D56FEE72806AF321EBDD20B
+commit    96de7bbc6910640278467eec51609a85f44e8e7c
+tree      8f6e1dce9a91bcfba4b7eb5539ad597c248e63a3
+parent    6259b6baea5ed8f29b6d077923d7918715415e9a
+stage     lift waiting outer queue status
+delta     17 paths, +612/-47
+manifest  78100AED366B064ED945D5F96C1CB95F3564E4E4318095258BD9D00DE9E105BF
 ```
 
 The manifest hashes canonical
@@ -1150,9 +1180,9 @@ The manifest hashes canonical
 The checkpoint source receipts are:
 
 ```text
-queue-status source    21E443B0731BB3887FB1C84CC827C4D019FA01B6B1CF63E1DDAFFFAFCD123097
-queue-status consumer  8ACF4A513DE1F5B1B31656EEF694107E5DE5C1918B4254763810F98C98638106
-generated API          9A9AF1E2B84DE47DA208E3EBC4D20A7543D5AFBFB32B111A80A84978DB192CF9
+outer queue source    5907C66770FCDAF3032611023B14F8458487216D53C902C34D981FB19667E62A
+outer queue consumer  ADDD1A64370FF329BC956D9900AE35FE851ADC2522A144C868D18A073511FC44
+generated API         843266DC30EC5EE9FA67A0A90E4B3A45FC59D59D35D81875E466B3C4D2D808C0
 ```
 
 The separately committed finite-audit evidence is:
@@ -1169,20 +1199,22 @@ manifest  4BBAB7FC99D03D2612459A0FD9291990313A05A184F2572A581BC93C6E49DFDD
 Local verification of the committed checkpoint, with ignored prototype probes
 included only in the broader source scan:
 
-- full `lake build`: 684/684 jobs;
+- full `lake build`: 689/689 jobs;
 - pre-push syntax-aware Lean source audit: zero actual `sorry`/`admit`
-  findings across the 340-file local non-build superset present at verification
+  findings across the 344-file local non-build superset present at verification
   time, including ignored prototype probes and zero actual `sorryAx` findings;
-- library inventory: 320 Lean files and 204,104 Lean source lines, including
-  178 module files under `ProofNetIR/`; the public facade imports 173
-  submodules, or 174 modules including the facade itself;
-- generated API reference: current at 101 sections and 1,824 declarations;
-- the runnable queue-status consumer reconstructed the strict older-boundary,
-  flattened-queue equivalence, and current-state classifier theorems through
-  the public surface; it checked the proposition's `propext`-only boundary and
-  the three theorems' standard-three boundaries and emitted its kernel-green
-  marker;
-- public theorem audit: 1098 entries total: 800 standard-three, 25 axiom-free,
+- library inventory: 322 Lean files and 204,441 Lean source lines, including
+  179 module files under `ProofNetIR/`; a parser-aware count finds 175 imported
+  submodules in the public facade, or 176 modules including the facade itself;
+  the preceding receipt's line-anchored 173/174 count missed the pre-existing
+  wrapped import at `ProofNetIR.lean:116-117`, whose true prior values were
+  174 imported submodules and 175 modules including the facade;
+- generated API reference: current at 102 sections and 1,827 declarations;
+- the runnable outer queue-status consumer reconstructed the waiting-parent
+  adapter and both stored-right branches through the public surface; all three
+  new declarations use the standard-three boundary, and the executable emitted
+  `Figure-7 waiting re-entry outer queue status: kernel-green`;
+- public theorem audit: 1101 entries total: 803 standard-three, 25 axiom-free,
   132 `propext`-only, and 141 `propext`/`Quot.sound` boundaries;
 - the default, extended, and cross-variant progress audits passed with every
   incomplete visited state carrying an exact ready head and successful
@@ -1197,16 +1229,16 @@ Exact-head proof GitHub verification:
 
 - workflow: `Lean CI`;
 - event/ref: `push` / `main`;
-- run: [32529218196](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32529218196);
-- build job: [96917687092][proof-job];
-- exact head: `72cbeff429d6d88290b1d616854f02257c00a3a5`;
+- run: [32532758263](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32532758263);
+- build job: [96927892744][proof-job];
+- exact head: `96de7bbc6910640278467eec51609a85f44e8e7c`;
 - result: 36 successful steps, zero failures, and one expected release-ref-only
   skip;
-- run: `2026-08-21T21:35:33Z`-`2026-08-21T21:46:53Z` (11m20s);
-- build job: `2026-08-21T21:35:36Z`-`2026-08-21T21:46:52Z`
-  (11m16s).
+- run: `2026-08-21T22:23:29Z`-`2026-08-21T22:36:38Z` (13m09s);
+- build job: `2026-08-21T22:23:33Z`-`2026-08-21T22:36:37Z`
+  (13m04s).
 
-[proof-job]: https://github.com/fushanbobfan/proofnet-ir/actions/runs/32529218196/job/96917687092
+[proof-job]: https://github.com/fushanbobfan/proofnet-ir/actions/runs/32532758263/job/96927892744
 [reentry-failure]: api-reference.md#commitment-interval-par-guard-re-entry-failure-target
 [reentry-mate-separation]: api-reference.md#commitment-interval-par-guard-re-entry-mate-separation
 [target-temporal]: api-reference.md#commitment-interval-marked-re-entry-target-temporal-reduction
@@ -1239,6 +1271,7 @@ Exact-head proof GitHub verification:
 [wait-outer-obstruction]: api-reference.md#waiting-re-entry-continuation-outer-obstruction
 [wait-contains]: api-reference.md#waiting-re-entry-continuation-outer-containing-historical-status
 [wait-right]: api-reference.md#waiting-re-entry-continuation-stored-right-marked-outer-split
+[wait-outer-queue]: api-reference.md#waiting-re-entry-continuation-outer-queue-status
 [target-cycle]: api-reference.md#marked-re-entry-target-raw-return-cyclic-reduction
 
 Exact-head finite-audit GitHub verification:
@@ -1306,38 +1339,33 @@ deployment.
 
 The project goal remains open. The principal outstanding gates are:
 
-1. eliminate or payer-convert the endpoint-parametric finite raw-outside mate
-   and exact older waiting conclusion, then eliminate the surviving
-   authenticated active-representative marked target. The waiting endpoint now
-   retains one exact older-mate-to-target path, inner-conclusion avoidance, and
-   an aligned outside-to-inside edge. Its remaining outer split is a separate
-   marked historical classifier at `consumer.mate` in the avoiding branch, or
-   outer-conclusion membership plus a marked historical classifier at
-   `current.conclusion` in the containing branch. The explicit stored-right
-   premise removes only the containing status's selected-head alternative;
-   occurrence localization, witness alignment, elimination, and payer
-   conversion remain open. The low-level
-   `SequentialFigure7FutureWorkQueueStatus.lean` module now provides the
-   reusable current-state classifier for an unmarked vertex outside a supplied
-   active owned list: currently absent from queue/live/`Produced`, or exact
-   scheduler work at some strictly older boundary. It has not yet been applied
-   to the raw-mate leaf of either outer marked classifier. First lift it into
-   both raw-unmarked target-consumer-mate alternatives without identifying a
-   branch classifier with the common path, crossing, or the other branch's
-   possible witness.
-   Use the simultaneous endpoint junctions, strict source-before-base order,
-   aligned sibling-exit causal witness, retained commitment paths, and refined
-   scheduler/ownership classification as applicable. Eliminate the remaining
-   older-outside ready/waiting endpoint or broader selected/mate raw return, or
-   recover a distinct ready-tail payer; discharge
-   the par-pair residual and the
-   mate-separated target's remaining finite alternatives; eliminate that
-   target or descend its mark to a distinct active payer; and eliminate the equal-final
+1. transport the branch-local queue-status waiting-parent target through the
+   higher waiting-parent external-reentry outcome, active future-work-mate
+   scheduler status, sibling outcomes, and typed-Wait trace. The outer theorem
+   already returns that target at `consumer.mate` in the avoiding branch, or
+   retains outer-conclusion membership and returns the same target shape at
+   `current.conclusion` in the containing branch. It does not return both
+   targets simultaneously. The explicit stored-right premise removes only the
+   containing status's selected-head alternative, and `currentMateOutside` is
+   the sole added premise. The next wrapper does not store the outer theorem's
+   separate common path, so transport must not invent witness alignment.
+   The queue status refines only the raw-mate leaf; the exact initialized-
+   waiting conclusion leaf remains unchanged.
+   Then eliminate or payer-convert the current-absence and exact older-work
+   leaves, the exact older waiting conclusion, and the surviving authenticated
+   active-representative marked target. Occurrence localization, elimination,
+   and payer conversion remain open. Use the separately proved simultaneous
+   endpoint junctions, strict source-before-base order, aligned sibling-exit
+   causal witness, retained commitment paths, and refined scheduler/ownership
+   classification as applicable. Eliminate the remaining older-outside
+   ready/waiting endpoint or broader selected/mate raw return, or recover a
+   distinct ready-tail payer; discharge the par-pair residual and the mate-
+   separated target's remaining finite alternatives; eliminate that target or
+   descend its mark to a distinct active payer; and eliminate the equal-final
    conclusion-to-selected/mate trace obstructions over the retained commitment
-   interval;
-   resolve the waiting/raw outcome alternatives; then derive the remaining
-   global-created Forward/UnifyPayload alternatives;
-   equivalently, prove that correctness plus `CanonicalTagHistory` implies
+   interval; resolve the waiting/raw outcome alternatives; then derive the
+   remaining global-created Forward/UnifyPayload alternatives; equivalently,
+   prove that correctness plus `CanonicalTagHistory` implies
    `ActiveTopDebtTailLaw`. Only after that gate may endpoint debt combine with
    active-top drainedness and marking incompleteness in an unconditional
    progress argument. The unrestricted `ActiveTopContinuationExitLocalized`
