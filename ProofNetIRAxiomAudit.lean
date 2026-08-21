@@ -602,6 +602,9 @@ namespace ActiveCarrierExternalReentryMarkedOuterMateSeparatedContinuationExitTa
 end ActiveCarrierExternalReentryMarkedOuterMateSeparatedContinuationExitTarget
 namespace FutureWorkAtExactWaitingLocation
 #print axioms activeTargetProducerOrientation
+#print axioms mateToTargetAvoidingPath
+#print axioms activeTargetMateAlignedAvoidingReentry
+#print axioms activeTargetMateAvoidingReentry
 end FutureWorkAtExactWaitingLocation
 end ProofNetIR.SequentialFigure7
 #print axioms

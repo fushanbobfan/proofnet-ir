@@ -12596,6 +12596,89 @@ ProofNetIR.SequentialFigure7.FutureWorkAtExactWaitingLocation.activeTargetProduc
                                                 state.core.representative youngerAge = active
 ```
 
+## Waiting re-entry continuation mate avoidance
+
+### `ProofNetIR.SequentialFigure7.FutureWorkAtExactWaitingLocation.mateToTargetAvoidingPath`
+
+Kind: theorem.
+
+The opposite premise of a consumer of an exact waiting conclusion has an
+exact reference-switching path to the consumed premise which avoids that
+conclusion. No active-boundary or raw-mark orientation is needed.
+
+```lean
+ProofNetIR.SequentialFigure7.FutureWorkAtExactWaitingLocation.mateToTargetAvoidingPath : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {boundary : ProofNetIR.SequentialSchedulerState.RawTokenAge} {target : ProofNetIR.Vertex},
+  certificate.DeclarativelyCorrect →
+    ∀ (consumer : ProofNetIR.ConnectiveBelow certificate target),
+      ProofNetIR.SequentialFigure7.FutureWorkAtExactWaitingLocation certificate state boundary consumer.conclusion →
+        ∃ path, path.start = consumer.mate ∧ path.finish = target ∧ ¬consumer.conclusion ∈ path.vertices
+```
+
+### `ProofNetIR.SequentialFigure7.FutureWorkAtExactWaitingLocation.activeTargetMateAlignedAvoidingReentry`
+
+Kind: theorem.
+
+When the consumed waiting premise represents the active carrier, its
+opposite older mate is outside that carrier. The exact avoiding path therefore
+retains both its target and an outside-to-inside directed re-entry occurrence.
+
+```lean
+ProofNetIR.SequentialFigure7.FutureWorkAtExactWaitingLocation.activeTargetMateAlignedAvoidingReentry : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {active boundary targetAge : ProofNetIR.SequentialSchedulerState.RawTokenAge} {target : ProofNetIR.Vertex},
+  certificate.DeclarativelyCorrect →
+    ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+      ∀ {component : ProofNetIR.UnificationComponent} {usedLinks owned : List Nat},
+        state.core.components[active]? = some (some component) →
+          certificate.ComponentOccurrenceWitness component usedLinks owned →
+            ∀ (consumer : ProofNetIR.ConnectiveBelow certificate target),
+              ProofNetIR.SequentialFigure7.FutureWorkAtExactWaitingLocation certificate state boundary
+                  consumer.conclusion →
+                state.core.marks[target]? = some (some targetAge) →
+                  state.core.representative targetAge = active →
+                    boundary < active →
+                      consumer.kind = ProofNetIR.SequentialConnectiveKind.par ∧
+                        ProofNetIR.Certificate.OwnedOccurrenceAccounted state.core active component owned ∧
+                          target ∈ owned ∧
+                            ¬consumer.mate ∈ owned ∧
+                              ∃ path directed,
+                                path.start = consumer.mate ∧
+                                  path.finish = target ∧
+                                    directed ∈ path.traversed ∧
+                                      ¬directed.source ∈ owned ∧
+                                        directed.target ∈ owned ∧ ¬consumer.conclusion ∈ path.vertices
+```
+
+### `ProofNetIR.SequentialFigure7.FutureWorkAtExactWaitingLocation.activeTargetMateAvoidingReentry`
+
+Kind: theorem.
+
+Wrapper-oriented form of `activeTargetMateAlignedAvoidingReentry`. The
+packaged re-entry uses the exact mate-to-target path and directed boundary
+occurrence retained by that stronger theorem.
+
+```lean
+ProofNetIR.SequentialFigure7.FutureWorkAtExactWaitingLocation.activeTargetMateAvoidingReentry : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {active boundary targetAge : ProofNetIR.SequentialSchedulerState.RawTokenAge} {target : ProofNetIR.Vertex},
+  certificate.DeclarativelyCorrect →
+    ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+      ∀ {component : ProofNetIR.UnificationComponent} {usedLinks owned : List Nat},
+        state.core.components[active]? = some (some component) →
+          certificate.ComponentOccurrenceWitness component usedLinks owned →
+            ∀ (consumer : ProofNetIR.ConnectiveBelow certificate target),
+              ProofNetIR.SequentialFigure7.FutureWorkAtExactWaitingLocation certificate state boundary
+                  consumer.conclusion →
+                state.core.marks[target]? = some (some targetAge) →
+                  state.core.representative targetAge = active →
+                    boundary < active →
+                      consumer.kind = ProofNetIR.SequentialConnectiveKind.par ∧
+                        ProofNetIR.Certificate.OwnedOccurrenceAccounted state.core active component owned ∧
+                          target ∈ owned ∧
+                            ¬consumer.mate ∈ owned ∧
+                              ProofNetIR.SequentialFigure7.ActiveCarrierExternalEndpointReentryAvoiding certificate
+                                owned consumer.mate consumer.conclusion
+```
+
 ## Marked re-entry target raw-return cyclic reduction
 
 ### `ProofNetIR.SequentialFigure7.MarkedConclusionRawReturnCyclicOutcome`

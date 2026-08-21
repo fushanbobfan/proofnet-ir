@@ -713,15 +713,24 @@ representatives are returned at the older and active boundaries. The theorem
 preserves every exact-location field and assumes only `SchedulerInvariant`,
 the location, target mark, representative equation, and boundary order. It
 uses no carrier, component lookup, occurrence witness, history, `noTail`, or
-declarative correctness. This is not target elimination: the raw survivor is
-untouched, and no payer, path, tail law, or progress theorem follows.
-Global preservation of the mate-region and older-raw-mark invariants through
-candidate-creating rules remains open, as do queue origin, created-candidate raw
-seams, derivation of the re-entry avoidance premise, marked-history descent,
-unconditional active-top completion, progress,
-later-state totality,
-fallback removal,
-sequentialization, faithful token-age scheduling, and whole-program linearity.
+declarative correctness. That orientation theorem alone is not target
+elimination and supplies no path.
+`SequentialFigure7WaitingReentryContinuationMateAvoiding.lean` likewise adds
+no source reading, oracle, or runtime evidence. Its minimal theorem applies the
+existing declarative par-premise path theorem to obtain the exact
+mate-to-target path avoiding the inner waiting conclusion. Its carrier-aware
+theorem uses only existing component-forest ownership to align the target
+inside, the older mate outside, and an outside-to-inside directed occurrence
+on that same path; its corollary packages the existing avoiding-re-entry
+predicate. This derives the previously open inner re-entry-avoidance witness
+but does not show avoidance of the outer selected parent conclusion or
+eliminate or payer-convert either survivor. Global preservation of the
+mate-region and older-raw-mark invariants through candidate-creating rules
+remains open, as do queue origin, created-candidate raw seams, consumption of
+the aligned waiting re-entry into elimination or payer recovery,
+marked-history descent, unconditional active-top completion, progress,
+later-state totality, fallback removal, sequentialization, faithful token-age
+scheduling, and whole-program linearity.
 The future-head-touch invariant is
 preserved through New and through
 Wait, Forward, and UnifyPayload after structurally deriving their created-head

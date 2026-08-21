@@ -1232,9 +1232,19 @@ equations and every exact-location field. Its assumptions are only
 `SchedulerInvariant`, the location, target mark, active-representative
 equation, and strict boundary order. There is no carrier or component lookup,
 occurrence witness, history, `noTail`, or declarative-correctness input. The
-result leaves the raw survivor untouched and proves no target elimination,
-payer, path or witness alignment, tail law, progress, completion, termination,
-or totality.
+result leaves the raw survivor untouched and supplies no path, payer, tail law,
+progress, completion, termination, or totality.
+`SequentialFigure7WaitingReentryContinuationMateAvoiding.lean` adds no runtime
+oracle, native-computed evidence, or new trusted source. Its path theorem uses
+the existing declarative reference-switching theorem; its aligned theorem uses
+the existing scheduler component forest to prove target ownership, mate
+externality, and an outside-to-inside directed occurrence on the same exact
+inner-conclusion-avoiding path. The wrapper corollary packages those same
+witnesses without choosing another path. All three declarations print with
+`propext`, `Classical.choice`, and `Quot.sound`. The module supplies the missing
+inner waiting-branch avoiding re-entry, but does not establish avoidance of the
+outer selected parent conclusion or prove survivor elimination, a payer,
+history-tail law, or progress.
 `SequentialFigure7CrossRepresentativeWaitPreservation.lean` adds no hidden
 source-region oracle. Its output-work classification follows only from the
 typed destination's exact waiting prepend and unchanged ready/sigma fields;

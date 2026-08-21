@@ -319,6 +319,12 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "waitingParentTarget",
     "ProofNetIR.SequentialFigure7.FutureWorkAtExactWaitingLocation."
     "activeTargetProducerOrientation",
+    "ProofNetIR.SequentialFigure7.FutureWorkAtExactWaitingLocation."
+    "mateToTargetAvoidingPath",
+    "ProofNetIR.SequentialFigure7.FutureWorkAtExactWaitingLocation."
+    "activeTargetMateAlignedAvoidingReentry",
+    "ProofNetIR.SequentialFigure7.FutureWorkAtExactWaitingLocation."
+    "activeTargetMateAvoidingReentry",
     "ProofNetIR.SequentialFigure7.MarkedConclusionChain."
     "rawReturnCyclicReduction",
     "ProofNetIR.SequentialFigure7.MarkedConclusionChain."

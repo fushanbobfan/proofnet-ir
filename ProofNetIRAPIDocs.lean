@@ -1449,6 +1449,20 @@ def sections : List Section := [
     ]
   },
   {
+    title := "Waiting re-entry continuation mate avoidance"
+    declarations := [
+      Name.str
+        `ProofNetIR.SequentialFigure7.FutureWorkAtExactWaitingLocation
+        "mateToTargetAvoidingPath",
+      Name.str
+        `ProofNetIR.SequentialFigure7.FutureWorkAtExactWaitingLocation
+        "activeTargetMateAlignedAvoidingReentry",
+      Name.str
+        `ProofNetIR.SequentialFigure7.FutureWorkAtExactWaitingLocation
+        "activeTargetMateAvoidingReentry"
+    ]
+  },
+  {
     title := "Marked re-entry target raw-return cyclic reduction"
     declarations := [
       `ProofNetIR.SequentialFigure7.MarkedConclusionRawReturnCyclicOutcome,

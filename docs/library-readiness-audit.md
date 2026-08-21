@@ -1455,6 +1455,19 @@ part of the engineering and proof-identity gap.
    `noTail`, or declarative correctness enters the interface. The theorem does
    not eliminate a survivor, recover a payer, align paths or witnesses, derive
    a tail law, or prove progress. In particular, the raw survivor is unchanged.
+   `SequentialFigure7WaitingReentryContinuationMateAvoiding.lean` adds no
+   source reading, oracle, runtime evidence, or trusted primitive. Its three
+   public theorems and runnable consumer audit the standard-three boundary.
+   The minimal theorem derives the exact inner-conclusion-avoiding
+   mate-to-target path from declarative correctness and the exact location
+   alone. The aligned theorem adds existing component-forest provenance to
+   prove active target ownership, older-mate externality, and one
+   outside-to-inside directed edge on that same path; the corollary packages
+   that witness in `ActiveCarrierExternalEndpointReentryAvoiding`. This closes
+   the missing inner witness-construction layer, not the two-case continuation
+   gate: the path is not shown to avoid the outer selected parent conclusion,
+   neither survivor is eliminated or payer-converted, and no tail law or
+   progress theorem follows.
    `SequentialFigure7CommitmentBlockerAdvance.lean` now combines the global
    queued-head law, strict split, and equal-boundary result. Under declarative
    correctness and the complete scheduler invariant, for a supplied canonical

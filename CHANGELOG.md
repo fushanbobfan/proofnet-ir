@@ -2,6 +2,23 @@
 
 ## Unreleased
 
+- derived the exact conclusion-avoiding mate route and aligned active-carrier
+  re-entry for the older waiting continuation.
+  `SequentialFigure7WaitingReentryContinuationMateAvoiding.lean` adds three
+  theorems. `FutureWorkAtExactWaitingLocation.mateToTargetAvoidingPath` needs
+  only declarative correctness and the exact waiting location and returns an
+  exact mate-to-target reference path avoiding the inner waiting conclusion.
+  `activeTargetMateAlignedAvoidingReentry` additionally uses the complete
+  scheduler invariant and an explicit active-carrier lookup/occurrence witness;
+  it returns the par classification, aligned occurrence accounting, target
+  ownership, mate externality, and an outside-to-inside directed edge on that
+  same exact path. `activeTargetMateAvoidingReentry` packages those same
+  witnesses as `ActiveCarrierExternalEndpointReentryAvoiding`. All three print
+  with the standard-three trust boundary. This discharges the missing inner
+  waiting-branch avoidance/re-entry construction, but does not align avoidance
+  with the outer selected parent conclusion, eliminates neither survivor, and
+  proves no payer, history-tail law, progress, completion, termination, or
+  totality;
 - oriented the exact producer of the strictly older waiting continuation.
   `SequentialFigure7WaitingReentryContinuationProducerOrientation.lean` adds
   `FutureWorkAtExactWaitingLocation.activeTargetProducerOrientation`. For an

@@ -1227,9 +1227,18 @@
     both representative equations. Require no carrier, component lookup,
     occurrence witness, history, `noTail`, or declarative correctness. Preserve
     every exact-location field and leave the raw survivor unchanged.
-  - [ ] Eliminate the surviving two-case target or derive the exact distinct
-    payer needed from it. The reduction supplies no avoiding witness or aligned
-    re-entry path. Then eliminate the remaining cyclic residuals, broader exact
+  - [x] Derive the waiting branch's exact inner avoidance and aligned re-entry.
+    From declarative correctness and the exact location, retain the exact
+    older-mate-to-target path avoiding the waiting conclusion. With the active
+    component lookup and occurrence witness, prove target ownership and mate
+    externality and retain an outside-to-inside directed occurrence on that
+    same path; package the existing avoiding-re-entry carrier without choosing
+    another witness.
+  - [ ] Consume the aligned waiting re-entry through the historical/`noTail`
+    target classification and eliminate or payer-convert that survivor, while
+    separately eliminating or converting the raw survivor. The current path
+    avoids the inner waiting conclusion, not yet the outer selected parent
+    conclusion. Then eliminate the remaining cyclic residuals, broader exact
     selected/mate raw returns, and equal-final traces, and close the history-tail
     law. Do not infer unconditional dispatcher progress, completion,
     termination, later-state totality, global raw seams, fallback removal,
@@ -1553,15 +1562,20 @@
     has exactly two parent forms: a raw-unmarked consumer mate outside active
     ownership, or its conclusion as strictly older future work in an exact
     initialized waiting cell retaining the submitted par data and boundary
-    equations. The older waiting producer is now oriented without carrier or
-    history assumptions: its active-representative target is the younger
-    premise, the consumer mate is the older premise, its target age is the
-    younger age, and the younger boundary is active, with both representative
-    equations exposed. The raw survivor, broader equal-final selected/mate
-    traces, and the inclusive outer split remain. Next eliminate this two-case
-    target or recover a payer,
-    eliminate the equal-final traces, and close the tail law before
-    claiming exhaustive progress on incomplete, correct, certified-reachable states.
+    equations. The older waiting producer is oriented with the active target
+    as its younger premise and the consumer mate as its older premise.
+    Declarative correctness now yields an exact older-mate-to-target path
+    avoiding that inner waiting conclusion. With the explicit active-carrier
+    occurrence, forest ownership places the target inside and the mate outside,
+    retaining an outside-to-inside edge on that same path and packaging the
+    existing avoiding-re-entry carrier. This discharges the waiting branch's
+    missing inner path/re-entry input, but the path is not yet aligned against
+    the outer selected parent conclusion and both survivors remain. Next
+    consume the aligned re-entry through the existing `noTail`/historical
+    target classification and then eliminate or payer-convert that branch;
+    separately resolve the raw survivor, equal-final traces, and history-tail
+    law before claiming exhaustive progress on incomplete, correct,
+    certified-reachable states.
     Exact source-left complexity descent, last-step decomposition, and
     recursive visited-route separation from the selected head are now proved.
     Reference-switching geometry now also excludes a terminal axiom partner

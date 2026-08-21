@@ -1845,10 +1845,23 @@ location field together with `target = youngerPremise`,
 older and active boundaries respectively. Its inputs are only the scheduler
 invariant, exact location, target mark, active-representative equation, and
 strict boundary order. It requires no component lookup, carrier occurrence,
-canonical history, `noTail`, or declarative correctness. This local
-orientation leaves the raw survivor intact and proves no target elimination,
-payer, path or witness alignment, history-tail law, progress, completion,
-termination, or totality.
+canonical history, `noTail`, or declarative correctness. That orientation
+theorem alone leaves the raw survivor intact and supplies no path, payer,
+history-tail law, progress, completion, termination, or totality.
+
+`SequentialFigure7WaitingReentryContinuationMateAvoiding.lean` supplies the
+next geometric bridge. From `DeclarativelyCorrect` and an exact waiting
+location, `mateToTargetAvoidingPath` returns an exact path from the consumer
+mate to the target while avoiding the inner waiting conclusion. With the
+complete scheduler invariant and an explicit active-component lookup and
+occurrence witness, `activeTargetMateAlignedAvoidingReentry` aligns the target
+inside the active owned carrier and its older mate outside, and retains an
+outside-to-inside directed occurrence on that same path.
+`activeTargetMateAvoidingReentry` packages exactly those witnesses in the
+existing avoiding-re-entry carrier. This derives the previously missing inner
+waiting-branch avoidance/re-entry premise. It does not show that the path
+avoids the outer selected parent conclusion, eliminate the raw or waiting
+survivor, recover a payer, or close the history-tail or progress gates.
 
 `SequentialFigure7CommitmentBlockerAdvance.lean` joins the global queued-head
 law, the strict `sigma` split, the strict-edge avoiding adapter, and the final
