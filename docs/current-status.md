@@ -17,7 +17,7 @@ Status date: 2026-08-21
 | Track | Revision | Status | Authority |
 | --- | --- | --- | --- |
 | Stable library | `v0.9.0` / `9b7dc3d104af8f57ea9123aab2e61b42e05d2216` | Released | [v0.9.0 release audit](v0.9-release-audit.md) |
-| Rolling research | `v0.10.0-dev`; proof `661aa4b`; audit `1e46573` | Active | This page/commits |
+| Rolling research | `v0.10.0-dev`; proof `314de80`; audit `1e46573` | Active | This page/commits |
 
 Documentation-only commits may descend from the proof checkpoint without
 changing its mathematical authority. The stable release and rolling branch
@@ -952,7 +952,7 @@ existential and not proved first, unique, or canonical. No queue origin,
 persistence, reachability, dispatchability, elimination, payer, history-tail
 law, progress, completion, termination, or totality follows.
 
-The current [waiting commitment re-entry queue-status outcome][wait-endpoint-queue]
+The preceding [waiting commitment re-entry queue-status outcome][wait-endpoint-queue]
 transports that target through both constructors of the exact waiting-parent
 endpoint. Its `olderFuture` branch preserves the boundary, work, strict age,
 outside-carrier fact, commitment split, crossing, and re-entry receipts. Its
@@ -971,9 +971,26 @@ endpoint older-future boundary is not identified with the nested queue leaf's
 future-work boundary. Only the final raw-unmarked leaf is current-state; the
 exact initialized-waiting leaf is unchanged. No queue origin,
 persistence, reachability, dispatchability, elimination, payer, tail law,
-progress, completion, termination, or totality follows. Transport through the
-active future-work-mate scheduler status, continuation, sibling, and typed-Wait
-wrappers remains open.
+progress, completion, termination, or totality follows.
+
+The current [future-work mate queue-status checkpoint][wait-mate-queue] lifts
+that endpoint outcome through the two-case future-work mate temporal status.
+Its `olderOutside` branch preserves `notMembership` and
+`representativeOlder` verbatim. Its `activeExternal` branch preserves
+`membership`, `representative`, and the exact `waiting` witness, changing only
+the `external` endpoint through `queueStatusOutcome`.
+
+Beyond the supplied temporal status, the adapter's premises are exactly the
+scheduler invariant, active component lookup, component occurrence witness,
+and no-tail premise. It adds no correctness, current-mate-outside,
+connectedness, par-kind, stored-side, or geometric premise. It introduces no
+equality among the status boundary, endpoint older-future boundary, and nested
+future-work boundary, and does not align the endpoint crossing or re-entry
+receipts with the nested target path. The older-outside branch is neither
+queue-classified nor eliminated. Continuation, sibling, and typed-Wait
+transport remains open, as do queue origin, queue history, persistence,
+reachability, payer recovery, a tail law, progress, completion, termination,
+and totality.
 
 ### Finite ready-head boundary audit
 
@@ -1048,23 +1065,23 @@ Exact signatures are maintained in the generated API reference for the
 [waiting re-entry continuation stored-right marked outer split][wait-right],
 [waiting re-entry continuation outer queue status][wait-outer-queue],
 [waiting commitment re-entry queue-status outcome][wait-endpoint-queue],
+[future-work mate external re-entry queue status][wait-mate-queue],
 [marked re-entry target raw-return cyclic reduction][target-cycle],
 [branch-local continuation credit](api-reference.md#branch-local-continuation-credit),
 [continuation-credit preservation](api-reference.md#continuation-credit-preservation),
 [endpoint-localized continuation exits](api-reference.md#endpoint-localized-continuation-exits),
 and the retained
 [Wait endpoint-locality obstruction](api-reference.md#wait-endpoint-locality-obstruction).
-The first open proof step is now to transport the exact two-constructor endpoint
-queue-status outcome through the active future-work-mate scheduler status, then
-through the continuation, sibling, and typed-Wait wrappers. This must be a
-shape-preserving wrapper map: `olderOutside` must preserve `notMembership` and
-`representativeOlder`; `activeExternal` must preserve `membership`,
-`representative`, and `waiting`, changing only its `external` field via
-`queueStatusOutcome`. The nested `olderFuture` and `olderMarked` endpoint
-payloads stay unchanged. Transport cannot identify the status boundary,
-endpoint older-future boundary, or nested queue boundary, nor can it align the
-endpoint crossing and re-entry witnesses with the nested target's internal
-path.
+The first open proof step is now to transport the future-work mate queue status
+through the three-case continuation outcome, then through the sibling and
+typed-Wait wrappers. This must preserve `rawOutside` and `rawSelectedReturn`
+verbatim. In `futureOlder`, the chain, endpoint, future-work boundary, marks,
+canonical events, representative order, unresolved event-order disjunction,
+and exact scheduler location must remain unchanged; only `mateStatus` may be
+mapped through `queueStatus`. The continuation boundary is already shared by
+its work, mate status, and location. Transport must not introduce an equality
+between that shared boundary and an endpoint older-future or nested queue
+boundary, or align endpoint receipts with the nested target path.
 
 The currently absent and exact older-work leaves still require elimination or
 payer conversion, as does the exact initialized-waiting conclusion alternative.
@@ -1112,7 +1129,7 @@ This checkpoint does not establish any of the following:
   splits at the outer selected conclusion into a branch-local queue-status
   waiting-parent target at `consumer.mate`, or outer-conclusion membership and
   the same target shape at `current.conclusion`. Each target retains its
-  independently witnessed marked parent. The current endpoint adapter carries
+  independently witnessed marked parent. The preceding endpoint adapter carries
   that target through the exact continuation-exit and waiting-parent maps in
   both the older-future and older-marked endpoint constructors, preserving all
   other endpoint payloads. Only the final raw mate leaf is current-state
@@ -1139,10 +1156,10 @@ This checkpoint does not establish any of the following:
   both submitted premises, the exact younger-target/older-mate producer
   orientation, or the older-outside/active-owned mate classification, or
   conversion of those facts into a distinct active payer;
-- transport of the exact two-constructor endpoint queue-status outcome through
-  the active future-work-mate scheduler status, continuation, sibling, or
-  typed-Wait wrappers; its absent leaf is current-state only, and its older-work
-  boundary is existential rather than unique or first;
+- transport of the future-work mate queue-status carrier through the
+  continuation, sibling, and typed-Wait wrappers; both raw continuation exits
+  must remain unchanged, its absent leaf is current-state only, and its older-
+  work boundary is existential rather than unique or first;
 - totality of any operational schedule beyond the supplied canonical history,
   elimination of the causal first descent or a raw/future sibling exit, or
   conversion of an earlier event into a distinct ready-tail payer;
@@ -1197,12 +1214,12 @@ plan is maintained in [v0.10-design.md](v0.10-design.md) and
 The exact rolling proof checkpoint is:
 
 ```text
-commit    661aa4ba60c584b99ef1d9cbd4f32f3070ba1314
-tree      cfa0e3ad7d154647339593d7665bd3addbcb23ae
-parent    514e50b0b7e25897613ca4aae25321a1c4931db9
-stage     lift waiting endpoint queue status
-delta     17 paths, +405/-18
-manifest  3E14521F40AA8B4133BBB8FFEE04C6D029981F46818A3FAE9F3730D2B7C60F0A
+commit    314de805ddcb3dbb8aa9f35036114d31454b19c7
+tree      92248b71439634bacab13165a3a5af30de616f6c
+parent    e3639a317962ba7153598c570cc43c592ab4704b
+stage     lift future-work mate queue status
+delta     17 paths, +389/-33
+manifest  F9632B11EE303E9023852CCBC573242B176D6C2F1B97DF37FC536C8F4D3E7E5D
 ```
 
 The manifest hashes canonical
@@ -1211,9 +1228,9 @@ The manifest hashes canonical
 The checkpoint source receipts are:
 
 ```text
-endpoint queue source    68BA8A63CE87749216DEB4D25188759FF9E681A3FDF48062F628A47E2D300D6D
-endpoint queue consumer  9AF0289E38397FF363B74B972D97CE0F7F0AF3741C4DD4B0417E80CC1A203C6D
-generated API            8804696743CF3C176108B6BD240DF90994FB5F5697AC3C08ABE5799441C47B71
+future-work source    4CF9F06D429EC8E03731506DD94230343FA8EA7CF88068EC8AD66DDB523BBD1A
+future-work consumer  0CA236113B847C26CD82E682EF66EC60C9030051B2CC748BBE23267709803398
+generated API         C9759316C33D1A9A041F9152252097C220598AE814AFE1A8A96A1A924A695123
 ```
 
 The separately committed finite-audit evidence is:
@@ -1230,19 +1247,19 @@ manifest  4BBAB7FC99D03D2612459A0FD9291990313A05A184F2572A581BC93C6E49DFDD
 Local verification of the committed checkpoint, with ignored prototype probes
 included only in the broader source scan:
 
-- full `lake build`: 694/694 jobs;
+- full `lake build`: 699/699 jobs;
 - pre-push syntax-aware Lean source audit: zero actual `sorry`/`admit`
-  findings across the 346-file local non-build superset present at verification
+  findings across the 348-file local non-build superset present at verification
   time, including ignored prototype probes and zero actual `sorryAx` findings;
-- library inventory: 324 Lean files and 204,679 Lean source lines, including
-  180 module files under `ProofNetIR/`; a parser-aware count finds 176 imported
-  submodules in the public facade, or 177 modules including the facade itself;
-- generated API reference: current at 103 sections and 1,829 declarations;
-- the runnable endpoint queue-status consumer reconstructed both endpoint
-  constructors and invoked the public adapter; both new declarations use the
-  standard-three boundary, and the executable emitted
-  `Figure-7 waiting-parent external re-entry queue status: kernel-green`;
-- public theorem audit: 1103 entries total: 805 standard-three, 25 axiom-free,
+- library inventory: 326 Lean files and 204,878 Lean source lines, including
+  181 module files under `ProofNetIR/`; a parser-aware count finds 177 imported
+  submodules in the public facade, or 178 modules including the facade itself;
+- generated API reference: current at 104 sections and 1,831 declarations;
+- the runnable future-work mate consumer reconstructed both status constructors
+  and invoked the public adapter; both new declarations use the standard-three
+  boundary, and the executable emitted
+  `Figure-7 future-work mate queue status: kernel-green`;
+- public theorem audit: 1105 entries total: 807 standard-three, 25 axiom-free,
   132 `propext`-only, and 141 `propext`/`Quot.sound` boundaries;
 - the default, extended, and cross-variant progress audits passed with every
   incomplete visited state carrying an exact ready head and successful
@@ -1257,17 +1274,17 @@ Exact-head proof GitHub verification:
 
 - workflow: `Lean CI`;
 - event/ref: `push` / `main`;
-- run: [32535415808](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32535415808);
-- build job: [96935272443][proof-job];
-- title/attempt: `feat: lift waiting endpoint queue status` / 1;
-- exact head: `661aa4ba60c584b99ef1d9cbd4f32f3070ba1314`;
+- run: [32537416977](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32537416977);
+- build job: [96940817758][proof-job];
+- title/attempt: `feat: lift future-work mate queue status` / 1;
+- exact head: `314de805ddcb3dbb8aa9f35036114d31454b19c7`;
 - result: 36 successful steps, zero failures, and one expected release-ref-only
   skip;
-- run: `2026-08-21T23:02:53Z`-`2026-08-21T23:17:04Z` (14m11s);
-- build job: `2026-08-21T23:02:56Z`-`2026-08-21T23:17:03Z`
-  (14m07s).
+- run: `2026-08-21T23:35:30Z`-`2026-08-21T23:47:28Z` (11m58s);
+- build job: `2026-08-21T23:35:33Z`-`2026-08-21T23:47:28Z`
+  (11m55s).
 
-[proof-job]: https://github.com/fushanbobfan/proofnet-ir/actions/runs/32535415808/job/96935272443
+[proof-job]: https://github.com/fushanbobfan/proofnet-ir/actions/runs/32537416977/job/96940817758
 [reentry-failure]: api-reference.md#commitment-interval-par-guard-re-entry-failure-target
 [reentry-mate-separation]: api-reference.md#commitment-interval-par-guard-re-entry-mate-separation
 [target-temporal]: api-reference.md#commitment-interval-marked-re-entry-target-temporal-reduction
@@ -1302,6 +1319,7 @@ Exact-head proof GitHub verification:
 [wait-right]: api-reference.md#waiting-re-entry-continuation-stored-right-marked-outer-split
 [wait-outer-queue]: api-reference.md#waiting-re-entry-continuation-outer-queue-status
 [wait-endpoint-queue]: api-reference.md#waiting-commitment-re-entry-queue-status-outcome
+[wait-mate-queue]: api-reference.md#future-work-mate-external-re-entry-queue-status
 [target-cycle]: api-reference.md#marked-re-entry-target-raw-return-cyclic-reduction
 
 Exact-head finite-audit GitHub verification:
@@ -1369,19 +1387,16 @@ deployment.
 
 The project goal remains open. The principal outstanding gates are:
 
-1. transport the exact two-constructor endpoint queue-status outcome through
-   the active future-work-mate scheduler status, continuation outcome, sibling
-   outcomes, and typed-Wait trace. The next wrapper's `olderOutside` branch must
-   preserve `notMembership` and `representativeOlder`. Its `activeExternal`
-   branch must preserve `membership`, `representative`, and `waiting`, changing
-   only `external` through `queueStatusOutcome`; the nested older-future and
-   older-marked payloads already preserve the endpoint work or mark,
-   outside-carrier fact, commitment split, crossing, and re-entry receipts. The
-   wrapper must not identify the scheduler-status boundary, endpoint
-   older-future boundary, and nested queue boundary, or align the endpoint
-   outcome's crossing/re-entry witnesses with the nested target's internal path.
-   The queue status refines only the raw-mate leaf; the exact initialized-waiting
-   conclusion leaf remains unchanged.
+1. transport the future-work mate queue-status carrier through the continuation
+   outcome, sibling outcomes, and typed-Wait trace. The next wrapper must
+   preserve both raw continuation exits verbatim. Its future-work constructor
+   must preserve the chain, endpoint, work, marks, canonical events,
+   representative order, unresolved event-order disjunction, and exact
+   scheduler location, changing only `mateStatus` through `queueStatus`. The
+   shared continuation boundary must not be equated with an endpoint older-
+   future or nested queue boundary, and endpoint receipts must not be aligned
+   with the nested target path. The queue status refines only the raw-mate leaf;
+   the exact initialized-waiting conclusion leaf remains unchanged.
    Then eliminate or payer-convert the current-absence and exact older-work
    leaves, the exact older waiting conclusion, and the surviving authenticated
    active-representative marked target. Occurrence localization, elimination,
