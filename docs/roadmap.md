@@ -1129,6 +1129,10 @@
     complete cancellation by transporting its duplicate-free, cyclically
     nonbacktracking retained prefix into the correct reference-switching tree.
     Retain both endpoint junctions and the strict source-before-base order.
+  - [x] Re-root the sibling continuation after the first descent's shared
+    marked non-global conclusion. Use finite-chain terminal comparability to
+    rule out a marked-global endpoint before the authenticated outer mate,
+    while retaining the forward marked-global, raw, and future exits.
   - [ ] Use the strict cyclic endpoint order and aligned sibling causal witness
     with the retained commitment paths to eliminate the Wait descent or recover
     a distinct ready-tail payer. Then

@@ -192,6 +192,14 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "MarkedConclusionRawReturnCompleteCancellationTraversal.source_ne_base",
     "ProofNetIR.SequentialFigure7."
     "MarkedConclusionRawReturnCyclicJunctionCausalOutcome.completeEndpoints",
+    "ProofNetIR.SequentialFigure7.ContinuationExit.afterMarkedSibling",
+    "ProofNetIR.SequentialFigure7.ContinuationExit."
+    "outerTerminalForwardCausalOutcome",
+    "ProofNetIR.SequentialFigure7."
+    "ActiveCarrierExternalReentryMarkedMateSeparatedContinuationSiblingExitCausalEndpointTarget."
+    "forwardCausalTarget",
+    "ProofNetIR.SequentialFigure7.WaitStep."
+    "commitmentInterval_parTraceReentryMarkedContinuationSiblingExitForwardCausalOutcome",
     "ProofNetIR.SequentialFigure7.MarkedConclusionChain."
     "rawReturnCyclicReduction",
     "ProofNetIR.SequentialFigure7.MarkedConclusionChain."

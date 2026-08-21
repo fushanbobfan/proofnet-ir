@@ -1053,6 +1053,15 @@ only source equality in a nonempty complete-cancellation branch and retains
 both endpoint junctions and every other residual. The verified combined audit
 now covers 1031 theorems: 737 standard-three, 25 axiom-free, 129
 `propext`-only, and 140 `propext`/`Quot.sound` boundaries.
+`SequentialFigure7MarkedTargetRawReturnSiblingExitForwardCausalOrder.lean`
+adds two proposition carriers and four standard-three theorems. It uses only
+typed connective ownership, queued-vertex unmarkedness, finite marked-chain
+structure, and authenticated raw-mark chronology; no runtime oracle or new
+trust dependency is introduced. It eliminates only the marked-global-before
+alternative for the re-rooted sibling exit and retains every raw, future,
+cyclic, junction, par, descent, and tail-failure residual. The verified
+combined audit now covers 1035 theorems: 741 standard-three, 25 axiom-free, 129
+`propext`-only, and 140 `propext`/`Quot.sound` boundaries.
 `SequentialFigure7CrossRepresentativeWaitPreservation.lean` adds no hidden
 source-region oracle. Its output-work classification follows only from the
 typed destination's exact waiting prepend and unchanged ready/sigma fields;

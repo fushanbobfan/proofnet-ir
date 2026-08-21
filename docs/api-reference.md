@@ -10548,6 +10548,133 @@ ProofNetIR.SequentialFigure7.MarkedConclusionRawReturnCyclicJunctionCausalOutcom
                         ∃ sourceAge, tagHistory.RawMarkedBefore sourceAge source baseAge base
 ```
 
+## Marked re-entry target sibling-exit forward causal order
+
+### `ProofNetIR.SequentialFigure7.ContinuationExitOuterTerminalForwardCausalOutcome`
+
+Kind: inductive type.
+
+A continuation exit ordered forward from an authenticated outer vertex.
+Raw-mate and future endpoints remain unchanged; a marked-global endpoint is
+strictly after the outer event.
+
+```lean
+ProofNetIR.SequentialFigure7.ContinuationExitOuterTerminalForwardCausalOutcome : {certificate : ProofNetIR.Certificate} →
+  {state : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+    {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state} →
+      ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history →
+        ProofNetIR.Vertex → ProofNetIR.Vertex → ProofNetIR.SequentialSchedulerState.RawTokenAge → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.ContinuationExit.afterMarkedSibling`
+
+Kind: theorem.
+
+Remove one already-marked sibling step from a continuation exit.
+
+```lean
+ProofNetIR.SequentialFigure7.ContinuationExit.afterMarkedSibling : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  certificate.StructurallyWellFormed →
+    ProofNetIR.SequentialSchedulerBridge.QueuedVerticesUnmarked state →
+      ∀ {origin : ProofNetIR.Vertex} (consumer : ProofNetIR.ConnectiveBelow certificate origin)
+        {originAge conclusionAge : ProofNetIR.SequentialSchedulerState.RawTokenAge},
+        state.core.marks[origin]? = some (some originAge) →
+          state.core.marks[consumer.conclusion]? = some (some conclusionAge) →
+            ¬consumer.conclusion ∈ certificate.conclusions →
+              ProofNetIR.SequentialFigure7.ContinuationExit certificate state consumer.mate →
+                ProofNetIR.SequentialFigure7.ContinuationExit certificate state consumer.conclusion
+```
+
+### `ProofNetIR.SequentialFigure7.ContinuationExit.outerTerminalForwardCausalOutcome`
+
+Kind: theorem.
+
+Compare an exit from a common marked-chain origin with an authenticated
+outer vertex. A marked-global endpoint can only occur after that vertex.
+
+```lean
+ProofNetIR.SequentialFigure7.ContinuationExit.outerTerminalForwardCausalOutcome : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  {tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history} {origin outer : ProofNetIR.Vertex}
+  {outerAge : ProofNetIR.SequentialSchedulerState.RawTokenAge},
+  ProofNetIR.SequentialFigure7.ContinuationExit certificate state origin →
+    ProofNetIR.SequentialFigure7.MarkedConclusionChain certificate state origin outer →
+      tagHistory.RawMarked outerAge outer →
+        ProofNetIR.SequentialFigure7.ContinuationExitOuterTerminalForwardCausalOutcome tagHistory origin outer outerAge
+```
+
+### `ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedContinuationSiblingExitForwardCausalTarget`
+
+Kind: definition.
+
+The marked re-entry target with its sibling continuation re-rooted at the
+shared cyclic source. A marked-global endpoint is retained only after the
+authenticated outer terminal.
+
+```lean
+ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedContinuationSiblingExitForwardCausalTarget : {certificate : ProofNetIR.Certificate} →
+  {state : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+    {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state} →
+      ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history →
+        (input : ProofNetIR.SequentialFigure7.ReadyHeadInput state) →
+          ProofNetIR.UnificationComponent →
+            List ProofNetIR.Vertex → ProofNetIR.ConnectiveBelow certificate input.vertex → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedContinuationSiblingExitCausalEndpointTarget.forwardCausalTarget`
+
+Kind: theorem.
+
+Re-root the sibling exit at its shared marked parent and remove the
+marked-global-before case without changing the other target branches.
+
+```lean
+ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedContinuationSiblingExitCausalEndpointTarget.forwardCausalTarget : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  {tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history}
+  {input : ProofNetIR.SequentialFigure7.ReadyHeadInput state} {component : ProofNetIR.UnificationComponent}
+  {owned : List ProofNetIR.Vertex} {current : ProofNetIR.ConnectiveBelow certificate input.vertex},
+  certificate.StructurallyWellFormed →
+    ProofNetIR.SequentialSchedulerBridge.QueuedVerticesUnmarked state →
+      ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedContinuationSiblingExitCausalEndpointTarget
+          tagHistory input component owned current →
+        ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedContinuationSiblingExitForwardCausalTarget
+          tagHistory input component owned current
+```
+
+### `ProofNetIR.SequentialFigure7.WaitStep.commitmentInterval_parTraceReentryMarkedContinuationSiblingExitForwardCausalOutcome`
+
+Kind: theorem.
+
+In the strictly older Wait branch, re-root the sibling exit at the cyclic
+source and retain only the forward marked-global order.
+
+```lean
+ProofNetIR.SequentialFigure7.WaitStep.commitmentInterval_parTraceReentryMarkedContinuationSiblingExitForwardCausalOutcome : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before},
+  certificate.DeclarativelyCorrect →
+    certificate.ReferenceSwitchingConnected →
+      ∀ (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+        ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+          ∀ (step : ProofNetIR.SequentialFigure7.WaitStep certificate before after)
+            {component : ProofNetIR.UnificationComponent} {usedLinks owned : List Nat},
+            before.core.components[step.prepared.stackResult.rawAge]? = some (some component) →
+              certificate.ComponentOccurrenceWitness component usedLinks owned →
+                ∀ {position edgeCount : Nat} {first : ProofNetIR.SequentialSchedulerState.RawTokenAge},
+                  0 < edgeCount →
+                    before.stack.sigma[position]? = some first →
+                      before.stack.sigma[position + edgeCount]? = some step.prepared.stackResult.rawAge →
+                        (¬∃ pending,
+                              pending ∈ step.prepared.stackResult.remainingTop ∧ ¬pending ∈ certificate.conclusions) →
+                          tagHistory.CommitmentIntervalParTraceOutcome step.prepared.readyHeadInput step.consumer
+                            position edgeCount first
+                            (¬step.consumer.mate ∈ owned ∧
+                              before.core.marks[step.consumer.mate]? = some (some step.mateRawAge) ∧
+                                before.core.representative step.mateRawAge < step.prepared.stackResult.rawAge ∧
+                                  ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedContinuationSiblingExitForwardCausalTarget
+                                    tagHistory step.prepared.readyHeadInput component owned step.consumer)
+```
+
 ## Marked re-entry target raw-return cyclic reduction
 
 ### `ProofNetIR.SequentialFigure7.MarkedConclusionRawReturnCyclicOutcome`

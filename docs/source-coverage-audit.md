@@ -545,6 +545,14 @@ reference-switching tree to rule out source-equals-base for a nonempty complete
 cancellation. Both exact endpoint junctions remain and the source is strictly
 before the authenticated outer event. No other cyclic or sibling residual is
 eliminated.
+`SequentialFigure7MarkedTargetRawReturnSiblingExitForwardCausalOrder.lean`
+adds no source reading. It re-roots the sibling continuation after the shared
+marked non-global conclusion and uses uniqueness of submitted parents to make
+finite marked-conclusion chain terminals comparable. A marked-global endpoint
+must consequently occur strictly after the authenticated outer event. Raw and
+future exits, complete cancellation, both endpoint junctions, the par
+residual, the descent, and tail failure remain, so no payer, history-tail law,
+completion, or progress theorem follows.
 Global preservation of the mate-region and older-raw-mark invariants through
 candidate-creating rules remains open, as do queue origin, created-candidate raw
 seams, derivation of the re-entry avoidance premise, marked-history descent,

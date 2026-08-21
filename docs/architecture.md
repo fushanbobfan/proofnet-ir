@@ -1640,6 +1640,15 @@ closed cyclically nonbacktracking walk in the correct reference switching,
 contradicting its tree contract. The combined theorem therefore keeps both
 endpoint junctions and places the source strictly before the authenticated
 base. Complete cancellation and every other residual remain open.
+`SequentialFigure7MarkedTargetRawReturnSiblingExitForwardCausalOrder.lean`
+then re-roots the sibling continuation after the first descent's shared marked
+non-global conclusion. Submitted-parent uniqueness makes two finite marked-
+conclusion chains from the same origin terminal-comparable. Against the chain
+to the authenticated outer mate, any marked-global sibling endpoint must
+therefore occur strictly later; the earlier order is impossible. The generic
+target and typed Wait theorem retain raw-mate and future-conclusion exits,
+complete cancellation, both endpoint junctions, the par residual, the descent,
+and tail failure. No payer, history-tail law, completion, or progress follows.
 
 `SequentialFigure7CommitmentBlockerAdvance.lean` joins the global queued-head
 law, the strict `sigma` split, the strict-edge avoiding adapter, and the final

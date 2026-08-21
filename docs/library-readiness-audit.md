@@ -1249,6 +1249,16 @@ part of the engineering and proof-identity gap.
    eliminated. The verified combined audit now covers 1031 theorems: 737
    standard-three, 25 axiom-free, 129 `propext`-only, and 140
    `propext`/`Quot.sound` boundaries.
+   `SequentialFigure7MarkedTargetRawReturnSiblingExitForwardCausalOrder.lean`
+   then re-roots the first descent's sibling continuation after its shared
+   marked non-global conclusion. Finite marked-conclusion chains from the same
+   origin have comparable terminals, which forces every marked-global sibling
+   endpoint strictly after the authenticated outer mate and eliminates the
+   earlier order. Raw and future exits, complete cancellation, both endpoint
+   junctions, the par residual, the descent, and tail failure remain. No payer,
+   history-tail law, completion, or progress follows. The verified combined
+   audit now covers 1035 theorems: 741 standard-three, 25 axiom-free, 129
+   `propext`-only, and 140 `propext`/`Quot.sound` boundaries.
    `SequentialFigure7CommitmentBlockerAdvance.lean` now combines the global
    queued-head law, strict split, and equal-boundary result. Under declarative
    correctness and the complete scheduler invariant, for a supplied canonical

@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- re-rooted the first causal descent's sibling continuation after its shared
+  marked non-global conclusion. Finite marked-conclusion chains from the same
+  origin have comparable terminals, so a marked-global sibling endpoint is
+  now strictly after the authenticated outer event; the former earlier branch
+  is eliminated. Raw-mate and future-conclusion exits, complete cancellation,
+  both exact junctions, the par-pair residual, the descent, and ready-tail
+  failure remain. This proves no payer, history-tail law, completion, or
+  progress result. The verified combined audit now covers 1035 theorems: 741
+  standard-three, 25 axiom-free, 129 `propext`-only, and 140
+  `propext`/`Quot.sound` boundaries;
 - eliminated the source-equals-base subcase of nonempty complete raw-return
   cancellation. Duplicate-free retained-prefix indices upgrade internal
   nonbacktracking to cyclic nonbacktracking; if the source closed at the base,
