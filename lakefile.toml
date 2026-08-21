@@ -323,6 +323,10 @@ name = "proofnet_ir_marked_target_raw_return_sibling_exit_waiting_mate_external_
 root = "ProofNetIRMarkedTargetWaitingMateExternalTemporalTests"
 
 [[lean_exe]]
+name = "proofnet_ir_marked_target_waiting_mate_external_commitment_reentry_tests"
+root = "ProofNetIRMarkedTargetWaitingMateExternalCommitmentReentryTests"
+
+[[lean_exe]]
 name = "proofnet_ir_marked_target_raw_return_cyclic_reduction_tests"
 root = "ProofNetIRMarkedTargetRawReturnCyclicReductionTests"
 

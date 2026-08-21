@@ -1141,6 +1141,24 @@ theorems: 773 standard-three, 25 axiom-free, 131 `propext`-only, and 140
 to the already marked older terminal. Older-outside ready/waiting work,
 broader exact selected/mate raw returns, external temporal endpoints, the
 history-tail law, completion, progress, and totality remain open.
+`SequentialFigure7MarkedTargetWaitingMateExternalCommitmentReentry.lean` adds
+no runtime oracle, native-computed evidence, or new trusted source. The
+`ActiveCarrierExternalEndpointCrossing.reentry` theorem reverses an existing
+edge-simple path and boundary edge and has the audited
+`propext`/`Quot.sound` boundary. The main
+`ActiveMateWaitingParentExternalTemporalOutcome.commitmentReentryFailureOutcome`
+theorem uses the standard-three boundary. The new inductive carrier also prints
+with the standard-three boundary, but it is a declaration rather than a
+registered theorem. Both theorems are registered, and the verified combined
+audit now covers 1071 theorems: 774 standard-three, 25 axiom-free, 131
+`propext`-only, and 141 `propext`/`Quot.sound` boundaries. The carrier retains
+temporal, strict commitment, crossing, reverse re-entry, and
+failure-historical evidence, fixed to `consumer.conclusion`. Its crossing and
+re-entry fields assert existence separately, so arbitrary stored witnesses are
+not identified. The remaining target is the selected raw-unmarked head or a
+distinct canonical-history-authenticated mark represented at the active
+boundary. No avoiding re-entry, target elimination, payer, history-tail law,
+completion, progress, termination, or totality follows.
 `SequentialFigure7CrossRepresentativeWaitPreservation.lean` adds no hidden
 source-region oracle. Its output-work classification follows only from the
 typed destination's exact waiting prepend and unchanged ready/sigma fields;

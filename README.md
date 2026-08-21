@@ -23,24 +23,24 @@ latest research surface and are prepared for documented development changes.
 <!-- ROLLING_MAIN_SUMMARY_START -->
 ### Rolling-main summary
 
-Canonical history strictly orders authentic raw marks; distinct marked vertices
-are comparable, while equality identifies the same age/vertex event.
-The Wait first descent carries the outer mate as terminal and re-roots its sibling
-continuation after the shared conclusion. Ready-head unmarkedness eliminates the
-marked-global sibling endpoint, leaving raw-mate or future-work exits.
-That descent also retains its cyclic-junction normal form. Complete cancellation
-forces both endpoint junctions, and correctness puts the cyclic source strictly
-before the authenticated outer terminal.
-The Nop return remains eliminated. Wait raw work is outside the active carrier
-or returns exactly to the selected/mate pair. Older future work has an exact
-ready component or waiting span and two authenticated, ordered premise marks.
-The outside terminal is strictly older; its mate is older outside or active-owned.
-An active-owned mate cannot remain ready. Its exact waiting continuation has a
-two-case result: the outside submitted conclusion is strictly older future work
-or a strictly older mark, so raw return to the marked older terminal is absent.
-An older-outside mate may still be ready or waiting. Broader exact selected/mate
-raw returns, external temporal endpoints, history-tail, progress, completion,
-and totality gates remain open.
+Canonical history strictly orders authentic raw marks; distinct marked vertices are
+comparable, while equality identifies the same age/vertex event. The Wait first
+descent carries the outer mate as terminal and re-roots its sibling continuation
+after the shared conclusion. Ready-head unmarkedness removes the marked-global
+sibling endpoint. Complete cancellation retains both endpoint junctions and puts
+the cyclic source strictly before the authenticated outer terminal.
+The Nop return is eliminated. Wait raw work lies outside the active carrier or
+returns exactly to the selected/mate pair. An outside terminal is strictly older;
+its mate is older outside (ready or waiting) or active-owned; the latter cannot be ready.
+Its waiting continuation reaches the outside submitted conclusion as strictly
+older future work or a strictly older mark, with no raw return to the older terminal.
+Under reference-switching connectedness and exact ready-tail failure, both external
+endpoints retain their strict commitment split, owned-to-external crossing, reversed
+re-entry, and selected-or-marked failure status. Crossing and re-entry are stored
+separately; arbitrary witnesses are not identified. The inbound target remains the
+selected raw-unmarked head or a distinct authenticated active-representative mark.
+Broader exact selected/mate raw returns, avoidance, target elimination, payer,
+history-tail, progress, completion, termination, and totality remain open.
 [Current status](docs/current-status.md) owns exact revision, verification receipt, and gates.
 <!-- ROLLING_MAIN_SUMMARY_END -->
 

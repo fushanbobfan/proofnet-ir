@@ -1347,6 +1347,28 @@ part of the engineering and proof-identity gap.
    mates may still be ready or waiting; broader exact selected/mate raw
    returns, external temporal endpoints, the history-tail law, completion,
    progress, and totality remain open.
+   `SequentialFigure7MarkedTargetWaitingMateExternalCommitmentReentry.lean`
+   now refines both constructors of that exact external temporal carrier. At
+   either strictly older future or marked endpoint, canonical history supplies
+   the exact `StrictOlderCommitmentSplit`, reference-switching connectedness
+   supplies an owned-to-external `ActiveCarrierExternalEndpointCrossing`, and
+   `.reentry` reverses its edge-simple path and boundary edge. Exact ready-tail
+   failure then yields `ActiveCarrierExternalReentryFailureHistoricalStatus`.
+   The resulting two-constructor carrier stays fixed to
+   `consumer.conclusion` and retains temporal, commitment, crossing, re-entry,
+   and failure evidence. Crossing and re-entry are stored separately, so the
+   carrier does not identify arbitrary existential witnesses. Its runnable
+   consumer reconstructs all three public declarations and invokes both
+   registered public theorems. The generated API now has 91 sections and 1785
+   declarations; the accumulated rolling surface has 154 declarations. The
+   source tree has 168 modules, the facade imports 164 submodules (165 modules
+   including the facade), and the repository has 300 Lean files. The verified
+   combined theorem audit now covers 1071 theorems: 774 standard-three, 25
+   axiom-free, 131 `propext`-only, and 141 `propext`/`Quot.sound` boundaries.
+   The inbound target remains the selected raw-unmarked head or a distinct
+   canonical-history-authenticated mark at the active representative. Avoiding
+   re-entry, target elimination, a payer, the history-tail law, completion,
+   progress, termination, and totality remain open.
    `SequentialFigure7CommitmentBlockerAdvance.lean` now combines the global
    queued-head law, strict split, and equal-boundary result. Under declarative
    correctness and the complete scheduler invariant, for a supplied canonical

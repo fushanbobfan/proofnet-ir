@@ -2,6 +2,25 @@
 
 ## Unreleased
 
+- refined both constructors of the exact waiting-mate external temporal carrier
+  through the strict older commitment and failure-conditioned re-entry pipeline.
+  `SequentialFigure7MarkedTargetWaitingMateExternalCommitmentReentry.lean`
+  retains the exact `StrictOlderCommitmentSplit`, an owned-to-external
+  `ActiveCarrierExternalEndpointCrossing`, its theorem-derived reverse
+  `ActiveCarrierExternalEndpointReentry`, and
+  `ActiveCarrierExternalReentryFailureHistoricalStatus` under supplied
+  reference-switching connectedness and exact ready-tail failure. The resulting
+  two-constructor carrier stays fixed to `consumer.conclusion`. Its crossing and
+  re-entry fields assert existence separately and do not identify arbitrary
+  stored witnesses. The runnable consumer exercises all three public
+  declarations, including both registered public theorems. The generated API
+  now has 91 sections and 1785 declarations; the accumulated rolling surface
+  has 154 declarations. The verified combined theorem audit now covers 1071
+  theorems: 774 standard-three, 25 axiom-free, 131 `propext`-only, and 141
+  `propext`/`Quot.sound` boundaries. The inbound target remains the selected
+  raw-unmarked head or a distinct canonical-history-authenticated mark at the
+  active representative; no avoiding re-entry, target elimination, payer,
+  history-tail law, completion, progress, termination, or totality follows;
 - eliminated the raw-continuation return from an exact active-owned waiting
   mate to its already concrete-marked older terminal. The new two-constructor
   `ActiveMateWaitingParentExternalTemporalOutcome` makes that guarantee part

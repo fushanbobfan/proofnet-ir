@@ -1286,6 +1286,20 @@ def sections : List Section := [
     ]
   },
   {
+    title := "Active-mate waiting external commitment re-entry failure"
+    declarations := [
+      Name.str
+        `ProofNetIR.SequentialFigure7.ActiveCarrierExternalEndpointCrossing
+        "reentry",
+      Name.str
+        `ProofNetIR.SequentialFigure7
+        "ActiveMateWaitingParentExternalCommitmentReentryFailureOutcome",
+      Name.str
+        `ProofNetIR.SequentialFigure7.ActiveMateWaitingParentExternalTemporalOutcome
+        "commitmentReentryFailureOutcome"
+    ]
+  },
+  {
     title := "Marked re-entry target raw-return cyclic reduction"
     declarations := [
       `ProofNetIR.SequentialFigure7.MarkedConclusionRawReturnCyclicOutcome,

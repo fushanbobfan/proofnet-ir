@@ -11889,6 +11889,67 @@ ProofNetIR.SequentialFigure7.WaitStep.commitmentInterval_parTraceReentryMarkedCo
                                     tagHistory step.prepared.readyHeadInput component owned step.consumer)
 ```
 
+## Active-mate waiting external commitment re-entry failure
+
+### `ProofNetIR.SequentialFigure7.ActiveCarrierExternalEndpointCrossing.reentry`
+
+Kind: theorem.
+
+Reverse an owned-to-external crossing into an exact external-to-owned
+re-entry, reversing the retained directed edge at the same time.
+
+```lean
+ProofNetIR.SequentialFigure7.ActiveCarrierExternalEndpointCrossing.reentry : ∀ {certificate : ProofNetIR.Certificate} {owned : List ProofNetIR.Vertex} {endpoint : ProofNetIR.Vertex},
+  ProofNetIR.SequentialFigure7.ActiveCarrierExternalEndpointCrossing certificate owned endpoint →
+    ProofNetIR.SequentialFigure7.ActiveCarrierExternalEndpointReentry certificate owned endpoint
+```
+
+### `ProofNetIR.SequentialFigure7.ActiveMateWaitingParentExternalCommitmentReentryFailureOutcome`
+
+Kind: inductive type.
+
+The exact two-case external endpoint left by an active waiting mate after
+retaining its older commitment split, crossing, re-entry, and
+failure-conditioned historical classification. The refinement theorem derives
+its re-entry by reversing its crossing; this carrier stores the two witnesses
+separately.
+
+```lean
+ProofNetIR.SequentialFigure7.ActiveMateWaitingParentExternalCommitmentReentryFailureOutcome : {certificate : ProofNetIR.Certificate} →
+  {state : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+    {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state} →
+      ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history →
+        ProofNetIR.SequentialFigure7.ReadyHeadInput state →
+          ProofNetIR.UnificationComponent →
+            List ProofNetIR.Vertex →
+              {terminal : ProofNetIR.Vertex} → ProofNetIR.ConnectiveBelow certificate terminal → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.ActiveMateWaitingParentExternalTemporalOutcome.commitmentReentryFailureOutcome`
+
+Kind: theorem.
+
+Refine an active waiting mate's two external temporal endpoints through
+the exact older commitment, boundary crossing, reverse re-entry, and
+failure-conditioned historical target pipeline.
+
+```lean
+ProofNetIR.SequentialFigure7.ActiveMateWaitingParentExternalTemporalOutcome.commitmentReentryFailureOutcome : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  {input : ProofNetIR.SequentialFigure7.ReadyHeadInput state} {component : ProofNetIR.UnificationComponent}
+  {usedLinks owned : List Nat} {terminal : ProofNetIR.Vertex}
+  {consumer : ProofNetIR.ConnectiveBelow certificate terminal},
+  ProofNetIR.SequentialFigure7.ActiveMateWaitingParentExternalTemporalOutcome certificate state input owned consumer →
+    ∀ (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+      certificate.ReferenceSwitchingConnected →
+        ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+          state.core.components[input.rawAge]? = some (some component) →
+            certificate.ComponentOccurrenceWitness component usedLinks owned →
+              (¬∃ pending, pending ∈ input.readyTail ∧ ¬pending ∈ certificate.conclusions) →
+                ProofNetIR.SequentialFigure7.ActiveMateWaitingParentExternalCommitmentReentryFailureOutcome tagHistory
+                  input component owned consumer
+```
+
 ## Marked re-entry target raw-return cyclic reduction
 
 ### `ProofNetIR.SequentialFigure7.MarkedConclusionRawReturnCyclicOutcome`

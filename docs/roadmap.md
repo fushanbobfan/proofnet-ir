@@ -1173,17 +1173,21 @@
     occurrence, the outside-conclusion premise, and the waiting witness; it
     does not need `DeclarativelyCorrect`, `noTail`, or an explicit `mateActive`
     premise.
-  - [ ] Use the strict cyclic endpoint order and aligned sibling causal witness
-    with the retained commitment paths and refined causal/ownership
-    classification to eliminate the exact selected/mate return, the remaining
-    older-outside ready/waiting endpoint, the returned external temporal
-    endpoint, or the Wait descent, or recover a distinct ready-tail payer. Then
-    eliminate the remaining cyclic residuals, other finite exits, and
-    equal-final traces. Do not infer
-    unconditional dispatcher progress, completion, terminality, later-state
-    totality, global raw seams, fallback removal, Figure-7 pure-worklist
-    completeness, sequentialization, faithful token-age scheduling, or
-    whole-program linearity from the current reduction.
+  - [x] Under reference-switching connectedness and exact ready-tail failure,
+    refine both external temporal endpoints with their exact strict older
+    commitment split, owned-to-external crossing, theorem-derived reverse
+    re-entry, and selected-or-marked failure-historical status. Keep crossing
+    and re-entry existentially separate; do not infer witness identity.
+  - [ ] Eliminate the remaining inbound-target split: the selected raw-unmarked
+    head versus a distinct canonical-history-authenticated mark represented at
+    the active boundary. Derive an avoiding or otherwise aligned re-entry, or a
+    direct contradiction from the sibling causal witness. Then eliminate the
+    remaining cyclic residuals, other finite exits, and equal-final traces, and
+    close the history-tail law. Do not infer a distinct payer, unconditional
+    dispatcher progress, completion, termination, later-state totality, global
+    raw seams, fallback removal, Figure-7 pure-worklist completeness,
+    sequentialization, faithful token-age scheduling, or whole-program
+    linearity from the current reduction.
   - [x] Isolate unused waiting storage as the history-preserved predicate
     `FutureWaitingUndefined`. Prove it for empty/initial states and preserve it
     through Prepared, all six successful rules, dispatcher steps,

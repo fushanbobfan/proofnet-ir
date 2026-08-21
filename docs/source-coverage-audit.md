@@ -621,6 +621,22 @@ occurrence, the outside-conclusion premise, and the waiting witness, but not
 Older-outside mates may still be ready or waiting. Broader exact selected/mate
 raw returns, external temporal endpoints, a distinct payer, the history-tail
 law, completion, progress, and totality remain open.
+`SequentialFigure7MarkedTargetWaitingMateExternalCommitmentReentry.lean` adds
+no source reading. It reuses the existing canonical-history strict commitment
+split, reference-switching connectedness, active-carrier crossing geometry,
+path reversal, exact component accounting, and failure-conditioned historical
+target classifier. Each constructor of the exact waiting-mate external
+temporal carrier now retains its `StrictOlderCommitmentSplit`, owned-to-external
+`ActiveCarrierExternalEndpointCrossing`, theorem-derived reverse
+`ActiveCarrierExternalEndpointReentry`, and
+`ActiveCarrierExternalReentryFailureHistoricalStatus` under exact ready-tail
+failure. The two-constructor result stays fixed to `consumer.conclusion`.
+Although the direct theorem constructs re-entry by reversing its crossing, the
+carrier fields assert existence separately and do not identify arbitrary stored
+witnesses. The remaining inbound target is the selected raw-unmarked head or a
+distinct canonical-history-authenticated mark at the active representative.
+No avoiding re-entry, target elimination, payer, history-tail law, completion,
+progress, termination, or totality follows.
 Global preservation of the mate-region and older-raw-mark invariants through
 candidate-creating rules remains open, as do queue origin, created-candidate raw
 seams, derivation of the re-entry avoidance premise, marked-history descent,

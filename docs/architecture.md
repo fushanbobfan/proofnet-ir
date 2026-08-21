@@ -1740,6 +1740,24 @@ and typed Wait trace. It leaves older-outside mates ready or waiting and does
 not discharge the broader exact selected/mate raw returns, external temporal
 endpoints, history-tail law, progress, completion, or totality.
 
+`SequentialFigure7MarkedTargetWaitingMateExternalCommitmentReentry.lean`
+refines both constructors of the exact waiting-mate external temporal carrier.
+At either strictly older future or marked endpoint, canonical history supplies
+the exact `StrictOlderCommitmentSplit`; reference-switching connectedness
+supplies an owned-to-external `ActiveCarrierExternalEndpointCrossing`; and
+`.reentry` reverses its edge-simple path and boundary edge. Under exact
+ready-tail failure, that re-entry yields
+`ActiveCarrierExternalReentryFailureHistoricalStatus`. The resulting
+two-constructor
+`ActiveMateWaitingParentExternalCommitmentReentryFailureOutcome` remains fixed
+to `consumer.conclusion` and retains the temporal, commitment, crossing,
+re-entry, and failure evidence. The direct theorem constructs re-entry by
+reversing its crossing, but the carrier fields assert existence separately and
+do not equate arbitrary stored witnesses. Its remaining inbound target is the
+selected raw-unmarked head or a distinct canonical-history-authenticated mark
+represented at the active boundary. No avoiding re-entry, target elimination,
+payer, history-tail law, completion, progress, termination, or totality follows.
+
 `SequentialFigure7CommitmentBlockerAdvance.lean` joins the global queued-head
 law, the strict `sigma` split, the strict-edge avoiding adapter, and the final
 equal-boundary classification. Under declarative correctness and the complete

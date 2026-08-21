@@ -264,6 +264,8 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "commitmentInterval_parTraceReentryMarkedContinuationSiblingExitParentRecursionOutcome",
     "ProofNetIR.SequentialFigure7.FutureWorkActiveMateWaitingOutcome."
     "parentExternalTemporalOutcome",
+    "ProofNetIR.SequentialFigure7.ActiveMateWaitingParentExternalTemporalOutcome."
+    "commitmentReentryFailureOutcome",
     "ProofNetIR.SequentialFigure7.FutureWorkMateActiveCarrierReadyEliminatedStatus."
     "externalTemporalStatus",
     "ProofNetIR.SequentialFigure7."
@@ -1171,6 +1173,7 @@ EXPECTED_PROPEXT_ONLY_THEOREMS = {
     "ProofNetIR.LeanProp.Schema.Raw.CheckedDerivation.sound",
 }
 EXPECTED_PROPEXT_QUOT_THEOREMS = {
+    "ProofNetIR.SequentialFigure7.ActiveCarrierExternalEndpointCrossing.reentry",
     "ProofNetIR.SequentialFigure7."
     "MarkedConclusionRawReturnCompleteCancellationTraversal.endpointJunctions",
     "ProofNetIR.SequentialFigure7.NewGuard.sourceLeftRegion_formulaComplexity_lt_conclusion",
