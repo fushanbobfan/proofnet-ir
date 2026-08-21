@@ -17,7 +17,7 @@ Status date: 2026-08-21
 | Track | Revision | Status | Authority |
 | --- | --- | --- | --- |
 | Stable library | `v0.9.0` / `9b7dc3d104af8f57ea9123aab2e61b42e05d2216` | Released | [v0.9.0 release audit](v0.9-release-audit.md) |
-| Rolling research | `v0.10.0-dev`; proof `41c4305`; audit `1e46573` | Active | This page/commits |
+| Rolling research | `v0.10.0-dev`; proof `97779b0`; audit `1e46573` | Active | This page/commits |
 
 Documentation-only commits may descend from the proof checkpoint without
 changing its mathematical authority. The stable release and rolling branch
@@ -313,18 +313,27 @@ Complete cancellation and both junctions remain; only source-equals-base is
 removed in this nonempty correct branch. No payer, history-tail law,
 completion, or progress theorem follows.
 
-The current checkpoint re-roots the first causal descent's sibling
-continuation after its shared marked non-global conclusion. Reflexive raw,
-future, and marked-global exits at that source contradict, respectively, the
-marked opposite premise, queued-vertex unmarkedness, and source non-globality.
-Two finite marked-conclusion chains from the same origin have comparable
-terminals because submitted parents are unique. Comparing the sibling exit's
-terminal with the authenticated outer-mate chain therefore forces every
-marked-global endpoint strictly after the outer event and eliminates the
-former earlier branch. Raw-mate and future-conclusion exits, complete
-cancellation, both exact endpoint junctions, the par-pair residual, the causal
-descent, and ready-tail failure remain. No payer, history-tail law, completion,
-or progress theorem follows.
+The preceding sibling-open checkpoint re-roots the first causal descent's
+sibling continuation after its shared marked non-global conclusion. Reflexive
+raw, future, and marked-global exits at that source contradict, respectively,
+the marked opposite premise, queued-vertex unmarkedness, and source
+non-globality. Comparing the sibling exit with the authenticated outer-mate
+chain forces any marked-global endpoint strictly after the outer event.
+
+The current checkpoint carries the remaining raw/future exit through exact
+scheduler and canonical-history semantics. Raw work is outside the active
+occurrence carrier or returns exactly to the current selected/mate pair. Older
+future work has an exact ready component or waiting span; both of its submitted
+premises are concretely marked and canonically ordered. The outside terminal's
+representative is strictly older. Its mate is either older outside the active
+carrier or active-owned at the active representative. Exact ready-component
+occurrence ownership now eliminates the active-owned ready alternative: it
+would place the same mate in live carriers at two distinct boundaries. The
+surviving active-owned case is the exact older-terminal-to-active-mate waiting
+return. An older-outside mate may still be ready or waiting. This removes one
+scheduler subcase, not the exact raw return, future endpoint, causal descent,
+complete cancellation, cyclic junctions, par-pair residual, or ready-tail
+failure. No payer, history-tail law, completion, or progress theorem follows.
 
 The preceding queue/history-tail checkpoint remains valid. For supplied typed
 Nop and Wait steps, its iff theorems identify post-step debt with the exact
@@ -340,7 +349,7 @@ from a scheduler-invariant input refutes unrestricted
 same-component locality carrier, but neither refutes direct debt nor supplies
 the required queue-tail or elimination of the classified re-entry failure.
 
-The checkpoint's accumulated public surface is exactly 132 declaration
+The checkpoint's accumulated public surface is exactly 141 declaration
 boundaries:
 
 ```text
@@ -525,6 +534,20 @@ SequentialFigure7.
     causalOwnershipTarget
 SequentialFigure7.WaitStep.
   commitmentInterval_parTraceReentryMarkedContinuationSiblingExitCausalOwnershipOutcome
+SequentialFigure7.FutureWorkActiveMateWaitingOutcome
+SequentialFigure7.FutureWorkActiveMateSchedulerOutcome.waitingOutcome_of_activeOwned
+SequentialFigure7.FutureWorkMateActiveCarrierReadyEliminatedStatus
+SequentialFigure7.FutureWorkMateActiveCarrierScheduledStatus.readyEliminatedStatus
+SequentialFigure7.ContinuationExitRawOrFutureActiveCarrierReadyMateOutcome
+SequentialFigure7.ContinuationExitRawOrFutureActiveCarrierCausalOwnershipOutcome.
+  readyMateOutcome
+SequentialFigure7.
+  ActiveCarrierExternalReentryMarkedMateSeparatedContinuationSiblingExitReadyMateTarget
+SequentialFigure7.
+  ActiveCarrierExternalReentryMarkedMateSeparatedContinuationSiblingExitCausalOwnershipTarget.
+    readyMateTarget
+SequentialFigure7.WaitStep.
+  commitmentInterval_parTraceReentryMarkedContinuationSiblingExitReadyMateOutcome
 ```
 
 The earlier parent-escape, source-temporal, debt, history-tail,
@@ -708,6 +731,7 @@ Exact signatures are maintained in the generated API reference for the
 [exact future-work scheduler locations][future-location],
 [marked re-entry target sibling scheduled exits][target-scheduled],
 [marked re-entry target sibling causal ownership][target-causal-ownership],
+[marked re-entry target active-mate ready elimination][target-ready-mate],
 [marked re-entry target raw-return cyclic reduction][target-cycle],
 [branch-local continuation credit](api-reference.md#branch-local-continuation-credit),
 [continuation-credit preservation](api-reference.md#continuation-credit-preservation),
@@ -716,11 +740,11 @@ and the retained
 [Wait endpoint-locality obstruction](api-reference.md#wait-endpoint-locality-obstruction).
 The first open proof step is now to combine the simultaneous cyclic endpoints,
 the strict source-before-base witness, the retained commitment paths, and the
-future endpoint's exact chronology, ownership, and scheduler status. It must
-eliminate the exact selected/mate raw return or the older future endpoint, or
-recover a distinct payer. In the active-owned waiting case, the available
-normal form is now the exact older-terminal/younger-mate span ending at the
-active boundary; that normal form is not itself a contradiction.
+future endpoint's exact chronology, ownership, and refined scheduler status.
+It must eliminate the exact selected/mate raw return, the active-owned exact
+waiting return, or the older-outside ready/waiting future endpoint, or recover
+a distinct payer. The active-owned ready case is already impossible; the
+surviving waiting span is not itself a contradiction.
 The combined witness alone does not discharge any endpoint alternative. The
 surviving marked omitted-right source
 must likewise be eliminated or converted into a distinct payer. The
@@ -810,12 +834,12 @@ plan is maintained in [v0.10-design.md](v0.10-design.md) and
 The exact rolling proof checkpoint is:
 
 ```text
-commit    41c43053bbdaaa22c6330f3fd182edd29cf499ed
-tree      4be0cedc458b71e2db993cbcbec104f005a6c18c
-parent    fca03411de3be0f1cf919317e9b281b2fdff276e
-stage     classify future sibling causal ownership
-delta     17 paths, +1334/-20
-manifest  A66DDEE19D2C3026829649C22157AA57A44E981671575916271FFC21626E5066
+commit    97779b0f4ddf832dc4b2512b37de305ee4caac1f
+tree      dd3cb24b3a75abdaea983fd0c48f109121424be1
+parent    8722ad961a980e02317896178237d786abbab02c
+stage     eliminate active-owned ready future mate
+delta     17 paths, +1016/-9
+manifest  E478BA2BC230D7B638AA11A98B6037F136B198F49D286A4B294834273EDC57B9
 ```
 
 The manifest hashes canonical
@@ -824,9 +848,9 @@ The manifest hashes canonical
 The checkpoint source receipts are:
 
 ```text
-causal source    9EBD68CDE873FAF2266B71EE72757D326DCFF20194EF178DAFCEAE0F05CEDA6D
-causal consumer  14010B72CC50A4CA36EA0E2222F7A252D08D9B52D752F9C63E441541FB79D43F
-generated API    BFED23556124B009BF4211258E34E7603930F717B308F818A9D1AF2476F71CC7
+ready elimination source    85FE05D5EF1DABF51561B115576DA0532C45F5A244A4963A4B2E551A1DA65C25
+ready elimination consumer  4637410C42F2160A2D98EB2B52288132C667F999E5699B7C25417B0F97E9DB5A
+generated API                9EA3FCD3530CC38EAEB9CC39003EE6F49493007F36A49013BB127B8DC228D91A
 ```
 
 The separately committed finite-audit evidence is:
@@ -842,16 +866,15 @@ manifest  4BBAB7FC99D03D2612459A0FD9291990313A05A184F2572A581BC93C6E49DFDD
 
 Local verification on the committed bytes:
 
-- full `lake build`: 626/626 jobs;
-- Lean source audit: zero actual `sorry`/`admit` findings across 292 Lean
+- full `lake build`: 628/628 jobs;
+- Lean source audit: zero actual `sorry`/`admit` findings across 294 Lean
   files;
-- generated API reference: current at 87 sections and 1,754 declarations;
-- the runnable sibling causal-ownership consumer destructed both active-carrier
-  mark states, both exact active-mate scheduler outcomes, both mate ownership
-  states, and all three sibling endpoint forms. It invoked the generic, target,
-  and typed Wait theorems, audited all ten public declarations, and emitted its
-  kernel-green marker;
-- public theorem audit: 1052 entries total: 757 full-classical, 25
+- generated API reference: current at 88 sections and 1,763 declarations;
+- the runnable ready-mate-elimination consumer destructed the exact waiting
+  return, both refined mate states, every sibling endpoint form, and the target
+  and typed Wait outcomes. It invoked all five new theorems, audited all nine
+  public declarations, and emitted its kernel-green marker;
+- public theorem audit: 1057 entries total: 762 full-classical, 25
   axiom-free, 130 `propext`-only, and 140 `propext` plus `Quot.sound`;
 - the default, extended, and cross-variant progress audits passed with every
   incomplete visited state carrying an exact ready head and successful
@@ -864,16 +887,16 @@ Exact-head proof GitHub verification:
 
 - workflow: `Lean CI`;
 - event/ref: `push` / `main`;
-- run: [32469606343](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32469606343);
-- build job: [96733445057][proof-job];
-- exact head: `41c43053bbdaaa22c6330f3fd182edd29cf499ed`;
+- run: [32473489292](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32473489292);
+- build job: [96744978185][proof-job];
+- exact head: `97779b0f4ddf832dc4b2512b37de305ee4caac1f`;
 - result: 36 successful steps, zero failures, and one expected release-ref-only
   skip;
-- run: `2026-08-21T09:48:01Z`-`2026-08-21T10:02:02Z` (14m01s);
-- build job: `2026-08-21T09:48:04Z`-`2026-08-21T10:02:01Z`
-  (13m57s).
+- run: `2026-08-21T10:37:34Z`-`2026-08-21T10:52:00Z` (14m26s);
+- build job: `2026-08-21T10:37:38Z`-`2026-08-21T10:51:59Z`
+  (14m21s).
 
-[proof-job]: https://github.com/fushanbobfan/proofnet-ir/actions/runs/32469606343/job/96733445057
+[proof-job]: https://github.com/fushanbobfan/proofnet-ir/actions/runs/32473489292/job/96744978185
 [reentry-failure]: api-reference.md#commitment-interval-par-guard-re-entry-failure-target
 [reentry-mate-separation]: api-reference.md#commitment-interval-par-guard-re-entry-mate-separation
 [target-temporal]: api-reference.md#commitment-interval-marked-re-entry-target-temporal-reduction
@@ -892,6 +915,7 @@ Exact-head proof GitHub verification:
 [future-location]: api-reference.md#exact-future-work-scheduler-locations
 [target-scheduled]: api-reference.md#marked-re-entry-target-sibling-scheduled-exits
 [target-causal-ownership]: api-reference.md#marked-re-entry-target-sibling-causal-ownership
+[target-ready-mate]: api-reference.md#marked-re-entry-target-active-mate-ready-elimination
 [target-cycle]: api-reference.md#marked-re-entry-target-raw-return-cyclic-reduction
 
 Exact-head finite-audit GitHub verification:
@@ -960,10 +984,10 @@ deployment.
 The project goal remains open. The principal outstanding gates are:
 
 1. use the simultaneous endpoint junctions, strict source-before-base order,
-   aligned sibling-exit causal witness, retained commitment paths, and exact
+   aligned sibling-exit causal witness, retained commitment paths, and refined
    scheduler/ownership classification; eliminate the exact selected/mate raw
-   return or outside older future-work sibling endpoint, or recover a distinct
-   ready-tail payer; discharge
+   return, active-owned waiting return, or outside older ready/waiting future
+   endpoint, or recover a distinct ready-tail payer; discharge
    the par-pair residual and the
    mate-separated target's
    finite raw-outside,
