@@ -17,7 +17,7 @@ Status date: 2026-08-20
 | Track | Revision | Status | Authority |
 | --- | --- | --- | --- |
 | Stable library | `v0.9.0` / `9b7dc3d104af8f57ea9123aab2e61b42e05d2216` | Released | [v0.9.0 release audit](v0.9-release-audit.md) |
-| Rolling research | `v0.10.0-dev`; proof `8a97b4c`; audit `1e46573` | Active | This page/commits |
+| Rolling research | `v0.10.0-dev`; proof `302b8b9`; audit `1e46573` | Active | This page/commits |
 
 Documentation-only commits may descend from the proof checkpoint without
 changing its mathematical authority. The stable release and rolling branch
@@ -301,7 +301,7 @@ Complete cancellation, both junctions, the surviving par-pair residual,
 sibling exits, both marked-global orders, and the causal descent remain open.
 No payer, history-tail law, completion, or progress theorem follows.
 
-The current checkpoint eliminates the equality side of that endpoint
+The preceding checkpoint eliminates the equality side of that endpoint
 classification when the complete-cancellation prefix is nonempty. The
 duplicate-free prefix indices and internal no-immediate-reverse law make the
 retained prefix cyclically nonbacktracking. If its source equaled its base,
@@ -312,6 +312,19 @@ junctions together with an authenticated strict source-before-base event.
 Complete cancellation and both junctions remain; only source-equals-base is
 removed in this nonempty correct branch. No payer, history-tail law,
 completion, or progress theorem follows.
+
+The current checkpoint re-roots the first causal descent's sibling
+continuation after its shared marked non-global conclusion. Reflexive raw,
+future, and marked-global exits at that source contradict, respectively, the
+marked opposite premise, queued-vertex unmarkedness, and source non-globality.
+Two finite marked-conclusion chains from the same origin have comparable
+terminals because submitted parents are unique. Comparing the sibling exit's
+terminal with the authenticated outer-mate chain therefore forces every
+marked-global endpoint strictly after the outer event and eliminates the
+former earlier branch. Raw-mate and future-conclusion exits, complete
+cancellation, both exact endpoint junctions, the par-pair residual, the causal
+descent, and ready-tail failure remain. No payer, history-tail law, completion,
+or progress theorem follows.
 
 The preceding queue/history-tail checkpoint remains valid. For supplied typed
 Nop and Wait steps, its iff theorems identify post-step debt with the exact
@@ -327,7 +340,7 @@ from a scheduler-invariant input refutes unrestricted
 same-component locality carrier, but neither refutes direct debt nor supplies
 the required queue-tail or elimination of the classified re-entry failure.
 
-The checkpoint's accumulated public surface is exactly ninety-seven declaration
+The checkpoint's accumulated public surface is exactly 103 declaration
 boundaries:
 
 ```text
@@ -456,6 +469,16 @@ SequentialFigure7.WaitStep.
   commitmentInterval_parTraceReentryMarkedContinuationSiblingExitCausalEndpointOutcome
 SequentialFigure7.MarkedConclusionRawReturnCompleteCancellationTraversal.source_ne_base
 SequentialFigure7.MarkedConclusionRawReturnCyclicJunctionCausalOutcome.completeEndpoints
+SequentialFigure7.ContinuationExitOuterTerminalForwardCausalOutcome
+SequentialFigure7.ContinuationExit.afterMarkedSibling
+SequentialFigure7.ContinuationExit.outerTerminalForwardCausalOutcome
+SequentialFigure7.
+  ActiveCarrierExternalReentryMarkedMateSeparatedContinuationSiblingExitForwardCausalTarget
+SequentialFigure7.
+  ActiveCarrierExternalReentryMarkedMateSeparatedContinuationSiblingExitCausalEndpointTarget.
+    forwardCausalTarget
+SequentialFigure7.WaitStep.
+  commitmentInterval_parTraceReentryMarkedContinuationSiblingExitForwardCausalOutcome
 ```
 
 The earlier parent-escape, source-temporal, debt, history-tail,
@@ -580,6 +603,7 @@ Exact signatures are maintained in the generated API reference for the
 [marked re-entry target sibling-exit causal/cyclic junction][target-junction],
 [marked re-entry target cyclic-junction endpoint causal order][target-endpoint],
 [marked re-entry target complete-cancellation causal endpoints][target-complete],
+[marked re-entry target sibling-exit forward causal order][target-forward-causal],
 [marked re-entry target raw-return cyclic reduction][target-cycle],
 [branch-local continuation credit](api-reference.md#branch-local-continuation-credit),
 [continuation-credit preservation](api-reference.md#continuation-credit-preservation),
@@ -588,9 +612,10 @@ and the retained
 [Wait endpoint-locality obstruction](api-reference.md#wait-endpoint-locality-obstruction).
 The first open proof step is now to use the simultaneous cyclic endpoints and
 the strict source-before-base causal witness, aligned with the origin, sibling
-mate, older parent conclusion, outer-mate terminal, and classified sibling
-endpoint together with the retained commitment paths. It must eliminate the
-Wait descent and sibling exit or recover a distinct payer.
+mate, older parent conclusion, outer-mate terminal, and forward-classified
+sibling endpoint together with the retained commitment paths. It must
+eliminate the Wait descent and the remaining raw, future, or forward
+marked-global sibling exit, or recover a distinct payer.
 The combined witness alone does not discharge any endpoint alternative. The
 surviving marked omitted-right source
 must likewise be eliminated or converted into a distinct payer. The
@@ -625,9 +650,9 @@ This checkpoint does not establish any of the following:
   generic contexts, or
   conversion of that target into a distinct active raw payer;
 - totality of any operational schedule beyond the supplied canonical history,
-  elimination of the causal first descent or either ordered sibling endpoint,
-  elimination of a raw/future sibling exit, or conversion of an earlier event
-  into a distinct ready-tail payer;
+  elimination of the causal first descent or the remaining forward
+  marked-global sibling endpoint, elimination of a raw/future sibling exit, or
+  conversion of an earlier event into a distinct ready-tail payer;
 - impossibility of the remaining Wait/generic exact out-and-back
   cyclic-junction traversal, elimination of either simultaneous endpoint
   junction or the surviving marked omitted-right par pair, or conversion of
@@ -677,12 +702,12 @@ plan is maintained in [v0.10-design.md](v0.10-design.md) and
 The exact rolling proof checkpoint is:
 
 ```text
-commit    8a97b4ce1c4fb4f40ff2956c772c6d80aac0cb93
-tree      794d5fe44b3d51031504aff3bbc79b20e236e15b
-parent    132949849a9e397fe004e5895350d1169e664f1c
-stage     separate nonempty complete-cancellation source
-delta     17 paths, +362/-9
-manifest  7ADB2074123B363AB4BF7CD9F69D16DCD38B7CC9976C56D132A3DCD93366B016
+commit    302b8b917bfac2af7fe144fcf0fece97b1c5ccd9
+tree      70f2eeae0b3c0ea00b50b97fddf20e5497c819d1
+parent    8428a3faee891fe9eacc784bdbe565e3efbb5396
+stage     order sibling exits after the causal source
+delta     17 paths, +937/-6
+manifest  4D89037472B397E08C26032251D31CA6675E5916C743DC343846B0C7A602C7AB
 ```
 
 The manifest hashes canonical
@@ -691,9 +716,9 @@ The manifest hashes canonical
 The checkpoint source receipts are:
 
 ```text
-causal-endpoint source   39BF8C21B77D190E73012A29E14A5742B2919BCCB77D9FC086EFA145340B433C
-causal-endpoint consumer C60ED105418761233C99EF3570E5B68E4A0D78A67FE4A871E62C4900FFECF037
-generated API            6FAF76AF9A82118E8C2D4E4A9827DC0269A2B5CD84945B14E5BB56F90BB7E488
+forward-causal source   7E4553F89AC04A668806D3F63681AFFA0C64083E1E9E99A23DA3DCFF68053000
+forward-causal consumer 7FE4EBFABB819ADCDC2109775DBDB48DB219D9ACBA37FF2EE058BAF82E90C287
+generated API           22549E2894CC97D7C6EB61F297231F9709D130F4C56BE40F1E4EB680F241C6FA
 ```
 
 The separately committed finite-audit evidence is:
@@ -709,15 +734,15 @@ manifest  4BBAB7FC99D03D2612459A0FD9291990313A05A184F2572A581BC93C6E49DFDD
 
 Local verification on the committed bytes:
 
-- full `lake build`: 611/611 jobs;
-- Lean source audit: zero actual `sorry`/`admit` findings across 281 Lean
+- full `lake build`: 616/616 jobs;
+- Lean source audit: zero actual `sorry`/`admit` findings across 283 Lean
   files;
-- generated API reference: current at 81 sections and 1,719 declarations;
-- the runnable complete-cancellation causal-endpoint consumer exercised strict
-  source separation, destructed both exact endpoint junctions and the
-  source-before-base event, then audited both new public theorems and emitted its
-  kernel-green marker;
-- public theorem audit: 1031 entries total: 737 full-classical, 25
+- generated API reference: current at 82 sections and 1,725 declarations;
+- the runnable sibling-exit forward-causal consumer re-rooted a continuation,
+  destructed all three forward endpoint cases, converted the generic target,
+  invoked the typed Wait theorem, audited all six public declarations, and
+  emitted its kernel-green marker;
+- public theorem audit: 1035 entries total: 741 full-classical, 25
   axiom-free, 129 `propext`-only, and 140 `propext` plus `Quot.sound`;
 - the default, extended, and cross-variant progress audits passed with every
   incomplete visited state carrying an exact ready head and successful
@@ -730,16 +755,16 @@ Exact-head proof GitHub verification:
 
 - workflow: `Lean CI`;
 - event/ref: `push` / `main`;
-- run: [32445041546](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32445041546);
-- build job: [96662960268][proof-job];
-- exact head: `8a97b4ce1c4fb4f40ff2956c772c6d80aac0cb93`;
+- run: [32448733970](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32448733970);
+- build job: [96673035775][proof-job];
+- exact head: `302b8b917bfac2af7fe144fcf0fece97b1c5ccd9`;
 - result: 36 successful steps, zero failures, and one expected release-ref-only
   skip;
-- run: `2026-08-21T03:54:40Z`-`2026-08-21T04:09:01Z` (14m21s);
-- build job: `2026-08-21T03:54:43Z`-`2026-08-21T04:09:01Z`
-  (14m18s).
+- run: `2026-08-21T04:56:42Z`-`2026-08-21T05:09:54Z` (13m12s);
+- build job: `2026-08-21T04:56:45Z`-`2026-08-21T05:09:53Z`
+  (13m08s).
 
-[proof-job]: https://github.com/fushanbobfan/proofnet-ir/actions/runs/32445041546/job/96662960268
+[proof-job]: https://github.com/fushanbobfan/proofnet-ir/actions/runs/32448733970/job/96673035775
 [reentry-failure]: api-reference.md#commitment-interval-par-guard-re-entry-failure-target
 [reentry-mate-separation]: api-reference.md#commitment-interval-par-guard-re-entry-mate-separation
 [target-temporal]: api-reference.md#commitment-interval-marked-re-entry-target-temporal-reduction
@@ -752,6 +777,7 @@ Exact-head proof GitHub verification:
 [target-junction]: api-reference.md#marked-re-entry-target-sibling-exit-causalcyclic-junction
 [target-endpoint]: api-reference.md#marked-re-entry-target-cyclic-junction-endpoint-causal-order
 [target-complete]: api-reference.md#marked-re-entry-target-complete-cancellation-causal-endpoints
+[target-forward-causal]: api-reference.md#marked-re-entry-target-sibling-exit-forward-causal-order
 [target-cycle]: api-reference.md#marked-re-entry-target-raw-return-cyclic-reduction
 
 Exact-head finite-audit GitHub verification:
