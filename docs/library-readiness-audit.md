@@ -1369,6 +1369,30 @@ part of the engineering and proof-identity gap.
    canonical-history-authenticated mark at the active representative. Avoiding
    re-entry, target elimination, a payer, the history-tail law, completion,
    progress, termination, and totality remain open.
+   `SequentialFigure7MarkedTargetWaitingMateExternalCommitmentReentryMarked.lean`
+   now eliminates the selected raw-unmarked branch of the nested failure status
+   when the enclosing selected connective is a structurally well-formed
+   stored-right `par`. The generic
+   `ActiveCarrierExternalReentryFailureHistoricalStatus.markedHistoricalTarget_of_storedRight`
+   theorem uses structural inbound-parent-edge separation and requires no
+   path-avoidance premise. The two exact future/marked waiting endpoints retain
+   all temporal, commitment, crossing, and re-entry fields while replacing only
+   their failure status with
+   `ActiveCarrierExternalReentryMarkedHistoricalTarget`. Constructor-preserving
+   maps carry that refinement through the active future-work mate status,
+   continuation sibling target, and typed Wait older-mate trace. Older-outside,
+   raw-outside, selected-return, future/marked sibling exits, avoiding/equal
+   trace branches, and causal-descent/cyclic-junction receipts remain unchanged.
+   The runnable consumer exercises all 10 public declarations, including six
+   registered public theorems. The generated API now has 92 sections and 1795
+   declarations; the accumulated rolling surface has 164 declarations. The
+   source tree has 169 modules, the facade imports 165 submodules (166 modules
+   including the facade), and the repository has 302 Lean files. The verified
+   combined theorem audit now covers 1077 theorems: 780 standard-three, 25
+   axiom-free, 131 `propext`-only, and 141 `propext`/`Quot.sound` boundaries.
+   The surviving authenticated mark is not eliminated or converted into a
+   payer. No avoiding witness or path alignment, history-tail law, progress,
+   completion, termination, or totality result follows.
    `SequentialFigure7CommitmentBlockerAdvance.lean` now combines the global
    queued-head law, strict split, and equal-boundary result. Under declarative
    correctness and the complete scheduler invariant, for a supplied canonical

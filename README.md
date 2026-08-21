@@ -36,11 +36,13 @@ Its waiting continuation reaches the outside submitted conclusion as strictly
 older future work or a strictly older mark, with no raw return to the older terminal.
 Under reference-switching connectedness and exact ready-tail failure, both external
 endpoints retain their strict commitment split, owned-to-external crossing, reversed
-re-entry, and selected-or-marked failure status. Crossing and re-entry are stored
-separately; arbitrary witnesses are not identified. The inbound target remains the
-selected raw-unmarked head or a distinct authenticated active-representative mark.
-Broader exact selected/mate raw returns, avoidance, target elimination, payer,
-history-tail, progress, completion, termination, and totality remain open.
+re-entry, and failure-conditioned target status. In the outer older-mate branch,
+stored-right orientation rules out the nested selected-head target. The exact two-case
+endpoint is transported through the active scheduler, continuation sibling target, and
+typed Wait trace with unrelated trace branches and causal/cyclic receipts unchanged.
+The surviving nested target is a distinct canonical-history-authenticated mark at the
+active representative. That mark, broader exact selected/mate raw returns, avoidance,
+payer, history-tail, progress, completion, termination, and totality remain open.
 [Current status](docs/current-status.md) owns exact revision, verification receipt, and gates.
 <!-- ROLLING_MAIN_SUMMARY_END -->
 

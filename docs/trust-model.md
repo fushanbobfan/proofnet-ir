@@ -1159,6 +1159,21 @@ not identified. The remaining target is the selected raw-unmarked head or a
 distinct canonical-history-authenticated mark represented at the active
 boundary. No avoiding re-entry, target elimination, payer, history-tail law,
 completion, progress, termination, or totality follows.
+`SequentialFigure7MarkedTargetWaitingMateExternalCommitmentReentryMarked.lean`
+adds no runtime oracle, native-computed evidence, or new trusted source. Its six
+registered public theorems all use the standard-three boundary. Three public
+inductive carriers and one public sibling-target definition complete the
+10-declaration consumer surface and are also covered by direct axiom prints.
+The verified combined theorem audit now covers 1077 theorems: 780
+standard-three, 25 axiom-free, 131 `propext`-only, and 141
+`propext`/`Quot.sound` boundaries. The generic stored-right theorem uses
+structural inbound-parent-edge separation to eliminate only the selected target
+from a supplied failure status; it assumes no avoiding path. The carrier maps
+then preserve the exact future/marked endpoints, unrelated trace branches, and
+causal/cyclic receipts while replacing the nested failure field with an
+authenticated marked target. This does not provide an avoiding witness or path
+alignment, eliminate the surviving mark, identify a payer, derive the
+history-tail law, or establish progress, completion, termination, or totality.
 `SequentialFigure7CrossRepresentativeWaitPreservation.lean` adds no hidden
 source-region oracle. Its output-work classification follows only from the
 typed destination's exact waiting prepend and unchanged ready/sigma fields;

@@ -280,6 +280,36 @@ private theorem ActiveCarrierExternalReentryTargetStatus.markedHistoricalTarget_
     · rw [rawCase.1] at targetMarked
       simp at targetMarked
 
+/-- A stored-right par guard eliminates the selected-head alternative from a
+failure-conditioned historical re-entry status. -/
+theorem ActiveCarrierExternalReentryFailureHistoricalStatus.markedHistoricalTarget_of_storedRight
+    {certificate : Certificate} {state : ReservationState}
+    {history : ExecutedHistory certificate state}
+    {tagHistory : CanonicalTagHistory certificate history}
+    {input : ReadyHeadInput state} {component : UnificationComponent}
+    {owned : List Vertex} {endpoint : Vertex}
+    (status : ActiveCarrierExternalReentryFailureHistoricalStatus tagHistory input
+      component owned endpoint)
+    (structural : certificate.StructurallyWellFormed)
+    (current : ConnectiveBelow certificate input.vertex)
+    (parEq : current.kind = .par)
+    (sideRight : current.side = .storedRight) :
+    ActiveCarrierExternalReentryMarkedHistoricalTarget tagHistory input component
+      owned endpoint := by
+  rcases status with
+    ⟨path, directed, pathStarts, finishOwned, directedMembership,
+      parentEdge, selected | marked⟩
+  · have targetNeSelected :=
+      inboundParentEdge_target_ne_selected_of_storedRight structural input current
+        parEq sideRight directed parentEdge
+    exact False.elim (targetNeSelected selected.1)
+  · rcases marked with
+      ⟨markedAge, targetNeSelected, targetMarked, historical,
+        representative⟩
+    exact ⟨path, directed, markedAge, pathStarts, finishOwned,
+      directedMembership, parentEdge, targetNeSelected, targetMarked, historical,
+      representative⟩
+
 namespace CanonicalTagHistory
 
 private theorem CommitmentIntervalParTraceOutcome.mapOlderMateStatusOfStoredRight

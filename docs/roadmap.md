@@ -1178,16 +1178,24 @@
     commitment split, owned-to-external crossing, theorem-derived reverse
     re-entry, and selected-or-marked failure-historical status. Keep crossing
     and re-entry existentially separate; do not infer witness identity.
-  - [ ] Eliminate the remaining inbound-target split: the selected raw-unmarked
-    head versus a distinct canonical-history-authenticated mark represented at
-    the active boundary. Derive an avoiding or otherwise aligned re-entry, or a
-    direct contradiction from the sibling causal witness. Then eliminate the
-    remaining cyclic residuals, other finite exits, and equal-final traces, and
-    close the history-tail law. Do not infer a distinct payer, unconditional
-    dispatcher progress, completion, termination, later-state totality, global
-    raw seams, fallback removal, Figure-7 pure-worklist completeness,
-    sequentialization, faithful token-age scheduling, or whole-program
-    linearity from the current reduction.
+  - [x] Under a structurally well-formed selected `par` whose side is
+    `.storedRight`, eliminate the selected raw-unmarked alternative from the
+    failure-conditioned historical re-entry status without assuming an avoiding
+    path. Replace only that nested failure field with the authenticated marked
+    target and transport it through the exact future/marked waiting endpoints,
+    active future-work mate, continuation sibling target, and typed Wait
+    older-mate trace. Preserve every unrelated trace branch and the
+    causal-descent/cyclic-junction receipts.
+  - [ ] Eliminate the surviving distinct canonical-history-authenticated mark
+    at the active representative or derive the exact distinct payer needed from
+    it. The current checkpoint supplies no avoiding witness or aligned re-entry
+    path. Then eliminate the remaining cyclic residuals, other finite exits,
+    broader exact selected/mate raw returns, and equal-final traces, and close
+    the history-tail law. Do not infer unconditional dispatcher progress,
+    completion, termination, later-state totality, global raw seams, fallback
+    removal, Figure-7 pure-worklist completeness, sequentialization, faithful
+    token-age scheduling, or whole-program linearity from the current
+    reduction.
   - [x] Isolate unused waiting storage as the history-preserved predicate
     `FutureWaitingUndefined`. Prove it for empty/initial states and preserve it
     through Prepared, all six successful rules, dispatcher steps,

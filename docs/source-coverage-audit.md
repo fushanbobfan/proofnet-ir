@@ -637,6 +637,21 @@ witnesses. The remaining inbound target is the selected raw-unmarked head or a
 distinct canonical-history-authenticated mark at the active representative.
 No avoiding re-entry, target elimination, payer, history-tail law, completion,
 progress, termination, or totality follows.
+`SequentialFigure7MarkedTargetWaitingMateExternalCommitmentReentryMarked.lean`
+adds no source reading or new oracle. It reuses the structural stored-right
+inbound-parent separation already proved for the selected `par`: under a
+supplied failure-conditioned historical re-entry status, that separation rules
+out the selected raw-unmarked target without an avoiding-path premise. The exact
+future/marked waiting endpoints preserve every temporal, commitment, crossing,
+and reverse re-entry field while constructor-preserving maps replace only the
+nested failure status with an authenticated marked target. Those maps continue
+through the active future-work mate, continuation sibling target, and typed Wait
+older-mate trace. Older-outside, raw-outside, selected-return, future/marked
+sibling exits, avoiding/equal trace branches, and the
+causal-descent/cyclic-junction receipts are retained. This code consequence does not supply an
+avoiding witness or align an arbitrary re-entry path, eliminate the surviving
+mark, identify a payer, derive the history-tail law, or prove progress,
+completion, termination, or totality.
 Global preservation of the mate-region and older-raw-mark invariants through
 candidate-creating rules remains open, as do queue origin, created-candidate raw
 seams, derivation of the re-entry avoidance premise, marked-history descent,

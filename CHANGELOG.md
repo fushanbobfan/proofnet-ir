@@ -2,6 +2,26 @@
 
 ## Unreleased
 
+- eliminated the selected raw-unmarked alternative from
+  `ActiveCarrierExternalReentryFailureHistoricalStatus` under a structurally
+  well-formed selected `par` whose side is `.storedRight`; no path-avoidance
+  premise is required.
+  `SequentialFigure7MarkedTargetWaitingMateExternalCommitmentReentryMarked.lean`
+  replaces only the nested failure status with
+  `ActiveCarrierExternalReentryMarkedHistoricalTarget` and carries that
+  refinement through the exact future/marked waiting endpoints, active
+  future-work mate status, continuation sibling target, and typed Wait
+  older-mate trace. Older-outside, raw-outside, selected-return, future/marked
+  sibling exits, avoiding/equal trace branches, and the causal-descent/
+  cyclic-junction receipts are preserved. The runnable consumer exercises all 10
+  public declarations, including six registered public theorems. The generated
+  API now has 92 sections and 1795 declarations; the accumulated rolling
+  surface has 164 declarations. The verified combined theorem audit now covers
+  1077 theorems: 780 standard-three, 25 axiom-free, 131 `propext`-only, and 141
+  `propext`/`Quot.sound` boundaries. The surviving marked target is not
+  eliminated or converted into a payer; no avoiding witness or path alignment,
+  history-tail law, progress, completion, termination, or totality result
+  follows;
 - refined both constructors of the exact waiting-mate external temporal carrier
   through the strict older commitment and failure-conditioned re-entry pipeline.
   `SequentialFigure7MarkedTargetWaitingMateExternalCommitmentReentry.lean`

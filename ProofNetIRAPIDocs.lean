@@ -1300,6 +1300,58 @@ def sections : List Section := [
     ]
   },
   {
+    title := "Stored-right waiting commitment re-entry marked target"
+    declarations := [
+      Name.str
+        (Name.str
+          `ProofNetIR.SequentialFigure7
+          "ActiveCarrierExternalReentryFailureHistoricalStatus")
+        "markedHistoricalTarget_of_storedRight",
+      Name.str
+        `ProofNetIR.SequentialFigure7
+        "ActiveMateWaitingParentExternalCommitmentReentryMarkedOutcome",
+      Name.str
+        (Name.str
+          `ProofNetIR.SequentialFigure7
+          ("ActiveMateWaitingParentExternalCommitmentReentry" ++
+            "FailureOutcome"))
+        "markedOutcome_of_storedRight",
+      Name.str
+        `ProofNetIR.SequentialFigure7
+        ("FutureWorkMateActiveCarrierExternalCommitmentReentry" ++
+          "MarkedStatus"),
+      Name.str
+        (Name.str
+          `ProofNetIR.SequentialFigure7
+          "FutureWorkMateActiveCarrierExternalTemporalStatus")
+        "commitmentReentryMarkedStatus_of_storedRight",
+      Name.str
+        `ProofNetIR.SequentialFigure7
+        ("ContinuationExitRawOrFutureActiveCarrierExternalCommitment" ++
+          "ReentryMarkedOutcome"),
+      Name.str
+        (Name.str
+          `ProofNetIR.SequentialFigure7
+          ("ContinuationExitRawOrFutureActiveCarrierExternal" ++
+            "TemporalOutcome"))
+        "commitmentReentryMarkedOutcome_of_storedRight",
+      Name.str
+        `ProofNetIR.SequentialFigure7
+        ("ActiveCarrierExternalReentryMarkedMateSeparatedContinuation" ++
+          "SiblingExitWaitingMarkedTarget"),
+      Name.str
+        (Name.str
+          `ProofNetIR.SequentialFigure7
+          ("ActiveCarrierExternalReentryMarkedMateSeparatedContinuation" ++
+            "SiblingExitExternalTemporalTarget"))
+        "waitingMarkedTarget_of_storedRight",
+      Name.str
+        `ProofNetIR.SequentialFigure7.WaitStep
+        ("commitmentInterval_parTraceReentryMarkedContinuation" ++
+          "SiblingExitWaitingMarkedOutcome")
+    ]
+  },
+  {
     title := "Marked re-entry target raw-return cyclic reduction"
     declarations := [
       `ProofNetIR.SequentialFigure7.MarkedConclusionRawReturnCyclicOutcome,

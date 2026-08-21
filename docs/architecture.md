@@ -1758,6 +1758,25 @@ selected raw-unmarked head or a distinct canonical-history-authenticated mark
 represented at the active boundary. No avoiding re-entry, target elimination,
 payer, history-tail law, completion, progress, termination, or totality follows.
 
+`SequentialFigure7MarkedTargetWaitingMateExternalCommitmentReentryMarked.lean`
+uses the outer stored-right par orientation to remove that selected-head target.
+The generic
+`ActiveCarrierExternalReentryFailureHistoricalStatus.markedHistoricalTarget_of_storedRight`
+theorem applies structural inbound-parent-edge separation: beyond the supplied
+failure status, it needs only structural well-formedness, the selected
+connective's `par` kind, and its `.storedRight` side. No avoiding path premise
+is required. The exact future/marked waiting endpoint retains its temporal,
+strict commitment, crossing, and reverse re-entry fields and replaces only the
+failure status with `ActiveCarrierExternalReentryMarkedHistoricalTarget`. That
+refinement is transported through the active future-work mate status,
+continuation exit, sibling target, and typed Wait older-mate trace. The
+older-outside, raw-outside, selected-return, future/marked sibling exits, and
+avoiding/equal trace branches remain unchanged; so do the causal-descent and
+cyclic-junction receipts. The surviving target is still a distinct
+canonical-history-authenticated mark at the active representative. No avoiding
+witness or path alignment, payer, history-tail law, progress, completion,
+termination, or totality is derived.
+
 `SequentialFigure7CommitmentBlockerAdvance.lean` joins the global queued-head
 law, the strict `sigma` split, the strict-edge avoiding adapter, and the final
 equal-boundary classification. Under declarative correctness and the complete

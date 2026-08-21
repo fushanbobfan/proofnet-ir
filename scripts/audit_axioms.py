@@ -276,6 +276,24 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "externalTemporalTarget",
     "ProofNetIR.SequentialFigure7.WaitStep."
     "commitmentInterval_parTraceReentryMarkedContinuationSiblingExitExternalTemporalOutcome",
+    "ProofNetIR.SequentialFigure7."
+    "ActiveCarrierExternalReentryFailureHistoricalStatus."
+    "markedHistoricalTarget_of_storedRight",
+    "ProofNetIR.SequentialFigure7."
+    "ActiveMateWaitingParentExternalCommitmentReentryFailureOutcome."
+    "markedOutcome_of_storedRight",
+    "ProofNetIR.SequentialFigure7."
+    "FutureWorkMateActiveCarrierExternalTemporalStatus."
+    "commitmentReentryMarkedStatus_of_storedRight",
+    "ProofNetIR.SequentialFigure7."
+    "ContinuationExitRawOrFutureActiveCarrierExternalTemporalOutcome."
+    "commitmentReentryMarkedOutcome_of_storedRight",
+    "ProofNetIR.SequentialFigure7."
+    "ActiveCarrierExternalReentryMarkedMateSeparatedContinuation"
+    "SiblingExitExternalTemporalTarget."
+    "waitingMarkedTarget_of_storedRight",
+    "ProofNetIR.SequentialFigure7.WaitStep."
+    "commitmentInterval_parTraceReentryMarkedContinuationSiblingExitWaitingMarkedOutcome",
     "ProofNetIR.SequentialFigure7.MarkedConclusionChain."
     "rawReturnCyclicReduction",
     "ProofNetIR.SequentialFigure7.MarkedConclusionChain."
