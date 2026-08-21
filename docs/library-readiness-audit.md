@@ -1292,6 +1292,17 @@ part of the engineering and proof-identity gap.
    standard-three, 25 axiom-free, 130 `propext`-only, and 140
    `propext`/`Quot.sound` boundaries. No endpoint is eliminated and no payer,
    tail law, completion, or progress result follows.
+   `SequentialFigure7MarkedTargetRawReturnSiblingExitCausalOwnership.lean`
+   authenticates and orders both endpoint-premise marks. The outside terminal
+   resolves strictly below the active boundary; the mate resolves either
+   strictly below outside the carrier or exactly at the active carrier. An
+   active-owned waiting mate forces the exact older-terminal/younger-mate
+   orientation and active younger boundary. Ready work remains ready. Its
+   runnable consumer destructs every public carrier and calls the generic,
+   target, and typed Wait theorems. The verified combined audit now covers
+   1052 theorems: 757 standard-three, 25 axiom-free, 130 `propext`-only, and
+   140 `propext`/`Quot.sound` boundaries. No endpoint, payer, tail law,
+   completion, or progress theorem follows.
    `SequentialFigure7CommitmentBlockerAdvance.lean` now combines the global
    queued-head law, strict split, and equal-boundary result. Under declarative
    correctness and the complete scheduler invariant, for a supplied canonical

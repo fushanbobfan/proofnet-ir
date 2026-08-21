@@ -577,6 +577,14 @@ and submitted-producer uniqueness to concrete-mark both consumer premises.
 transports that existing information into the older future sibling endpoint.
 It neither eliminates that endpoint or the exact selected/mate return nor
 derives a payer, history-tail law, completion, or progress.
+`SequentialFigure7MarkedTargetRawReturnSiblingExitCausalOwnership.lean` adds
+no source reading. It combines final raw-mark authenticity, total chronology
+for distinct premise vertices, exact occurrence ownership, and the ready or
+waiting scheduler witness. The outside terminal has an older representative;
+the mate is older outside or active-owned. Active-owned waiting work is forced
+to the older-terminal/younger-mate orientation with active younger boundary.
+The result retains ready work and the future endpoint, so it proves no payer,
+history-tail law, completion, or progress.
 Global preservation of the mate-region and older-raw-mark invariants through
 candidate-creating rules remains open, as do queue origin, created-candidate raw
 seams, derivation of the re-entry avoidance premise, marked-history descent,

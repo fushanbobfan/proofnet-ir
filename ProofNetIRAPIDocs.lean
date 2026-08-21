@@ -1140,6 +1140,42 @@ def sections : List Section := [
     ]
   },
   {
+    title := "Marked re-entry target sibling causal ownership"
+    declarations := [
+      `ProofNetIR.SequentialFigure7.MarkedVertexActiveCarrierStatus,
+      Name.str
+        `ProofNetIR.SequentialFigure7.ConnectiveBelow
+        "futureWorkPremises_causalOwnership",
+      `ProofNetIR.SequentialFigure7.FutureWorkActiveMateSchedulerOutcome,
+      Name.str
+        `ProofNetIR.SequentialFigure7.FutureWorkAtExactSchedulerLocation
+        "activeMateSchedulerOutcome",
+      `ProofNetIR.SequentialFigure7.FutureWorkMateActiveCarrierScheduledStatus,
+      Name.str
+        `ProofNetIR.SequentialFigure7
+        "ContinuationExitRawOrFutureActiveCarrierCausalOwnershipOutcome",
+      Name.str
+        (Name.str
+          `ProofNetIR.SequentialFigure7
+          "ContinuationExitRawOrFutureActiveCarrierScheduledOutcome")
+        "causalOwnershipOutcome",
+      Name.str
+        `ProofNetIR.SequentialFigure7
+        ("ActiveCarrierExternalReentryMarkedMateSeparatedContinuation" ++
+          "SiblingExitCausalOwnershipTarget"),
+      Name.str
+        (Name.str
+          `ProofNetIR.SequentialFigure7
+          ("ActiveCarrierExternalReentryMarkedMateSeparatedContinuation" ++
+            "SiblingExitScheduledTarget"))
+        "causalOwnershipTarget",
+      Name.str
+        `ProofNetIR.SequentialFigure7.WaitStep
+        ("commitmentInterval_parTraceReentryMarkedContinuation" ++
+          "SiblingExitCausalOwnershipOutcome")
+    ]
+  },
+  {
     title := "Marked re-entry target raw-return cyclic reduction"
     declarations := [
       `ProofNetIR.SequentialFigure7.MarkedConclusionRawReturnCyclicOutcome,

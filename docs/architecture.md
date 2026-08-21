@@ -1684,6 +1684,18 @@ target. Raw-outside and exact selected/mate-return branches are unchanged.
 This is a scheduler classification, not endpoint elimination, a ready-tail
 witness, a history-tail law, completion, or progress.
 
+`SequentialFigure7MarkedTargetRawReturnSiblingExitCausalOwnership.lean`
+authenticates both endpoint-premise marks in the supplied canonical history and
+orders their events. Exact component ownership makes the outside terminal's
+representative strictly older than the active boundary. The mate is either
+outside with a strictly older representative or active-owned at the active
+representative. If that active mate belongs to waiting work, exact span
+orientation forces the terminal to be the older premise and the mate to be the
+younger premise whose boundary is active; the reverse orientation contradicts
+strict span order. Ready work remains an explicit alternative. This is a
+causal/ownership normalization, not elimination of the endpoint or construction
+of a non-global payer.
+
 `SequentialFigure7CommitmentBlockerAdvance.lean` joins the global queued-head
 law, the strict `sigma` split, the strict-edge avoiding adapter, and the final
 equal-boundary classification. Under declarative correctness and the complete

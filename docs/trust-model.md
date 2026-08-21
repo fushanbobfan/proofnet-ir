@@ -1092,6 +1092,15 @@ axiom-free, 130 `propext`-only, and 140 `propext`/`Quot.sound` boundaries.
 The checkpoint classifies the older future endpoint but does not eliminate it,
 the exact raw return, or any separate target residual, and proves no payer,
 tail law, completion, or progress.
+`SequentialFigure7MarkedTargetRawReturnSiblingExitCausalOwnership.lean` adds no
+runtime oracle or native-computed evidence. Canonical raw-mark authenticity and
+event totality order the two distinct endpoint premises; component-forest
+ownership gives the terminal/mate representative classification; exact waiting
+span semantics exclude the reverse active-mate orientation. Five registered
+public theorems use the standard-three boundary. The verified combined audit
+now covers 1052 theorems: 757 standard-three, 25 axiom-free, 130
+`propext`-only, and 140 `propext`/`Quot.sound` boundaries. The future endpoint,
+exact raw return, payer, tail law, completion, and progress remain open.
 `SequentialFigure7CrossRepresentativeWaitPreservation.lean` adds no hidden
 source-region oracle. Its output-work classification follows only from the
 typed destination's exact waiting prepend and unchanged ready/sigma fields;

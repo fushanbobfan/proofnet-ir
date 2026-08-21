@@ -106,6 +106,8 @@ jobs:
           ~/.elan/bin/lake exe \
             proofnet_ir_marked_target_raw_return_sibling_exit_scheduled_tests
           ~/.elan/bin/lake exe \
+            proofnet_ir_marked_target_raw_return_sibling_exit_causal_ownership_tests
+          ~/.elan/bin/lake exe \
             proofnet_ir_marked_target_raw_return_cyclic_reduction_tests
           ~/.elan/bin/lake exe proofnet_ir_commitment_blocker_advance_tests
           ~/.elan/bin/lake exe proofnet_ir_commitment_blocker_maximality_tests

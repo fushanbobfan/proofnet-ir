@@ -224,6 +224,18 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "scheduledTarget",
     "ProofNetIR.SequentialFigure7.WaitStep."
     "commitmentInterval_parTraceReentryMarkedContinuationSiblingExitScheduledOutcome",
+    "ProofNetIR.SequentialFigure7.ConnectiveBelow."
+    "futureWorkPremises_causalOwnership",
+    "ProofNetIR.SequentialFigure7.FutureWorkAtExactSchedulerLocation."
+    "activeMateSchedulerOutcome",
+    "ProofNetIR.SequentialFigure7."
+    "ContinuationExitRawOrFutureActiveCarrierScheduledOutcome."
+    "causalOwnershipOutcome",
+    "ProofNetIR.SequentialFigure7."
+    "ActiveCarrierExternalReentryMarkedMateSeparatedContinuationSiblingExitScheduledTarget."
+    "causalOwnershipTarget",
+    "ProofNetIR.SequentialFigure7.WaitStep."
+    "commitmentInterval_parTraceReentryMarkedContinuationSiblingExitCausalOwnershipOutcome",
     "ProofNetIR.SequentialFigure7.MarkedConclusionChain."
     "rawReturnCyclicReduction",
     "ProofNetIR.SequentialFigure7.MarkedConclusionChain."

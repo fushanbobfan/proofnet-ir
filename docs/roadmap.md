@@ -1146,8 +1146,13 @@
     exact waiting span, and prove that both premises of its connective
     consumer are concretely marked. Preserve the raw-outside and exact-return
     branches unchanged.
+  - [x] Authenticate and strictly order both future-endpoint premise marks.
+    Prove the outside terminal representative is older and classify the mate
+    as older outside or active-owned. In the active-owned waiting case, force
+    the terminal/mate to the older/younger span orientation and identify the
+    younger boundary with the active boundary; retain ready work explicitly.
   - [ ] Use the strict cyclic endpoint order and aligned sibling causal witness
-    with the retained commitment paths and exact scheduler location to
+    with the retained commitment paths and causal/ownership classification to
     eliminate the exact selected/mate return, the older future endpoint, or
     the Wait descent, or recover a distinct ready-tail payer. Then
     eliminate the remaining cyclic residuals, other finite exits, and

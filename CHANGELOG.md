@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+- authenticated and strictly ordered both raw-mark events below every older
+  future sibling endpoint. The outside terminal now has a representative
+  strictly below the active boundary; the endpoint mate is either outside at
+  a strictly older representative or active-owned at exactly the active
+  representative. In the active-owned waiting case, exact span semantics
+  force the terminal to be the older premise and the mate to be the younger
+  premise at the active boundary; the reverse orientation would create a
+  strict boundary cycle. Ready work remains ready. This narrows but does not
+  eliminate the future endpoint, produce a payer, derive the history-tail law,
+  or prove completion/progress. The verified combined theorem audit now covers
+  1052 theorems: 757 standard-three, 25 axiom-free, 130 `propext`-only, and
+  140 `propext`/`Quot.sound` boundaries;
 - exposed the exact scheduler location of every `FutureWorkAt`: either its
   ready slot, bucket, live component frontier, and raw-unmarked conclusion, or
   its exact waiting span, submitted par producer, oriented marked premises,

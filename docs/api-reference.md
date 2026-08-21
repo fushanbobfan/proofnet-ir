@@ -11061,6 +11061,221 @@ ProofNetIR.SequentialFigure7.WaitStep.commitmentInterval_parTraceReentryMarkedCo
                                     tagHistory step.prepared.readyHeadInput component owned step.consumer)
 ```
 
+## Marked re-entry target sibling causal ownership
+
+### `ProofNetIR.SequentialFigure7.MarkedVertexActiveCarrierStatus`
+
+Kind: inductive type.
+
+A concrete mark is either owned by the active occurrence carrier at that
+exact representative or lies outside with a strictly older representative.
+
+```lean
+ProofNetIR.SequentialFigure7.MarkedVertexActiveCarrierStatus : ProofNetIR.SequentialSchedulerBridge.ReservationState →
+  ProofNetIR.SequentialSchedulerState.RawTokenAge →
+    List ProofNetIR.Vertex → ProofNetIR.Vertex → ProofNetIR.SequentialSchedulerState.RawTokenAge → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.ConnectiveBelow.futureWorkPremises_causalOwnership`
+
+Kind: theorem.
+
+Authenticate and order the marked premises of a future-work endpoint,
+while classifying its mate against the active occurrence carrier.
+
+```lean
+ProofNetIR.SequentialFigure7.ConnectiveBelow.futureWorkPremises_causalOwnership : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history)
+  (input : ProofNetIR.SequentialFigure7.ReadyHeadInput state),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+    ∀ {component : ProofNetIR.UnificationComponent} {usedLinks owned : List Nat},
+      state.core.components[input.rawAge]? = some (some component) →
+        certificate.ComponentOccurrenceWitness component usedLinks owned →
+          ∀ {terminal : ProofNetIR.Vertex} (consumer : ProofNetIR.ConnectiveBelow certificate terminal)
+            {boundary : ProofNetIR.SequentialSchedulerState.RawTokenAge},
+            ProofNetIR.SequentialFigure7.FutureWorkAt state boundary consumer.conclusion →
+              ¬terminal ∈ owned →
+                ∃ terminalAge mateAge,
+                  state.core.marks[terminal]? = some (some terminalAge) ∧
+                    state.core.marks[consumer.mate]? = some (some mateAge) ∧
+                      tagHistory.RawMarked terminalAge terminal ∧
+                        tagHistory.RawMarked mateAge consumer.mate ∧
+                          state.core.representative terminalAge < input.rawAge ∧
+                            ProofNetIR.SequentialFigure7.MarkedVertexActiveCarrierStatus state input.rawAge owned
+                                consumer.mate mateAge ∧
+                              (tagHistory.RawMarkedBefore terminalAge terminal mateAge consumer.mate ∨
+                                tagHistory.RawMarkedBefore mateAge consumer.mate terminalAge terminal)
+```
+
+### `ProofNetIR.SequentialFigure7.FutureWorkActiveMateSchedulerOutcome`
+
+Kind: inductive type.
+
+Exact scheduler alternatives when the mate of a future-work endpoint is
+owned by the active carrier.  A waiting endpoint must orient the terminal at
+the older boundary and the mate at the active younger boundary.
+
+```lean
+ProofNetIR.SequentialFigure7.FutureWorkActiveMateSchedulerOutcome : (certificate : ProofNetIR.Certificate) →
+  (state : ProofNetIR.SequentialSchedulerBridge.ReservationState) →
+    ProofNetIR.SequentialFigure7.ReadyHeadInput state →
+      (terminal : ProofNetIR.Vertex) →
+        ProofNetIR.ConnectiveBelow certificate terminal → ProofNetIR.SequentialSchedulerState.RawTokenAge → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.FutureWorkAtExactSchedulerLocation.activeMateSchedulerOutcome`
+
+Kind: theorem.
+
+A future endpoint whose mate is active-owned is either ready work or an
+exact waiting return from the older terminal to the active mate.
+
+```lean
+ProofNetIR.SequentialFigure7.FutureWorkAtExactSchedulerLocation.activeMateSchedulerOutcome : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {input : ProofNetIR.SequentialFigure7.ReadyHeadInput state} {terminal : ProofNetIR.Vertex}
+  {consumer : ProofNetIR.ConnectiveBelow certificate terminal}
+  {boundary terminalAge mateAge : ProofNetIR.SequentialSchedulerState.RawTokenAge},
+  ProofNetIR.SequentialFigure7.FutureWorkAtExactSchedulerLocation certificate state boundary consumer.conclusion →
+    ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+      state.core.marks[terminal]? = some (some terminalAge) →
+        state.core.marks[consumer.mate]? = some (some mateAge) →
+          state.core.representative terminalAge < input.rawAge →
+            state.core.representative mateAge = input.rawAge →
+              ProofNetIR.SequentialFigure7.FutureWorkActiveMateSchedulerOutcome certificate state input terminal
+                consumer boundary
+```
+
+### `ProofNetIR.SequentialFigure7.FutureWorkMateActiveCarrierScheduledStatus`
+
+Kind: inductive type.
+
+The endpoint mate is either strictly older and outside the active carrier,
+or active-owned with the ready/waiting-return scheduler classification.
+
+```lean
+ProofNetIR.SequentialFigure7.FutureWorkMateActiveCarrierScheduledStatus : (certificate : ProofNetIR.Certificate) →
+  (state : ProofNetIR.SequentialSchedulerBridge.ReservationState) →
+    ProofNetIR.SequentialFigure7.ReadyHeadInput state →
+      List ProofNetIR.Vertex →
+        (terminal : ProofNetIR.Vertex) →
+          ProofNetIR.ConnectiveBelow certificate terminal →
+            ProofNetIR.SequentialSchedulerState.RawTokenAge → ProofNetIR.SequentialSchedulerState.RawTokenAge → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.ContinuationExitRawOrFutureActiveCarrierCausalOwnershipOutcome`
+
+Kind: inductive type.
+
+A scheduled sibling exit whose older future endpoint also carries exact
+canonical raw-mark events, strict terminal age, mate ownership, and premise
+chronology.
+
+```lean
+ProofNetIR.SequentialFigure7.ContinuationExitRawOrFutureActiveCarrierCausalOwnershipOutcome : (certificate : ProofNetIR.Certificate) →
+  (state : ProofNetIR.SequentialSchedulerBridge.ReservationState) →
+    {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state} →
+      ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history →
+        (input : ProofNetIR.SequentialFigure7.ReadyHeadInput state) →
+          List ProofNetIR.Vertex → ProofNetIR.ConnectiveBelow certificate input.vertex → ProofNetIR.Vertex → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.ContinuationExitRawOrFutureActiveCarrierScheduledOutcome.causalOwnershipOutcome`
+
+Kind: theorem.
+
+Add exact raw-mark chronology and active-carrier ownership to a scheduled
+sibling exit.
+
+```lean
+ProofNetIR.SequentialFigure7.ContinuationExitRawOrFutureActiveCarrierScheduledOutcome.causalOwnershipOutcome : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  {tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history}
+  {input : ProofNetIR.SequentialFigure7.ReadyHeadInput state} {component : ProofNetIR.UnificationComponent}
+  {usedLinks owned : List Nat},
+  state.core.components[input.rawAge]? = some (some component) →
+    certificate.ComponentOccurrenceWitness component usedLinks owned →
+      ∀ {current : ProofNetIR.ConnectiveBelow certificate input.vertex} {origin : ProofNetIR.Vertex},
+        ProofNetIR.SequentialFigure7.ContinuationExitRawOrFutureActiveCarrierScheduledOutcome certificate state input
+            owned current origin →
+          ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+            ProofNetIR.SequentialFigure7.ContinuationExitRawOrFutureActiveCarrierCausalOwnershipOutcome certificate
+              state tagHistory input owned current origin
+```
+
+### `ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedContinuationSiblingExitCausalOwnershipTarget`
+
+Kind: definition.
+
+The marked re-entry target after authenticating and chronologically
+ordering every older future sibling endpoint.
+
+```lean
+ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedContinuationSiblingExitCausalOwnershipTarget : {certificate : ProofNetIR.Certificate} →
+  {state : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+    {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state} →
+      ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history →
+        (input : ProofNetIR.SequentialFigure7.ReadyHeadInput state) →
+          ProofNetIR.UnificationComponent →
+            List ProofNetIR.Vertex → ProofNetIR.ConnectiveBelow certificate input.vertex → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedContinuationSiblingExitScheduledTarget.causalOwnershipTarget`
+
+Kind: theorem.
+
+Upgrade the scheduled sibling target to canonical raw-mark chronology and
+active-carrier mate ownership.
+
+```lean
+ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedContinuationSiblingExitScheduledTarget.causalOwnershipTarget : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  {tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history}
+  {input : ProofNetIR.SequentialFigure7.ReadyHeadInput state} {component : ProofNetIR.UnificationComponent}
+  {usedLinks owned : List Nat} {current : ProofNetIR.ConnectiveBelow certificate input.vertex},
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+    state.core.components[input.rawAge]? = some (some component) →
+      certificate.ComponentOccurrenceWitness component usedLinks owned →
+        ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedContinuationSiblingExitScheduledTarget
+            tagHistory input component owned current →
+          ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedContinuationSiblingExitCausalOwnershipTarget
+            tagHistory input component owned current
+```
+
+### `ProofNetIR.SequentialFigure7.WaitStep.commitmentInterval_parTraceReentryMarkedContinuationSiblingExitCausalOwnershipOutcome`
+
+Kind: theorem.
+
+In the strictly older Wait branch, authenticate and order both premises of
+every scheduled future sibling endpoint and classify its mate by active-carrier
+ownership.
+
+```lean
+ProofNetIR.SequentialFigure7.WaitStep.commitmentInterval_parTraceReentryMarkedContinuationSiblingExitCausalOwnershipOutcome : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before},
+  certificate.DeclarativelyCorrect →
+    certificate.ReferenceSwitchingConnected →
+      ∀ (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+        ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+          ∀ (step : ProofNetIR.SequentialFigure7.WaitStep certificate before after)
+            {component : ProofNetIR.UnificationComponent} {usedLinks owned : List Nat},
+            before.core.components[step.prepared.stackResult.rawAge]? = some (some component) →
+              certificate.ComponentOccurrenceWitness component usedLinks owned →
+                ∀ {position edgeCount : Nat} {first : ProofNetIR.SequentialSchedulerState.RawTokenAge},
+                  0 < edgeCount →
+                    before.stack.sigma[position]? = some first →
+                      before.stack.sigma[position + edgeCount]? = some step.prepared.stackResult.rawAge →
+                        (¬∃ pending,
+                              pending ∈ step.prepared.stackResult.remainingTop ∧ ¬pending ∈ certificate.conclusions) →
+                          tagHistory.CommitmentIntervalParTraceOutcome step.prepared.readyHeadInput step.consumer
+                            position edgeCount first
+                            (¬step.consumer.mate ∈ owned ∧
+                              before.core.marks[step.consumer.mate]? = some (some step.mateRawAge) ∧
+                                before.core.representative step.mateRawAge < step.prepared.stackResult.rawAge ∧
+                                  ProofNetIR.SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedContinuationSiblingExitCausalOwnershipTarget
+                                    tagHistory step.prepared.readyHeadInput component owned step.consumer)
+```
+
 ## Marked re-entry target raw-return cyclic reduction
 
 ### `ProofNetIR.SequentialFigure7.MarkedConclusionRawReturnCyclicOutcome`
