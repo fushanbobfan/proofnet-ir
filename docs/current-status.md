@@ -17,7 +17,7 @@ Status date: 2026-08-21
 | Track | Revision | Status | Authority |
 | --- | --- | --- | --- |
 | Stable library | `v0.9.0` / `9b7dc3d104af8f57ea9123aab2e61b42e05d2216` | Released | [v0.9.0 release audit](v0.9-release-audit.md) |
-| Rolling research | `v0.10.0-dev`; proof `660e887`; audit `1e46573` | Active | This page/commits |
+| Rolling research | `v0.10.0-dev`; proof `08513cf`; audit `1e46573` | Active | This page/commits |
 
 Documentation-only commits may descend from the proof checkpoint without
 changing its mathematical authority. The stable release and rolling branch
@@ -851,21 +851,26 @@ boundary order. Neither survivor is eliminated or converted into a payer, and
 the theorem derives no avoiding witness, aligned re-entry path, history-tail
 law, progress, completion, termination, or totality result.
 
-The [current checkpoint][wait-mate-avoidance] derives the exact inner
-waiting-branch avoidance and aligns it with the active carrier. Given the
-submitted consumer, declarative correctness and the exact waiting location
-produce a reference path from the older consumer mate to the active target
-that avoids the waiting consumer's conclusion. With the scheduler invariant,
-explicit active-component lookup and occurrence witness,
-target mark at the active representative, and strict older-boundary order,
-the target is owned by that active carrier, the older mate is outside, and an
-outside-to-inside directed edge is retained on that same exact path. A public
-corollary packages the same witnesses as the existing avoiding-re-entry
-carrier. No history, ready-head, `noTail`, or separate connectedness witness is
-required. The avoided vertex is the inner waiting conclusion, not yet the
-outer current selected-parent conclusion; both raw and waiting survivors
-remain, with no target elimination, payer, history-tail law, progress, completion,
-termination, or totality result.
+The [current checkpoint][wait-outer-obstruction] retains the exact inner
+waiting-branch path while exposing the remaining outer obstruction. Given the
+submitted consumer, declarative correctness and the exact older waiting
+location produce one common path from the older consumer mate to the active
+target. The path keeps its exact target finish, inner waiting-conclusion
+avoidance, and outside-to-inside directed edge before any branch split. With
+canonical tag history, a selected outer par, and exact ready-tail failure, the
+theorem then splits on the outer selected-parent conclusion.
+
+If the common path avoids that outer conclusion, the theorem separately
+derives an existential marked historical target for an inbound carrier edge.
+The classifier is obtained from the same evidence, but its interface does not
+expose identity between its internal path or edge and the retained common
+witnesses. Otherwise the result states only that the outer conclusion belongs
+to `path.vertices`; it gives no occurrence localization or first-visit fact.
+Here "historical target" names the classifier's internal inbound-edge target;
+the public result exposes no equality identifying that vertex with the retained
+common path endpoint, the older mate, or either conclusion. Neither branch
+eliminates or payer-converts the waiting target, the raw survivor remains, and
+no history-tail law, progress, completion, termination, or totality follows.
 
 ### Finite ready-head boundary audit
 
@@ -933,21 +938,23 @@ Exact signatures are maintained in the generated API reference for the
 [waiting commitment re-entry marked-target finite continuation exit][wait-cont],
 [waiting commitment re-entry marked-target continuation waiting][wait-cont-waiting],
 [waiting re-entry continuation producer orientation][wait-producer-orientation],
+[waiting re-entry continuation mate avoidance][wait-mate-avoidance],
+[waiting re-entry continuation outer obstruction][wait-outer-obstruction],
 [marked re-entry target raw-return cyclic reduction][target-cycle],
 [branch-local continuation credit](api-reference.md#branch-local-continuation-credit),
 [continuation-credit preservation](api-reference.md#continuation-credit-preservation),
 [endpoint-localized continuation exits](api-reference.md#endpoint-localized-continuation-exits),
 and the retained
 [Wait endpoint-locality obstruction](api-reference.md#wait-endpoint-locality-obstruction).
-The first open proof step is now to consume the exposed waiting-producer
-orientation. Declarative par correctness can supply an older-mate-to-target
-switching path that avoids the exact waiting conclusion; the remaining task is
-to combine that path with component ownership into an aligned external
-re-entry and then use it against the retained outer geometry. The raw terminal
-mate is outside the active carrier and must separately be scheduler-localized,
-classified as unopened work, or payer-converted. The retained re-entry has no
-current par-conclusion avoiding witness or aligned path, and its causal/cyclic
-receipts are preserved rather than used to discharge the target.
+The first open proof step is now to consume the exposed outer obstruction. The
+retained exact older-mate-to-target path is already aligned with active-carrier
+ownership and avoids the inner waiting conclusion. If it also avoids the outer
+selected-parent conclusion, a separate existential historical marked inbound-
+edge target is available, without exported classifier-path identity; otherwise
+only outer-conclusion list membership is known and still needs localization or
+elimination. The raw terminal mate remains separately open and must be
+scheduler-localized, classified as unopened work, or payer-converted. The
+causal/cyclic receipts remain preserved rather than discharging either target.
 Broader selected/mate raw returns, other external temporal alternatives, and
 Wait first-descent branches remain open. The surviving marked omitted-right
 source must likewise be eliminated or converted into a distinct payer. Both
@@ -983,11 +990,14 @@ This checkpoint does not establish any of the following:
   carrier; carrier ownership and live-component disjointness eliminate every
   nonreflexive chain, the exact selected/current-mate return, older ready work,
   and marked-global work, while the raw-outside mate and exact older waiting
-  conclusion remain unresolved; the latter's producer is now oriented exactly,
-  but that orientation does not eliminate it;
+  conclusion remain unresolved; the latter's producer is oriented exactly and
+  yields an inner-conclusion-avoiding older-mate-to-target path. That path now
+  splits at the outer selected conclusion into a separate historical marked
+  inbound-edge target or outer-conclusion list membership, but neither outcome
+  eliminates the survivor;
 - elimination or payer conversion of the surviving distinct authenticated
-  active-representative mark, derivation of an avoiding or path-aligned
-  re-entry,
+  active-representative mark, including the separate historical inbound-edge
+  target, or localization and elimination of the outer-conclusion membership,
   elimination of either equal-final conclusion-to-selected or
   conclusion-to-mate trace, elimination of the finite raw-outside or exact
   older-waiting continuation alternatives, or the
@@ -1053,12 +1063,12 @@ plan is maintained in [v0.10-design.md](v0.10-design.md) and
 The exact rolling proof checkpoint is:
 
 ```text
-commit    660e887701cb8325af5293d7627fa8e6a6135c5b
-tree      144548624e32f3e9e796ab1599f50f1f498e0f67
-parent    35a14a3ac27d4b71635931d08df03f5ad8afe377
-stage     align waiting continuation reentry
-delta     17 paths, +600/-47
-manifest  729793079A42561C74F3E0B66697D39AC6E6063CFEDC49B3E0986EF6DCA5B2C7
+commit    08513cfd4e5eda5f1f40533f55302662d72318d3
+tree      bb70eed784512279db423d8c0222291a5e6d9492
+parent    0bc22858e56449ed94451bfd88fdace8b62b5cc8
+stage     expose waiting outer obstruction
+delta     17 paths, +385/-45
+manifest  E3407986120DCE3F84E2041FC9355363EEB09A013E2FED2BE97CB88E0CFD7F38
 ```
 
 The manifest hashes canonical
@@ -1067,9 +1077,9 @@ The manifest hashes canonical
 The checkpoint source receipts are:
 
 ```text
-mate-avoidance source    DBAC50754F4D7F201D774BCAAAD19C41B93FA7B2C8EE9FD72D597D1457A0750E
-mate-avoidance consumer  2F66B0B35CDBA20D5AEC05CD24271228D55B52C565E7B6A3095ABB05543543D5
-generated API            6060D0FD3858AA9CFB0C1C012A6BF962680019DCB86099264DEC5E4A1F0E83C0
+outer-obstruction source    84474A1AB4BE54B174CC19FC45A70446CE5A6D6DD0861B8360ACDBF1931AF337
+outer-obstruction consumer  757C632E5B80E8026AF98C6B6550F0286439F0349B7F9DC46F52FCF41FC1AC82
+generated API               53AFCCFFA07A3C72C323FA48600B9067EBED49008E4075DF3D16BC1D6FCB30B4
 ```
 
 The separately committed finite-audit evidence is:
@@ -1085,22 +1095,23 @@ manifest  4BBAB7FC99D03D2612459A0FD9291990313A05A184F2572A581BC93C6E49DFDD
 
 Local verification on the committed bytes:
 
-- full `lake build`: 664/664 jobs;
+- full `lake build`: 669/669 jobs;
 - syntax-aware Lean source audit: zero actual `sorry`/`admit` findings across
-  a 323-file superset scan;
-- library inventory: 312 Lean files and 203,122 Lean source lines, including
-  174 module files under `ProofNetIR/`; the public facade imports 169
-  submodules, or 170 modules including the facade itself;
-- generated API reference: current at 97 sections and 1,815 declarations;
-- the runnable mate-avoidance consumer reconstructed all three public
-  declarations, invoked them through the public surface, checked their
-  standard-three trust boundaries, and emitted its kernel-green marker;
-- public theorem audit: 1089 entries total: 792 standard-three, 25 axiom-free,
+  a 329-file superset scan;
+- library inventory: 314 Lean files and 203,317 Lean source lines, including
+  175 module files under `ProofNetIR/`; the public facade imports 170
+  submodules, or 171 modules including the facade itself;
+- generated API reference: current at 98 sections and 1,816 declarations;
+- the runnable outer-obstruction consumer reconstructed and invoked the exact
+  public theorem through the public surface, checked its standard-three trust
+  boundary, and emitted its kernel-green marker;
+- public theorem audit: 1090 entries total: 793 standard-three, 25 axiom-free,
   131 `propext`-only, and 141 `propext`/`Quot.sound` boundaries;
 - the default, extended, and cross-variant progress audits passed with every
   incomplete visited state carrying an exact ready head and successful
   dispatch, every dispatch-none stop fully marked, and the cross-variant replay
-  covering 1,182,816 states; all three modes had zero missing-head,
+  covering 1,182,816 states; the three checksums were 741,882, 5,588,478, and
+  77,141,346, and all three modes had zero missing-head,
   incomplete-dispatch-none, cycle, or truncation findings;
 - facade, generated API, consumer, and axiom-audit entry points passed under
   the checkpoint's trust-zero and warnings-as-errors gates.
@@ -1109,16 +1120,16 @@ Exact-head proof GitHub verification:
 
 - workflow: `Lean CI`;
 - event/ref: `push` / `main`;
-- run: [32511587012](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32511587012);
-- build job: [96863697391][proof-job];
-- exact head: `660e887701cb8325af5293d7627fa8e6a6135c5b`;
+- run: [32516097451](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32516097451);
+- build job: [96877969333][proof-job];
+- exact head: `08513cfd4e5eda5f1f40533f55302662d72318d3`;
 - result: 36 successful steps, zero failures, and one expected release-ref-only
   skip;
-- run: `2026-08-21T18:05:55Z`-`2026-08-21T18:20:11Z` (14m16s);
-- build job: `2026-08-21T18:05:59Z`-`2026-08-21T18:20:11Z`
-  (14m12s).
+- run: `2026-08-21T18:58:50Z`-`2026-08-21T19:13:27Z` (14m37s);
+- build job: `2026-08-21T18:58:53Z`-`2026-08-21T19:13:26Z`
+  (14m33s).
 
-[proof-job]: https://github.com/fushanbobfan/proofnet-ir/actions/runs/32511587012/job/96863697391
+[proof-job]: https://github.com/fushanbobfan/proofnet-ir/actions/runs/32516097451/job/96877969333
 [reentry-failure]: api-reference.md#commitment-interval-par-guard-re-entry-failure-target
 [reentry-mate-separation]: api-reference.md#commitment-interval-par-guard-re-entry-mate-separation
 [target-temporal]: api-reference.md#commitment-interval-marked-re-entry-target-temporal-reduction
@@ -1147,6 +1158,7 @@ Exact-head proof GitHub verification:
 [wait-cont-waiting]: api-reference.md#waiting-commitment-re-entry-marked-target-continuation-waiting
 [wait-producer-orientation]: api-reference.md#waiting-re-entry-continuation-producer-orientation
 [wait-mate-avoidance]: api-reference.md#waiting-re-entry-continuation-mate-avoidance
+[wait-outer-obstruction]: api-reference.md#waiting-re-entry-continuation-outer-obstruction
 [target-cycle]: api-reference.md#marked-re-entry-target-raw-return-cyclic-reduction
 
 Exact-head finite-audit GitHub verification:
@@ -1217,10 +1229,11 @@ The project goal remains open. The principal outstanding gates are:
 1. eliminate or payer-convert the endpoint-parametric finite raw-outside mate
    and exact older waiting conclusion, then eliminate the surviving
    authenticated active-representative marked target. The waiting endpoint now
-   retains its exact producer data after the finite chain collapses and
-   publicly orients the active target as the younger premise and its mate as
-   the older premise. That orientation has not yet been consumed into an
-   avoiding witness or aligned path for the current re-entry.
+   retains one exact older-mate-to-target path, inner-conclusion avoidance, and
+   an aligned outside-to-inside edge. Its remaining outer split is a separate
+   historical marked inbound-edge target in the avoiding branch or unlocalized
+   outer-conclusion membership in the containing branch; neither is eliminated
+   or payer-converted.
    Use the simultaneous endpoint junctions, strict source-before-base order,
    aligned sibling-exit causal witness, retained commitment paths, and refined
    scheduler/ownership classification as applicable. Eliminate the remaining
