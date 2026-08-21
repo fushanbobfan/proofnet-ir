@@ -520,6 +520,12 @@ no source reading. It proves the strict order transitive and asymmetric,
 orders a distinct marked-chain origin before an authenticated terminal, and
 attaches the outer Wait mate as that terminal. This does not eliminate the
 descent, localize the exit into a ready tail, or establish a total event order.
+`SequentialFigure7MarkedTargetRawReturnSiblingExitCausalOrder.lean` adds no
+source reading. It makes authentic event order total on distinct vertices and
+orders a marked-global sibling endpoint against the authenticated non-global
+outer terminal. Raw and future sibling exits remain unchanged. Both strict
+marked-global orders remain residuals, so this adds no payer, tail law,
+completion, or progress theorem.
 Global preservation of the mate-region and older-raw-mark invariants through
 candidate-creating rules remains open, as do queue origin, created-candidate raw
 seams, derivation of the re-entry avoidance premise, marked-history descent,

@@ -1211,6 +1211,16 @@ part of the engineering and proof-identity gap.
    establish a total event order, or derive a tail law or progress. The
    verified combined audit now covers 1016 theorems: 723 standard-three, 25
    axiom-free, 129 `propext`-only, and 139 `propext`/`Quot.sound` boundaries.
+   `SequentialFigure7MarkedTargetRawReturnSiblingExitCausalOrder.lean` makes
+   authentic event order total on distinct vertices and classifies the first
+   sibling continuation against the authenticated non-global outer terminal.
+   Raw and future endpoints are unchanged; a marked-global endpoint is
+   strictly earlier or strictly later. The generic terminal target and typed
+   Wait theorem retain the first descent and add this classification. No
+   endpoint is eliminated and no tail law or progress theorem follows. The
+   verified combined audit now covers 1022 theorems: 729
+   standard-three, 25 axiom-free, 129 `propext`-only, and 139
+   `propext`/`Quot.sound` boundaries.
    `SequentialFigure7CommitmentBlockerAdvance.lean` now combines the global
    queued-head law, strict split, and equal-boundary result. Under declarative
    correctness and the complete scheduler invariant, for a supplied canonical

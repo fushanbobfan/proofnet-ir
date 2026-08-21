@@ -24,19 +24,19 @@ latest research surface and are prepared for documented development changes.
 ### Rolling-main summary
 
 Canonical history now orders authentic prepared-selection raw-mark events.
-The strict order is transitive and asymmetric, exposes both endpoint events,
-and proves their selected occurrences distinct. An authentic mark of a
-submitted connective conclusion places both premises strictly earlier.
-A finite marked-conclusion chain is reflexive or places its origin before an
-authenticated terminal event. The Wait first descent now carries the outer
-mate as that terminal: the re-entry origin and the first connective's sibling
-both precede the complete chain terminal, while the sibling keeps its finite
-continuation exit.
+The strict order is transitive and asymmetric, and any two authentic marks at
+distinct vertices are comparable. The equality-or-two-orders theorem also
+identifies repeated views of the same event by both age and vertex.
+The Wait first descent carries the outer mate as its full-chain terminal: the
+re-entry origin and first sibling both precede it. The sibling continuation is
+now classified relative to that terminal. Raw and future exits remain intact;
+a marked-global endpoint is strictly earlier or strictly later than the outer
+terminal because the latter is a non-global submitted premise.
 The exact Nop return remains eliminated, while Wait's terminal-ordered causal
-descent, sibling exit, raw work outside the active carrier, older future work,
-and older marked global work remain residuals. No total event order,
-history-tail law, unconditional all-marked, progress, completion, termination,
-totality, or completeness follows.
+descent, both ordered marked-global branches, raw work outside the active
+carrier, older future work, and older marked global work remain residuals. No
+endpoint elimination, history-tail law, unconditional all-marked, progress,
+completion, termination, totality, or completeness follows.
 [Current status](docs/current-status.md) owns exact revision, verification receipt, and gates.
 <!-- ROLLING_MAIN_SUMMARY_END -->
 

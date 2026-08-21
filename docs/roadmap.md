@@ -1114,8 +1114,12 @@
     the outer Wait mate as that terminal so, in the retained causal-descent
     alternative, the re-entry origin and first sibling both precede the
     complete chain endpoint.
-  - [ ] Combine that terminal causal order with the retained cyclic and
-    commitment paths to eliminate the Wait descent or recover a distinct
+  - [x] Make authentic raw-mark order total on distinct vertices and expose
+    the equality-or-two-orders comparison. Classify the first sibling's raw,
+    future, or marked-global continuation exit against the authenticated
+    non-global outer terminal; retain both strict marked-global orders.
+  - [ ] Combine those terminal and sibling causal orders with the retained
+    cyclic and commitment paths to eliminate the Wait descent or recover a distinct
     ready-tail payer. Then
     eliminate the remaining cyclic residuals, other finite exits, and
     equal-final traces. Do not infer

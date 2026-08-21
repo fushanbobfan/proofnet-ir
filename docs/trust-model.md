@@ -1018,6 +1018,15 @@ verified combined audit covers 1016 theorems: 723 standard-three, 25
 axiom-free, 129 `propext`-only, and 139 `propext`/`Quot.sound` boundaries. The
 checkpoint does not claim total event order, eliminate any residual, or derive
 a tail law or progress.
+`SequentialFigure7MarkedTargetRawReturnSiblingExitCausalOrder.lean` adds two
+proposition carriers and six standard-three theorems. Its history induction
+makes authentic marks at distinct vertices strictly comparable; no runtime
+ordering oracle is introduced. The endpoint normalizer keeps raw/future exits
+  and splits a marked-global endpoint by the two strict event orders against a
+  non-global outer terminal. The verified combined audit covers 1022 theorems:
+  729 standard-three, 25 axiom-free, 129 `propext`-only, and 139
+`propext`/`Quot.sound` boundaries. The classification eliminates no endpoint
+and proves no tail law or progress.
 `SequentialFigure7CrossRepresentativeWaitPreservation.lean` adds no hidden
 source-region oracle. Its output-work classification follows only from the
 typed destination's exact waiting prepend and unchanged ready/sigma fields;

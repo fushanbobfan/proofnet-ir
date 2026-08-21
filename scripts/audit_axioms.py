@@ -159,6 +159,19 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "terminalCausalTarget",
     "ProofNetIR.SequentialFigure7.WaitStep."
     "commitmentInterval_parTraceReentryMarkedContinuationTerminalCausalOutcome",
+    "ProofNetIR.SequentialFigure7.CanonicalTagHistory.RawMarkedBefore."
+    "total_of_vertex_ne",
+    "ProofNetIR.SequentialFigure7.CanonicalTagHistory.RawMarkedBefore."
+    "eq_or_before_or_after",
+    "ProofNetIR.SequentialFigure7.ContinuationExit.outerTerminalCausalOutcome",
+    "ProofNetIR.SequentialFigure7."
+    "MarkedConclusionChainFirstCausalDescent."
+    "siblingExitOuterTerminalCausalOutcome",
+    "ProofNetIR.SequentialFigure7."
+    "ActiveCarrierExternalReentryMarkedMateSeparatedContinuationTerminalCausalTarget."
+    "siblingExitCausalTarget",
+    "ProofNetIR.SequentialFigure7.WaitStep."
+    "commitmentInterval_parTraceReentryMarkedContinuationSiblingExitCausalOutcome",
     "ProofNetIR.SequentialFigure7.MarkedConclusionChain."
     "rawReturnCyclicReduction",
     "ProofNetIR.SequentialFigure7.MarkedConclusionChain."

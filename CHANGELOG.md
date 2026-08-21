@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- made canonical raw-mark chronology total on distinct authentic vertices and
+  exposed the full equality-or-two-orders comparison. A sibling continuation
+  exit can now be classified against an authenticated non-global outer
+  terminal: raw and future exits are retained, while a marked-global endpoint
+  is strictly earlier or strictly later. The first causal descent, generic
+  terminal target, and typed Wait outcome carry this refinement. It does not
+  eliminate either ordered branch or any raw/future endpoint, derive the
+  history-tail law, or prove progress. The verified combined audit now covers
+  1022 theorems: 729 standard-three, 25 axiom-free, 129
+  `propext`-only, and 139 `propext`/`Quot.sound` boundaries;
 - added a strict chronological relation between authentic prepared-selection
   raw-mark events in canonical tag history. Its projections recover both
   events, prove their selected occurrences distinct, and now establish

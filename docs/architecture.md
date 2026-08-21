@@ -1609,6 +1609,14 @@ terminal. In the retained causal-descent alternative, the re-entry origin and
 the first connective's sibling therefore precede the complete chain terminal.
 No theorem eliminates the descent or sibling exit, makes the event order
 total, derives a ready-tail/history-tail law, or proves completion or progress.
+`SequentialFigure7MarkedTargetRawReturnSiblingExitCausalOrder.lean` makes the
+authentic event order total on distinct vertices and provides the corresponding
+equality-or-two-orders comparison. It keeps raw and future sibling exits
+unchanged. A marked-global sibling endpoint is distinct from the non-global
+outer mate and is therefore strictly earlier or strictly later. The generic
+terminal target and typed Wait outcome preserve the first descent while adding
+that endpoint classification. Neither ordered alternative is eliminated, and
+the theorem derives no payer, tail law, completion, or progress result.
 
 `SequentialFigure7CommitmentBlockerAdvance.lean` joins the global queued-head
 law, the strict `sigma` split, the strict-edge avoiding adapter, and the final
