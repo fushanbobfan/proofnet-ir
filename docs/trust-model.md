@@ -1174,6 +1174,22 @@ causal/cyclic receipts while replacing the nested failure field with an
 authenticated marked target. This does not provide an avoiding witness or path
 alignment, eliminate the surviving mark, identify a payer, derive the
 history-tail law, or establish progress, completion, termination, or totality.
+`SequentialFigure7MarkedTargetWaitingMateExternalCommitmentReentryTemporal.lean`
+adds no runtime oracle, native-computed evidence, or new trusted source. Its six
+public theorems use the standard-three boundary; three public inductive
+carriers and two public target definitions complete the 11-declaration
+consumer surface and are covered by direct reconstruction. The generic theorem
+allows the marked path to start at an arbitrary waiting endpoint. It derives
+target-to-outer-mate separation from active-frontier ownership and the supplied
+outer `mateOutside` receipt, then uses structural parent uniqueness to align the
+inbound source with the target's submitted parent. Under the retained exact
+ready-tail-failure premise, scheduler and canonical-history receipts make that
+parent an unmarked raw mate outside, future work at a strictly older boundary,
+or a marked conclusion at a strictly older representative. The lifts preserve
+all unrelated trace branches and
+causal/cyclic receipts. No theorem eliminates the marked target, identifies a
+payer, aligns arbitrary crossing/re-entry witnesses, derives the history-tail
+law, or establishes progress, completion, termination, or totality.
 `SequentialFigure7CrossRepresentativeWaitPreservation.lean` adds no hidden
 source-region oracle. Its output-work classification follows only from the
 typed destination's exact waiting prepend and unchanged ready/sigma fields;

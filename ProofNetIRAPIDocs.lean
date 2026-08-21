@@ -1352,6 +1352,64 @@ def sections : List Section := [
     ]
   },
   {
+    title := "Waiting commitment re-entry marked-target temporal normalization"
+    declarations := [
+      Name.str
+        `ProofNetIR.SequentialFigure7
+        ("ActiveCarrierExternalReentryMarkedOuterMateSeparated" ++
+          "TemporalTarget"),
+      Name.str
+        (Name.str
+          `ProofNetIR.SequentialFigure7
+          "ActiveCarrierExternalReentryMarkedHistoricalTarget")
+        "outerMateSeparatedTemporalTarget",
+      Name.str
+        `ProofNetIR.SequentialFigure7
+        ("ActiveMateWaitingParentExternalCommitmentReentry" ++
+          "TemporalOutcome"),
+      Name.str
+        (Name.str
+          `ProofNetIR.SequentialFigure7
+          ("ActiveMateWaitingParentExternalCommitmentReentry" ++
+            "MarkedOutcome"))
+        "temporalOutcome",
+      Name.str
+        `ProofNetIR.SequentialFigure7
+        ("FutureWorkMateActiveCarrierExternalCommitmentReentry" ++
+          "TemporalStatus"),
+      Name.str
+        (Name.str
+          `ProofNetIR.SequentialFigure7
+          ("FutureWorkMateActiveCarrierExternalCommitmentReentry" ++
+            "MarkedStatus"))
+        "temporalStatus",
+      Name.str
+        `ProofNetIR.SequentialFigure7
+        ("ContinuationExitRawOrFutureActiveCarrierExternalCommitment" ++
+          "ReentryTemporalOutcome"),
+      Name.str
+        (Name.str
+          `ProofNetIR.SequentialFigure7
+          ("ContinuationExitRawOrFutureActiveCarrierExternalCommitment" ++
+            "ReentryMarkedOutcome"))
+        "temporalOutcome",
+      Name.str
+        `ProofNetIR.SequentialFigure7
+        ("ActiveCarrierExternalReentryMarkedMateSeparatedContinuation" ++
+          "SiblingExitWaitingTemporalTarget"),
+      Name.str
+        (Name.str
+          `ProofNetIR.SequentialFigure7
+          ("ActiveCarrierExternalReentryMarkedMateSeparatedContinuation" ++
+            "SiblingExitWaitingMarkedTarget"))
+        "temporalTarget",
+      Name.str
+        `ProofNetIR.SequentialFigure7.WaitStep
+        ("commitmentInterval_parTraceReentryMarkedContinuation" ++
+          "SiblingExitWaitingTemporalOutcome")
+    ]
+  },
+  {
     title := "Marked re-entry target raw-return cyclic reduction"
     declarations := [
       `ProofNetIR.SequentialFigure7.MarkedConclusionRawReturnCyclicOutcome,

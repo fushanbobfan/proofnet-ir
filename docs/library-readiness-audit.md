@@ -1393,6 +1393,23 @@ part of the engineering and proof-identity gap.
    The surviving authenticated mark is not eliminated or converted into a
    payer. No avoiding witness or path alignment, history-tail law, progress,
    completion, termination, or totality result follows.
+   `SequentialFigure7MarkedTargetWaitingMateExternalCommitmentReentryTemporal.lean`
+   now starts the next normalization at the exact waiting endpoint, which may
+   be `consumer.conclusion` rather than the enclosing current mate. The marked
+   target belongs to the active frontier and owned carrier, so the enclosing
+   mate's outside-carrier receipt separates them. Structural parent uniqueness
+   binds the inbound edge to the target's submitted consumer and aligns its
+   source with that consumer's conclusion. Under the retained exact
+   ready-tail-failure premise, the parent status is an unmarked raw mate outside
+   the carrier, future work at a strictly older boundary, or a marked
+   conclusion at a strictly older representative. The
+   result is carried through both exact waiting endpoints, the active
+   future-work mate, continuation sibling target, and typed Wait older-mate
+   trace while preserving unrelated exits and causal/cyclic receipts. Its
+   runnable consumer reconstructs all 11 public declarations and invokes all
+   six public theorems. The target remains an authenticated mark represented
+   at the active boundary; no payer, witness alignment, history-tail law,
+   progress, completion, termination, or totality result follows.
    `SequentialFigure7CommitmentBlockerAdvance.lean` now combines the global
    queued-head law, strict split, and equal-boundary result. Under declarative
    correctness and the complete scheduler invariant, for a supplied canonical

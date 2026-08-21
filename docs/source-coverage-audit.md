@@ -652,6 +652,23 @@ causal-descent/cyclic-junction receipts are retained. This code consequence does
 avoiding witness or align an arbitrary re-entry path, eliminate the surviving
 mark, identify a payer, derive the history-tail law, or prove progress,
 completion, termination, or totality.
+`SequentialFigure7MarkedTargetWaitingMateExternalCommitmentReentryTemporal.lean`
+also adds no source reading or new oracle. It adds endpoint-parametric
+marked-target normalization, so a nested path can begin at the exact waiting
+consumer conclusion instead of the enclosing mate. Existing active-frontier ownership
+and the outer `mateOutside` receipt separate the target from that mate.
+Structural parent uniqueness then identifies the target's submitted consumer
+and aligns the inbound edge source with its conclusion. Under the retained
+exact ready-tail-failure premise, existing continuation credit and scheduler
+accounting classify the parent as an unmarked raw mate outside the active
+carrier, future work at a strictly older boundary, or a marked conclusion at a
+strictly older representative. Constructor-preserving
+maps lift that result through the exact future/marked waiting endpoints, active
+future-work mate, continuation sibling target, and typed Wait trace. Unrelated
+raw/future/marked exits, avoiding/equal trace branches, and causal/cyclic
+receipts are unchanged. The result neither eliminates the marked target nor
+recovers a payer, aligns arbitrary witnesses, derives the history-tail law, or
+proves progress, completion, termination, or totality.
 Global preservation of the mate-region and older-raw-mark invariants through
 candidate-creating rules remains open, as do queue origin, created-candidate raw
 seams, derivation of the re-entry avoidance premise, marked-history descent,

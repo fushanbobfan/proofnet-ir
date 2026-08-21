@@ -1777,6 +1777,25 @@ canonical-history-authenticated mark at the active representative. No avoiding
 witness or path alignment, payer, history-tail law, progress, completion,
 termination, or totality is derived.
 
+`SequentialFigure7MarkedTargetWaitingMateExternalCommitmentReentryTemporal.lean`
+normalizes that surviving mark from the exact endpoint where its nested path
+actually starts. For a waiting case this endpoint may be
+`consumer.conclusion`, not the enclosing `current.mate`. The inbound target is
+in the active frontier and therefore in the active owned carrier; the supplied
+`current.mate ∉ owned` receipt separates the two vertices. Structural
+parent uniqueness identifies the target's unique submitted consumer, aligns
+the inbound edge source with that consumer's conclusion, and keeps its mate
+different from the selected head. Under the retained exact ready-tail-failure
+premise, continuation credit then has three exact forms: an unmarked raw parent
+mate outside the carrier, future work for the parent conclusion at a boundary
+strictly below the active age, or a marked parent conclusion whose
+representative is strictly below the active age. The
+existing strict commitment split, crossing, reverse re-entry, active scheduler,
+continuation sibling, causal-descent, cyclic-junction, and typed Wait wrappers
+transport this endpoint-parametric status without changing unrelated branches.
+The marked target is not eliminated, and no payer, arbitrary witness alignment,
+history-tail law, progress, completion, termination, or totality follows.
+
 `SequentialFigure7CommitmentBlockerAdvance.lean` joins the global queued-head
 law, the strict `sigma` split, the strict-edge avoiding adapter, and the final
 equal-boundary classification. Under declarative correctness and the complete

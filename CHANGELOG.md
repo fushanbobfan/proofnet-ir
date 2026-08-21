@@ -2,6 +2,26 @@
 
 ## Unreleased
 
+- normalized the surviving marked re-entry target through its unique submitted
+  parent at every retained waiting endpoint.
+  `SequentialFigure7MarkedTargetWaitingMateExternalCommitmentReentryTemporal.lean`
+  permits the nested path to start at the waiting consumer conclusion rather
+  than the enclosing current mate. Active-frontier ownership and the enclosing
+  mate's outside-carrier receipt separate the target from that mate; structural
+  parent uniqueness then aligns the inbound source with the target consumer's
+  conclusion. Under the retained exact ready-tail-failure premise, the parent
+  continuation is an unmarked raw mate outside the active carrier, future work
+  at a strictly older boundary, or a marked conclusion at a strictly older
+  representative. Constructor-preserving maps
+  carry this endpoint-parametric result through both exact future/marked
+  waiting endpoints, the active future-work mate, continuation sibling target,
+  and typed Wait older-mate trace. All unrelated raw/future/marked exits,
+  avoiding/equal trace branches, and causal-descent/cyclic-junction receipts
+  remain unchanged. The runnable consumer exercises all 11 public
+  declarations, including six registered public theorems. The checkpoint does
+  not eliminate the marked target, recover a payer, align arbitrary witnesses,
+  derive the history-tail law, or establish progress, completion, termination,
+  or totality;
 - eliminated the selected raw-unmarked alternative from
   `ActiveCarrierExternalReentryFailureHistoricalStatus` under a structurally
   well-formed selected `par` whose side is `.storedRight`; no path-avoidance

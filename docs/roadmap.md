@@ -1186,12 +1186,21 @@
     active future-work mate, continuation sibling target, and typed Wait
     older-mate trace. Preserve every unrelated trace branch and the
     causal-descent/cyclic-junction receipts.
+  - [x] Normalize that marked re-entry from its exact waiting endpoint, which
+    may be the waiting consumer conclusion rather than the enclosing current
+    mate. Use active-frontier ownership and the outer mate's outside-carrier
+    receipt to separate the target from that mate, then, under the retained
+    exact ready-tail-failure premise, use unique submitted-parent alignment to
+    classify the continuation as an unmarked raw mate outside, future work at a
+    strictly older boundary, or a marked conclusion at a strictly older
+    representative. Lift the result to typed
+    Wait without changing unrelated exits or causal/cyclic receipts.
   - [ ] Eliminate the surviving distinct canonical-history-authenticated mark
     at the active representative or derive the exact distinct payer needed from
-    it. The current checkpoint supplies no avoiding witness or aligned re-entry
-    path. Then eliminate the remaining cyclic residuals, other finite exits,
-    broader exact selected/mate raw returns, and equal-final traces, and close
-    the history-tail law. Do not infer unconditional dispatcher progress,
+    it. The temporal parent split supplies no avoiding witness or aligned
+    re-entry path. Then eliminate the remaining cyclic residuals, other finite
+    exits, broader exact selected/mate raw returns, and equal-final traces, and
+    close the history-tail law. Do not infer unconditional dispatcher progress,
     completion, termination, later-state totality, global raw seams, fallback
     removal, Figure-7 pure-worklist completeness, sequentialization, faithful
     token-age scheduling, or whole-program linearity from the current
@@ -1500,9 +1509,14 @@
     Its target is the selected raw head, a non-global raw ready-tail occurrence,
     or a prior concrete mark. Under exact no-tail failure, the strictly older
     stored-right branch cannot target the selected head; it leaves a distinct
-    authenticated mark represented at the active boundary. Equal-final
-    selected/mate traces and the inclusive outer split remain. Next eliminate
-    the marked target and equal-final traces, then close the tail law before
+    authenticated mark represented at the active boundary. At a nested waiting
+    endpoint, frontier ownership separates that mark from the enclosing mate,
+    and, under exact ready-tail failure, unique parent alignment exposes an
+    unmarked raw mate outside, older future work, or an older marked conclusion.
+    Equal-final selected/mate traces
+    and the inclusive outer split remain. Next use that temporal parent split
+    to eliminate the marked target or recover a payer, eliminate the equal-final
+    traces, and close the tail law before
     claiming exhaustive progress on incomplete, correct, certified-reachable states.
     Exact source-left complexity descent, last-step decomposition, and
     recursive visited-route separation from the selected head are now proved.
