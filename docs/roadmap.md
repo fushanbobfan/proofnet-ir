@@ -1118,8 +1118,11 @@
     the equality-or-two-orders comparison. Classify the first sibling's raw,
     future, or marked-global continuation exit against the authenticated
     non-global outer terminal; retain both strict marked-global orders.
-  - [ ] Combine those terminal and sibling causal orders with the retained
-    cyclic and commitment paths to eliminate the Wait descent or recover a distinct
+  - [x] Attach the existing exact cyclic-junction normal form to the complete
+    marked-conclusion chain retained by that first descent. Keep its switching
+    path and target connective aligned with the sibling causal classification.
+  - [ ] Use the aligned causal and cyclic witnesses with the retained
+    commitment paths to eliminate the Wait descent or recover a distinct
     ready-tail payer. Then
     eliminate the remaining cyclic residuals, other finite exits, and
     equal-final traces. Do not infer

@@ -958,6 +958,28 @@ def sections : List Section := [
     ]
   },
   {
+    title := "Marked re-entry target sibling-exit causal/cyclic junction"
+    declarations := [
+      Name.str
+        `ProofNetIR.SequentialFigure7.MarkedConclusionChainFirstCausalDescent
+        "rawReturnCyclicJunctionOutcome",
+      Name.str
+        `ProofNetIR.SequentialFigure7
+        ("ActiveCarrierExternalReentryMarkedMateSeparatedContinuation" ++
+          "SiblingExitCausalJunctionTarget"),
+      Name.str
+        (Name.str
+          `ProofNetIR.SequentialFigure7
+          ("ActiveCarrierExternalReentryMarkedMateSeparatedContinuation" ++
+            "SiblingExitCausalTarget"))
+        "causalJunctionTarget",
+      Name.str
+        `ProofNetIR.SequentialFigure7.WaitStep
+        ("commitmentInterval_parTraceReentryMarkedContinuation" ++
+          "SiblingExitCausalJunctionOutcome")
+    ]
+  },
+  {
     title := "Marked re-entry target raw-return cyclic reduction"
     declarations := [
       `ProofNetIR.SequentialFigure7.MarkedConclusionRawReturnCyclicOutcome,

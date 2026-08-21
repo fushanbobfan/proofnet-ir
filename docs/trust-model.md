@@ -1027,6 +1027,15 @@ ordering oracle is introduced. The endpoint normalizer keeps raw/future exits
   729 standard-three, 25 axiom-free, 129 `propext`-only, and 139
 `propext`/`Quot.sound` boundaries. The classification eliminates no endpoint
 and proves no tail law or progress.
+`SequentialFigure7MarkedTargetRawReturnSiblingExitCausalJunction.lean` adds one
+proposition carrier and three standard-three theorems. It reuses the existing
+cyclic-junction reduction on the exact full chain retained by the first causal
+descent, then transports the strengthened witness through the generic target
+and typed Wait outcome. No runtime oracle or new trust dependency is added.
+The verified combined audit covers 1025 theorems: 732 standard-three, 25
+axiom-free, 129 `propext`-only, and 139 `propext`/`Quot.sound` boundaries. It
+does not eliminate a junction, endpoint, descent, or ordered branch and proves
+no payer, history-tail law, completion, or progress.
 `SequentialFigure7CrossRepresentativeWaitPreservation.lean` adds no hidden
 source-region oracle. Its output-work classification follows only from the
 typed destination's exact waiting prepend and unchanged ready/sigma fields;

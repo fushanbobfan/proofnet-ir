@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- aligned the first causal descent's sibling-exit chronology with the exact
+  cyclic-junction normal form of the same full marked-conclusion chain. The
+  strengthened generic target and typed Wait outcome retain the same switching
+  path and target connective while carrying both the sibling causal
+  classification and cyclic-junction witness. This eliminates no junction,
+  ordered marked-global branch, raw/future endpoint, or descent, and derives no
+  payer, history-tail law, completion, or progress theorem. The verified
+  combined audit now covers 1025 theorems: 732 standard-three, 25 axiom-free,
+  129 `propext`-only, and 139 `propext`/`Quot.sound` boundaries;
 - made canonical raw-mark chronology total on distinct authentic vertices and
   exposed the full equality-or-two-orders comparison. A sibling continuation
   exit can now be classified against an authenticated non-global outer

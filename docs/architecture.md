@@ -1617,6 +1617,13 @@ outer mate and is therefore strictly earlier or strictly later. The generic
 terminal target and typed Wait outcome preserve the first descent while adding
 that endpoint classification. Neither ordered alternative is eliminated, and
 the theorem derives no payer, tail law, completion, or progress result.
+`SequentialFigure7MarkedTargetRawReturnSiblingExitCausalJunction.lean` applies
+the existing exact cyclic-junction reduction to the complete marked-conclusion
+chain retained by that same first descent. Its strengthened target stores the
+cyclic-junction outcome beside the sibling causal classification on the same
+switching path and target connective; the typed Wait theorem transports the
+combined witness. It eliminates no junction, exit, descent, or ordered branch
+and proves no payer, history-tail law, completion, or progress result.
 
 `SequentialFigure7CommitmentBlockerAdvance.lean` joins the global queued-head
 law, the strict `sigma` split, the strict-edge avoiding adapter, and the final

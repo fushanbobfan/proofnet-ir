@@ -526,6 +526,12 @@ orders a marked-global sibling endpoint against the authenticated non-global
 outer terminal. Raw and future sibling exits remain unchanged. Both strict
 marked-global orders remain residuals, so this adds no payer, tail law,
 completion, or progress theorem.
+`SequentialFigure7MarkedTargetRawReturnSiblingExitCausalJunction.lean` adds no
+source reading. It applies the existing exact cyclic-junction reduction to the
+full chain retained by the same first descent and stores that witness beside
+the sibling causal classification on the same switching path. No junction,
+exit, descent, or ordered branch is eliminated, and no payer, tail law,
+completion, or progress theorem follows.
 Global preservation of the mate-region and older-raw-mark invariants through
 candidate-creating rules remains open, as do queue origin, created-candidate raw
 seams, derivation of the re-entry avoidance premise, marked-history descent,
