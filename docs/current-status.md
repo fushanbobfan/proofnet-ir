@@ -17,7 +17,7 @@ Status date: 2026-08-20
 | Track | Revision | Status | Authority |
 | --- | --- | --- | --- |
 | Stable library | `v0.9.0` / `9b7dc3d104af8f57ea9123aab2e61b42e05d2216` | Released | [v0.9.0 release audit](v0.9-release-audit.md) |
-| Rolling research | `v0.10.0-dev`; proof `c4e3bd5`; audit `1e46573` | Active | This page/commits |
+| Rolling research | `v0.10.0-dev`; proof `4c63af2`; audit `1e46573` | Active | This page/commits |
 
 Documentation-only commits may descend from the proof checkpoint without
 changing its mathematical authority. The stable release and rolling branch
@@ -234,7 +234,7 @@ and the corresponding Wait exact-return branch remain valid and unresolved.
 The result supplies no ready-tail witness, history-tail law, completion, or
 progress theorem.
 
-The current checkpoint refines the exact raw return retained by the generic and
+The preceding checkpoint refines the exact raw return retained by the generic and
 typed Wait targets. The re-entry premise is concretely marked at the active
 representative, while its exact submitted parent conclusion lies outside the
 active occurrence carrier. Any nontrivial return chain therefore reaches that
@@ -245,6 +245,19 @@ raw work outside the carrier, this first-step descent, older future work, and
 an older marked global conclusion. It exposes rather than eliminates the Wait
 descent and derives no ready-tail witness, history-tail law, completion, or
 progress theorem.
+
+The current checkpoint makes the causal order of authentic prepared-selection
+raw-mark events explicit. A prior relation survives each later dispatcher
+event, while every authentic prior mark precedes the current selection. Both
+endpoint events remain available, and their selected occurrences are distinct.
+If a submitted connective conclusion has an authentic raw-mark event, the two
+submitted premises have authentic strictly earlier events. Combining this with
+the first representative descent shows that both the re-entry origin and its
+sibling mate precede the older marked parent conclusion. The sibling also
+retains a finite continuation exit. The generic target adapter and typed Wait
+theorem expose the same causal refinement without eliminating the descent or
+exit, deriving the history-tail law, establishing transitivity or totality, or
+proving completion or progress.
 
 The preceding queue/history-tail checkpoint remains valid. For supplied typed
 Nop and Wait steps, its iff theorems identify post-step debt with the exact
@@ -260,7 +273,7 @@ from a scheduler-invariant input refutes unrestricted
 same-component locality carrier, but neither refutes direct debt nor supplies
 the required queue-tail or elimination of the classified re-entry failure.
 
-The checkpoint's accumulated public surface is exactly fifty-eight declaration
+The checkpoint's accumulated public surface is exactly sixty-eight declaration
 boundaries:
 
 ```text
@@ -328,6 +341,18 @@ SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedContinuationExi
   firstDescentTarget
 SequentialFigure7.WaitStep.
   commitmentInterval_parTraceReentryMarkedContinuationFirstDescentOutcome
+SequentialFigure7.CanonicalTagHistory.RawMarkedBefore
+SequentialFigure7.CanonicalTagHistory.RawMarkedBefore.first_rawMarked
+SequentialFigure7.CanonicalTagHistory.RawMarkedBefore.second_rawMarked
+SequentialFigure7.CanonicalTagHistory.RawMarkedBefore.vertex_ne
+SequentialFigure7.CanonicalTagHistory.rawMarkedPremisesBefore
+SequentialFigure7.MarkedConclusionChainFirstCausalDescent
+SequentialFigure7.MarkedConclusionChainFirstRepresentativeDescent.causalDescent
+SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedContinuationCausalDescentTarget
+SequentialFigure7.ActiveCarrierExternalReentryMarkedMateSeparatedContinuationFirstDescentTarget.
+  causalDescentTarget
+SequentialFigure7.WaitStep.
+  commitmentInterval_parTraceReentryMarkedContinuationCausalDescentOutcome
 ```
 
 The earlier parent-escape, source-temporal, debt, history-tail,
@@ -371,11 +396,15 @@ The preceding Nop theorem then removes the exact return to the current mate by
 combining concrete terminal marking for every nontrivial chain with the typed
 Nop mate-unmarked equation. The other three continuation exits, every Wait
 residual, and all avoiding/equal-final branches remain unchanged.
-The current refinement keeps the generic and Wait return but exposes its first
+The preceding refinement keeps the generic and Wait return but exposes its first
 submitted parent conclusion outside the active carrier. That conclusion is an
 authentic canonical raw-mark event whose representative is strictly older than
 the active boundary. This is a history-sensitive descent residual, not its
 elimination or a distinct ready-tail payer.
+The current refinement orders that conclusion after both submitted-premise
+raw-mark events, makes the origin and sibling occurrences distinct from it,
+and retains a finite continuation exit for the sibling. It does not eliminate
+the causal descent or sibling exit, or assert a transitive or total event order.
 
 ### Finite ready-head boundary audit
 
@@ -421,15 +450,18 @@ Exact signatures are maintained in the generated API reference for the
 [marked re-entry target finite continuation exit][target-exit],
 [marked re-entry target Nop raw-return elimination][target-nop-no-return],
 [marked re-entry target raw-return first descent][target-first-descent],
+[canonical raw-mark causal order](api-reference.md#canonical-raw-mark-causal-order),
+[marked re-entry target raw-return causal descent][target-causal],
 [marked re-entry target raw-return cyclic reduction][target-cycle],
 [branch-local continuation credit](api-reference.md#branch-local-continuation-credit),
 [continuation-credit preservation](api-reference.md#continuation-credit-preservation),
 [endpoint-localized continuation exits](api-reference.md#endpoint-localized-continuation-exits),
 and the retained
 [Wait endpoint-locality obstruction](api-reference.md#wait-endpoint-locality-obstruction).
-The first open proof step is now to eliminate the authenticated first-step
-descent retained by Wait, or combine its older event with the ordered cyclic
-path to recover a distinct payer. The surviving marked omitted-right source
+The first open proof step is now to combine the authenticated causal order of
+the origin, sibling mate, and older parent conclusion with the retained cyclic
+and commitment paths. It must eliminate the Wait descent and sibling exit or
+recover a distinct payer. The surviving marked omitted-right source
 must likewise be eliminated or converted into a distinct payer. The
 raw-outside, older-future, and
 older-marked-global alternatives and both equal-final trace orientations also
@@ -461,6 +493,9 @@ This checkpoint does not establish any of the following:
   authenticated first-step descent now replacing exact raw return in Wait and
   generic contexts, or
   conversion of that target into a distinct active raw payer;
+- transitivity or totality of `RawMarkedBefore`, elimination of the causal
+  first descent or its sibling continuation exit, or conversion of either
+  earlier premise event into a distinct ready-tail payer;
 - impossibility of the remaining Wait/generic ordered exact out-and-back
   cyclic-junction traversal, elimination of the surviving marked omitted-right
   par pair, or conversion of either cyclic residual into a distinct ready-tail
@@ -510,12 +545,12 @@ plan is maintained in [v0.10-design.md](v0.10-design.md) and
 The exact rolling proof checkpoint is:
 
 ```text
-commit    c4e3bd5d9ce95f1dea57915dad9a26af149228e2
-tree      9175ce1f9d8edac6c3a27382292e51416f43ecb1
-parent    b28e488d9901b432e95402293485538595d89f99
-stage     expose the Wait exact-return first descent
-delta     17 paths, +850/-9
-manifest  D8D9FEFF1B8E572FF09538005FFFD485513F3C12F5FB5219967F8B51CE941106
+commit    4c63af291026502b83b442a01d8275d39396246f
+tree      a83149ef51755b829b9fcaa91b62bcce30b688dc
+parent    010b0d33c7d1727fc629d5f719d850a5b690532d
+stage     order raw-mark events and refine the Wait causal descent
+delta     18 paths, +1195/-24
+manifest  88C8021D8A4D62B6D27DD979C6C741909FCC8FE2ED80A84CBE7716789EEBC105
 ```
 
 The manifest hashes canonical
@@ -524,9 +559,10 @@ The manifest hashes canonical
 The checkpoint source receipts are:
 
 ```text
-descent source    6F5F44398E81B33C5FD29F20B95B068BAF242CCF57ED32CEC9C5776B37BBAC57
-descent consumer  075A4294A31C239699E138C9A07F6DB497604968D3C203C51D49DA86A76F05EF
-generated API     34D19BCA1EAC39BE3807EDF3999FE541D9EE5E2E17F6C31B6C143BE109D818CB
+causal-order source  95791E9C94A970559D78B2848D859FC9308DE7ED499878B77F2BA79797EC75A2
+causal-descent source FF4F00CF4B134EF34C7BC962DCFB9F474E7AF920EC5E80B06AD2AE0BDE7316B7
+causal consumer      BFA1D6690DB6EE5B52276E3DA53F89D1A765A8ED2FF7171C4F6A3908B5CAE172
+generated API        533F0B98AEFCDEEE284A590CAC417F533068AB8E7C3C054DC4BB44C0AAFFBD2D
 ```
 
 The separately committed finite-audit evidence is:
@@ -542,16 +578,16 @@ manifest  4BBAB7FC99D03D2612459A0FD9291990313A05A184F2572A581BC93C6E49DFDD
 
 Local verification on the committed bytes:
 
-- full `lake build`: 579/579 jobs;
-- Lean source audit: zero actual `sorry`/`admit` findings across 268 Lean
+- full `lake build`: 586/586 jobs;
+- Lean source audit: zero actual `sorry`/`admit` findings across 271 Lean
   files;
-- generated API reference: current at 74 sections and 1,680 declarations;
-- the runnable raw-return first-descent consumer called the chain theorem,
-  destructed its authenticated first-step witness, refined a supplied generic
-  target, destructed all four retained exits, applied the integrated Wait
-  theorem, cased every outer outcome, and audited all five public declarations
-  before emitting its kernel-green marker;
-- public theorem audit: 1002 entries total: 709 full-classical, 25
+- generated API reference: current at 76 sections and 1,690 declarations;
+- the runnable causal-descent consumer projected both event-order endpoints and
+  their distinct occurrences, reconstructed the two-premise causal theorem,
+  destructed the sibling continuation exit and all generic target outcomes,
+  refined a supplied first-descent target, applied the typed Wait theorem, and
+  audited all ten public declarations before emitting its kernel-green marker;
+- public theorem audit: 1009 entries total: 716 full-classical, 25
   axiom-free, 129 `propext`-only, and 139 `propext` plus `Quot.sound`;
 - the default, extended, and cross-variant progress audits passed with every
   incomplete visited state carrying an exact ready head and successful
@@ -564,22 +600,23 @@ Exact-head proof GitHub verification:
 
 - workflow: `Lean CI`;
 - event/ref: `push` / `main`;
-- run: [32427794610](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32427794610);
-- build job: [96613216350][proof-job];
-- exact head: `c4e3bd5d9ce95f1dea57915dad9a26af149228e2`;
+- run: [32431482031](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32431482031);
+- build job: [96623767240][proof-job];
+- exact head: `4c63af291026502b83b442a01d8275d39396246f`;
 - result: 36 successful steps, zero failures, and one expected release-ref-only
   skip;
-- run: `2026-08-20T23:14:14Z`-`2026-08-20T23:28:29Z` (14m15s);
-- build job: `2026-08-20T23:14:19Z`-`2026-08-20T23:28:28Z`
-  (14m09s).
+- run: `2026-08-21T00:08:08Z`-`2026-08-21T00:19:10Z` (11m02s);
+- build job: `2026-08-21T00:08:12Z`-`2026-08-21T00:19:09Z`
+  (10m57s).
 
-[proof-job]: https://github.com/fushanbobfan/proofnet-ir/actions/runs/32427794610/job/96613216350
+[proof-job]: https://github.com/fushanbobfan/proofnet-ir/actions/runs/32431482031/job/96623767240
 [reentry-failure]: api-reference.md#commitment-interval-par-guard-re-entry-failure-target
 [reentry-mate-separation]: api-reference.md#commitment-interval-par-guard-re-entry-mate-separation
 [target-temporal]: api-reference.md#commitment-interval-marked-re-entry-target-temporal-reduction
 [target-exit]: api-reference.md#marked-re-entry-target-finite-continuation-exit
 [target-nop-no-return]: api-reference.md#marked-re-entry-target-nop-raw-return-elimination
 [target-first-descent]: api-reference.md#marked-re-entry-target-raw-return-first-descent
+[target-causal]: api-reference.md#marked-re-entry-target-raw-return-causal-descent
 [target-cycle]: api-reference.md#marked-re-entry-target-raw-return-cyclic-reduction
 
 Exact-head finite-audit GitHub verification:
@@ -647,9 +684,10 @@ deployment.
 
 The project goal remains open. The principal outstanding gates are:
 
-1. eliminate the authenticated first-step descent now exposed in the
-   Wait/generic return, together with its ordered out-and-back traversal and
-   par-pair residual; discharge the
+1. combine the authenticated origin/mate-before-parent event order with the
+   retained commitment and ordered out-and-back paths; eliminate the causal
+   Wait/generic descent and sibling exit or recover a distinct ready-tail
+   payer; discharge the par-pair residual and the
    mate-separated target's
    finite raw-outside,
    older-future, and older-marked-global continuation alternatives; eliminate
