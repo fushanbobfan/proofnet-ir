@@ -1321,6 +1321,19 @@ verbatim, and no equality is introduced between its crossing and the nested
 target path or between distinct future-work boundaries. Higher wrapper
 transport, elimination, payer conversion, tail law, progress, completion,
 termination, and totality remain unproved.
+`SequentialFigure7MarkedTargetWaitingMateExternalCommitmentReentryFutureWorkMateQueueStatus.lean`
+adds one inductive public status and one public adapter, both with exactly the
+standard-three boundary: `propext`, `Classical.choice`, and `Quot.sound`. The
+adapter consumes an existing kernel-checked temporal status plus the scheduler
+invariant, component lookup, occurrence witness, and no-tail premise. It copies
+the older-outside branch and refines only the active branch's external endpoint
+through `queueStatusOutcome`, preserving membership, representative equality,
+and waiting evidence. It adds no runtime oracle, native computation, source
+fact, correctness, current-mate-outside, connectedness, par-kind, stored-side,
+or geometric premise. It proves no boundary or path equality, queue history,
+persistence, reachability, elimination, payer, tail law, progress, completion,
+termination, or totality result. Continuation, sibling, and typed-Wait transport
+remains unproved.
 `SequentialFigure7CrossRepresentativeWaitPreservation.lean` adds no hidden
 source-region oracle. Its output-work classification follows only from the
 typed destination's exact waiting prepend and unchanged ready/sigma fields;

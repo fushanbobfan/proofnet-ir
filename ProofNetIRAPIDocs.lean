@@ -1545,6 +1545,21 @@ def sections : List Section := [
     ]
   },
   {
+    title := "Future-work mate external re-entry queue status"
+    declarations := [
+      Name.str
+        `ProofNetIR.SequentialFigure7
+        ("FutureWorkMateActiveCarrierExternalCommitmentReentry" ++
+          "QueueStatus"),
+      Name.str
+        (Name.str
+          `ProofNetIR.SequentialFigure7
+          ("FutureWorkMateActiveCarrierExternalCommitmentReentry" ++
+            "TemporalStatus"))
+        "queueStatus"
+    ]
+  },
+  {
     title := "Marked re-entry target raw-return cyclic reduction"
     declarations := [
       `ProofNetIR.SequentialFigure7.MarkedConclusionRawReturnCyclicOutcome,

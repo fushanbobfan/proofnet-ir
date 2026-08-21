@@ -81,8 +81,11 @@ branch. The queue-status leaf supplies no unique boundary, queue history, persis
 reachability, elimination, payer, tail law, or progress. That nested target is now transported
 through the two-case waiting-parent external-reentry outcome without changing its older-future
 or older-marked receipts or identifying the outer crossing with the target's internal path.
-Higher scheduler, sibling, and typed-Wait transport remains open, as do completion,
-termination, and totality.
+The future-work-mate status now copies its older-outside branch and, in its active-owned branch,
+preserves membership, representative equality, and the waiting witness while refining only the
+external endpoint. It introduces no equality among the scheduler-status, endpoint older-future,
+and nested future-work boundaries. Continuation, sibling, and typed-Wait transport remains open,
+as do completion, termination, and totality.
 [Current status](docs/current-status.md) owns exact revision, verification receipt, and gates.
 <!-- ROLLING_MAIN_SUMMARY_END -->
 

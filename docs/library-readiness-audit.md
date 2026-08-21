@@ -1534,10 +1534,17 @@ part of the engineering and proof-identity gap.
    Its public two-case outcome and adapter preserve every older-future or
    older-marked field and replace only the nested temporal target. They require
    no new mate-outside or geometric premise, use the standard-three boundary,
-   and do not align the outer crossing with the nested target path. The active
-   future-work-mate scheduler, continuation, sibling, and typed-Wait wrappers
-   remain open, as do target elimination, payer recovery, a history-tail law,
-   progress, completion, termination, and totality.
+   and do not align the endpoint crossing with the nested target path. The active
+   future-work-mate wrapper is now provided by
+   `SequentialFigure7MarkedTargetWaitingMateExternalCommitmentReentryFutureWorkMateQueueStatus.lean`.
+   Its two public declarations copy the older-outside branch verbatim and, in
+   the active-owned branch, preserve membership, representative equality, and
+   waiting evidence while replacing only the external endpoint. They use the
+   standard-three boundary and add no premise beyond the existing scheduler
+   invariant, component lookup, occurrence witness, and no-tail assumption.
+   Continuation, sibling, and typed-Wait wrappers remain open, as do target
+   elimination, payer recovery, a history-tail law, progress, completion,
+   termination, and totality.
    `SequentialFigure7CommitmentBlockerAdvance.lean` now combines the global
    queued-head law, strict split, and equal-boundary result. Under declarative
    correctness and the complete scheduler invariant, for a supplied canonical

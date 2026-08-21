@@ -1947,8 +1947,8 @@ current-state only. In its future-work alternative, the scheduler boundary is
 existential and not proved unique. No target is eliminated or payer-converted,
 and no queue history, persistence, reachability, history-tail law, progress,
 completion, termination, or totality follows.
-Transport through the higher scheduler, sibling, and typed-Wait interfaces
-remains open.
+The immediate endpoint and future-work-mate maps are handled below;
+continuation, sibling, and typed-Wait transport remains open.
 
 `SequentialFigure7MarkedTargetWaitingMateExternalCommitmentReentryQueueStatus.lean`
 performs the first such wrapper transport. Its two-case endpoint outcome keeps
@@ -1962,11 +1962,29 @@ new mate-outside, correctness, connectedness, par-kind, or side premise.
 The outcome's crossing and re-entry witnesses remain separate from the nested
 target's internal path. Its outer older-future boundary is likewise not
 identified with any existential boundary inside the queue-status leaf. This is
-only the immediate endpoint-outcome map. The active future-work-mate scheduler,
-continuation, sibling, and typed-Wait carriers still contain the preceding
-temporal shape and require separate transport. No target is eliminated or
-payer-converted, and no history-tail, progress, completion, termination, or
-totality result follows.
+only the immediate endpoint-outcome map. The future-work-mate map is handled
+next; continuation, sibling, and typed-Wait carriers still contain the
+preceding temporal shape and require separate transport. No target is
+eliminated or payer-converted, and no history-tail, progress, completion,
+termination, or totality result follows.
+
+`SequentialFigure7MarkedTargetWaitingMateExternalCommitmentReentryFutureWorkMateQueueStatus.lean`
+lifts that endpoint outcome through the two-case future-work mate temporal
+status. The `olderOutside` branch preserves `notMembership` and
+`representativeOlder` verbatim. The `activeExternal` branch preserves
+`membership`, `representative`, and the exact `waiting` witness, changing only
+its `external` field via `queueStatusOutcome`. The adapter requires exactly the
+existing scheduler invariant, component lookup, occurrence witness, and no-tail
+premise beyond its input status.
+
+This map does not queue-classify or eliminate the older-outside branch. It does
+not equate the status boundary, the endpoint outcome's older-future boundary,
+or any existential future-work boundary in the nested queue leaf. Nor does it
+align the endpoint crossing and re-entry receipts with the nested target's
+internal path. Continuation, sibling, and typed-Wait carriers still contain the
+preceding temporal status and require separate transport. No queue origin,
+persistence, reachability, elimination, payer, history-tail law, progress,
+completion, termination, or totality result follows.
 
 `SequentialFigure7CommitmentBlockerAdvance.lean` joins the global queued-head
 law, the strict `sigma` split, the strict-edge avoiding adapter, and the final

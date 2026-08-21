@@ -2,6 +2,25 @@
 
 ## Unreleased
 
+- lifted the two-case endpoint queue-status outcome through the active
+  future-work-mate temporal status.
+  `SequentialFigure7MarkedTargetWaitingMateExternalCommitmentReentryFutureWorkMateQueueStatus.lean`
+  adds `FutureWorkMateActiveCarrierExternalCommitmentReentryQueueStatus` and
+  `FutureWorkMateActiveCarrierExternalCommitmentReentryTemporalStatus.queueStatus`.
+  The adapter copies `olderOutside` with its nonmembership and strict
+  representative order unchanged. In `activeExternal`, it preserves membership,
+  representative equality, and the exact waiting witness, replacing only the
+  external temporal endpoint with its queue-status outcome. Its additional
+  inputs are exactly the scheduler invariant, component lookup, occurrence
+  witness, and no-tail premise. It adds no correctness, connectedness, par-kind,
+  stored-side, or current-mate-outside premise. It introduces no equality among
+  the status boundary, endpoint older-future boundary, and nested future-work
+  boundary, and does not identify the endpoint crossing/re-entry receipts with
+  the nested target path. Both declarations
+  use the standard-three trust boundary. The older-outside branch is not queue-
+  classified or eliminated, and no queue history, persistence, reachability,
+  payer, tail law, progress, completion, termination, or totality follows.
+  Continuation, sibling, and typed-Wait transport remains open;
 - transported the nested waiting-parent queue-status target through the exact
   two-case external-reentry temporal outcome.
   `SequentialFigure7MarkedTargetWaitingMateExternalCommitmentReentryQueueStatus.lean`
@@ -13,7 +32,7 @@
   only its nested temporal target is normalized through the finite continuation
   exit, exact waiting parent, and current queue status. The adapter needs the
   existing scheduler invariant, component lookup, occurrence witness, and
-  no-tail premise. It requires no new mate-outside, correctness, par-side, or
+  no-tail premise. It requires no new mate-outside, correctness, par-kind, or
   connectivity premise. The outer crossing is not identified with the nested
   target path, and the nested future-work boundary is not identified with the
   outcome's older-future boundary. Both declarations use the standard-three
