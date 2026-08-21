@@ -609,6 +609,8 @@ namespace FutureWorkAtExactWaitingLocation
   activeTargetMateOuterAvoidingReentryMarkedHistoricalTargetOrContains
 #print axioms
   activeTargetMateOuterAvoidingReentryMarkedHistoricalTargetOrContainsFailureHistoricalStatus
+#print axioms
+  activeTargetMateOuterAvoidingOrContainingReentryMarkedHistoricalTarget_of_storedRight
 end FutureWorkAtExactWaitingLocation
 end ProofNetIR.SequentialFigure7
 #print axioms

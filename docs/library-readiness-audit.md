@@ -1496,6 +1496,16 @@ part of the engineering and proof-identity gap.
    identified with the common path or crossing. There is still no occurrence
    localization, first visit, elimination, payer, tail law, progress,
    completion, termination, or totality, and the raw survivor is unchanged.
+   `SequentialFigure7WaitingReentryContinuationOuterContainsMarkedStoredRight.lean`
+   adds one public theorem and a runnable consumer at the standard-three
+   boundary. With an additional explicit stored-right side equality, it
+   preserves the preceding exact path and ownership evidence while ensuring
+   that both outer branches carry a marked historical re-entry classifier: at
+   `consumer.mate` in the avoiding branch and at `current.conclusion` in the
+   containing branch. The containing membership fact remains, and neither
+   classifier exposes identity with the common path or crossing. This is a
+   local exact-waiting-location refinement, not higher-wrapper transport,
+   target elimination, payer recovery, a history-tail law, or progress.
    `SequentialFigure7CommitmentBlockerAdvance.lean` now combines the global
    queued-head law, strict split, and equal-boundary result. Under declarative
    correctness and the complete scheduler invariant, for a supplied canonical

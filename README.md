@@ -62,12 +62,12 @@ lies outside any supplied owned carrier. They strengthen the outer split without
 hypotheses. Under canonical history, a selected outer par, and exact ready-tail failure,
 the theorem returns those outer-conclusion facts unconditionally and retains the common
 exact path, target finish, outside-to-inside edge, and inner avoidance. Outer avoidance
-separately yields the marked historical-target classifier. The containing branch keeps
-outer-conclusion membership and separately derives
-`ActiveCarrierExternalReentryFailureHistoricalStatus` through a suffix and a boundary not
-claimed to be first. Its witnesses are not identified with the common path or crossing.
-Neither branch localizes an occurrence or first visit, eliminates or payer-converts the
-waiting target, changes the raw survivor, or proves a tail law, progress, completion,
+yields a marked historical re-entry target for the older-mate endpoint. Under an explicit
+stored-right orientation, the containing branch keeps outer-conclusion membership and
+narrows its separate failure status to a marked historical re-entry target for the outer-
+conclusion endpoint. These existential classifiers are not identified with the common exact
+path or crossing. Neither branch localizes a first visit, eliminates or payer-converts its
+marked target, changes the raw survivor, or proves a tail law, progress, completion,
 termination, or totality.
 [Current status](docs/current-status.md) owns exact revision, verification receipt, and gates.
 <!-- ROLLING_MAIN_SUMMARY_END -->

@@ -1893,6 +1893,20 @@ The theorem still gives no occurrence localization, first visit, elimination,
 payer, tail law, progress, completion, termination, or totality, and it leaves
 the raw survivor unchanged.
 
+`SequentialFigure7WaitingReentryContinuationOuterContainsMarkedStoredRight.lean`
+adds the explicit stored-right refinement. The avoiding branch already carries
+`ActiveCarrierExternalReentryMarkedHistoricalTarget` for `consumer.mate`. In
+the containing branch, the existing failure-historical status for
+`current.conclusion` is passed through `markedHistoricalTarget_of_storedRight`,
+using structural well-formedness from the scheduler invariant together with
+the supplied outer `par` and `.storedRight` equalities. The common exact path,
+crossing edge, inner avoidance, outer membership split, and freshness facts are
+unchanged. The resulting marked-status paths and edges are not identified with
+the common path or crossing, and the two branches do not expose a shared marked
+target, occurrence position, or first boundary. No target or raw-survivor
+elimination, payer, tail law, progress, completion, termination, or totality
+follows.
+
 `SequentialFigure7CommitmentBlockerAdvance.lean` joins the global queued-head
 law, the strict `sigma` split, the strict-edge avoiding adapter, and the final
 equal-boundary classification. Under declarative correctness and the complete

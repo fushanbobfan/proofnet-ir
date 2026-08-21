@@ -1274,6 +1274,14 @@ status witness is identified with the common path or crossing, and no occurrence
 position or first visit is exposed. The theorem eliminates neither branch,
 leaves the raw survivor unchanged, and establishes no payer, tail law, progress,
 completion, termination, or totality.
+`SequentialFigure7WaitingReentryContinuationOuterContainsMarkedStoredRight.lean`
+adds no runtime oracle, native-computed evidence, or new trusted source. Its
+single public theorem composes two existing standard-three results and prints
+with `propext`, `Classical.choice`, and `Quot.sound`. The proof narrows only the
+containing branch's independent selected-or-marked failure status under the
+supplied stored-right orientation. It does not equate classifier witnesses with
+the common path or crossing and adds no first-visit, target-elimination, payer,
+tail-law, progress, completion, termination, or totality claim.
 `SequentialFigure7CrossRepresentativeWaitPreservation.lean` adds no hidden
 source-region oracle. Its output-work classification follows only from the
 typed destination's exact waiting prepend and unchanged ready/sigma fields;

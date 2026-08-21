@@ -1487,6 +1487,15 @@ def sections : List Section := [
     ]
   },
   {
+    title := "Waiting re-entry continuation stored-right marked outer split"
+    declarations := [
+      Name.str
+        `ProofNetIR.SequentialFigure7.FutureWorkAtExactWaitingLocation
+        ("activeTargetMateOuterAvoidingOrContainingReentryMarkedHistoricalTarget" ++
+          "_of_storedRight")
+    ]
+  },
+  {
     title := "Marked re-entry target raw-return cyclic reduction"
     declarations := [
       `ProofNetIR.SequentialFigure7.MarkedConclusionRawReturnCyclicOutcome,

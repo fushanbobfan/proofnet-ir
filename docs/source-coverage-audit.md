@@ -756,10 +756,19 @@ and the interface exposes no occurrence position or first visit. The two
 freshness declarations and the main theorem are standard-three. They eliminate
 neither waiting outcome, do not affect the raw survivor, and prove no payer,
 tail law, progress, completion, termination, or totality.
+`SequentialFigure7WaitingReentryContinuationOuterContainsMarkedStoredRight.lean`
+adds no source reading, oracle, or runtime evidence. It composes the existing
+outer-containing status with the existing generic stored-right failure-status
+eliminator. Every common path, crossing, ownership, freshness, and membership
+field is transported unchanged. The proof adds only the explicit
+`.storedRight` side premise; it does not align either marked-status witness with
+the retained path, identify the two branch targets, locate a first visit,
+affect the raw survivor, or derive a payer, tail law, progress, completion,
+termination, or totality result.
 Global preservation of the mate-region and older-raw-mark invariants through
 candidate-creating rules remains open, as do queue origin, created-candidate
-raw seams, elimination or payer conversion of the waiting survivor in both the
-marked-classifier and outer-containing-status branches, marked-history descent,
+raw seams, elimination or payer conversion of the waiting survivor in both
+outer marked-classifier branches, marked-history descent,
 unconditional active-top completion, progress, later-state totality, fallback
 removal, sequentialization, faithful token-age scheduling, and whole-program
 linearity.

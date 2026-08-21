@@ -2,6 +2,23 @@
 
 ## Unreleased
 
+- under an explicit `.storedRight` orientation, refined both branches of the
+  outer waiting-path split to retain marked historical re-entry targets.
+  `SequentialFigure7WaitingReentryContinuationOuterContainsMarkedStoredRight.lean`
+  adds the namespace-local
+  `activeTargetMateOuterAvoidingOrContainingReentryMarkedHistoricalTarget_of_storedRight`
+  theorem on `FutureWorkAtExactWaitingLocation`.
+  It preserves the common exact mate-to-target path, target finish,
+  outside-to-inside edge, inner waiting-conclusion avoidance, and unconditional
+  outer-conclusion freshness and externality. The avoiding branch retains its
+  marked classifier for `consumer.mate`; the containing branch retains
+  `current.conclusion ∈ path.vertices` and uses the existing stored-right
+  eliminator to narrow its independent failure status to a marked classifier
+  for `current.conclusion`. The two classifiers remain existentially
+  independent of the common path and crossing. The standard-three theorem adds
+  no source, oracle, or runtime evidence and proves no first visit, target
+  elimination, payer, history-tail law, progress, completion, termination, or
+  totality;
 - strengthened the outer-containing waiting re-entry branch with an independent
   failure-conditioned historical status, without adding hypotheses.
   `SequentialFigure7CommitmentEdgeTargetAvoidance.lean` now exports two generic

@@ -1256,20 +1256,25 @@
     position or first visit. This is
     a standard-three code consequence with no source, oracle, or runtime
     addition; the raw survivor is unchanged.
-  - [ ] Eliminate or payer-convert both waiting-branch outcomes and separately
-    eliminate or convert the raw survivor. The avoiding side now has a marked
-    inbound-edge historical-target classifier, but that classifier is not
-    target elimination and does not expose identity with the retained exact
-    path. The containing side now combines vertex-list membership with an
-    independent failure-conditioned historical status, but does not identify
-    the status suffix or boundary with the retained path or crossing and gives
-    no occurrence localization or first-visit fact. Then eliminate the
-    remaining cyclic residuals, broader exact selected/mate raw returns, and
-    equal-final traces, and close the history-tail law. Do not infer
-    unconditional dispatcher progress, completion, termination, later-state
-    totality, global raw seams, fallback removal, Figure-7 pure-worklist
-    completeness, sequentialization, faithful token-age scheduling, or
-    whole-program linearity from this split.
+  - [x] Under an explicit stored-right orientation of the selected outer `par`,
+    narrow the containing branch's independent failure-historical status to
+    `ActiveCarrierExternalReentryMarkedHistoricalTarget`. Preserve the avoiding
+    branch's marked classifier, the common exact mate-to-target path and
+    crossing, inner avoidance, outer membership split, and freshness facts.
+    Keep the two branch classifiers existentially separate from the retained
+    path and from each other.
+  - [ ] Eliminate or payer-convert the marked historical target in each outer
+    branch and separately eliminate or convert the raw survivor. The avoiding
+    classifier is attached to `consumer.mate`; the containing classifier is
+    attached to `current.conclusion` while membership in the common path
+    remains. Neither classifier is aligned with that path or crossing, and no
+    shared target, occurrence localization, first visit, or first boundary is
+    known. Then eliminate the remaining cyclic residuals, broader exact
+    selected/mate raw returns, and equal-final traces, and close the history-tail
+    law. Do not infer unconditional dispatcher progress, completion,
+    termination, later-state totality, global raw seams, fallback removal,
+    Figure-7 pure-worklist completeness, sequentialization, faithful token-age
+    scheduling, or whole-program linearity from this refinement.
   - [x] Isolate unused waiting storage as the history-preserved predicate
     `FutureWaitingUndefined`. Prove it for empty/initial states and preserve it
     through Prepared, all six successful rules, dispatcher steps,
@@ -1602,10 +1607,14 @@
     membership in the common path and independently derives a
     failure-conditioned historical re-entry status from that conclusion; its
     suffix and boundary witnesses are not identified with the common path or
-    crossing, and no first-boundary fact is exported. Both waiting outcomes and
-    the raw survivor remain. Next eliminate or payer-convert those outcomes and
-    resolve equal-final traces and the history-tail law before claiming
-    exhaustive progress on incomplete, correct, certified-reachable states.
+    crossing, and no first-boundary fact is exported. Under an explicit stored-
+    right orientation, that independent status narrows to a marked historical
+    re-entry target, so both outer outcomes retain marked classifiers at their
+    respective endpoints. Those classifiers remain unaligned with the common
+    path. Both marked-classifier waiting outcomes and the raw survivor remain.
+    Next eliminate or payer-convert those outcomes and resolve equal-final
+    traces and the history-tail law before claiming exhaustive progress on
+    incomplete, correct, certified-reachable states.
     Exact source-left complexity descent, last-step decomposition, and
     recursive visited-route separation from the selected head are now proved.
     Reference-switching geometry now also excludes a terminal axiom partner

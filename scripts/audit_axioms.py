@@ -331,6 +331,9 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "ProofNetIR.SequentialFigure7.FutureWorkAtExactWaitingLocation."
     "activeTargetMateOuterAvoidingReentryMarkedHistoricalTarget"
     "OrContainsFailureHistoricalStatus",
+    "ProofNetIR.SequentialFigure7.FutureWorkAtExactWaitingLocation."
+    "activeTargetMateOuterAvoidingOrContainingReentryMarkedHistoricalTarget"
+    "_of_storedRight",
     "ProofNetIR.SequentialFigure7.MarkedConclusionChain."
     "rawReturnCyclicReduction",
     "ProofNetIR.SequentialFigure7.MarkedConclusionChain."
