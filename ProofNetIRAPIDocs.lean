@@ -1119,6 +1119,21 @@ def sections : List Section := [
     ]
   },
   {
+    title := "Future-work queue status"
+    declarations := [
+      `ProofNetIR.SequentialFigure7.UnmarkedOutsideActiveSchedulerStatus,
+      Name.str
+        `ProofNetIR.SequentialFigure7.FutureWorkAt
+        "boundary_lt_active_of_not_owned",
+      Name.str
+        `ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant
+        "mem_queued_iff_exists_futureWorkAt",
+      Name.str
+        `ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant
+        "unmarkedOutsideActiveSchedulerStatus"
+    ]
+  },
+  {
     title := "Marked re-entry target sibling scheduled exits"
     declarations := [
       Name.str

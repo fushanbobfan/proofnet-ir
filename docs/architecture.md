@@ -1907,6 +1907,25 @@ target, occurrence position, or first boundary. No target or raw-survivor
 elimination, payer, tail law, progress, completion, termination, or totality
 follows.
 
+`SequentialFigure7FutureWorkQueueStatus.lean` factors the raw-survivor
+scheduler reasoning into a current-state interface. The public status is
+parameterized by a supplied `owned` list; active component lookup and occurrence
+evidence in the classifier establish when that list is the active occurrence
+carrier. `SchedulerInvariant.mem_queued_iff_exists_futureWorkAt` unfolds the
+flattened ready buckets and initialized waiting cells in both directions and
+retains proof-relevant `FutureWorkAt` at some boundary.
+`FutureWorkAt.boundary_lt_active_of_not_owned` rules out the active boundary
+using exact occurrence ownership in the ready case and the active cell's
+required undefined state in the waiting case; strict `sigma` order then places
+the work below the active raw age. `UnmarkedOutsideActiveSchedulerStatus`
+records an unmarked vertex outside the supplied list together with either
+current absence from the queue, live frontier, and `Produced`, or exact older
+future work and its exact scheduler location. The existential boundary is not
+proved unique, and the absent branch is not historical, persistent, terminal,
+or unreachable. This generic module does not yet replace the raw branch inside
+either outer marked classifier or transport through the higher scheduler,
+sibling, or typed-Wait interfaces.
+
 `SequentialFigure7CommitmentBlockerAdvance.lean` joins the global queued-head
 law, the strict `sigma` split, the strict-edge avoiding adapter, and the final
 equal-boundary classification. Under declarative correctness and the complete

@@ -458,6 +458,14 @@ end FutureWorkAt
 namespace ConnectiveBelow
 #print axioms premisesMarked_of_futureWork
 end ConnectiveBelow
+#print axioms UnmarkedOutsideActiveSchedulerStatus
+namespace FutureWorkAt
+#print axioms boundary_lt_active_of_not_owned
+end FutureWorkAt
+#print axioms
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant.mem_queued_iff_exists_futureWorkAt
+#print axioms
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant.unmarkedOutsideActiveSchedulerStatus
 namespace ContinuationExitRawOrFutureActiveCarrierOutcome
 #print axioms scheduledOutcome
 end ContinuationExitRawOrFutureActiveCarrierOutcome

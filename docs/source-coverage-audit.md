@@ -765,6 +765,18 @@ field is transported unchanged. The proof adds only the explicit
 the retained path, identify the two branch targets, locate a first visit,
 affect the raw survivor, or derive a payer, tail law, progress, completion,
 termination, or totality result.
+`SequentialFigure7FutureWorkQueueStatus.lean` adds no source reading, oracle,
+or runtime evidence. It unfolds the existing `queuedVertices`, ready, waiting,
+and `FutureWorkAt` definitions and reuses scheduler-invariant ownership,
+active-waiting-domain, strict-`sigma`, and exact-location facts. The public
+status is relative to a supplied `owned` list; active component lookup and
+occurrence evidence establish the active-carrier interpretation used by the
+classifier. The result concerns one supplied state only. Currently not queued
+does not mean never queued, persistently absent, unreachable, or terminal; the
+proof-relevant future-work boundary is some boundary, not a proved unique one;
+and no `ExecutedHistory`, canonical provenance, payer, tail law, or progress
+fact is derived. The later waiting-parent and outer-branch transport remains
+separate.
 Global preservation of the mate-region and older-raw-mark invariants through
 candidate-creating rules remains open, as do queue origin, created-candidate
 raw seams, elimination or payer conversion of the waiting survivor in both

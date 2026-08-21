@@ -1263,18 +1263,26 @@
     crossing, inner avoidance, outer membership split, and freshness facts.
     Keep the two branch classifiers existentially separate from the retained
     path and from each other.
-  - [ ] Eliminate or payer-convert the marked historical target in each outer
-    branch and separately eliminate or convert the raw survivor. The avoiding
-    classifier is attached to `consumer.mate`; the containing classifier is
-    attached to `current.conclusion` while membership in the common path
-    remains. Neither classifier is aligned with that path or crossing, and no
-    shared target, occurrence localization, first visit, or first boundary is
-    known. Then eliminate the remaining cyclic residuals, broader exact
-    selected/mate raw returns, and equal-final traces, and close the history-tail
-    law. Do not infer unconditional dispatcher progress, completion,
-    termination, later-state totality, global raw seams, fallback removal,
-    Figure-7 pure-worklist completeness, sequentialization, faithful token-age
-    scheduling, or whole-program linearity from this refinement.
+  - [x] Publish a current-state queue-status interface for an unmarked vertex
+    outside a supplied `owned` list. Under `SchedulerInvariant`, prove flattened
+    queue membership equivalent to proof-relevant `FutureWorkAt` at some
+    boundary. Under active component lookup and occurrence evidence, prove
+    outside work strictly older than the active boundary and retain its exact
+    ready or initialized-waiting location.
+    Make no unique-boundary, history, persistence, reachability, or progress
+    claim.
+  - [ ] Lift `UnmarkedOutsideActiveSchedulerStatus` into the raw-unmarked
+    target-consumer-mate alternative of both outer marked classifiers, then
+    through the waiting-parent target and higher scheduler, sibling, and typed-
+    Wait wrappers. Preserve the common path, crossing, outer membership split,
+    and independent marked classifiers. Then eliminate or payer-convert the
+    currently absent and exact older-work alternatives, both marked historical
+    targets, and the remaining raw survivor; resolve the cyclic and equal-final
+    residuals and close the history-tail law. Do not infer unconditional
+    dispatcher progress, completion, termination, later-state totality, global
+    raw seams, fallback removal, Figure-7 pure-worklist completeness,
+    sequentialization, faithful token-age scheduling, or whole-program
+    linearity from the low-level classifier.
   - [x] Isolate unused waiting storage as the history-preserved predicate
     `FutureWaitingUndefined`. Prove it for empty/initial states and preserve it
     through Prepared, all six successful rules, dispatcher steps,
@@ -1611,9 +1619,14 @@
     right orientation, that independent status narrows to a marked historical
     re-entry target, so both outer outcomes retain marked classifiers at their
     respective endpoints. Those classifiers remain unaligned with the common
-    path. Both marked-classifier waiting outcomes and the raw survivor remain.
-    Next eliminate or payer-convert those outcomes and resolve equal-final
-    traces and the history-tail law before claiming exhaustive progress on
+    path. A separate current-state API now classifies an unmarked vertex outside
+    a supplied `owned` list as currently queue/live-production absent or as
+    proof-relevant exact scheduler work at some older boundary, once active
+    occurrence evidence identifies that list with the active carrier. That
+    status has not yet been threaded into either marked-classifier waiting
+    outcome. Both outcomes and the raw survivor remain. Next lift and then
+    eliminate or payer-convert those outcomes, resolve equal-final traces, and
+    close the history-tail law before claiming exhaustive progress on
     incomplete, correct, certified-reachable states.
     Exact source-left complexity descent, last-step decomposition, and
     recursive visited-route separation from the selected head are now proved.

@@ -49,6 +49,7 @@ defaultTargets = [
   "proofnet_ir_marked_target_raw_return_cyclic_endpoint_causal_order_tests",
   "proofnet_ir_marked_target_raw_return_complete_cancellation_causal_endpoints_tests",
   "proofnet_ir_marked_target_raw_return_sibling_exit_forward_causal_order_tests",
+  "proofnet_ir_future_work_queue_status_tests",
   "proofnet_ir_marked_target_waiting_mate_external_commitment_reentry_marked_tests",
   "proofnet_ir_marked_target_waiting_mate_external_commitment_reentry_temporal_tests",
   "proofnet_ir_marked_target_waiting_mate_external_commitment_reentry_continuation_exit_tests",
@@ -310,6 +311,10 @@ root = "ProofNetIRMarkedTargetRawReturnSiblingExitOpenTests"
 [[lean_exe]]
 name = "proofnet_ir_marked_target_raw_return_sibling_exit_temporal_tests"
 root = "ProofNetIRMarkedTargetRawReturnSiblingExitTemporalTests"
+
+[[lean_exe]]
+name = "proofnet_ir_future_work_queue_status_tests"
+root = "ProofNetIRFutureWorkQueueStatusTests"
 
 [[lean_exe]]
 name = "proofnet_ir_marked_target_raw_return_sibling_exit_scheduled_tests"

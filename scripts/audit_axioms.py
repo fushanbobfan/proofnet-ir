@@ -215,6 +215,11 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "ProofNetIR.SequentialFigure7.WaitStep."
     "commitmentInterval_parTraceReentryMarkedContinuationSiblingExitTemporalOutcome",
     "ProofNetIR.SequentialFigure7.FutureWorkAt.exactSchedulerLocation",
+    "ProofNetIR.SequentialFigure7.FutureWorkAt.boundary_lt_active_of_not_owned",
+    "ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant."
+    "mem_queued_iff_exists_futureWorkAt",
+    "ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant."
+    "unmarkedOutsideActiveSchedulerStatus",
     "ProofNetIR.SequentialFigure7.ConnectiveBelow."
     "premisesMarked_of_futureWork",
     "ProofNetIR.SequentialFigure7."
@@ -1099,6 +1104,7 @@ EXPECTED_AXIOM_FREE_THEOREMS = {
     "ProofNetIR.SequentialFigure7.ReadyHeadInput.stackResult_after",
 }
 EXPECTED_PROPEXT_ONLY_THEOREMS = {
+    "ProofNetIR.SequentialFigure7.UnmarkedOutsideActiveSchedulerStatus",
     "ProofNetIR.SequentialFigure7.ActiveMateWaitingParentExternalTemporalOutcome."
     "activeCarrierOutcome",
     "ProofNetIR.SequentialFigure7.MarkedConclusionChain.terminal_marked_of_ne",

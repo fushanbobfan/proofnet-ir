@@ -10989,6 +10989,75 @@ ProofNetIR.SequentialFigure7.ConnectiveBelow.premisesMarked_of_futureWork : ∀ 
         ∃ mateAge, state.core.marks[consumer.mate]? = some (some mateAge)
 ```
 
+## Future-work queue status
+
+### `ProofNetIR.SequentialFigure7.UnmarkedOutsideActiveSchedulerStatus`
+
+Kind: definition.
+
+Current scheduler status of an in-bounds raw-unmarked vertex relative to a
+supplied owned list. The classifier below connects that list to the active
+occurrence carrier.
+
+```lean
+ProofNetIR.SequentialFigure7.UnmarkedOutsideActiveSchedulerStatus : ProofNetIR.Certificate →
+  (state : ProofNetIR.SequentialSchedulerBridge.ReservationState) →
+    ProofNetIR.SequentialFigure7.ReadyHeadInput state → List ProofNetIR.Vertex → ProofNetIR.Vertex → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.FutureWorkAt.boundary_lt_active_of_not_owned`
+
+Kind: theorem.
+
+Future work outside the active occurrence carrier belongs to a strictly
+older scheduler boundary.
+
+```lean
+ProofNetIR.SequentialFigure7.FutureWorkAt.boundary_lt_active_of_not_owned : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (input : ProofNetIR.SequentialFigure7.ReadyHeadInput state),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+    ∀ {component : ProofNetIR.UnificationComponent} {usedLinks owned : List Nat},
+      state.core.components[input.rawAge]? = some (some component) →
+        certificate.ComponentOccurrenceWitness component usedLinks owned →
+          ∀ {boundary : ProofNetIR.SequentialSchedulerState.RawTokenAge} {vertex : ProofNetIR.Vertex},
+            ProofNetIR.SequentialFigure7.FutureWorkAt state boundary vertex → ¬vertex ∈ owned → boundary < input.rawAge
+```
+
+### `ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant.mem_queued_iff_exists_futureWorkAt`
+
+Kind: theorem.
+
+Flattened queue membership is equivalent to a proof-relevant `FutureWorkAt`
+witness at some scheduler boundary.
+
+```lean
+ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant.mem_queued_iff_exists_futureWorkAt : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+    ∀ {vertex : ProofNetIR.Vertex},
+      vertex ∈ state.stack.queuedVertices ↔ ∃ boundary, ProofNetIR.SequentialFigure7.FutureWorkAt state boundary vertex
+```
+
+### `ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant.unmarkedOutsideActiveSchedulerStatus`
+
+Kind: theorem.
+
+An in-bounds raw-unmarked vertex outside the active carrier is either
+absent from the current queue and observable production domains or exact work
+at a strictly older scheduler boundary.
+
+```lean
+ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant.unmarkedOutsideActiveSchedulerStatus : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (input : ProofNetIR.SequentialFigure7.ReadyHeadInput state),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+    ∀ {component : ProofNetIR.UnificationComponent} {usedLinks owned : List Nat},
+      state.core.components[input.rawAge]? = some (some component) →
+        certificate.ComponentOccurrenceWitness component usedLinks owned →
+          ∀ {vertex : ProofNetIR.Vertex},
+            state.core.marks[vertex]? = some none →
+              ¬vertex ∈ owned →
+                ProofNetIR.SequentialFigure7.UnmarkedOutsideActiveSchedulerStatus certificate state input owned vertex
+```
+
 ## Marked re-entry target sibling scheduled exits
 
 ### `ProofNetIR.SequentialFigure7.ContinuationExitRawOrFutureActiveCarrierScheduledOutcome`

@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+- added a reusable current-state classification for an unmarked vertex outside
+  a supplied `owned` list. `SequentialFigure7FutureWorkQueueStatus.lean`
+  introduces `UnmarkedOutsideActiveSchedulerStatus`, proves
+  `SchedulerInvariant.mem_queued_iff_exists_futureWorkAt`, and publishes
+  `FutureWorkAt.boundary_lt_active_of_not_owned` together with
+  `SchedulerInvariant.unmarkedOutsideActiveSchedulerStatus`. Under
+  `SchedulerInvariant`, flattened `queuedVertices` membership is equivalent to
+  proof-relevant `FutureWorkAt` at some boundary. When active component lookup
+  and occurrence evidence establish the supplied list as the active owned
+  carrier, queued outside work is at a strictly older boundary and has an exact
+  ready or initialized-waiting location; otherwise the unmarked vertex is
+  currently absent from the queue, live frontier, and `Produced` domains. The
+  API proves no unique boundary,
+  history, persistence, reachability, elimination, payer, history-tail law, or
+  progress. Its lift into the waiting-parent and outer stored-right classifiers
+  remains a later checkpoint;
 - under an explicit `.storedRight` orientation, refined both branches of the
   outer waiting-path split to retain marked historical re-entry targets.
   `SequentialFigure7WaitingReentryContinuationOuterContainsMarkedStoredRight.lean`

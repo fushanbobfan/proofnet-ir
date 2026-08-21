@@ -103,6 +103,7 @@ jobs:
             proofnet_ir_marked_target_raw_return_sibling_exit_open_tests
           ~/.elan/bin/lake exe \
             proofnet_ir_marked_target_raw_return_sibling_exit_temporal_tests
+          ~/.elan/bin/lake exe proofnet_ir_future_work_queue_status_tests
           ~/.elan/bin/lake exe \
             proofnet_ir_marked_target_raw_return_sibling_exit_scheduled_tests
           ~/.elan/bin/lake exe \

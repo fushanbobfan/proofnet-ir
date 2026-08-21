@@ -1282,6 +1282,18 @@ containing branch's independent selected-or-marked failure status under the
 supplied stored-right orientation. It does not equate classifier witnesses with
 the common path or crossing and adds no first-visit, target-elimination, payer,
 tail-law, progress, completion, termination, or totality claim.
+`SequentialFigure7FutureWorkQueueStatus.lean` adds no runtime oracle,
+native-computed evidence, or new trusted source. The public proposition is
+`propext`-only, while its three registered public theorems use the standard-
+three boundary. They rely only on the existing scheduler invariant, exact
+occurrence ownership, operational waiting domain, strict `sigma` order, and
+exact-location interface. The status is parameterized by a supplied `owned`
+list; the classifier's active component lookup and occurrence witness establish
+when that list is the active owned carrier. The proposition is state-indexed
+and contains no hidden history, reachability, uniqueness, persistence, or
+progress field. The module does not lift the status into the waiting re-entry
+theorem or add target elimination, payer, tail-law, completion, or progress
+assumptions.
 `SequentialFigure7CrossRepresentativeWaitPreservation.lean` adds no hidden
 source-region oracle. Its output-work classification follows only from the
 typed destination's exact waiting prepend and unchanged ready/sigma fields;

@@ -1506,6 +1506,19 @@ part of the engineering and proof-identity gap.
    classifier exposes identity with the common path or crossing. This is a
    local exact-waiting-location refinement, not higher-wrapper transport,
    target elimination, payer recovery, a history-tail law, or progress.
+   `SequentialFigure7FutureWorkQueueStatus.lean` adds one public proposition,
+   three public theorems, and a runnable consumer. The status is relative to a
+   supplied `owned` list; the classifier's active component lookup and
+   occurrence witness establish the active-carrier interpretation. Under
+   `SchedulerInvariant`, it gives a reusable exact current-state account of an
+   unmarked outside vertex: currently absent from queue/live production, or
+   proof-relevant future work at some strictly older boundary with an exact
+   ready or initialized-waiting location. The API does not require or
+   reconstruct canonical history,
+   certified reachability, or declarative correctness. It establishes neither
+   boundary uniqueness nor historical queue provenance or persistence, and it
+   has not yet been lifted into the waiting-parent, outer-branch, or typed-Wait
+   results.
    `SequentialFigure7CommitmentBlockerAdvance.lean` now combines the global
    queued-head law, strict split, and equal-boundary result. Under declarative
    correctness and the complete scheduler invariant, for a supplied canonical

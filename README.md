@@ -66,9 +66,15 @@ yields a marked historical re-entry target for the older-mate endpoint. Under an
 stored-right orientation, the containing branch keeps outer-conclusion membership and
 narrows its separate failure status to a marked historical re-entry target for the outer-
 conclusion endpoint. These existential classifiers are not identified with the common exact
-path or crossing. Neither branch localizes a first visit, eliminates or payer-converts its
-marked target, changes the raw survivor, or proves a tail law, progress, completion,
-termination, or totality.
+path or crossing. Separately, under `SchedulerInvariant`, current-state queue semantics
+identify `queuedVertices` membership with proof-relevant `FutureWorkAt` at some scheduler
+boundary. Given component lookup and occurrence evidence that identifies a supplied `owned`
+list as the active carrier, an unmarked vertex outside it is either currently absent from the
+queue and live-production domains or has exact ready or waiting work at a strictly older
+boundary. This supplies no unique boundary, history,
+persistence, reachability, or progress, and its high-level waiting-branch lift remains open.
+Neither outer branch localizes a first visit, eliminates or payer-converts its marked target
+or the raw survivor, derives a tail law, or proves completion, termination, or totality.
 [Current status](docs/current-status.md) owns exact revision, verification receipt, and gates.
 <!-- ROLLING_MAIN_SUMMARY_END -->
 
