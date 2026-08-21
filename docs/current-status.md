@@ -17,7 +17,7 @@ Status date: 2026-08-20
 | Track | Revision | Status | Authority |
 | --- | --- | --- | --- |
 | Stable library | `v0.9.0` / `9b7dc3d104af8f57ea9123aab2e61b42e05d2216` | Released | [v0.9.0 release audit](v0.9-release-audit.md) |
-| Rolling research | `v0.10.0-dev`; proof `0d638a8`; audit `1e46573` | Active | This page/commits |
+| Rolling research | `v0.10.0-dev`; proof `7699e61`; audit `1e46573` | Active | This page/commits |
 
 Documentation-only commits may descend from the proof checkpoint without
 changing its mathematical authority. The stable release and rolling branch
@@ -280,7 +280,7 @@ this classification through the retained interval outcome. Neither ordered
 branch nor any raw/future endpoint is eliminated, and no ready-tail witness,
 history-tail law, completion, or progress theorem follows.
 
-The current checkpoint applies the existing exact cyclic-junction reduction
+The preceding checkpoint applies the existing exact cyclic-junction reduction
 to the complete marked-conclusion chain retained by that same first descent.
 Its strengthened target keeps the same switching path and target connective
 while carrying both the sibling causal classification and cyclic-junction
@@ -289,6 +289,17 @@ strictly older interval branch. This aligns chronology and switching geometry
 without eliminating a junction, ordered marked-global branch, raw/future
 endpoint, or descent. It derives no payer, history-tail law, completion, or
 progress theorem.
+
+The current checkpoint resolves the endpoint geometry inside nonempty complete
+cancellation without removing that branch. Exact reverse traversal now yields
+both endpoint reverse junctions simultaneously, together with their four exact
+walk endpoints. The same complete marked-conclusion chain classifies the
+cyclic source as equal to the authenticated outer terminal or strictly before
+it in canonical raw-mark order. The generic target adapter and typed Wait
+theorem retain that combined endpoint classification on the same witness.
+Complete cancellation, both junctions, the surviving par-pair residual,
+sibling exits, both marked-global orders, and the causal descent remain open.
+No payer, history-tail law, completion, or progress theorem follows.
 
 The preceding queue/history-tail checkpoint remains valid. For supplied typed
 Nop and Wait steps, its iff theorems identify post-step debt with the exact
@@ -304,7 +315,7 @@ from a scheduler-invariant input refutes unrestricted
 same-component locality carrier, but neither refutes direct debt nor supplies
 the required queue-tail or elimination of the classified re-entry failure.
 
-The checkpoint's accumulated public surface is exactly eighty-eight declaration
+The checkpoint's accumulated public surface is exactly ninety-five declaration
 boundaries:
 
 ```text
@@ -418,6 +429,19 @@ SequentialFigure7.
     causalJunctionTarget
 SequentialFigure7.WaitStep.
   commitmentInterval_parTraceReentryMarkedContinuationSiblingExitCausalJunctionOutcome
+SequentialFigure7.MarkedConclusionRawReturnCompleteCancellationEndpointJunctions
+SequentialFigure7.MarkedConclusionRawReturnCompleteCancellationTraversal.
+  endpointJunctions
+SequentialFigure7.MarkedConclusionRawReturnCyclicJunctionCausalOutcome
+SequentialFigure7.MarkedConclusionChainFirstCausalDescent.
+  rawReturnCyclicJunctionCausalOutcome
+SequentialFigure7.
+  ActiveCarrierExternalReentryMarkedMateSeparatedContinuationSiblingExitCausalEndpointTarget
+SequentialFigure7.
+  ActiveCarrierExternalReentryMarkedMateSeparatedContinuationSiblingExitCausalJunctionTarget.
+    causalEndpointTarget
+SequentialFigure7.WaitStep.
+  commitmentInterval_parTraceReentryMarkedContinuationSiblingExitCausalEndpointOutcome
 ```
 
 The earlier parent-escape, source-temporal, debt, history-tail,
@@ -476,10 +500,15 @@ exit. The preceding refinement makes distinct authentic raw marks comparable,
 identifies the same-event case by age and vertex, and classifies a marked-global
 sibling endpoint strictly before or after the non-global outer terminal. Raw
 and future sibling exits remain unchanged, so this is a causal classification
-rather than an endpoint elimination. The current refinement applies the exact
+rather than an endpoint elimination. The preceding refinement applies the exact
 cyclic-junction reduction to the full chain retained by that same descent and
 stores its result beside the sibling causal outcome on the same switching
 path. It aligns the two witnesses but eliminates neither one.
+The current refinement replaces the disjunctive nonempty cancellation site by
+both exact reverse endpoint junctions simultaneously and places the cyclic
+source at or before the authenticated outer terminal. It orders and exposes
+the same residual witnesses without eliminating complete cancellation or any
+endpoint.
 
 ### Finite ready-head boundary audit
 
@@ -530,16 +559,18 @@ Exact signatures are maintained in the generated API reference for the
 [marked re-entry target raw-return terminal causal order][target-terminal-causal],
 [marked re-entry target sibling-exit causal order][target-sibling-causal],
 [marked re-entry target sibling-exit causal/cyclic junction][target-junction],
+[marked re-entry target cyclic-junction endpoint causal order][target-endpoint],
 [marked re-entry target raw-return cyclic reduction][target-cycle],
 [branch-local continuation credit](api-reference.md#branch-local-continuation-credit),
 [continuation-credit preservation](api-reference.md#continuation-credit-preservation),
 [endpoint-localized continuation exits](api-reference.md#endpoint-localized-continuation-exits),
 and the retained
 [Wait endpoint-locality obstruction](api-reference.md#wait-endpoint-locality-obstruction).
-The first open proof step is now to use the aligned causal/cyclic witness for
-the origin, sibling mate, older parent conclusion, outer-mate terminal, and
-classified sibling endpoint together with the retained commitment paths. It
-must eliminate the Wait descent and sibling exit or recover a distinct payer.
+The first open proof step is now to use the simultaneous cyclic endpoints and
+the aligned causal witness for the origin, sibling mate, older parent
+conclusion, outer-mate terminal, and classified sibling endpoint together with
+the retained commitment paths. It must eliminate the Wait descent and sibling
+exit or recover a distinct payer.
 The combined witness alone does not discharge any endpoint alternative. The
 surviving marked omitted-right source
 must likewise be eliminated or converted into a distinct payer. The
@@ -578,9 +609,10 @@ This checkpoint does not establish any of the following:
   elimination of a raw/future sibling exit, or conversion of an earlier event
   into a distinct ready-tail payer;
 - impossibility of the remaining Wait/generic ordered exact out-and-back
-  cyclic-junction traversal, elimination of the surviving marked omitted-right
-  par pair, or conversion of either cyclic residual into a distinct ready-tail
-  payer;
+  cyclic-junction traversal, inequality of its cyclic source and authenticated
+  base, elimination of either simultaneous endpoint junction or the surviving
+  marked omitted-right par pair, or conversion of any cyclic residual into a
+  distinct ready-tail payer;
 - a terminal scheduler state or elimination of any finite continuation exit;
   normalization terminates the marked chain but does not discharge its
   raw, future, or marked-global endpoint;
@@ -626,12 +658,12 @@ plan is maintained in [v0.10-design.md](v0.10-design.md) and
 The exact rolling proof checkpoint is:
 
 ```text
-commit    0d638a8ed5e71e02d4dcb09c99e5ffbcf76f4eac
-tree      65c169a4b30a27be47b50cbceb00acd04b76bc4c
-parent    e62c168ba1d3d737ae51f643f74046c643fc0670
-stage     align sibling exits with cyclic junctions
-delta     17 paths, +778/-5
-manifest  AC32FD0FF4D51BD16906B4A54D100D012C54BDF2DF185AC4871C34A912403BC8
+commit    7699e611c67844fe643890319738d34d1db40b69
+tree      47e37d7b2e4865629ea43b563ba2c9dfff58f517
+parent    0b605c48839f98ca9db890c9baba888fe7973681
+stage     order cyclic cancellation endpoints
+delta     17 paths, +801/-4
+manifest  E36EE029E4C1C663542EFFEA7410DD94696148E859A4C4B2CBDBEB18AFA2F10
 ```
 
 The manifest hashes canonical
@@ -640,9 +672,9 @@ The manifest hashes canonical
 The checkpoint source receipts are:
 
 ```text
-causal-junction source   13D6B8E2850B6BD6843DF66399230C9148535019B811AFBC92A9BBE62FEF1827
-causal-junction consumer 2579F5F73CD68579C7241CB38C5C64869545B58A70570DECFD5B11C5455149D5
-generated API            0ACB71CFAB1491E11ACBECFE1F6B13CEB4D1DA3B7F59F40A3F2EF219CF36F6E9
+cyclic-endpoint source   33A90878F95CCCAD4AB321730E442A55E73EC0AC6F44B84DD8DBED75D234B844
+cyclic-endpoint consumer 7F4BD64175815B454D95C46331EE44C53907EA543350C530E208DEE1F8DB1102
+generated API            D7C081271D9F3149D246216953D1453064E0705F2B22FDD6D15FC00ECA98B35A
 ```
 
 The separately committed finite-audit evidence is:
@@ -658,17 +690,17 @@ manifest  4BBAB7FC99D03D2612459A0FD9291990313A05A184F2572A581BC93C6E49DFDD
 
 Local verification on the committed bytes:
 
-- full `lake build`: 601/601 jobs;
-- Lean source audit: zero actual `sorry`/`admit` findings across 277 Lean
+- full `lake build`: 606/606 jobs;
+- Lean source audit: zero actual `sorry`/`admit` findings across 279 Lean
   files;
-- generated API reference: current at 79 sections and 1,710 declarations;
-- the runnable sibling-exit causal/cyclic-junction consumer applied the generic
-  junction reduction, destructed the complete cyclic-junction receipt and all
-  four sibling endpoint outcomes, traversed the strengthened target, and
-  applied its adapter and typed Wait theorem before auditing all four new
-  public declarations and emitting its kernel-green marker;
-- public theorem audit: 1025 entries total: 732 full-classical, 25
-  axiom-free, 129 `propext`-only, and 139 `propext` plus `Quot.sound`;
+- generated API reference: current at 80 sections and 1,717 declarations;
+- the runnable cyclic-endpoint causal-order consumer destructed both exact
+  endpoint junctions, exercised the cyclic-source causal classification,
+  traversed the strengthened target, and applied its adapter and typed Wait
+  theorem before auditing all four new public theorems and emitting its
+  kernel-green marker;
+- public theorem audit: 1029 entries total: 735 full-classical, 25
+  axiom-free, 129 `propext`-only, and 140 `propext` plus `Quot.sound`;
 - the default, extended, and cross-variant progress audits passed with every
   incomplete visited state carrying an exact ready head and successful
   dispatch, every dispatch-none stop fully marked, and zero missing-head,
@@ -680,16 +712,16 @@ Exact-head proof GitHub verification:
 
 - workflow: `Lean CI`;
 - event/ref: `push` / `main`;
-- run: [32439639479](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32439639479);
-- build job: [96647571455][proof-job];
-- exact head: `0d638a8ed5e71e02d4dcb09c99e5ffbcf76f4eac`;
+- run: [32442584704](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32442584704);
+- build job: [96656042288][proof-job];
+- exact head: `7699e611c67844fe643890319738d34d1db40b69`;
 - result: 36 successful steps, zero failures, and one expected release-ref-only
   skip;
-- run: `2026-08-21T02:22:46Z`-`2026-08-21T02:36:56Z` (14m10s);
-- build job: `2026-08-21T02:22:50Z`-`2026-08-21T02:36:55Z`
-  (14m05s).
+- run: `2026-08-21T03:12:58Z`-`2026-08-21T03:26:34Z` (13m36s);
+- build job: `2026-08-21T03:13:01Z`-`2026-08-21T03:26:33Z`
+  (13m32s).
 
-[proof-job]: https://github.com/fushanbobfan/proofnet-ir/actions/runs/32439639479/job/96647571455
+[proof-job]: https://github.com/fushanbobfan/proofnet-ir/actions/runs/32442584704/job/96656042288
 [reentry-failure]: api-reference.md#commitment-interval-par-guard-re-entry-failure-target
 [reentry-mate-separation]: api-reference.md#commitment-interval-par-guard-re-entry-mate-separation
 [target-temporal]: api-reference.md#commitment-interval-marked-re-entry-target-temporal-reduction
@@ -700,6 +732,7 @@ Exact-head proof GitHub verification:
 [target-terminal-causal]: api-reference.md#marked-re-entry-target-raw-return-terminal-causal-order
 [target-sibling-causal]: api-reference.md#marked-re-entry-target-sibling-exit-causal-order
 [target-junction]: api-reference.md#marked-re-entry-target-sibling-exit-causalcyclic-junction
+[target-endpoint]: api-reference.md#marked-re-entry-target-cyclic-junction-endpoint-causal-order
 [target-cycle]: api-reference.md#marked-re-entry-target-raw-return-cyclic-reduction
 
 Exact-head finite-audit GitHub verification:
@@ -767,10 +800,10 @@ deployment.
 
 The project goal remains open. The principal outstanding gates are:
 
-1. use the aligned sibling-exit causal/cyclic-junction witness with the
-   retained commitment and ordered out-and-back paths; eliminate the causal
-   Wait/generic descent and both marked-global orders, or recover a distinct
-   ready-tail payer; discharge the par-pair residual and the
+1. use the simultaneous endpoint junctions and aligned sibling-exit causal
+   witness with the retained commitment and ordered out-and-back paths;
+   eliminate the causal Wait/generic descent and both marked-global orders, or
+   recover a distinct ready-tail payer; discharge the par-pair residual and the
    mate-separated target's
    finite raw-outside,
    older-future, and older-marked-global continuation alternatives; eliminate
