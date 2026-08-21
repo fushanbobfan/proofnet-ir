@@ -36,11 +36,11 @@ The same first-descent chain carries its exact cyclic-junction normal form. In
 nonempty complete cancellation, the reverse traversal forces both endpoint junctions
 at once. Correctness excludes equality between the cyclic source and the
 authenticated outer terminal, so the source is strictly before it.
-The exact Nop return remains eliminated, while Wait's terminal-ordered causal
-descent, raw/future sibling endpoints, raw work outside the active carrier,
-older future work, and older marked global work remain residuals. No complete
-endpoint elimination, history-tail law, unconditional all-marked, progress,
-completion, termination, totality, or completeness follows.
+The exact Nop return remains eliminated. For Wait, an open sibling raw endpoint
+is outside the active carrier or returns exactly to the selected/mate pair,
+while an outside future endpoint is strictly older. Separate target raw,
+future, and older marked-global work remain residuals. No complete endpoint
+elimination, history-tail law, progress, completion, or totality follows.
 [Current status](docs/current-status.md) owns exact revision, verification receipt, and gates.
 <!-- ROLLING_MAIN_SUMMARY_END -->
 

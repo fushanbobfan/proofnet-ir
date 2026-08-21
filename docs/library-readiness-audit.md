@@ -1269,6 +1269,16 @@ part of the engineering and proof-identity gap.
    follows. The verified combined audit now covers 1039 theorems: 744
    standard-three, 25 axiom-free, 130 `propext`-only, and 140
    `propext`/`Quot.sound` boundaries.
+   `SequentialFigure7MarkedTargetRawReturnSiblingExitTemporal.lean` additionally
+   classifies the two open sibling exits under exact active occurrence and
+   ready-tail failure. Raw work is outside or returns exactly to the current
+   selected/mate pair; outside future work is strictly older. The public
+   carrier retains the outside terminal in every case, and its runnable
+   consumer destructs every constructor and calls the generic, target, and
+   typed Wait theorems. The separate target branches and exact raw return remain
+   open. The verified combined audit now covers 1042
+   theorems: 747 standard-three, 25 axiom-free, 130 `propext`-only, and 140
+   `propext`/`Quot.sound` boundaries.
    `SequentialFigure7CommitmentBlockerAdvance.lean` now combines the global
    queued-head law, strict split, and equal-boundary result. Under declarative
    correctness and the complete scheduler invariant, for a supplied canonical

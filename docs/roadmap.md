@@ -1137,9 +1137,14 @@
     marked current conclusion would authenticate an earlier mark of the
     selected ready premise, contradicting its exact raw-unmarked lookup. Retain
     the raw-mate and future-work sibling exits and every separate target branch.
+  - [x] Normalize those two open sibling exits against the active occurrence
+    carrier under exact ready-tail failure. Raw work is outside or returns
+    exactly to the selected/mate pair; outside future work is strictly older.
+    Retain the exact return and every separate target branch as residuals.
   - [ ] Use the strict cyclic endpoint order and aligned sibling causal witness
-    with the retained commitment paths to eliminate the Wait descent or recover
-    a distinct ready-tail payer. Then
+    with the retained commitment paths to eliminate the exact selected/mate
+    return, the older future endpoint, or the Wait descent, or recover a
+    distinct ready-tail payer. Then
     eliminate the remaining cyclic residuals, other finite exits, and
     equal-final traces. Do not infer
     unconditional dispatcher progress, completion, terminality, later-state

@@ -561,6 +561,14 @@ only raw-mate and future-work endpoints. The target's separate raw, future,
 and older marked-global branches and all cyclic, junction, par, descent, and
 tail-failure residuals remain, so no payer, history-tail law, completion, or
 progress theorem follows.
+`SequentialFigure7MarkedTargetRawReturnSiblingExitTemporal.lean` adds no source
+reading. It combines exact active ready/frontier membership, occurrence
+accounting, submitted-consumer uniqueness, and ordered sigma boundaries to
+normalize the remaining sibling endpoints under ready-tail failure. Raw work
+is outside the active carrier or returns exactly to the selected/mate pair;
+future work outside the carrier is strictly older. The separate target
+branches and exact raw return remain, so this is not a payer, history-tail,
+completion, or progress theorem.
 Global preservation of the mate-region and older-raw-mark invariants through
 candidate-creating rules remains open, as do queue origin, created-candidate raw
 seams, derivation of the re-entry avoidance premise, marked-history descent,

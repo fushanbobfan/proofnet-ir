@@ -299,6 +299,10 @@ name = "proofnet_ir_marked_target_raw_return_sibling_exit_open_tests"
 root = "ProofNetIRMarkedTargetRawReturnSiblingExitOpenTests"
 
 [[lean_exe]]
+name = "proofnet_ir_marked_target_raw_return_sibling_exit_temporal_tests"
+root = "ProofNetIRMarkedTargetRawReturnSiblingExitTemporalTests"
+
+[[lean_exe]]
 name = "proofnet_ir_marked_target_raw_return_cyclic_reduction_tests"
 root = "ProofNetIRMarkedTargetRawReturnCyclicReductionTests"
 

@@ -1074,6 +1074,33 @@ def sections : List Section := [
     ]
   },
   {
+    title := "Marked re-entry target sibling temporal exits"
+    declarations := [
+      Name.str
+        `ProofNetIR.SequentialFigure7
+        "ContinuationExitRawOrFutureActiveCarrierOutcome",
+      Name.str
+        (Name.str
+          `ProofNetIR.SequentialFigure7
+          "ContinuationExitRawOrFuture")
+        "activeCarrierOutcome",
+      Name.str
+        `ProofNetIR.SequentialFigure7
+        ("ActiveCarrierExternalReentryMarkedMateSeparatedContinuation" ++
+          "SiblingExitTemporalTarget"),
+      Name.str
+        (Name.str
+          `ProofNetIR.SequentialFigure7
+          ("ActiveCarrierExternalReentryMarkedMateSeparatedContinuation" ++
+            "SiblingExitOpenTarget"))
+        "temporalTarget",
+      Name.str
+        `ProofNetIR.SequentialFigure7.WaitStep
+        ("commitmentInterval_parTraceReentryMarkedContinuation" ++
+          "SiblingExitTemporalOutcome")
+    ]
+  },
+  {
     title := "Marked re-entry target raw-return cyclic reduction"
     declarations := [
       `ProofNetIR.SequentialFigure7.MarkedConclusionRawReturnCyclicOutcome,

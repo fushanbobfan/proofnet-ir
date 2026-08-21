@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- normalized the two open first-descent sibling endpoints relative to the
+  active occurrence carrier under exact ready-tail failure. Raw work now lies
+  outside the carrier or returns exactly to the current selected/mate pair;
+  future work outside the carrier is scheduled at a strictly older boundary.
+  The terminal is retained outside in every constructor. The separate target
+  raw, future, and older marked-global branches and the exact raw return remain
+  residuals; no payer, history-tail law, completion, or progress result follows.
+  The verified combined theorem audit now covers 1042
+  theorems: 747 standard-three, 25 axiom-free, 130 `propext`-only, and 140
+  `propext`/`Quot.sound` boundaries;
 - eliminated the remaining marked-global endpoint of the first causal
   descent's sibling continuation. If finite-chain comparison reaches the
   selected connective's opposite premise, its shared conclusion is concretely

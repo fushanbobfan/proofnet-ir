@@ -1660,6 +1660,17 @@ open-exit carrier has only raw-mate and future-work constructors. The target's
 separate raw, future, and older marked-global branches, complete cancellation,
 both endpoint junctions, the par residual, the descent, and tail failure remain;
 no payer, history-tail law, completion, or progress theorem follows.
+`SequentialFigure7MarkedTargetRawReturnSiblingExitTemporal.lean` next
+normalizes the two open sibling constructors against the exact active
+occurrence carrier when the non-global ready-tail search has failed. A raw mate
+is outside the carrier or is exactly the selected head, in which case consumer
+uniqueness identifies its chain terminal with the current mate and its
+conclusion with the current connective conclusion. A future endpoint retains
+an outside conclusion at a boundary strictly older than the active ready head.
+All three constructors retain an outside chain terminal. The target's separate
+raw, future, and older marked-global branches are unchanged, and the exact raw
+return remains an open residual; no payer, tail law, completion, or progress
+follows.
 
 `SequentialFigure7CommitmentBlockerAdvance.lean` joins the global queued-head
 law, the strict `sigma` split, the strict-edge avoiding adapter, and the final

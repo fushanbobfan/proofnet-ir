@@ -1071,6 +1071,15 @@ marked-global sibling endpoint while retaining both open endpoints and every
 separate target residual. The verified combined audit now covers 1039
 theorems: 744 standard-three, 25 axiom-free, 130 `propext`-only, and 140
 `propext`/`Quot.sound` boundaries.
+`SequentialFigure7MarkedTargetRawReturnSiblingExitTemporal.lean` adds no
+runtime oracle. Its raw classification uses exact ready/frontier membership,
+owned-occurrence accounting, and submitted-consumer uniqueness; its future
+classification uses the operational waiting domain and strict sigma order.
+The endpoint carrier itself is `propext`-only, while its three public theorems
+use the standard-three boundary. The verified combined audit now covers 1042
+theorems: 747 standard-three, 25 axiom-free, 130
+`propext`-only, and 140 `propext`/`Quot.sound` boundaries. The exact raw return
+and all separate target residuals remain open.
 `SequentialFigure7CrossRepresentativeWaitPreservation.lean` adds no hidden
 source-region oracle. Its output-work classification follows only from the
 typed destination's exact waiting prepend and unchanged ready/sigma fields;
