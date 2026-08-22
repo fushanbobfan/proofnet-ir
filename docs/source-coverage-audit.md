@@ -790,8 +790,8 @@ history evidence. When the status carries future work, its scheduler boundary
 is existential and not proved unique. No new queue history, persistence,
 reachability, elimination, payer, history-tail law, progress, completion,
 termination, or totality fact is derived. The immediate endpoint, future-work-
-mate, and continuation maps are recorded below; sibling and typed-Wait
-transport remains separate.
+mate, continuation, and sibling maps are recorded below; typed-Wait transport
+remains separate.
 `SequentialFigure7MarkedTargetWaitingMateExternalCommitmentReentryQueueStatus.lean`
 adds no source reading, oracle, runtime evidence, or experiment. It maps the
 existing two-case endpoint carrier by preserving the older-future or older-
@@ -802,7 +802,7 @@ waiting-parent, and queue-status theorems. The map assumes only the scheduler
 invariant, component lookup, occurrence witness, and existing no-tail premise.
 It does not relate the outer crossing to the nested target path or equate the
 outer older-future boundary with a nested queue boundary. The immediate future-
-work-mate and continuation maps are recorded next; sibling and typed-Wait
+work-mate, continuation, and sibling maps are recorded next; typed-Wait
 transport remains separate, as do all elimination, payer, history-tail,
 progress, completion, termination, and totality obligations.
 `SequentialFigure7MarkedTargetWaitingMateExternalCommitmentReentryFutureWorkMateQueueStatus.lean`
@@ -816,7 +816,7 @@ premise. It neither queue-classifies nor eliminates the older-outside branch,
 and it introduces no equality among the status boundary, endpoint older-future
 boundary, and nested future-work boundary, or identification between endpoint
 crossing/re-entry receipts and the nested target path. The immediate
-continuation map is recorded next; sibling and typed-Wait transport remains
+continuation and sibling maps are recorded next; typed-Wait transport remains
 separate, as do queue-origin, persistence, reachability, elimination, payer,
 tail-law, progress, completion, termination, and totality obligations.
 `SequentialFigure7MarkedTargetWaitingMateExternalCommitmentReentryContinuationQueueStatus.lean`
@@ -831,7 +831,23 @@ component lookup, occurrence witness, and no-tail premise. The map does not add
 `consumer.mate`. It introduces no equality between the continuation's shared
 work/status/location boundary and an endpoint older-future or nested queue
 boundary. Neither raw exit is queue-classified or eliminated, and the event-
-order disjunction remains unresolved. Sibling and typed-Wait transport remains
+order disjunction remains unresolved. The sibling map is recorded next; typed-
+Wait transport remains separate, as do queue origin, queue history,
+persistence, reachability, elimination, payer, tail-law, progress, completion,
+termination, and totality obligations.
+`SequentialFigure7MarkedTargetWaitingMateExternalCommitmentReentryContinuationSiblingQueueStatus.lean`
+adds no source reading, oracle, runtime evidence, or experiment. It maps the
+existing waiting sibling-exit temporal target by preserving every outer mark,
+switching-path, directed-edge, inbound-parent, marked-target, representative,
+target-consumer, directed-source, and outside-conclusion receipt. The raw,
+older-future, and older-marked sibling alternatives are copied verbatim. In the
+causal alternative, only the nested continuation outcome is mapped through the
+already-audited `queueStatusOutcome`; the first descent, consumer, mate event
+and order, and cyclic-junction causal receipt are unchanged. Beyond the input
+target, the premises are exactly the scheduler invariant, component lookup,
+occurrence witness, and no-tail premise. The map adds no current-mate-outside,
+path-alignment, or boundary-equality premise. The three noncausal sibling exits
+remain queue-unclassified and uneliminated. Typed-Wait transport remains
 separate, as do queue origin, queue history, persistence, reachability,
 elimination, payer, tail-law, progress, completion, termination, and totality
 obligations.

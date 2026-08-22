@@ -643,6 +643,13 @@ namespace
 #print axioms queueStatusOutcome
 end
   ContinuationExitRawOrFutureActiveCarrierExternalCommitmentReentryTemporalOutcome
+#print axioms
+  ActiveCarrierExternalReentryMarkedMateSeparatedContinuationSiblingExitWaitingQueueStatusTarget
+namespace
+  ActiveCarrierExternalReentryMarkedMateSeparatedContinuationSiblingExitWaitingTemporalTarget
+#print axioms queueStatusTarget
+end
+  ActiveCarrierExternalReentryMarkedMateSeparatedContinuationSiblingExitWaitingTemporalTarget
 end ProofNetIR.SequentialFigure7
 #print axioms
   SequentialFigure7.MarkedConclusionChain.rawReturnCyclicReduction

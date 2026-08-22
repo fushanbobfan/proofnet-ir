@@ -1947,8 +1947,8 @@ current-state only. In its future-work alternative, the scheduler boundary is
 existential and not proved unique. No target is eliminated or payer-converted,
 and no queue history, persistence, reachability, history-tail law, progress,
 completion, termination, or totality follows.
-The immediate endpoint, future-work-mate, and continuation maps are handled
-below; sibling and typed-Wait transport remains open.
+The immediate endpoint, future-work-mate, continuation, and sibling maps are
+handled below; typed-Wait transport remains open.
 
 `SequentialFigure7MarkedTargetWaitingMateExternalCommitmentReentryQueueStatus.lean`
 performs the first such wrapper transport. Its two-case endpoint outcome keeps
@@ -1962,9 +1962,9 @@ new mate-outside, correctness, connectedness, par-kind, or side premise.
 The outcome's crossing and re-entry witnesses remain separate from the nested
 target's internal path. Its outer older-future boundary is likewise not
 identified with any existential boundary inside the queue-status leaf. This is
-only the immediate endpoint-outcome map. The future-work-mate and continuation
-maps are handled next; sibling and typed-Wait carriers still contain the
-preceding temporal shape and require separate transport. No target is
+only the immediate endpoint-outcome map. The future-work-mate, continuation,
+and sibling maps are handled next; the typed-Wait carrier still contains the
+preceding temporal shape and requires separate transport. No target is
 eliminated or payer-converted, and no history-tail, progress, completion,
 termination, or totality result follows.
 
@@ -1981,8 +1981,8 @@ This map does not queue-classify or eliminate the older-outside branch. It does
 not equate the status boundary, the endpoint outcome's older-future boundary,
 or any existential future-work boundary in the nested queue leaf. Nor does it
 align the endpoint crossing and re-entry receipts with the nested target's
-internal path. The continuation map is handled next. Sibling and typed-Wait
-carriers still contain the preceding temporal status and require separate
+internal path. The continuation and sibling maps are handled next. The typed-
+Wait carrier still contains the preceding temporal status and requires separate
 transport. No queue origin, persistence, reachability, elimination, payer,
 history-tail law, progress, completion, termination, or totality result follows.
 
@@ -2003,10 +2003,30 @@ The continuation boundary is already shared by its work, mate status, and
 location. The map introduces no equality between that boundary and an endpoint
 older-future or nested queue boundary, and aligns no endpoint receipt with the
 nested target path. Neither raw branch is queue-classified or eliminated, and
-the event-order disjunction remains unresolved. Sibling and typed-Wait
-transport remains open. No queue origin, queue history, persistence,
-reachability, elimination, payer, tail law, progress, completion, termination,
-or totality result follows.
+the event-order disjunction remains unresolved. The sibling map is handled
+next; typed-Wait transport remains open. No queue origin, queue history,
+persistence, reachability, elimination, payer, tail law, progress, completion,
+termination, or totality result follows.
+
+`SequentialFigure7MarkedTargetWaitingMateExternalCommitmentReentryContinuationSiblingQueueStatus.lean`
+lifts that continuation outcome through the exact waiting sibling-exit target.
+It preserves the outer mate mark, switching path, directed-edge membership,
+inbound-parent edge, marked target event, representative equality, target
+consumer, directed source, and outside conclusion. The raw, older-future, and
+older-marked sibling exits are copied verbatim. In the causal branch, the first-
+descent receipt, consumer, mate age and order, and cyclic-junction causal
+outcome remain unchanged; only the nested continuation outcome is mapped
+through `queueStatusOutcome`.
+
+The adapter adds exactly the scheduler invariant, component lookup, occurrence
+witness, and no-tail premise. It adds no `current.mate ∉ owned` hypothesis and
+does not align the outer switching path with a continuation, endpoint crossing,
+re-entry, cyclic-junction, or nested-target path. It preserves the continuation
+outcome's existing boundary relationships without equating them to any outer
+or nested existential boundary. The three noncausal sibling exits remain
+queue-unclassified and uneliminated. Typed-Wait transport remains open. No
+queue origin, queue history, persistence, reachability, elimination, payer,
+tail law, progress, completion, termination, or totality result follows.
 
 `SequentialFigure7CommitmentBlockerAdvance.lean` joins the global queued-head
 law, the strict `sigma` split, the strict-edge avoiding adapter, and the final

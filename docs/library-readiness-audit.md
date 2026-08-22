@@ -1549,7 +1549,14 @@ part of the engineering and proof-identity gap.
    nested mate status. They use the standard-three boundary and need the same
    four proof premises, with no new current-mate-outside assumption. Neither raw
    exit is queue-classified or eliminated, and the event-order disjunction remains
-   unresolved. Sibling and typed-Wait wrappers remain open, as do target
+   unresolved. The sibling wrapper is now provided by
+   `SequentialFigure7MarkedTargetWaitingMateExternalCommitmentReentryContinuationSiblingQueueStatus.lean`.
+   Its public target preserves every outer mark, switching-path, directed-edge,
+   inbound-parent, target-consumer, and outside-conclusion receipt. The adapter
+   copies the raw, older-future, and older-marked exits and changes only the
+   causal branch's nested continuation outcome. It uses the same four proof
+   premises and standard-three boundary, adding no current-mate-outside or path-
+   alignment premise. Typed-Wait transport remains open, as do target
    elimination, payer recovery, a history-tail law, progress, completion,
    termination, and totality.
    `SequentialFigure7CommitmentBlockerAdvance.lean` now combines the global

@@ -1292,9 +1292,11 @@
     Preserve both raw exits and every future-work receipt, replacing only the
     nested mate status. Keep the event-order disjunction unresolved and add no
     current-mate-outside premise.
-  - [ ] Transport that continuation outcome through the sibling and typed-Wait
-    wrappers without inventing a common-path or crossing alignment absent from
-    those carriers.
+  - [x] Transport that continuation outcome through the sibling target. Copy
+    the raw, older-future, and older-marked exits; in the causal branch replace
+    only the nested continuation outcome. Add no path or boundary alignment.
+  - [ ] Transport that sibling target through the typed-Wait wrapper without
+    inventing a common-path or crossing alignment absent from that carrier.
   - [ ] Eliminate or payer-convert the currently absent and exact older-work
     alternatives, both marked historical targets, and the remaining raw
     survivor; resolve the cyclic, selected/mate-return, and equal-final
@@ -1651,10 +1653,11 @@
     waiting-parent external-reentry outcome with its older-future and older-
     marked payloads unchanged, and that outcome is lifted through the future-
     work mate status while preserving both status branches. The continuation
-    outcome now preserves both raw exits and changes only that mate status.
-    Sibling and typed-Wait transport, both outcomes, and the raw survivor
-    remain. Next eliminate or payer-convert those outcomes, resolve equal-final
-    traces, and close the history-tail law before claiming exhaustive progress
+    outcome now preserves both raw exits and changes only that mate status. The
+    sibling target copies its other three exits and changes only the causal
+    continuation field. Typed-Wait transport, both unresolved outcomes, and the
+    raw survivor remain. Next eliminate or payer-convert those outcomes,
+    resolve equal-final traces, and close the history-tail law before claiming exhaustive progress
     on incomplete, correct, certified-reachable states.
     Exact source-left complexity descent, last-step decomposition, and
     recursive visited-route separation from the selected head are now proved.

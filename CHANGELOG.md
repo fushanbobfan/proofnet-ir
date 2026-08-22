@@ -2,6 +2,27 @@
 
 ## Unreleased
 
+- transported the continuation queue-status outcome through the exact waiting
+  sibling-exit target.
+  `SequentialFigure7MarkedTargetWaitingMateExternalCommitmentReentryContinuationSiblingQueueStatus.lean`
+  adds
+  `ActiveCarrierExternalReentryMarkedMateSeparatedContinuationSiblingExitWaitingQueueStatusTarget`
+  and
+  `ActiveCarrierExternalReentryMarkedMateSeparatedContinuationSiblingExitWaitingTemporalTarget.queueStatusTarget`.
+  The adapter preserves the outer mark, switching path, directed-edge and
+  inbound-parent evidence, marked target, representative equality, target
+  consumer, and outside conclusion. It copies the raw, older-future, and older-
+  marked sibling exits verbatim. In the causal branch, it preserves the first-
+  descent receipt, consumer, mate event and order, and cyclic-junction causal
+  outcome, replacing only the nested continuation outcome through
+  `queueStatusOutcome`. Its additional inputs are exactly the scheduler
+  invariant, component lookup, occurrence witness, and no-tail premise. It adds
+  no current-mate-outside premise and introduces no switching, continuation,
+  crossing, re-entry, cyclic-junction, or scheduler-boundary alignment. Both
+  declarations use the standard-three trust boundary. No queue origin, queue
+  history, persistence, reachability, elimination, payer, tail law, progress,
+  completion, termination, or totality follows. Typed-Wait transport remains
+  open;
 - transported the future-work mate queue-status carrier through the exact
   three-case continuation outcome.
   `SequentialFigure7MarkedTargetWaitingMateExternalCommitmentReentryContinuationQueueStatus.lean`
@@ -22,7 +43,7 @@
   event-order disjunction remains unresolved. Both declarations use the
   standard-three trust boundary. No queue origin, queue history, persistence,
   reachability, payer, tail law, progress, completion, termination, or totality
-  follows. Sibling and typed-Wait transport remains open;
+  follows. The sibling transport is handled above; typed-Wait remains open;
 - lifted the two-case endpoint queue-status outcome through the active
   future-work-mate temporal status.
   `SequentialFigure7MarkedTargetWaitingMateExternalCommitmentReentryFutureWorkMateQueueStatus.lean`
@@ -41,7 +62,8 @@
   use the standard-three trust boundary. The older-outside branch is not queue-
   classified or eliminated, and no queue history, persistence, reachability,
   payer, tail law, progress, completion, termination, or totality follows.
-  Continuation, sibling, and typed-Wait transport remains open;
+  The continuation and sibling transports are handled above; typed-Wait
+  remains open;
 - transported the nested waiting-parent queue-status target through the exact
   two-case external-reentry temporal outcome.
   `SequentialFigure7MarkedTargetWaitingMateExternalCommitmentReentryQueueStatus.lean`
@@ -59,8 +81,8 @@
   outcome's older-future boundary. Both declarations use the standard-three
   trust boundary and prove no queue history, persistence, reachability,
   boundary uniqueness, elimination, payer, tail law, progress, completion,
-  termination, or totality. Higher scheduler, sibling, and typed-Wait transport
-  remains open;
+  termination, or totality. The future-work-mate, continuation, and sibling
+  transports are handled above; typed-Wait remains open;
 - lifted the current-state queue classifier through the stored-right outer
   waiting split. `SequentialFigure7WaitingReentryContinuationOuterQueueStatus.lean`
   adds
