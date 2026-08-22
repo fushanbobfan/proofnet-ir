@@ -17,7 +17,7 @@ Status date: 2026-08-21
 | Track | Revision | Status | Authority |
 | --- | --- | --- | --- |
 | Stable library | `v0.9.0` / `9b7dc3d104af8f57ea9123aab2e61b42e05d2216` | Released | [v0.9.0 release audit](v0.9-release-audit.md) |
-| Rolling research | `v0.10.0-dev`; proof `82e6c6e`; audit `1e46573` | Active | This page/commits |
+| Rolling research | `v0.10.0-dev`; proof `09d779c`; audit `1e46573` | Active | This page/commits |
 
 Documentation-only commits may descend from the proof checkpoint without
 changing its mathematical authority. The stable release and rolling branch
@@ -987,10 +987,10 @@ connectedness, par-kind, stored-side, or geometric premise. It introduces no
 equality among the status boundary, endpoint older-future boundary, and nested
 future-work boundary, and does not align the endpoint crossing or re-entry
 receipts with the nested target path. The older-outside branch is neither
-queue-classified nor eliminated. The continuation map is recorded below;
-sibling and typed-Wait transport remains open.
+queue-classified nor eliminated. The continuation and sibling maps are recorded
+below; typed-Wait transport remains open.
 
-The current [continuation queue-status checkpoint][wait-cont-queue] lifts that
+The preceding [continuation queue-status checkpoint][wait-cont-queue] lifts that
 future-work mate status through the exact three-case continuation outcome. It
 copies `rawOutside` and `rawSelectedReturn` with their chains, endpoints,
 mate-unmarked lookups, outside evidence, selected return, and current-
@@ -1008,9 +1008,27 @@ The continuation boundary is already shared by its work, mate status, and
 location. The map introduces no equality with an endpoint older-future or
 nested queue boundary and aligns no endpoint receipt with the nested target
 path. Neither raw exit is queue-classified or eliminated, and the event-order
-disjunction remains unresolved. Sibling and typed-Wait transport remains open,
-as do queue origin, queue history, persistence, reachability, payer recovery, a
-tail law, progress, completion, termination, and totality.
+disjunction remains unresolved. At that checkpoint, sibling and typed-Wait
+transport remained open; the sibling map is recorded next.
+
+The current [continuation sibling queue-status checkpoint][wait-sibling-queue]
+lifts that continuation outcome through the exact waiting sibling-exit target.
+It preserves the outer mate mark, switching path, directed-edge membership,
+inbound-parent evidence, marked target event, representative equality, target
+consumer, directed source, and outside conclusion. The raw, older-future, and
+older-marked sibling exits are copied verbatim. In the causal branch, the first
+descent, consumer, mate event and order, and cyclic-junction causal outcome stay
+unchanged; only the nested continuation outcome is mapped through
+`queueStatusOutcome`.
+
+Beyond the supplied sibling target, the adapter's premises are exactly the
+scheduler invariant, active component lookup, component occurrence witness,
+and no-tail premise. It adds no current-mate-outside or geometric hypothesis,
+aligns no switching, continuation, crossing, re-entry, cyclic-junction, or
+nested-target path, and introduces no boundary equality. The three noncausal
+exits remain queue-unclassified and uneliminated. Typed-Wait transport remains
+open, as do queue origin, queue history, persistence, reachability, payer
+recovery, a tail law, progress, completion, termination, and totality.
 
 ### Finite ready-head boundary audit
 
@@ -1087,22 +1105,24 @@ Exact signatures are maintained in the generated API reference for the
 [waiting commitment re-entry queue-status outcome][wait-endpoint-queue],
 [future-work mate external re-entry queue status][wait-mate-queue],
 [continuation external re-entry queue status][wait-cont-queue],
+[continuation sibling external re-entry queue status][wait-sibling-queue],
 [marked re-entry target raw-return cyclic reduction][target-cycle],
 [branch-local continuation credit](api-reference.md#branch-local-continuation-credit),
 [continuation-credit preservation](api-reference.md#continuation-credit-preservation),
 [endpoint-localized continuation exits](api-reference.md#endpoint-localized-continuation-exits),
 and the retained
 [Wait endpoint-locality obstruction](api-reference.md#wait-endpoint-locality-obstruction).
-The first open proof step is now to transport the continuation queue status
-through the sibling target, then through the typed-Wait wrapper. The outer age,
-event, switching path, inbound edge, target mark, representative, consumer,
-and all separation and outside receipts must remain unchanged. The raw,
-older-future, and older-marked sibling exits must be copied verbatim. Only the
-causal sibling alternative's `siblingOutcome` may be mapped through
-`queueStatusOutcome`, while its causal descent and cyclic-junction receipt stay
-unchanged. No switching, continuation, crossing, re-entry, or cyclic-junction
-path may be aligned, and no endpoint or nested queue boundary equality may be
-introduced.
+The first open proof step is now to transport the sibling queue-status target
+through the typed-Wait wrapper. The sibling adapter already preserves the outer
+age, event, switching path, inbound edge, target mark, representative,
+consumer, separation, and outside receipts. It copies the raw, older-future,
+and older-marked sibling exits and maps only the causal alternative's nested
+continuation outcome. The typed-Wait lift must copy the `avoiding`,
+`equalSelected`, and `equalMate` trace constructors verbatim. In `olderMate`,
+every trace field, mate-outside receipt, mate mark, and representative order
+must remain unchanged; only the final sibling target may be mapped. No
+switching, continuation, crossing, re-entry, cyclic-junction, or trace path may
+be aligned, and no endpoint or nested queue boundary equality may be introduced.
 
 The currently absent and exact older-work leaves still require elimination or
 payer conversion, as does the exact initialized-waiting conclusion alternative.
@@ -1177,10 +1197,10 @@ This checkpoint does not establish any of the following:
   both submitted premises, the exact younger-target/older-mate producer
   orientation, or the older-outside/active-owned mate classification, or
   conversion of those facts into a distinct active payer;
-- transport of the continuation queue-status outcome through the sibling and
-  typed-Wait wrappers; the raw, older-future, and older-marked sibling exits
-  must remain unchanged, its absent leaf is current-state only, and its older-
-  work boundary is existential rather than unique or first;
+- transport of the sibling queue-status target through the typed-Wait wrapper;
+  the avoiding, equal-selected, and equal-mate trace exits must remain
+  unchanged, while every older-mate trace receipt and its mate-outside, mark,
+  and representative-order payload must surround the same mapped target;
 - totality of any operational schedule beyond the supplied canonical history,
   elimination of the causal first descent or a raw/future sibling exit, or
   conversion of an earlier event into a distinct ready-tail payer;
@@ -1235,12 +1255,12 @@ plan is maintained in [v0.10-design.md](v0.10-design.md) and
 The exact rolling proof checkpoint is:
 
 ```text
-commit    82e6c6ee03000d03861ad91a750d67d79fab3f00
-tree      5aa4d0d49be44af6a9ce162cc12a4533d27b10de
-parent    dc06f614ec7131f72780d4ac23e00b1e12e5e8f1
-stage     lift continuation queue status
-delta     17 paths, +425/-29
-manifest  D999C0F61F6F1BDCACFE8E21B8A4F9AA58C6706F2E57BFB24C304AB17223A764
+commit    09d779c57df327a2464c3f58e9c7fdb965a3f1c9
+tree      f83b9c49c78068ba5dea33a1aa929db6d8fe6427
+parent    bc56d7d40137ed1e94e427b8601a459c309e88db
+stage     lift sibling queue status
+delta     17 paths, +416/-39
+manifest  ABCF7FC05D9F2390989B4AA7DA318129CCBF6C56CABEFF13F625B0C090BDF0A5
 ```
 
 The manifest hashes canonical
@@ -1249,9 +1269,9 @@ The manifest hashes canonical
 The checkpoint source receipts are:
 
 ```text
-continuation source    9D7BCC3893FD10890C78537C0CDB36488DDE9868F5DDB82A5569A1D527B68C2C
-continuation consumer  54D11082642F3BEF4946E1E77B43F4E8A251D1C4B966DF473C58F4F70EF10BE9
-generated API          096EAB172B7FC378C8790FD9DBFF458FE399F8C69CED6BE93B4E2CFA214D1185
+sibling source    62D8CECC3552780486C14FD9EE2FF1755AA7169A71B67D9C394E44DB1B424F10
+sibling consumer  B089B68E900F0278B8A843F24E84FAC8EAD4BFFFC8BC319483AEF8B1811BBCED
+generated API     E07376AD2C128C5481723336C7B024E8622E15B55C2D51A849FA4FF0A31FBC03
 ```
 
 The separately committed finite-audit evidence is:
@@ -1268,19 +1288,19 @@ manifest  4BBAB7FC99D03D2612459A0FD9291990313A05A184F2572A581BC93C6E49DFDD
 Local verification of the committed checkpoint, with ignored prototype probes
 included only in the broader source scan:
 
-- full `lake build`: 704/704 jobs;
+- full `lake build`: 709/709 jobs;
 - pre-push syntax-aware Lean source audit: zero actual `sorry`/`admit`
-  findings across the 350-file local non-build superset present at verification
+  findings across the 352-file local non-build superset present at verification
   time, including ignored prototype probes and zero actual `sorryAx` findings;
-- library inventory: 328 Lean files and 205,116 Lean source lines, including
-  182 module files under `ProofNetIR/`; a parser-aware count finds 178 imported
-  submodules in the public facade, or 179 modules including the facade itself;
-- generated API reference: current at 105 sections and 1,833 declarations;
-- the runnable continuation consumer reconstructed all three outcome
-  constructors and invoked the public adapter; both new declarations use the
-  standard-three boundary, and the executable emitted
-  `Figure-7 continuation queue status: kernel-green`;
-- public theorem audit: 1107 entries total: 809 standard-three, 25 axiom-free,
+- library inventory: 330 Lean files and 205,340 Lean source lines, including
+  183 module files under `ProofNetIR/`; a parser-aware count finds 179 imported
+  submodules in the public facade, or 180 modules including the facade itself;
+- generated API reference: current at 106 sections and 1,835 declarations;
+- the runnable sibling consumer reconstructed the public target and invoked the
+  public adapter; both new declarations use the standard-three boundary, and
+  the executable emitted
+  `Figure-7 continuation sibling queue status: kernel-green`;
+- public theorem audit: 1109 entries total: 811 standard-three, 25 axiom-free,
   132 `propext`-only, and 141 `propext`/`Quot.sound` boundaries;
 - the default, extended, and cross-variant progress audits passed with every
   incomplete visited state carrying an exact ready head and successful
@@ -1295,17 +1315,17 @@ Exact-head proof GitHub verification:
 
 - workflow: `Lean CI`;
 - event/ref: `push` / `main`;
-- run: [32539530588](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32539530588);
-- build job: [96946641649][proof-job];
-- title/attempt: `feat: lift continuation queue status` / 1;
-- exact head: `82e6c6ee03000d03861ad91a750d67d79fab3f00`;
+- run: [32541660030](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32541660030);
+- build job: [96952712972][proof-job];
+- title/attempt: `feat: lift sibling queue status` / 1;
+- exact head: `09d779c57df327a2464c3f58e9c7fdb965a3f1c9`;
 - result: 36 successful steps, zero failures, and one expected release-ref-only
   skip;
-- run: `2026-08-22T00:11:48Z`-`2026-08-22T00:26:33Z` (14m45s);
-- build job: `2026-08-22T00:11:53Z`-`2026-08-22T00:26:32Z`
-  (14m39s).
+- run: `2026-08-22T00:51:19Z`-`2026-08-22T01:02:42Z` (11m23s);
+- build job: `2026-08-22T00:51:21Z`-`2026-08-22T01:02:41Z`
+  (11m20s).
 
-[proof-job]: https://github.com/fushanbobfan/proofnet-ir/actions/runs/32539530588/job/96946641649
+[proof-job]: https://github.com/fushanbobfan/proofnet-ir/actions/runs/32541660030/job/96952712972
 [reentry-failure]: api-reference.md#commitment-interval-par-guard-re-entry-failure-target
 [reentry-mate-separation]: api-reference.md#commitment-interval-par-guard-re-entry-mate-separation
 [target-temporal]: api-reference.md#commitment-interval-marked-re-entry-target-temporal-reduction
@@ -1342,6 +1362,7 @@ Exact-head proof GitHub verification:
 [wait-endpoint-queue]: api-reference.md#waiting-commitment-re-entry-queue-status-outcome
 [wait-mate-queue]: api-reference.md#future-work-mate-external-re-entry-queue-status
 [wait-cont-queue]: api-reference.md#continuation-external-re-entry-queue-status
+[wait-sibling-queue]: api-reference.md#continuation-sibling-external-re-entry-queue-status
 [target-cycle]: api-reference.md#marked-re-entry-target-raw-return-cyclic-reduction
 
 Exact-head finite-audit GitHub verification:
@@ -1409,16 +1430,15 @@ deployment.
 
 The project goal remains open. The principal outstanding gates are:
 
-1. transport the continuation queue-status outcome through the sibling target
-   and typed-Wait trace. The next wrapper must preserve the outer marked event,
-   switching path, inbound edge, target mark, representative, consumer,
-   separations, and raw/future/marked sibling exits. Only the causal branch's
-   `siblingOutcome` may change through `queueStatusOutcome`; its causal descent
-   and cyclic-junction receipt must remain unchanged. No switching,
-   continuation, crossing, re-entry, or cyclic-junction witnesses may be
-   aligned, and no shared continuation, endpoint older-future, or nested queue
-   boundary equality may be introduced. The queue status refines only the raw-
-   mate leaf; the exact initialized-waiting conclusion leaf remains unchanged.
+1. transport the sibling queue-status target through the typed-Wait trace. The
+   next wrapper must copy `avoiding`, `equalSelected`, and `equalMate` verbatim.
+   In `olderMate`, it must preserve every interval and trace receipt together
+   with the mate-outside receipt, mate mark, and strict representative order;
+   only the final sibling target may change through `queueStatusTarget`. It
+   consumes an already-successful typed Wait and must not add an applicability
+   premise. No switching, continuation, crossing, re-entry, cyclic-junction,
+   or trace witnesses may be aligned, and no shared continuation, endpoint
+   older-future, or nested queue boundary equality may be introduced.
    Then eliminate or payer-convert the current-absence and exact older-work
    leaves, the exact older waiting conclusion, and the surviving authenticated
    active-representative marked target. Occurrence localization, elimination,
