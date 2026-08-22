@@ -1947,8 +1947,8 @@ current-state only. In its future-work alternative, the scheduler boundary is
 existential and not proved unique. No target is eliminated or payer-converted,
 and no queue history, persistence, reachability, history-tail law, progress,
 completion, termination, or totality follows.
-The immediate endpoint and future-work-mate maps are handled below;
-continuation, sibling, and typed-Wait transport remains open.
+The immediate endpoint, future-work-mate, and continuation maps are handled
+below; sibling and typed-Wait transport remains open.
 
 `SequentialFigure7MarkedTargetWaitingMateExternalCommitmentReentryQueueStatus.lean`
 performs the first such wrapper transport. Its two-case endpoint outcome keeps
@@ -1962,8 +1962,8 @@ new mate-outside, correctness, connectedness, par-kind, or side premise.
 The outcome's crossing and re-entry witnesses remain separate from the nested
 target's internal path. Its outer older-future boundary is likewise not
 identified with any existential boundary inside the queue-status leaf. This is
-only the immediate endpoint-outcome map. The future-work-mate map is handled
-next; continuation, sibling, and typed-Wait carriers still contain the
+only the immediate endpoint-outcome map. The future-work-mate and continuation
+maps are handled next; sibling and typed-Wait carriers still contain the
 preceding temporal shape and require separate transport. No target is
 eliminated or payer-converted, and no history-tail, progress, completion,
 termination, or totality result follows.
@@ -1981,10 +1981,32 @@ This map does not queue-classify or eliminate the older-outside branch. It does
 not equate the status boundary, the endpoint outcome's older-future boundary,
 or any existential future-work boundary in the nested queue leaf. Nor does it
 align the endpoint crossing and re-entry receipts with the nested target's
-internal path. Continuation, sibling, and typed-Wait carriers still contain the
-preceding temporal status and require separate transport. No queue origin,
-persistence, reachability, elimination, payer, history-tail law, progress,
-completion, termination, or totality result follows.
+internal path. The continuation map is handled next. Sibling and typed-Wait
+carriers still contain the preceding temporal status and require separate
+transport. No queue origin, persistence, reachability, elimination, payer,
+history-tail law, progress, completion, termination, or totality result follows.
+
+`SequentialFigure7MarkedTargetWaitingMateExternalCommitmentReentryContinuationQueueStatus.lean`
+lifts the future-work mate queue-status carrier through the exact three-case
+continuation outcome. It copies `rawOutside` and `rawSelectedReturn` with every
+chain, terminal, consumer, mark, outside, selected-return, and current-
+connective receipt unchanged. In `futureOlder`, the chain, terminal, consumer,
+shared boundary, future work, externality, strict boundary order, both marks,
+both canonical events, strict terminal-representative order, event-order
+disjunction, and exact scheduler location are preserved. Only `mateStatus` is
+mapped through `queueStatus`.
+
+The adapter adds exactly the scheduler invariant, component lookup, occurrence
+witness, and no-tail premise. It does not require `current.mate ∉ owned`;
+`rawOutside.mateOutside` remains a constructor payload about `consumer.mate`.
+The continuation boundary is already shared by its work, mate status, and
+location. The map introduces no equality between that boundary and an endpoint
+older-future or nested queue boundary, and aligns no endpoint receipt with the
+nested target path. Neither raw branch is queue-classified or eliminated, and
+the event-order disjunction remains unresolved. Sibling and typed-Wait
+transport remains open. No queue origin, queue history, persistence,
+reachability, elimination, payer, tail law, progress, completion, termination,
+or totality result follows.
 
 `SequentialFigure7CommitmentBlockerAdvance.lean` joins the global queued-head
 law, the strict `sigma` split, the strict-edge avoiding adapter, and the final

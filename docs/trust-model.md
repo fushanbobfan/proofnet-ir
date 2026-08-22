@@ -1332,8 +1332,21 @@ and waiting evidence. It adds no runtime oracle, native computation, source
 fact, correctness, current-mate-outside, connectedness, par-kind, stored-side,
 or geometric premise. It proves no boundary or path equality, queue history,
 persistence, reachability, elimination, payer, tail law, progress, completion,
-termination, or totality result. Continuation, sibling, and typed-Wait transport
-remains unproved.
+termination, or totality result. The continuation map is recorded next;
+sibling and typed-Wait transport remains unproved.
+`SequentialFigure7MarkedTargetWaitingMateExternalCommitmentReentryContinuationQueueStatus.lean`
+adds one inductive public outcome and one public adapter, both with exactly the
+standard-three boundary: `propext`, `Classical.choice`, and `Quot.sound`. The
+adapter consumes an existing kernel-checked continuation outcome plus the
+scheduler invariant, component lookup, occurrence witness, and no-tail premise.
+It copies both raw exits and changes only the future-work branch's nested mate
+status through `queueStatus`, preserving every surrounding receipt. It adds no
+runtime oracle, native computation, source fact, correctness,
+current-mate-outside, connectedness, par-kind, stored-side, or geometric
+premise. It proves no boundary or path equality, queue origin, queue history,
+persistence, reachability, elimination, payer, tail law, progress, completion,
+termination, or totality result. The raw exits and event-order disjunction
+remain unresolved; sibling and typed-Wait transport remains unproved.
 `SequentialFigure7CrossRepresentativeWaitPreservation.lean` adds no hidden
 source-region oracle. Its output-work classification follows only from the
 typed destination's exact waiting prepend and unchanged ready/sigma fields;

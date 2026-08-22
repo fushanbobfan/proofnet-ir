@@ -1541,8 +1541,15 @@ part of the engineering and proof-identity gap.
    the active-owned branch, preserve membership, representative equality, and
    waiting evidence while replacing only the external endpoint. They use the
    standard-three boundary and add no premise beyond the existing scheduler
-   invariant, component lookup, occurrence witness, and no-tail assumption.
-   Continuation, sibling, and typed-Wait wrappers remain open, as do target
+   invariant, component lookup, occurrence witness, and no-tail assumption. The
+   continuation wrapper is now provided by
+   `SequentialFigure7MarkedTargetWaitingMateExternalCommitmentReentryContinuationQueueStatus.lean`.
+   Its two public declarations preserve both raw exits and every future-work
+   chain, endpoint, mark, event, order, and location receipt, changing only the
+   nested mate status. They use the standard-three boundary and need the same
+   four proof premises, with no new current-mate-outside assumption. Neither raw
+   exit is queue-classified or eliminated, and the event-order disjunction remains
+   unresolved. Sibling and typed-Wait wrappers remain open, as do target
    elimination, payer recovery, a history-tail law, progress, completion,
    termination, and totality.
    `SequentialFigure7CommitmentBlockerAdvance.lean` now combines the global

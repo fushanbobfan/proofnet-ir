@@ -84,8 +84,9 @@ or older-marked receipts or identifying the outer crossing with the target's int
 The future-work-mate status now copies its older-outside branch and, in its active-owned branch,
 preserves membership, representative equality, and the waiting witness while refining only the
 external endpoint. It introduces no equality among the scheduler-status, endpoint older-future,
-and nested future-work boundaries. Continuation, sibling, and typed-Wait transport remains open,
-as do completion, termination, and totality.
+and nested future-work boundaries. The continuation outcome now preserves both raw exits and
+every future-work receipt while refining only that nested mate status. Sibling and typed-Wait
+transport remains open, as do completion, termination, and totality.
 [Current status](docs/current-status.md) owns exact revision, verification receipt, and gates.
 <!-- ROLLING_MAIN_SUMMARY_END -->
 

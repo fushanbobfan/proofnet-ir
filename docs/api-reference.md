@@ -13125,6 +13125,49 @@ ProofNetIR.SequentialFigure7.FutureWorkMateActiveCarrierExternalCommitmentReentr
               input component owned current terminal consumer boundary mateAge
 ```
 
+## Continuation external re-entry queue status
+
+### `ProofNetIR.SequentialFigure7.ContinuationExitRawOrFutureActiveCarrierExternalCommitmentReentryQueueStatusOutcome`
+
+Kind: inductive type.
+
+A continuation outcome whose future-work mate carries the queue-status
+external endpoint.
+
+```lean
+ProofNetIR.SequentialFigure7.ContinuationExitRawOrFutureActiveCarrierExternalCommitmentReentryQueueStatusOutcome : (certificate : ProofNetIR.Certificate) →
+  (state : ProofNetIR.SequentialSchedulerBridge.ReservationState) →
+    {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state} →
+      ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history →
+        (input : ProofNetIR.SequentialFigure7.ReadyHeadInput state) →
+          ProofNetIR.UnificationComponent →
+            List ProofNetIR.Vertex → ProofNetIR.ConnectiveBelow certificate input.vertex → ProofNetIR.Vertex → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.ContinuationExitRawOrFutureActiveCarrierExternalCommitmentReentryTemporalOutcome.queueStatusOutcome`
+
+Kind: theorem.
+
+Refine only the future-work mate status and preserve every continuation
+receipt around it.
+
+```lean
+ProofNetIR.SequentialFigure7.ContinuationExitRawOrFutureActiveCarrierExternalCommitmentReentryTemporalOutcome.queueStatusOutcome : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  {tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history}
+  {input : ProofNetIR.SequentialFigure7.ReadyHeadInput state} {component : ProofNetIR.UnificationComponent}
+  {usedLinks owned : List Nat} {current : ProofNetIR.ConnectiveBelow certificate input.vertex}
+  {origin : ProofNetIR.Vertex},
+  ProofNetIR.SequentialFigure7.ContinuationExitRawOrFutureActiveCarrierExternalCommitmentReentryTemporalOutcome
+      certificate state tagHistory input component owned current origin →
+    ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+      state.core.components[input.rawAge]? = some (some component) →
+        certificate.ComponentOccurrenceWitness component usedLinks owned →
+          (¬∃ pending, pending ∈ input.readyTail ∧ ¬pending ∈ certificate.conclusions) →
+            ProofNetIR.SequentialFigure7.ContinuationExitRawOrFutureActiveCarrierExternalCommitmentReentryQueueStatusOutcome
+              certificate state tagHistory input component owned current origin
+```
+
 ## Marked re-entry target raw-return cyclic reduction
 
 ### `ProofNetIR.SequentialFigure7.MarkedConclusionRawReturnCyclicOutcome`

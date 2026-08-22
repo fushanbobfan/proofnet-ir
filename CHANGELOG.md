@@ -2,6 +2,27 @@
 
 ## Unreleased
 
+- transported the future-work mate queue-status carrier through the exact
+  three-case continuation outcome.
+  `SequentialFigure7MarkedTargetWaitingMateExternalCommitmentReentryContinuationQueueStatus.lean`
+  adds
+  `ContinuationExitRawOrFutureActiveCarrierExternalCommitmentReentryQueueStatusOutcome`
+  and
+  `ContinuationExitRawOrFutureActiveCarrierExternalCommitmentReentryTemporalOutcome.queueStatusOutcome`.
+  The adapter copies `rawOutside` and `rawSelectedReturn` with every chain,
+  endpoint, mark, outside, selected-return, and current-connective receipt
+  unchanged. In `futureOlder`, it preserves the chain, terminal, future work,
+  marks, canonical events, representative order, unresolved event-order
+  disjunction, and exact scheduler location, replacing only `mateStatus` via
+  `queueStatus`. Its additional inputs are exactly the scheduler invariant,
+  component lookup, occurrence witness, and no-tail premise. The continuation
+  boundary is already shared by its work, mate status, and location; the map
+  introduces no equality with an endpoint older-future or nested queue
+  boundary. Both raw exits remain queue-unclassified and uneliminated, and the
+  event-order disjunction remains unresolved. Both declarations use the
+  standard-three trust boundary. No queue origin, queue history, persistence,
+  reachability, payer, tail law, progress, completion, termination, or totality
+  follows. Sibling and typed-Wait transport remains open;
 - lifted the two-case endpoint queue-status outcome through the active
   future-work-mate temporal status.
   `SequentialFigure7MarkedTargetWaitingMateExternalCommitmentReentryFutureWorkMateQueueStatus.lean`

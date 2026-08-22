@@ -789,8 +789,8 @@ leaf is current-state: the surrounding target retains its existing canonical
 history evidence. When the status carries future work, its scheduler boundary
 is existential and not proved unique. No new queue history, persistence,
 reachability, elimination, payer, history-tail law, progress, completion,
-termination, or totality fact is derived. The immediate endpoint and future-
-work-mate maps are recorded below; continuation, sibling, and typed-Wait
+termination, or totality fact is derived. The immediate endpoint, future-work-
+mate, and continuation maps are recorded below; sibling and typed-Wait
 transport remains separate.
 `SequentialFigure7MarkedTargetWaitingMateExternalCommitmentReentryQueueStatus.lean`
 adds no source reading, oracle, runtime evidence, or experiment. It maps the
@@ -802,9 +802,9 @@ waiting-parent, and queue-status theorems. The map assumes only the scheduler
 invariant, component lookup, occurrence witness, and existing no-tail premise.
 It does not relate the outer crossing to the nested target path or equate the
 outer older-future boundary with a nested queue boundary. The immediate future-
-work-mate map is recorded next; continuation, sibling, and typed-Wait transport
-remains separate, as do all elimination, payer, history-tail, progress,
-completion, termination, and totality obligations.
+work-mate and continuation maps are recorded next; sibling and typed-Wait
+transport remains separate, as do all elimination, payer, history-tail,
+progress, completion, termination, and totality obligations.
 `SequentialFigure7MarkedTargetWaitingMateExternalCommitmentReentryFutureWorkMateQueueStatus.lean`
 adds no source reading, oracle, runtime evidence, or experiment. It maps the
 existing future-work mate temporal status by copying `olderOutside` verbatim.
@@ -815,10 +815,26 @@ the scheduler invariant, component lookup, occurrence witness, and no-tail
 premise. It neither queue-classifies nor eliminates the older-outside branch,
 and it introduces no equality among the status boundary, endpoint older-future
 boundary, and nested future-work boundary, or identification between endpoint
-crossing/re-entry receipts and the nested target path. Continuation, sibling,
-and typed-Wait transport remains separate, as do queue-origin, persistence,
-reachability, elimination, payer, tail-law, progress, completion, termination,
-and totality obligations.
+crossing/re-entry receipts and the nested target path. The immediate
+continuation map is recorded next; sibling and typed-Wait transport remains
+separate, as do queue-origin, persistence, reachability, elimination, payer,
+tail-law, progress, completion, termination, and totality obligations.
+`SequentialFigure7MarkedTargetWaitingMateExternalCommitmentReentryContinuationQueueStatus.lean`
+adds no source reading, oracle, runtime evidence, or experiment. It maps the
+existing three-case continuation outcome by preserving both raw exits verbatim.
+The `futureOlder` branch retains every chain, endpoint, future-work, mark,
+canonical-event, representative-order, event-order, and exact-location receipt;
+only its nested mate status is mapped through the already-audited `queueStatus`.
+Beyond the input outcome, the premises are exactly the scheduler invariant,
+component lookup, occurrence witness, and no-tail premise. The map does not add
+`current.mate ∉ owned`; the raw-outside constructor's existing payload concerns
+`consumer.mate`. It introduces no equality between the continuation's shared
+work/status/location boundary and an endpoint older-future or nested queue
+boundary. Neither raw exit is queue-classified or eliminated, and the event-
+order disjunction remains unresolved. Sibling and typed-Wait transport remains
+separate, as do queue origin, queue history, persistence, reachability,
+elimination, payer, tail-law, progress, completion, termination, and totality
+obligations.
 Global preservation of the mate-region and older-raw-mark invariants through
 candidate-creating rules remains open, as do queue origin, created-candidate
 raw seams, elimination or payer conversion of the waiting survivor in both

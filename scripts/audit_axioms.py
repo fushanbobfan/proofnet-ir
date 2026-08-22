@@ -357,6 +357,12 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "ProofNetIR.SequentialFigure7."
     "FutureWorkMateActiveCarrierExternalCommitmentReentryTemporalStatus."
     "queueStatus",
+    "ProofNetIR.SequentialFigure7."
+    "ContinuationExitRawOrFutureActiveCarrierExternalCommitmentReentry"
+    "QueueStatusOutcome",
+    "ProofNetIR.SequentialFigure7."
+    "ContinuationExitRawOrFutureActiveCarrierExternalCommitmentReentry"
+    "TemporalOutcome.queueStatusOutcome",
     "ProofNetIR.SequentialFigure7.MarkedConclusionChain."
     "rawReturnCyclicReduction",
     "ProofNetIR.SequentialFigure7.MarkedConclusionChain."

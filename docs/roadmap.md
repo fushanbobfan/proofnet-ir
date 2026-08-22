@@ -1288,7 +1288,11 @@
     preserve membership, representative equality, and waiting evidence while
     replacing only the external endpoint. Do not identify or equate the status,
     endpoint older-future, and nested future-work boundaries.
-  - [ ] Transport that status through the continuation, sibling, and typed-Wait
+  - [x] Transport that status through the three-case continuation outcome.
+    Preserve both raw exits and every future-work receipt, replacing only the
+    nested mate status. Keep the event-order disjunction unresolved and add no
+    current-mate-outside premise.
+  - [ ] Transport that continuation outcome through the sibling and typed-Wait
     wrappers without inventing a common-path or crossing alignment absent from
     those carriers.
   - [ ] Eliminate or payer-convert the currently absent and exact older-work
@@ -1646,8 +1650,9 @@
     each other. The nested target is now transported through the two-case
     waiting-parent external-reentry outcome with its older-future and older-
     marked payloads unchanged, and that outcome is lifted through the future-
-    work mate status while preserving both status branches. Continuation,
-    sibling, and typed-Wait transport, both outcomes, and the raw survivor
+    work mate status while preserving both status branches. The continuation
+    outcome now preserves both raw exits and changes only that mate status.
+    Sibling and typed-Wait transport, both outcomes, and the raw survivor
     remain. Next eliminate or payer-convert those outcomes, resolve equal-final
     traces, and close the history-tail law before claiming exhaustive progress
     on incomplete, correct, certified-reachable states.
