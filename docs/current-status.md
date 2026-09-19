@@ -10,14 +10,14 @@ Historical checkpoints belong in [CHANGELOG.md](../CHANGELOG.md), proof design
 belongs in [v0.10-design.md](v0.10-design.md), and stable release guarantees
 belong in the corresponding release audit.
 
-Status date: 2026-08-21
+Status date: 2026-09-18
 
 ## Version tracks
 
 | Track | Revision | Status | Authority |
 | --- | --- | --- | --- |
 | Stable library | `v0.9.0` / `9b7dc3d104af8f57ea9123aab2e61b42e05d2216` | Released | [v0.9.0 release audit](v0.9-release-audit.md) |
-| Rolling research | `v0.10.0-dev`; proof `09d779c`; audit `1e46573` | Active | This page/commits |
+| Rolling research | `v0.10.0-dev`; proof `2377775`; audit `1e46573` | Active | This page/commits |
 
 Documentation-only commits may descend from the proof checkpoint without
 changing its mathematical authority. The stable release and rolling branch
@@ -45,6 +45,18 @@ The exact release guarantees, receipts, and non-goals are frozen in the
 [v0.9.0 release audit](v0.9-release-audit.md).
 
 ## Rolling main result
+
+The termination checkpoint bounds every canonical dispatcher history.
+`dispatchMeasure` counts the marked occurrences of the production core; every
+successful `dispatch?` call marks exactly one more (`DispatchStep.measure_eq`,
+through the now-public `DispatchTagEvidence.after_core_marks_eq_prepared`); and
+the scheduler invariant bounds the measure by `certificate.formulas.size`.
+Hence `ExecutedHistory.dispatchCount_le`: a history holds at most
+`formulas.size` dispatcher calls, initialization excluded, and `dispatch_stops`:
+a run that feeds every successful output below that index forward from a
+scheduler-invariant start meets `dispatch? = none` at an index at most
+`formulas.size`. The queue-status checkpoints below are unchanged by this
+layer.
 
 The preceding temporal checkpoint specializes the normalized parent escape to actual Nop
 and Wait failures. The preceding source and continuation-credit normalizers
@@ -1146,6 +1158,9 @@ completion argument.
 
 This checkpoint does not establish any of the following:
 
+- progress, later-state totality, or terminal-state completeness from the
+  termination bound, which counts successful calls and says nothing about the
+  state in which a run stops;
 - construction or existence of a relevant `ExecutedHistory`, reachable state,
   `CanonicalTagHistory`, `ReadyHeadInput`, or successful Nop or Wait transition;
 - impossibility of `ActiveCarrierParentEscape`, exclusivity between an escape
@@ -1255,12 +1270,12 @@ plan is maintained in [v0.10-design.md](v0.10-design.md) and
 The exact rolling proof checkpoint is:
 
 ```text
-commit    09d779c57df327a2464c3f58e9c7fdb965a3f1c9
-tree      f83b9c49c78068ba5dea33a1aa929db6d8fe6427
-parent    bc56d7d40137ed1e94e427b8601a459c309e88db
-stage     lift sibling queue status
-delta     17 paths, +416/-39
-manifest  ABCF7FC05D9F2390989B4AA7DA318129CCBF6C56CABEFF13F625B0C090BDF0A5
+commit    2377775bbcc1ac482e2dcdae2085cbbcbc5639ea
+tree      a852317ec298c9a49f294ba627599060a40e4686
+parent    80bb2a64fb9d426461d8a32f49b7076fb49a13ea
+stage     bound canonical dispatcher history length
+delta     12 paths, +417/-2
+manifest  23223FD8F401A65A03759AA7798880FBDBAFC4678D68A87C1845F442B5D0A353
 ```
 
 The manifest hashes canonical
@@ -1269,9 +1284,9 @@ The manifest hashes canonical
 The checkpoint source receipts are:
 
 ```text
-sibling source    62D8CECC3552780486C14FD9EE2FF1755AA7169A71B67D9C394E44DB1B424F10
-sibling consumer  B089B68E900F0278B8A843F24E84FAC8EAD4BFFFC8BC319483AEF8B1811BBCED
-generated API     E07376AD2C128C5481723336C7B024E8622E15B55C2D51A849FA4FF0A31FBC03
+termination source    B1410F48A043A52E1F940B4351D4B371D9770C7B22B403B051E2150821A3285D
+termination consumer  78CFAAF2D6AEACEA4D3AEE137DE3DBEDEACCD94C4CE5FC13B2D1455164F56E41
+generated API         48E96F925881BD05030140CF143F360792C7DA3B3F4D301AEF4F5A719788F551
 ```
 
 The separately committed finite-audit evidence is:
@@ -1285,47 +1300,40 @@ delta     3 files, +369/-48
 manifest  4BBAB7FC99D03D2612459A0FD9291990313A05A184F2572A581BC93C6E49DFDD
 ```
 
-Local verification of the committed checkpoint, with ignored prototype probes
-included only in the broader source scan:
+Local verification of the committed checkpoint:
 
-- full `lake build`: 709/709 jobs;
-- pre-push syntax-aware Lean source audit: zero actual `sorry`/`admit`
-  findings across the 352-file local non-build superset present at verification
-  time, including ignored prototype probes and zero actual `sorryAx` findings;
-- library inventory: 330 Lean files and 205,340 Lean source lines, including
-  183 module files under `ProofNetIR/`; a parser-aware count finds 179 imported
-  submodules in the public facade, or 180 modules including the facade itself;
-- generated API reference: current at 106 sections and 1,835 declarations;
-- the runnable sibling consumer reconstructed the public target and invoked the
-  public adapter; both new declarations use the standard-three boundary, and
-  the executable emitted
-  `Figure-7 continuation sibling queue status: kernel-green`;
-- public theorem audit: 1109 entries total: 811 standard-three, 25 axiom-free,
+- full `lake build`: 714/714 jobs;
+- token scan for `sorry` and `admit` across the 332 tracked Lean files: no
+  proof placeholder; the only two hits are the word "admit" inside docstrings
+  of `ProofNetIR/Unification.lean`;
+- library inventory: 332 tracked Lean files and 205,612 Lean source lines,
+  including 184 module files under `ProofNetIR/` counted recursively, the first
+  of them in the `ProofNetIR/Figure7/` directory;
+- generated API reference: current at 107 sections and 1,843 declarations;
+- the runnable termination consumer built at `warningAsError`, ran, and printed
+  `Figure-7 termination consumer passed: two dispatches, bound 2, stop at
+  index 2`; the module and the consumer also compiled under `--trust=0`;
+- the six public declarations of the checkpoint report exactly `propext`,
+  `Classical.choice`, and `Quot.sound`;
+- public theorem audit: 1115 entries total: 817 standard-three, 25 axiom-free,
   132 `propext`-only, and 141 `propext`/`Quot.sound` boundaries;
-- the default, extended, and cross-variant progress audits passed with every
-  incomplete visited state carrying an exact ready head and successful
-  dispatch and every dispatch-none stop fully marked; they covered 23,184,
-  96,444, and 1,182,816 states with checksums 741,882, 5,588,478, and
-  77,141,346, respectively, and all three modes had zero missing-head,
-  incomplete-dispatch-none, cycle, or truncation findings;
-- facade, generated API, consumer, and axiom-audit entry points passed under
-  the checkpoint's trust-zero and warnings-as-errors gates.
+- `git diff --check` clean on the staged delta.
 
 Exact-head proof GitHub verification:
 
 - workflow: `Lean CI`;
 - event/ref: `push` / `main`;
-- run: [32541660030](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32541660030);
-- build job: [96952712972][proof-job];
-- title/attempt: `feat: lift sibling queue status` / 1;
-- exact head: `09d779c57df327a2464c3f58e9c7fdb965a3f1c9`;
-- result: 36 successful steps, zero failures, and one expected release-ref-only
-  skip;
-- run: `2026-08-22T00:51:19Z`-`2026-08-22T01:02:42Z` (11m23s);
-- build job: `2026-08-22T00:51:21Z`-`2026-08-22T01:02:41Z`
-  (11m20s).
+- run: [35424021458](https://github.com/fushanbobfan/proofnet-ir/actions/runs/35424021458);
+- build job: [105846734995][proof-job];
+- title/attempt: `feat: bound canonical dispatcher history length` / 1;
+- exact head: `2377775bbcc1ac482e2dcdae2085cbbcbc5639ea`;
+- result: 36 successful steps, zero failures, and one expected
+  release-ref-only skip;
+- run: `2026-09-19T05:28:01Z`-`2026-09-19T05:41:13Z` (13m12s);
+- build job: `2026-09-19T05:28:04Z`-`2026-09-19T05:41:13Z`
+  (13m09s).
 
-[proof-job]: https://github.com/fushanbobfan/proofnet-ir/actions/runs/32541660030/job/96952712972
+[proof-job]: https://github.com/fushanbobfan/proofnet-ir/actions/runs/35424021458/job/105846734995
 [reentry-failure]: api-reference.md#commitment-interval-par-guard-re-entry-failure-target
 [reentry-mate-separation]: api-reference.md#commitment-interval-par-guard-re-entry-mate-separation
 [target-temporal]: api-reference.md#commitment-interval-marked-re-entry-target-temporal-reduction
