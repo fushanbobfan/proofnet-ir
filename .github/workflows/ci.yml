@@ -221,6 +221,21 @@ jobs:
         run: python scripts/fuzz_leanprop_parser.py
       - name: Audit theorem trust dependencies
         run: python scripts/audit_axioms.py
+      - name: Check convergence gates
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_REF: ${{ github.base_ref }}
+          BEFORE_SHA: ${{ github.event.before }}
+        run: |
+          zero_sha=0000000000000000000000000000000000000000
+          if [[ "$EVENT_NAME" == "pull_request" ]]; then
+            python scripts/check_convergence.py --base "origin/${BASE_REF}" --head HEAD
+          elif [[ "$EVENT_NAME" == "push" && -n "$BEFORE_SHA" && "$BEFORE_SHA" != "$zero_sha" ]]; then
+            python scripts/check_convergence.py --base "$BEFORE_SHA" --head HEAD
+          else
+            echo "Convergence check skipped: event has no comparable base revision."
+          fi
       - name: Kernel recheck public theorem boundary at trust zero
         run: ~/.elan/bin/lake env lean --trust=0 ProofNetIRAxiomAudit.lean >/dev/null
       - name: Verify generated public API reference

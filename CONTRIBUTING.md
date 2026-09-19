@@ -101,6 +101,20 @@ The precise module-specific consumers are default Lake targets. A new public
 module should add and run its own consumer rather than relying on a broad
 facade build.
 
+## Convergence gates
+
+The terminal theorem and hypothesis inventory is in
+[`docs/goal-ledger.md`](docs/goal-ledger.md). Run the mechanical gate with:
+
+```powershell
+python scripts/check_convergence.py --base origin/main --head HEAD
+python scripts/test_check_convergence.py
+```
+
+A checkpoint reaches `main` only if it proves or refutes a ledger hypothesis,
+closes a roadmap item, or is maintenance with no new public theorem. Wrapper
+transports stay on branches. Use `--explain` to print rule and cap details.
+
 ## Experiment and publication gates
 
 The committed deterministic and model-assisted studies are reproducible

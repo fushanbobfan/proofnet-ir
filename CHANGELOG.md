@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- added a compact convergence ledger and a standard-library-only convergence
+  checker. The checker caps new module count and path length, public theorem
+  name length, repeated prose, and growth of oversized maintained documents;
+  it also confines new theorem names to the changelog, generated API,
+  roadmap, and ledger. Pull requests and comparable pushes now run the gate in
+  CI, with pure rule regressions covering every pass and failure path. No Lean
+  declaration, hypothesis, roadmap goal, progress theorem, completeness
+  theorem, termination theorem, fallback removal, or cost theorem is added;
 - bounded canonical Figure-7 dispatcher histories.
   `ProofNetIR/Figure7/Termination.lean` adds `dispatchMeasure` (the count of
   marked occurrences), `DispatchStep.measure_eq` (exactly one more mark per
