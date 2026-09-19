@@ -38,6 +38,7 @@ jobs:
         run: |
           ~/.elan/bin/lake exe proofnet_ir_consumer_index_tests
           ~/.elan/bin/lake exe proofnet_ir_figure7_primitives_tests
+          ~/.elan/bin/lake exe proofnet_ir_figure7_termination_tests
           ~/.elan/bin/lake exe proofnet_ir_figure7_unify_payload_invariant_tests
           ~/.elan/bin/lake exe proofnet_ir_tensor_adjacency_tests
           ~/.elan/bin/lake exe proofnet_ir_progress_invariant_tests

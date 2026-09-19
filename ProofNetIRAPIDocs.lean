@@ -2725,6 +2725,7 @@ def sections : List Section := [
       `ProofNetIR.SequentialFigure7.DispatchTagEvidence.prepared,
       `ProofNetIR.SequentialFigure7.DispatchTagEvidence.RawMarked,
       `ProofNetIR.SequentialFigure7.DispatchTagEvidence.final_rawMarked_iff_old_or_event,
+      `ProofNetIR.SequentialFigure7.DispatchTagEvidence.after_core_marks_eq_prepared,
       `ProofNetIR.SequentialFigure7.CanonicalTagHistory,
       `ProofNetIR.SequentialFigure7.ExecutedHistory.hasCanonicalTagHistory,
       `ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher.hasCanonicalTagHistory,
@@ -2749,6 +2750,18 @@ def sections : List Section := [
       `ProofNetIR.SequentialFigure7.dispatcher_reachable_of_initializeReservation?_eq_some,
       `ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher.dispatch,
       `ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher.schedulerInvariant
+    ]
+  },
+  {
+    title := "Canonical Figure-7 dispatcher termination"
+    declarations := [
+      `ProofNetIR.SequentialFigure7.dispatchMeasure,
+      `ProofNetIR.SequentialFigure7.dispatchMeasure_le,
+      `ProofNetIR.SequentialFigure7.DispatchStep.measure_eq,
+      `ProofNetIR.SequentialFigure7.DispatchStep.measure_lt,
+      `ProofNetIR.SequentialFigure7.ExecutedHistory.dispatchCount,
+      `ProofNetIR.SequentialFigure7.ExecutedHistory.dispatchCount_le,
+      `ProofNetIR.SequentialFigure7.dispatch_stops
     ]
   },
   {

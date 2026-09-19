@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+- bounded canonical Figure-7 dispatcher histories.
+  `ProofNetIR/Figure7/Termination.lean` adds `dispatchMeasure` (the count of
+  marked occurrences), `DispatchStep.measure_eq` (exactly one more mark per
+  successful dispatch, via the now-public
+  `DispatchTagEvidence.after_core_marks_eq_prepared`), `DispatchStep.measure_lt`,
+  `ExecutedHistory.dispatchCount` (dispatcher calls, initialization excluded),
+  `ExecutedHistory.dispatchCount_le` (at most `certificate.formulas.size` calls),
+  and `dispatch_stops` (a run feeding successful outputs forward from a
+  scheduler-invariant start meets `dispatch? = none` by index `formulas.size`).
+  The consumer's `native_decide` fixture attains the bound with two calls. No
+  progress, later-state totality, terminal-state completeness, or per-step
+  complexity bound follows;
 - transported the continuation queue-status outcome through the exact waiting
   sibling-exit target.
   `SequentialFigure7MarkedTargetWaitingMateExternalCommitmentReentryContinuationSiblingQueueStatus.lean`

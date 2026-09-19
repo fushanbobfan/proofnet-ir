@@ -87,7 +87,7 @@ external endpoint. It introduces no equality among the scheduler-status, endpoin
 and nested future-work boundaries. The continuation outcome now preserves both raw exits and
 every future-work receipt while refining only that nested mate status. The sibling target copies
 its other three exits and changes only the causal continuation field. Typed-Wait transport remains
-open, as do completion, termination, and totality.
+open, as do completion and totality; dispatcher termination is proved as a bounded history length.
 [Current status](docs/current-status.md) owns exact revision, verification receipt, and gates.
 <!-- ROLLING_MAIN_SUMMARY_END -->
 

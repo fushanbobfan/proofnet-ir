@@ -162,7 +162,9 @@ def RawMarked
   rawAge = evidence.prepared.stackResult.rawAge ∧
     vertex = evidence.prepared.stackResult.vertex
 
-private theorem after_core_marks_eq_prepared
+/-- Every successful dispatch leaves exactly the mark array of its prepared
+prefix: no branch marks anything beyond the popped occurrence. -/
+theorem after_core_marks_eq_prepared
     {certificate : Certificate} {before : ReservationState}
     {result : Figure7DispatchResult}
     (evidence : DispatchTagEvidence certificate before result) :

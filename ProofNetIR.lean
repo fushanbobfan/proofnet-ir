@@ -43,6 +43,7 @@ import ProofNetIR.SequentialFigure7UnifyPayloadEnabled
 import ProofNetIR.SequentialFigure7StableEnabled
 import ProofNetIR.SequentialFigure7TensorAdjacency
 import ProofNetIR.SequentialFigure7Dispatcher
+import ProofNetIR.Figure7.Termination
 import ProofNetIR.SequentialFigure7ProgressInvariant
 import ProofNetIR.SequentialFreshSourceLeftRun
 import ProofNetIR.SequentialFigure7NewInputCore

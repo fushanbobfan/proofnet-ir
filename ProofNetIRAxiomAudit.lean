@@ -1312,6 +1312,12 @@ end ProofNetIR.SequentialFigure7
 #print axioms SequentialFigure7.dispatch?_schedulerInvariant
 #print axioms SequentialFigure7.initializeReservation?_schedulerInvariant
 #print axioms SequentialFigure7.ExecutedHistory.schedulerInvariant
+#print axioms SequentialFigure7.DispatchTagEvidence.after_core_marks_eq_prepared
+#print axioms SequentialFigure7.dispatchMeasure_le
+#print axioms SequentialFigure7.DispatchStep.measure_eq
+#print axioms SequentialFigure7.DispatchStep.measure_lt
+#print axioms SequentialFigure7.ExecutedHistory.dispatchCount_le
+#print axioms SequentialFigure7.dispatch_stops
 #print axioms SequentialFigure7.ConclStep.output_tags_eq
 #print axioms SequentialFigure7.NopStep.output_tags_eq
 #print axioms SequentialFigure7.WaitStep.output_tags_eq

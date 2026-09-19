@@ -24496,6 +24496,20 @@ ProofNetIR.SequentialFigure7.DispatchTagEvidence.final_rawMarked_iff_old_or_even
     before.core.marks[vertex]? = some (some rawAge) ∨ evidence.RawMarked rawAge vertex
 ```
 
+### `ProofNetIR.SequentialFigure7.DispatchTagEvidence.after_core_marks_eq_prepared`
+
+Kind: theorem.
+
+Every successful dispatch leaves exactly the mark array of its prepared
+prefix: no branch marks anything beyond the popped occurrence.
+
+```lean
+ProofNetIR.SequentialFigure7.DispatchTagEvidence.after_core_marks_eq_prepared : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {result : ProofNetIR.SequentialFigure7.Figure7DispatchResult}
+  (evidence : ProofNetIR.SequentialFigure7.DispatchTagEvidence certificate before result),
+  result.after.core.marks = evidence.prepared.after.core.marks
+```
+
 ### `ProofNetIR.SequentialFigure7.CanonicalTagHistory`
 
 Kind: inductive type.
@@ -24871,6 +24885,111 @@ invariant under structural certificate validity.
 ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher.schedulerInvariant : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState},
   ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher certificate state →
     certificate.StructurallyWellFormed → ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state
+```
+
+## Canonical Figure-7 dispatcher termination
+
+### `ProofNetIR.SequentialFigure7.dispatchMeasure`
+
+Kind: definition.
+
+Number of marked formula occurrences in the production core.
+
+```lean
+ProofNetIR.SequentialFigure7.dispatchMeasure : ProofNetIR.SequentialSchedulerBridge.ReservationState → Nat
+```
+
+### `ProofNetIR.SequentialFigure7.dispatchMeasure_le`
+
+Kind: theorem.
+
+The scheduler invariant bounds the measure by the formula carrier.
+
+```lean
+ProofNetIR.SequentialFigure7.dispatchMeasure_le : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+    ProofNetIR.SequentialFigure7.dispatchMeasure state ≤ certificate.formulas.size
+```
+
+### `ProofNetIR.SequentialFigure7.DispatchStep.measure_eq`
+
+Kind: theorem.
+
+Every exact canonical dispatcher success marks exactly one more occurrence.
+
+```lean
+ProofNetIR.SequentialFigure7.DispatchStep.measure_eq : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {invariant : ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before}
+  {result : ProofNetIR.SequentialFigure7.Figure7DispatchResult}
+  (step : ProofNetIR.SequentialFigure7.DispatchStep certificate before invariant result),
+  ProofNetIR.SequentialFigure7.dispatchMeasure result.after = ProofNetIR.SequentialFigure7.dispatchMeasure before + 1
+```
+
+### `ProofNetIR.SequentialFigure7.DispatchStep.measure_lt`
+
+Kind: theorem.
+
+Every exact canonical dispatcher success strictly increases the measure.
+
+```lean
+ProofNetIR.SequentialFigure7.DispatchStep.measure_lt : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {invariant : ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before}
+  {result : ProofNetIR.SequentialFigure7.Figure7DispatchResult}
+  (step : ProofNetIR.SequentialFigure7.DispatchStep certificate before invariant result),
+  ProofNetIR.SequentialFigure7.dispatchMeasure before < ProofNetIR.SequentialFigure7.dispatchMeasure result.after
+```
+
+### `ProofNetIR.SequentialFigure7.ExecutedHistory.dispatchCount`
+
+Kind: definition.
+
+Number of successful canonical dispatcher calls in a history. Initialization is
+outside `dispatch?`, so empty and initialized histories both count zero.
+
+```lean
+ProofNetIR.SequentialFigure7.ExecutedHistory.dispatchCount : {certificate : ProofNetIR.Certificate} →
+  {state : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+    ProofNetIR.SequentialFigure7.ExecutedHistory certificate state → Nat
+```
+
+### `ProofNetIR.SequentialFigure7.ExecutedHistory.dispatchCount_le`
+
+Kind: theorem.
+
+Every executed history has at most one dispatcher call per formula occurrence.
+No certificate-validity hypothesis is needed: nonempty dispatcher traces carry
+the scheduler invariant, and initialization alone counts zero.
+
+```lean
+ProofNetIR.SequentialFigure7.ExecutedHistory.dispatchCount_le : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state),
+  history.dispatchCount ≤ certificate.formulas.size
+```
+
+### `ProofNetIR.SequentialFigure7.dispatch_stops`
+
+Kind: theorem.
+
+A run that starts with the scheduler invariant and feeds every successful
+output below index `formulas.size` into the next state meets `dispatch? = none`
+at some index at most `formulas.size`. The hypothesis constrains exactly the
+indices below `formulas.size` at which `dispatch?` succeeds, whether or not an
+earlier index failed; nothing is assumed about the run at or beyond
+`formulas.size`, and a success there is already impossible by the measure bound.
+This does not assert progress or terminal-state completeness.
+
+```lean
+ProofNetIR.SequentialFigure7.dispatch_stops : ∀ {certificate : ProofNetIR.Certificate} (run : Nat → ProofNetIR.SequentialSchedulerBridge.ReservationState),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate (run 0) →
+    (∀ (n : Nat),
+        n < certificate.formulas.size →
+          ∀ (invariant : ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate (run n))
+            (result : ProofNetIR.SequentialFigure7.Figure7DispatchResult),
+            ProofNetIR.SequentialFigure7.dispatch? certificate (run n) invariant = some result →
+              result.after = run (n + 1)) →
+      ∃ n,
+        n < certificate.formulas.size + 1 ∧
+          ∃ invariant, ProofNetIR.SequentialFigure7.dispatch? certificate (run n) invariant = none
 ```
 
 ## Canonical raw-mark causal order
