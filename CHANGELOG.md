@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- extended `proofnet_ir_tail_law_search` with a `--wait-focus` mode whose
+  depth-three interleaved tensor/par derivations contain eight independent
+  axiom regions. It prioritizes distinct initial regions, replays every accepted
+  start under a fail-closed per-certificate ceiling, and reports wait-bearing
+  certificates and `(certificate, start)` pairs. The finite run covered 1,152
+  certificate cases and 34,560 histories, including 25,920 `wait` steps across
+  576 certificates and 17,280 start pairs, in 11.8 seconds. This is finite
+  evidence only: no H-tail theorem, progress, completion, or termination result
+  is proved;
 - added a finite search for `CanonicalTagHistory.ActiveTopDebtTailLaw`, using
   checked derivation-generated certificates, eight label/polarity decorations,
   six ordering variants, a deterministic accepted-start cap, and exact canonical

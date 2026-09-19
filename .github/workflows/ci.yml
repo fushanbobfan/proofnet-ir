@@ -211,6 +211,8 @@ jobs:
         run: ~/.elan/bin/lake exe proofnet_ir_new_progress_audit
       - name: Search finite canonical Figure-7 history-tail counterexamples
         run: ~/.elan/bin/lake exe proofnet_ir_tail_law_search
+      - name: Search wait-focused canonical Figure-7 history-tail counterexamples
+        run: ~/.elan/bin/lake exe proofnet_ir_tail_law_search --wait-focus
       - name: Audit New/Wait/Forward/Unify-created candidate source regions
         run: >-
           ~/.elan/bin/lake exe proofnet_ir_new_progress_audit

@@ -652,6 +652,7 @@ name = "proofnet_ir_new_progress_audit"
 root = "ProofNetIRNewProgressAudit"
 
 [[lean_exe]]
+# Shared by the default and --wait-focus finite-search CI steps.
 name = "proofnet_ir_tail_law_search"
 root = "ProofNetIRTailLawSearch"
 

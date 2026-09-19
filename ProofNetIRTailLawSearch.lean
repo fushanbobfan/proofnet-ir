@@ -19,6 +19,11 @@ six link/boundary variants from NewProgressAudit are applied to every shape.
 Equal labelled variants are counted separately. Random coverage uses the existing
 `CutFreeDerivation.generate` depth parameter and is reported separately.
 
+`--wait-focus` instead uses depth-three trees whose every internal par joins
+the unconsumed frontiers of two independently axiom-started tensor children.
+It checks all accepted starts after prioritizing one per distinct initial axiom
+region, and measures the exact mate-age classes that limit wait applicability.
+
 The ten-minute limit is checked between complete histories. Exhausting replay
 fuel or missing the requested coverage fails closed and never prints `-ok`.
 There is no theorem here, including no Boolean-reflection or completeness theorem.
@@ -96,10 +101,18 @@ private structure Stats where
   shapes : Nat := 0
   acceptedStarts : Nat := 0
   skippedStarts : Nat := 0
+  firstMarkedRegions : Nat := 0
   histories : Nat := 0
   steps : Nat := 0
   stops : Nat := 0
   kinds : Array Nat := #[0, 0, 0, 0, 0, 0]
+  waitCertificates : Nat := 0
+  waitPairs : Nat := 0
+  parPremisePops : Nat := 0
+  parMateUnmarked : Nat := 0
+  parMateOlder : Nat := 0
+  parMateNotOlder : Nat := 0
+  parMateMissing : Nat := 0
   deriving Repr
 
 private def kindIndex : Figure7RuleKind → Nat
@@ -109,6 +122,32 @@ private def kindIndex : Figure7RuleKind → Nat
   | .wait => 3
   | .forward => 4
   | .unifyPayload => 5
+
+-- Measure the exact local age geometry that can reach the wait branch. This is
+-- diagnostic coverage, not a second dispatcher: the canonical result below
+-- remains the only transition that is replayed.
+private def observeWaitGuard (certificate : Certificate)
+    (state : ReservationState) (stats : Stats) : Stats :=
+  match prepare? state with
+  | none => stats
+  | some prepared =>
+      match certificate.connectiveBelow? prepared.stackResult.vertex with
+      | some consumer =>
+          if consumer.kind == .par then
+            let stats := { stats with parPremisePops := stats.parPremisePops + 1 }
+            match prepared.coreMarked.marks[consumer.mate]? with
+            | some none =>
+                { stats with parMateUnmarked := stats.parMateUnmarked + 1 }
+            | some (some mateRawAge) =>
+                if mateRawAge < prepared.stackResult.rawAge then
+                  { stats with parMateOlder := stats.parMateOlder + 1 }
+                else
+                  { stats with parMateNotOlder := stats.parMateNotOlder + 1 }
+            | none =>
+                { stats with parMateMissing := stats.parMateMissing + 1 }
+          else
+            stats
+      | none => stats
 
 -- Existing JSON serializers normalize orders. Include the submitted occurrence
 -- arrays using the same formulaJson/linkJson functions for exact replay as well.
@@ -132,13 +171,14 @@ private def failViolation (certificate : Certificate) (context : String) (start 
 -- Reachability retains the exact ExecutedHistory in Prop; its canonical tag
 -- augmentation exists by hasCanonicalTagHistory. No classical data is executed.
 private def replay (certificate : Certificate) (correct : certificate.DeclarativelyCorrect)
-    (context : String) (start : Vertex) (deadline : Nat) :
+    (context : String) (start : Vertex) (deadline : Nat) (measureWaitGuard : Bool) :
     (state : ReservationState) → ReachableByImplementedDispatcher certificate state →
     List Figure7RuleKind → Bool → Nat → Nat → Stats → IO Stats
   | state, reachable, kinds, prior, step, fuel, stats => do
       if (← IO.monoMsNow) > deadline then
         throw (IO.userError (s!"tail-law-search-INCOMPLETE budget {context} start={start} " ++
           s!"step={step} cases={stats.cases} histories={stats.histories} steps={stats.steps}"))
+      let stats := if measureWaitGuard then observeWaitGuard certificate state stats else stats
       let invariant := reachable.schedulerInvariant correct.1
       match equation : dispatch? certificate state invariant with
       | none => return { stats with stops := stats.stops + 1 }
@@ -156,7 +196,7 @@ private def replay (certificate : Certificate) (correct : certificate.Declarativ
                 let stats := { stats with
                   steps := stats.steps + 1
                   kinds := stats.kinds.modify index (· + 1) }
-                replay certificate correct context start deadline result.after
+                replay certificate correct context start deadline measureWaitGuard result.after
                   (reachable.dispatch invariant equation) (result.kind :: kinds)
                   observation.holds (step + 1) fuel stats
 
@@ -186,40 +226,106 @@ private def positiveVariants (certificate : Certificate) (seed : Nat) :
       links := parityPermutation certificate.links (seed.testBit 4)
       conclusions := rotateList certificate.conclusions (seed * 31 + 11) }) ]
 
+private structure AcceptedStart where
+  start : Vertex
+  region : Vertex × Vertex
+
+private structure StartPriority where
+  seen : List (Vertex × Vertex) := []
+  first : List AcceptedStart := []
+  rest : List AcceptedStart := []
+
+private def initialRegion? (state : ReservationState) : Option (Vertex × Vertex) := do
+  let ready ← state.stack.ready.getLast?
+  match ready with
+  | [left, right] => some (min left right, max left right)
+  | _ => none
+
+private def prioritizeDistinctRegions (starts : List AcceptedStart) : List AcceptedStart :=
+  let priority := starts.foldl (init := ({} : StartPriority)) fun priority entry ↦
+    if priority.seen.contains entry.region then
+      { priority with rest := entry :: priority.rest }
+    else
+      { seen := entry.region :: priority.seen
+        first := entry :: priority.first
+        rest := priority.rest }
+  priority.first.reverse ++ priority.rest.reverse
+
+private def distinctRegionCount (starts : List AcceptedStart) : Nat :=
+  starts.foldl (init := ([] : List (Vertex × Vertex))) (fun regions entry ↦
+    if regions.contains entry.region then regions else entry.region :: regions) |>.length
+
+private def collectAcceptedStarts (certificate : Certificate)
+    (context : String) : IO (List AcceptedStart) := do
+  let mut starts := []
+  for start in List.range certificate.formulas.size do
+    match initializeReservation? certificate start with
+    | none => pure ()
+    | some state =>
+        let some region := initialRegion? state
+          | throw (IO.userError s!"tail-law-search-ERROR malformed initial region {context}")
+        starts := { start, region } :: starts
+  return starts.reverse
+
 private def inspectCertificate (certificate : Certificate) (context : String)
-    (startCap deadline : Nat) (stats : Stats) : IO Stats := do
+    (startCeiling deadline : Nat) (prioritizeStarts : Bool) (stats : Stats) : IO Stats := do
   if accepted : certificate.unificationCheck = true then
     let correct : certificate.DeclarativelyCorrect :=
       certificate.check_iff_declarativelyCorrect.mp
         (certificate.unificationCheck_eq_check ▸ accepted)
+    let waitBeforeCertificate := stats.kinds[3]!
     let mut stats := { stats with cases := stats.cases + 1 }
-    let mut selected := 0
-    -- Probe every vertex so the summary reports the complete accepted-start
-    -- population. Replay the first `startCap` successes in vertex order.
-    for start in List.range certificate.formulas.size do
-      match equation : initializeReservation? certificate start with
-      | none => pure ()
-      | some state =>
-          stats := { stats with acceptedStarts := stats.acceptedStarts + 1 }
-          if selected < startCap then
-            selected := selected + 1
-            stats ← replay certificate correct context start deadline state
+    if prioritizeStarts then
+      let acceptedStarts ← collectAcceptedStarts certificate context
+      let ordered := prioritizeDistinctRegions acceptedStarts
+      let selected := ordered.take startCeiling
+      stats := { stats with
+        acceptedStarts := stats.acceptedStarts + acceptedStarts.length
+        skippedStarts := stats.skippedStarts + acceptedStarts.length - selected.length
+        firstMarkedRegions := stats.firstMarkedRegions + distinctRegionCount acceptedStarts }
+      for entry in selected do
+        match equation : initializeReservation? certificate entry.start with
+        | none =>
+            throw (IO.userError s!"tail-law-search-ERROR unstable accepted start {context}")
+        | some state =>
+            let waitBeforeHistory := stats.kinds[3]!
+            stats ← replay certificate correct context entry.start deadline true state
               (dispatcher_reachable_of_initializeReservation?_eq_some equation) [] true 0
               (16 * (certificate.formulas.size + certificate.links.length + 1))
               { stats with histories := stats.histories + 1 }
-          else
-            stats := { stats with skippedStarts := stats.skippedStarts + 1 }
+            if stats.kinds[3]! > waitBeforeHistory then
+              stats := { stats with waitPairs := stats.waitPairs + 1 }
+    else
+      let mut selected := 0
+      -- Probe every vertex so the summary reports the complete accepted-start
+      -- population. Replay the first `startCeiling` successes in vertex order.
+      for start in List.range certificate.formulas.size do
+        match equation : initializeReservation? certificate start with
+        | none => pure ()
+        | some state =>
+            stats := { stats with acceptedStarts := stats.acceptedStarts + 1 }
+            if selected < startCeiling then
+              selected := selected + 1
+              stats ← replay certificate correct context start deadline false state
+                (dispatcher_reachable_of_initializeReservation?_eq_some equation) [] true 0
+                (16 * (certificate.formulas.size + certificate.links.length + 1))
+                { stats with histories := stats.histories + 1 }
+            else
+              stats := { stats with skippedStarts := stats.skippedStarts + 1 }
+    if stats.kinds[3]! > waitBeforeCertificate then
+      stats := { stats with waitCertificates := stats.waitCertificates + 1 }
     return stats
   else
     throw (IO.userError s!"tail-law-search-ERROR rejected generated certificate {context}")
 
 private def inspectTree (tree : CutFreeDerivation) (seed : Nat) (context : String)
-    (startCap deadline : Nat) (stats : Stats) : IO Stats := do
+    (startCeiling deadline : Nat) (prioritizeStarts : Bool) (stats : Stats) : IO Stats := do
   let some certificate := tree.desequentialize?
     | throw (IO.userError s!"tail-law-search-ERROR malformed derivation {context}")
   let mut stats := stats
   for (name, variant) in positiveVariants certificate seed do
-    stats ← inspectCertificate variant s!"{context} variant={name}" startCap deadline stats
+    stats ← inspectCertificate variant s!"{context} variant={name}" startCeiling deadline
+      prioritizeStarts stats
   return stats
 
 private structure Shape where
@@ -233,6 +339,17 @@ private def parShape (child : Shape) : Shape :=
 
 private def tensorShape (left right : Shape) : Shape :=
   ⟨.tensor 0 0 left.tree right.tree, left.boundary + right.boundary - 1⟩
+
+-- Every recursive child has exactly two boundary occurrences. Tensor consumes
+-- one from each independent axiom region; the immediately enclosing par joins
+-- the two remaining regional occurrences. Thus every internal par is directly
+-- above a cross-region tensor, and depth three contains eight axiom regions.
+private def waitFocusedTree (seed : Nat) : Nat → CutFreeDerivation
+  | 0 => .axiom s!"p{seed % 11}" (seed.testBit 0)
+  | depth + 1 =>
+      let left := waitFocusedTree (seed * 2 + 1) depth
+      let right := waitFocusedTree (seed * 2 + 2) depth
+      .par 1 1 (.tensor (seed % 2) ((seed / 2) % 2) left right)
 
 private def relabelTree (seed : Nat) : CutFreeDerivation → CutFreeDerivation
   | .axiom _ _ => .axiom s!"p{seed % 11}" (seed.testBit 0)
@@ -277,7 +394,7 @@ private def run (smoke : Bool) : IO Unit := do
   for depth in [6, 7] do
     for seed in List.range randomSeeds do
       let stats ← inspectTree (CutFreeDerivation.generate seed depth) seed
-        s!"random_depth={depth} seed={seed}" startCap deadline (← statsRef.get)
+        s!"random_depth={depth} seed={seed}" startCap deadline false (← statsRef.get)
       statsRef.set stats
   let mut levels : Array (Array Shape) := #[]
   let target := if smoke then 2 else 5
@@ -294,7 +411,7 @@ private def run (smoke : Bool) : IO Unit := do
           stats ← inspectTree (relabelTree labelSeed shape.tree)
             (index * labelVariants + labelSeed)
             s!"depth={depth} shape={index} label={labelSeed}"
-            startCap deadline stats
+            startCap deadline false stats
         statsRef.set stats
         countRef.set (index + 1)
         layerRef.modify (·.push shape)
@@ -312,10 +429,67 @@ private def run (smoke : Bool) : IO Unit := do
   IO.println s!"{label} {summary stats completed labelVariants orderVariants startCap
     randomSeeds ((← IO.monoMsNow) - started)}"
 
+private def waitFocusSummary (stats : Stats) (baseTrees labelVariants orderVariants
+    startCeiling elapsed : Nat) : String :=
+  s!"cases={stats.cases} histories={stats.histories} steps={stats.steps} " ++
+    s!"base_trees={baseTrees} axiom_regions=8 label_variants={labelVariants} " ++
+    s!"order_variants={orderVariants} start_ceiling={startCeiling} " ++
+    s!"accepted_starts={stats.acceptedStarts} skipped_starts={stats.skippedStarts} " ++
+    s!"first_marked_regions={stats.firstMarkedRegions} dispatch_none={stats.stops} " ++
+    s!"wait_certificates={stats.waitCertificates} wait_steps={stats.kinds[3]!} " ++
+    s!"wait_pairs={stats.waitPairs} rules={repr stats.kinds} " ++
+    s!"wait_guard_par={stats.parPremisePops} " ++
+    s!"mate_unmarked={stats.parMateUnmarked} mate_older={stats.parMateOlder} " ++
+    s!"mate_not_older={stats.parMateNotOlder} mate_missing={stats.parMateMissing} " ++
+    s!"eligible_not_wait={stats.parMateOlder - stats.kinds[3]!} " ++
+    s!"elapsed_ms={elapsed} budget_ms=600000"
+
+private def runWaitFocus : IO Unit := do
+  let started ← IO.monoMsNow
+  let deadline := started + 600000
+  let statsRef ← IO.mkRef ({} : Stats)
+  let baseTrees := 24
+  let labelVariants := 8
+  let orderVariants := 6
+  let startCeiling := 64
+  try
+    for seed in List.range baseTrees do
+      let prior := ← statsRef.get
+      let mut stats := { prior with shapes := prior.shapes + 1 }
+      for labelSeed in List.range labelVariants do
+        stats ← inspectTree (relabelTree labelSeed (waitFocusedTree seed 3))
+          (seed * labelVariants + labelSeed)
+          s!"wait_focus tree={seed} label={labelSeed}" startCeiling deadline true stats
+      statsRef.set stats
+  catch error =>
+    let elapsed := (← IO.monoMsNow) - started
+    IO.println s!"tail-law-wait-focus-coverage {waitFocusSummary (← statsRef.get)
+      baseTrees labelVariants orderVariants startCeiling elapsed}"
+    throw error
+  let stats ← statsRef.get
+  let elapsed := (← IO.monoMsNow) - started
+  IO.println s!"tail-law-wait-focus-coverage {waitFocusSummary stats baseTrees
+    labelVariants orderVariants startCeiling elapsed}"
+  unless stats.cases == baseTrees * labelVariants * orderVariants &&
+      stats.skippedStarts == 0 && stats.stops == stats.histories &&
+      stats.waitCertificates ≥ 500 && stats.kinds[3]! ≥ 5000 && elapsed ≤ 600000 do
+    throw (IO.userError
+      (s!"tail-law-search-INCOMPLETE wait coverage " ++
+        s!"wait_certificates={stats.waitCertificates}/500 " ++
+        s!"wait_steps={stats.kinds[3]!}/5000 wait_pairs={stats.waitPairs}; " ++
+        s!"measured dispatcher geometry: par={stats.parPremisePops}, " ++
+        s!"mate_unmarked={stats.parMateUnmarked}, mate_older={stats.parMateOlder}, " ++
+        s!"mate_not_older={stats.parMateNotOlder}, mate_missing={stats.parMateMissing}, " ++
+        s!"eligible_not_wait={stats.parMateOlder - stats.kinds[3]!}"))
+  IO.println s!"tail-law-search-wait-focus-ok {waitFocusSummary stats baseTrees
+    labelVariants orderVariants startCeiling elapsed}"
+
 end ProofNetIRTailLawSearch
 
 def main (args : List String) : IO Unit := do
   match args with
   | [] => ProofNetIRTailLawSearch.run false
   | ["--smoke"] => ProofNetIRTailLawSearch.run true
-  | _ => throw (IO.userError "usage: proofnet_ir_tail_law_search [--smoke]")
+  | ["--wait-focus"] => ProofNetIRTailLawSearch.runWaitFocus
+  | _ => throw (IO.userError
+      "usage: proofnet_ir_tail_law_search [--smoke | --wait-focus]")
