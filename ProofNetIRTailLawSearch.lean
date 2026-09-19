@@ -1,0 +1,321 @@
+import ProofNetIR.SequentialFigure7ActiveTopDebtHistoryTail
+import ProofNetIR.Serialization
+import ProofNetIR.Unification
+import ProofNetIR.Generate
+
+/-!
+# Finite search for the canonical history-tail hypothesis
+
+Every candidate is checked by `unificationCheck`, with the existing equivalence
+transporting acceptance to declarative correctness. Every accepted initialization
+start is replayed by the actual canonical dispatcher. The Boolean below follows
+`CanonicalTagHistory.ActiveTopDebtTailLaw`, including its reset branches; every
+prefix is checked, so a later reset cannot conceal an earlier violation.
+
+Exhaustive *shape* depth is the number of logical constructors, as in the earlier
+`ExhaustiveDebtSearch` experiment. Exchange nodes and focus choices are omitted
+from shape enumeration. Eight deterministic label/polarity decorations and the
+six link/boundary variants from NewProgressAudit are applied to every shape.
+Equal labelled variants are counted separately. Random coverage uses the existing
+`CutFreeDerivation.generate` depth parameter and is reported separately.
+
+The ten-minute limit is checked between complete histories. Exhausting replay
+fuel or missing the requested coverage fails closed and never prints `-ok`.
+There is no theorem here, including no Boolean-reflection or completeness theorem.
+-/
+
+open ProofNetIR
+open ProofNetIR.SequentialFigure7
+open ProofNetIR.SequentialSchedulerBridge
+open ProofNetIR.SequentialSchedulerState
+
+namespace ProofNetIRTailLawSearch
+
+private def hasNonconclusion (certificate : Certificate) (bucket : List Vertex) : Bool :=
+  bucket.any fun vertex ↦ !certificate.conclusions.contains vertex
+
+-- The existential in ActiveTopMarkedNonconclusionPresent, including raw marks.
+private def activeTopPresent (certificate : Certificate) (state : ReservationState) : Bool :=
+  match state.stack.sigma.getLast? with
+  | none => false
+  | some age =>
+      match state.core.components[age]? with
+      | some (some component) =>
+          component.frontier.any fun vertex ↦
+            !certificate.conclusions.contains vertex &&
+              match state.core.marks[vertex]? with
+              | some (some _) => true
+              | _ => false
+      | _ => false
+
+private structure TailObservation where
+  holds : Bool
+  bucket : List Vertex := []
+  created : Option Vertex := none
+
+-- Recompute the common typed prefix to read its exact remainingTop. For created
+-- heads, decode the exact primitive inputs and verify their resulting ready top.
+-- Decoder disagreement is an audit error, never a successful/vacuous law check.
+private def tailLawStep (certificate : Certificate) (before : ReservationState)
+    (result : Figure7DispatchResult) (prior : Bool) : Except String TailObservation := do
+  match result.kind with
+  | .concl => return { holds := prior }
+  | .new => return { holds := true }
+  | .nop | .wait =>
+      let some prepared := prepare? before | throw "missing prepared nop/wait prefix"
+      let bucket := prepared.stackResult.remainingTop
+      return { holds := hasNonconclusion certificate bucket && prior, bucket }
+  | .forward | .unifyPayload =>
+      let some prepared := prepare? before | throw "missing prepared created-head prefix"
+      let some consumer := certificate.connectiveBelow? prepared.stackResult.vertex
+        | throw "missing created-head consumer"
+      let bucket ← if result.kind == .forward then do
+          let some active := prepared.stackResult.after.ready.getLast?
+            | throw "missing forward activeReady"
+          pure active
+        else do
+          let some previous := prepared.stackResult.after.ready.dropLast.getLast?
+            | throw "missing unify previousReady"
+          let some active := prepared.stackResult.after.ready.getLast?
+            | throw "missing unify activeReady"
+          let some boundary := prepared.stackResult.after.sigma.dropLast.getLast?
+            | throw "missing unify previous boundary"
+          let some (.initialized payload) := prepared.stackResult.after.waiting[boundary]?
+            | throw "missing unify payload"
+          pure (payload ++ previous ++ active)
+      unless result.after.stack.ready.getLast? == some (consumer.conclusion :: bucket) do
+        throw "created-head bucket disagrees with dispatcher output"
+      return {
+        holds := !certificate.conclusions.contains consumer.conclusion ||
+          !activeTopPresent certificate result.after || hasNonconclusion certificate bucket
+        bucket
+        created := some consumer.conclusion }
+
+private structure Stats where
+  cases : Nat := 0
+  shapes : Nat := 0
+  acceptedStarts : Nat := 0
+  skippedStarts : Nat := 0
+  histories : Nat := 0
+  steps : Nat := 0
+  stops : Nat := 0
+  kinds : Array Nat := #[0, 0, 0, 0, 0, 0]
+  deriving Repr
+
+private def kindIndex : Figure7RuleKind → Nat
+  | .concl => 0
+  | .nop => 1
+  | .new => 2
+  | .wait => 3
+  | .forward => 4
+  | .unifyPayload => 5
+
+-- Existing JSON serializers normalize orders. Include the submitted occurrence
+-- arrays using the same formulaJson/linkJson functions for exact replay as well.
+private def submittedJson (certificate : Certificate) : Lean.Json :=
+  Lean.Json.mkObj [
+    ("formulas", .arr (certificate.formulas.map Certificate.formulaJson)),
+    ("links", .arr (certificate.links.toArray.map Certificate.linkJson)),
+    ("conclusions", Lean.toJson certificate.conclusions)]
+
+private def failViolation (certificate : Certificate) (context : String) (start step : Nat)
+    (kinds : List Figure7RuleKind) (result : Figure7DispatchResult)
+    (observation : TailObservation) : IO α := do
+  IO.println "tail-law-search-VIOLATION"
+  IO.println s!"certificate={certificate.equivalenceCanonicalString}"
+  IO.println s!"submitted={submittedJson certificate |>.compress}"
+  IO.println s!"{context} start={start} step={step} rule={repr result.kind}"
+  IO.println s!"bucket={repr observation.bucket} created={repr observation.created}"
+  IO.println s!"history={repr (result.kind :: kinds).reverse}"
+  throw (IO.userError "tail-law violation (step indices are zero-based after initialization)")
+
+-- Reachability retains the exact ExecutedHistory in Prop; its canonical tag
+-- augmentation exists by hasCanonicalTagHistory. No classical data is executed.
+private def replay (certificate : Certificate) (correct : certificate.DeclarativelyCorrect)
+    (context : String) (start : Vertex) (deadline : Nat) :
+    (state : ReservationState) → ReachableByImplementedDispatcher certificate state →
+    List Figure7RuleKind → Bool → Nat → Nat → Stats → IO Stats
+  | state, reachable, kinds, prior, step, fuel, stats => do
+      if (← IO.monoMsNow) > deadline then
+        throw (IO.userError (s!"tail-law-search-INCOMPLETE budget {context} start={start} " ++
+          s!"step={step} cases={stats.cases} histories={stats.histories} steps={stats.steps}"))
+      let invariant := reachable.schedulerInvariant correct.1
+      match equation : dispatch? certificate state invariant with
+      | none => return { stats with stops := stats.stops + 1 }
+      | some result =>
+          match fuel with
+          | 0 => throw (IO.userError s!"tail-law-search-INCOMPLETE replay fuel {context}")
+          | fuel + 1 =>
+              let observation ← match tailLawStep certificate state result prior with
+                | .ok observation => pure observation
+                | .error message => throw (IO.userError s!"tail-law-search-ERROR {message}")
+              if !observation.holds then
+                failViolation certificate context start step kinds result observation
+              else
+                let index := kindIndex result.kind
+                let stats := { stats with
+                  steps := stats.steps + 1
+                  kinds := stats.kinds.modify index (· + 1) }
+                replay certificate correct context start deadline result.after
+                  (reachable.dispatch invariant equation) (result.kind :: kinds)
+                  observation.holds (step + 1) fuel stats
+
+-- Kept identical to the six ordering families in ProofNetIRNewProgressAudit.
+-- That executable has a global main, so importing it would collide with main here.
+private def rotateList (values : List α) (offset : Nat) : List α :=
+  let pivot := if values.isEmpty then 0 else offset % values.length
+  values.drop pivot ++ values.take pivot
+
+private def parityPermutation (values : List α) (oddFirst : Bool) : List α :=
+  let indexed := values.zipIdx
+  let even := indexed.filterMap fun (value, index) ↦
+    if index % 2 == 0 then some value else none
+  let odd := indexed.filterMap fun (value, index) ↦
+    if index % 2 == 1 then some value else none
+  if oddFirst then odd ++ even else even ++ odd
+
+private def positiveVariants (certificate : Certificate) (seed : Nat) :
+    List (String × Certificate) :=
+  [ ("original", certificate),
+    ("reverse-links", { certificate with links := certificate.links.reverse }),
+    ("reverse-boundary", { certificate with conclusions := certificate.conclusions.reverse }),
+    ("rotate-links", { certificate with links := rotateList certificate.links (seed * 17 + 5) }),
+    ("parity-links", { certificate with
+      links := parityPermutation certificate.links (seed.testBit 3) }),
+    ("mixed-links-boundary", { certificate with
+      links := parityPermutation certificate.links (seed.testBit 4)
+      conclusions := rotateList certificate.conclusions (seed * 31 + 11) }) ]
+
+private def inspectCertificate (certificate : Certificate) (context : String)
+    (startCap deadline : Nat) (stats : Stats) : IO Stats := do
+  if accepted : certificate.unificationCheck = true then
+    let correct : certificate.DeclarativelyCorrect :=
+      certificate.check_iff_declarativelyCorrect.mp
+        (certificate.unificationCheck_eq_check ▸ accepted)
+    let mut stats := { stats with cases := stats.cases + 1 }
+    let mut selected := 0
+    -- Probe every vertex so the summary reports the complete accepted-start
+    -- population. Replay the first `startCap` successes in vertex order.
+    for start in List.range certificate.formulas.size do
+      match equation : initializeReservation? certificate start with
+      | none => pure ()
+      | some state =>
+          stats := { stats with acceptedStarts := stats.acceptedStarts + 1 }
+          if selected < startCap then
+            selected := selected + 1
+            stats ← replay certificate correct context start deadline state
+              (dispatcher_reachable_of_initializeReservation?_eq_some equation) [] true 0
+              (16 * (certificate.formulas.size + certificate.links.length + 1))
+              { stats with histories := stats.histories + 1 }
+          else
+            stats := { stats with skippedStarts := stats.skippedStarts + 1 }
+    return stats
+  else
+    throw (IO.userError s!"tail-law-search-ERROR rejected generated certificate {context}")
+
+private def inspectTree (tree : CutFreeDerivation) (seed : Nat) (context : String)
+    (startCap deadline : Nat) (stats : Stats) : IO Stats := do
+  let some certificate := tree.desequentialize?
+    | throw (IO.userError s!"tail-law-search-ERROR malformed derivation {context}")
+  let mut stats := stats
+  for (name, variant) in positiveVariants certificate seed do
+    stats ← inspectCertificate variant s!"{context} variant={name}" startCap deadline stats
+  return stats
+
+private structure Shape where
+  tree : CutFreeDerivation
+  boundary : Nat
+
+private def axiomShape : Shape := ⟨.axiom "p" true, 2⟩
+
+private def parShape (child : Shape) : Shape :=
+  ⟨.par 0 0 child.tree, child.boundary - 1⟩
+
+private def tensorShape (left right : Shape) : Shape :=
+  ⟨.tensor 0 0 left.tree right.tree, left.boundary + right.boundary - 1⟩
+
+private def relabelTree (seed : Nat) : CutFreeDerivation → CutFreeDerivation
+  | .axiom _ _ => .axiom s!"p{seed % 11}" (seed.testBit 0)
+  | .par left right child => .par left right (relabelTree (seed * 2 + 1) child)
+  | .tensor leftFocus rightFocus left right =>
+      .tensor leftFocus rightFocus (relabelTree (seed * 2 + 1) left)
+        (relabelTree (seed * 2 + 2) right)
+  | .exchange order child => .exchange order (relabelTree (seed * 2 + 1) child)
+
+private def enumerateDepth (levels : Array (Array Shape)) (depth : Nat)
+    (visit : Shape → IO Unit) : IO Unit := do
+  if depth == 0 then
+    visit axiomShape
+  else
+    for child in levels[depth - 1]! do
+      if child.boundary ≥ 2 then visit (parShape child)
+    for leftDepth in List.range depth do
+      let rightDepth := depth - 1 - leftDepth
+      for left in levels[leftDepth]! do
+        for right in levels[rightDepth]! do
+          visit (tensorShape left right)
+
+private def summary (stats : Stats) (depth labelVariants orderVariants startCap
+    randomSeeds elapsed : Nat) : String :=
+  s!"cases={stats.cases} histories={stats.histories} steps={stats.steps} " ++
+    s!"depths=0..{depth} shapes={stats.shapes} label_variants={labelVariants} " ++
+    s!"order_variants={orderVariants} starts_cap={startCap} " ++
+    s!"accepted_starts={stats.acceptedStarts} skipped_starts={stats.skippedStarts} " ++
+    s!"random_depths=6..7 seeds={randomSeeds} dispatch_none={stats.stops} " ++
+    s!"rules={repr stats.kinds} elapsed_ms={elapsed}"
+
+private def run (smoke : Bool) : IO Unit := do
+  let started ← IO.monoMsNow
+  let deadline := started + 600000
+  let statsRef ← IO.mkRef ({} : Stats)
+  let randomSeeds := if smoke then 0 else 4
+  let labelVariants := if smoke then 1 else 8
+  let orderVariants := 6
+  let startCap := if smoke then 2 else 4
+  -- Run the deep seeded families first so an interrupted exhaustive layer does
+  -- not silently erase the promised random-depth coverage.
+  for depth in [6, 7] do
+    for seed in List.range randomSeeds do
+      let stats ← inspectTree (CutFreeDerivation.generate seed depth) seed
+        s!"random_depth={depth} seed={seed}" startCap deadline (← statsRef.get)
+      statsRef.set stats
+  let mut levels : Array (Array Shape) := #[]
+  let target := if smoke then 2 else 5
+  let mut completed := 0
+  for depth in List.range (target + 1) do
+    let layerRef ← IO.mkRef (#[] : Array Shape)
+    let countRef ← IO.mkRef 0
+    try
+      enumerateDepth levels depth fun shape ↦ do
+        let index ← countRef.get
+        let priorStats ← statsRef.get
+        let mut stats := { priorStats with shapes := priorStats.shapes + 1 }
+        for labelSeed in List.range labelVariants do
+          stats ← inspectTree (relabelTree labelSeed shape.tree)
+            (index * labelVariants + labelSeed)
+            s!"depth={depth} shape={index} label={labelSeed}"
+            startCap deadline stats
+        statsRef.set stats
+        countRef.set (index + 1)
+        layerRef.modify (·.push shape)
+    catch error =>
+      IO.println (s!"tail-law-search-coverage {summary (← statsRef.get) completed
+        labelVariants orderVariants startCap randomSeeds ((← IO.monoMsNow) - started)} " ++
+          s!"partial_depth={depth} partial_shapes={← countRef.get}")
+      throw error
+    levels := levels.push (← layerRef.get)
+    completed := depth
+  let stats ← statsRef.get
+  unless smoke || (stats.cases ≥ 20000 && completed ≥ 5 && stats.stops == stats.histories) do
+    throw (IO.userError s!"tail-law-search-INCOMPLETE coverage {repr stats}")
+  let label := if smoke then "tail-law-search-smoke-ok" else "tail-law-search-ok"
+  IO.println s!"{label} {summary stats completed labelVariants orderVariants startCap
+    randomSeeds ((← IO.monoMsNow) - started)}"
+
+end ProofNetIRTailLawSearch
+
+def main (args : List String) : IO Unit := do
+  match args with
+  | [] => ProofNetIRTailLawSearch.run false
+  | ["--smoke"] => ProofNetIRTailLawSearch.run true
+  | _ => throw (IO.userError "usage: proofnet_ir_tail_law_search [--smoke]")

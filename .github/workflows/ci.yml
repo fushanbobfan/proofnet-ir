@@ -209,6 +209,8 @@ jobs:
           ~/.elan/bin/lake exe proofnet_ir_new_region_tests
       - name: Audit reachable Figure-7 New and marked-tensor predecessor cases
         run: ~/.elan/bin/lake exe proofnet_ir_new_progress_audit
+      - name: Search finite canonical Figure-7 history-tail counterexamples
+        run: ~/.elan/bin/lake exe proofnet_ir_tail_law_search
       - name: Audit New/Wait/Forward/Unify-created candidate source regions
         run: >-
           ~/.elan/bin/lake exe proofnet_ir_new_progress_audit

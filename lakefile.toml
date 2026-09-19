@@ -2,6 +2,7 @@ name = "proofnet-ir"
 version = "0.10.0-dev"
 defaultTargets = [
   "ProofNetIR",
+  "proofnet_ir_tail_law_search",
   "proofnet_ir_tests",
   "proofnet_ir_consumer_index_tests",
   "proofnet_ir_figure7_primitives_tests",
@@ -649,6 +650,10 @@ root = "ProofNetIRUnificationCompletenessSearch"
 [[lean_exe]]
 name = "proofnet_ir_new_progress_audit"
 root = "ProofNetIRNewProgressAudit"
+
+[[lean_exe]]
+name = "proofnet_ir_tail_law_search"
+root = "ProofNetIRTailLawSearch"
 
 [[lean_exe]]
 name = "proofnet_ir_api_docs"

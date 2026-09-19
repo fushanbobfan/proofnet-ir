@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- added a finite search for `CanonicalTagHistory.ActiveTopDebtTailLaw`, using
+  checked derivation-generated certificates, eight label/polarity decorations,
+  six ordering variants, a deterministic accepted-start cap, and exact canonical
+  dispatcher replay. It checks every prefix's remaining-bucket and created-head
+  conditions and reports exhaustive constructor-depth, total accepted-start,
+  selected-history, and seeded-generator coverage. Budget or coverage
+  exhaustion fails closed. This is finite evidence only: no theorem, universal
+  tail law, unconditional progress, or termination result is proved;
 - added a compact convergence ledger and a standard-library-only convergence
   checker. The checker caps new module count and path length, public theorem
   name length, repeated prose, and growth of oversized maintained documents;

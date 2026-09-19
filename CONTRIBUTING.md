@@ -93,6 +93,7 @@ The current Figure-7 regression and finite-audit entry points include:
 ```powershell
 lake exe proofnet_ir_figure7_primitives_tests
 lake exe proofnet_ir_new_progress_audit
+lake exe proofnet_ir_tail_law_search
 lake exe proofnet_ir_new_progress_audit --extended
 lake exe proofnet_ir_new_progress_audit --cross-representative-search
 ```
