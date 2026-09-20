@@ -40,14 +40,16 @@ Proved on `main` beyond `v0.9.0`:
   (`CanonicalTagHistory.dispatch_or_allMarked`). The proof uses an order-free
   region-closure invariant of the ready stack and switching connectedness:
   a drained active region has no boundary edge, so it is the whole net;
-- a sound sequential fast path, `Certificate.sequentialFastCheck`, that runs
+- a complete sequential fast path: `Certificate.sequentialFastCheck` runs
   the dispatcher to a stop and accepts only an independently verified
-  derivation; initialization succeeds at every in-bounds start.
+  derivation, and `sequentialFastCheck_eq_check` proves it decides exactly
+  the reference checker, with no switching enumeration and no recursive
+  reconstruction.
 
 Open, with exact target statements in the [goal ledger](docs/goal-ledger.md):
-completeness of the sequential fast path and removal of the recursive
-fallback (D1, D2), later-state start selection and completion of the
-executable (D5), and a whole-program cost bound (D6).
+making the sequential fast path the public decision without the recursive
+fallback (D2), completion of the Figures 7–8 executable (D5), and a
+whole-program cost bound (D6).
 [Current status](docs/current-status.md) holds the exact revision,
 verification receipts, and gates.
 <!-- ROLLING_MAIN_SUMMARY_END -->
