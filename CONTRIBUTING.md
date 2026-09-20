@@ -114,7 +114,12 @@ python scripts/test_check_convergence.py
 
 A checkpoint reaches `main` only if it proves or refutes a ledger hypothesis,
 closes a roadmap item, or is maintenance with no new public theorem. Wrapper
-transports stay on branches. Use `--explain` to print rule and cap details.
+transports stay on branches. The gate also enforces absolute line caps on the
+maintained prose documents (README 600, `CHANGELOG.md ## Unreleased` 300,
+current status 400, and per-document caps for architecture, trust, readiness,
+design, roadmap, audit, and performance pages); a document under its cap may
+not cross it, and one over its cap may only shrink. Use `--explain` to print
+rule and cap details.
 
 ## Experiment and publication gates
 
@@ -191,10 +196,11 @@ Use a small, reviewable checkpoint. A typical public module change needs:
 7. public theorem entries in `ProofNetIRAxiomAudit.lean` and
    `scripts/audit_axioms.py`;
 8. regenerated `docs/api-reference.md`;
-9. architecture, trust, readiness, design, roadmap, and changelog updates at
-   the scope actually changed;
-10. a replace-in-place update to `docs/current-status.md` if this checkpoint
-    becomes the rolling authority.
+9. one `CHANGELOG.md` entry, the matching roadmap or ledger row when the
+   checkpoint closes or refutes one, and a replace-in-place update to
+   `docs/current-status.md` if this checkpoint becomes the rolling authority;
+   no other prose document changes unless the structure it describes changed
+   (see [Documentation ownership](#documentation-ownership)).
 
 Keep helper lemmas private unless a second real consumer justifies a public
 surface. A consumer that only contains `#check` is insufficient: include an
@@ -246,9 +252,28 @@ Ordinary proof checkpoints must not append another theorem narrative, command
 list, CI receipt, or historical state to the README. Its rolling current-state
 summary should remain approximately 5–20 lines. Put details in the owner above.
 
-When restructuring documentation, preserve information by recording where each
-old section moved. Do not use Git history as the only copy of still-relevant
-material.
+Prose discipline, enforced by `scripts/check_convergence.py` through absolute
+line caps on every maintained document:
+
+- a theorem is described in prose in at most one place: its `CHANGELOG.md`
+  entry. The generated API reference carries its statement and docstring.
+  Architecture, trust, readiness, design, and roadmap documents describe
+  layers, boundaries, verdicts, routes, and plans, and change only when those
+  change, never once per theorem;
+- a `CHANGELOG.md` entry covers one mathematics checkpoint in at most twelve
+  lines. A wrapper transport, a case split, or a hypothesis refinement is not
+  a checkpoint; fold it into the family entry it serves. When `## Unreleased`
+  approaches its cap, fold the oldest entries into family entries before
+  adding the next;
+- `docs/current-status.md` is replaced, never extended: one rolling result,
+  one route summary, one receipt. "The preceding checkpoint ..." paragraphs
+  are not permitted;
+- the README rolling summary states what `main` adds, what is proved, and
+  what is open, in reader terms, without naming wrapper lemmas.
+
+When restructuring documentation, record where still-relevant material moved.
+Superseded per-checkpoint narrative is not still-relevant material: its record
+is the checkpoint's CHANGELOG entry and Git history.
 
 ## Updating current status
 

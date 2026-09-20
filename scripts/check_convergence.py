@@ -19,15 +19,21 @@ import subprocess
 import sys
 
 
+# Absolute line caps for maintained prose. A file under its cap may not cross it;
+# a file already over its cap may not grow (with the two narrow exceptions
+# below). Shrinking is always permitted.
 CAPS = {
-    "CHANGELOG.md": 300,
+    "CHANGELOG.md": 300,  # the ## Unreleased section only
     "docs/current-status.md": 400,
     "README.md": 600,
-    "docs/architecture.md": 1000,
-    "docs/trust-model.md": 1000,
-    "docs/library-readiness-audit.md": 1000,
-    "docs/source-coverage-audit.md": 1000,
-    "docs/v0.10-design.md": 1000,
+    "docs/architecture.md": 600,
+    "docs/trust-model.md": 400,
+    "docs/library-readiness-audit.md": 500,
+    "docs/source-coverage-audit.md": 200,
+    "docs/v0.10-design.md": 400,
+    "docs/roadmap.md": 600,
+    "docs/guerrini-unification-audit.md": 500,
+    "docs/performance.md": 500,
 }
 STATUS_REPLACEMENT_SLACK = 12
 THEOREM_HOMES = {
@@ -299,8 +305,9 @@ def check_growth_caps(base: dict[str, str], head: dict[str, str]) -> list[str]:
 
 
 def maintenance_notes(base: dict[str, str]) -> list[str]:
-    if capped_lines("CHANGELOG.md", base.get("CHANGELOG.md", "")) > CAPS["CHANGELOG.md"]:
-        return ["Maintenance note: roll the current 3,200-line CHANGELOG.md ## Unreleased section into a dated historical section in a docs-only commit."]
+    lines = capped_lines("CHANGELOG.md", base.get("CHANGELOG.md", ""))
+    if lines > CAPS["CHANGELOG.md"]:
+        return [f"Maintenance note: fold the oldest entries of the {lines:,}-line CHANGELOG.md ## Unreleased section into their family entries in a docs-only commit."]
     return []
 
 

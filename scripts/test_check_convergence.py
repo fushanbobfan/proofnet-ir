@@ -114,8 +114,18 @@ class ConvergenceRuleTests(unittest.TestCase):
     def test_e_over_cap_changelog_explains_maintenance(self):
         base = {"CHANGELOG.md": changelog(["- old entry"] + ["  retained"] * 300)}
         notes = check.maintenance_notes(base)
-        self.assertIn("3,200-line", notes[0])
+        self.assertIn("303-line", notes[0])
         self.assertIn("docs-only commit", notes[0])
+
+    def test_e_absolute_cap_refuses_crossing(self):
+        base = {"docs/trust-model.md": "\n".join(["old"] * 399)}
+        head = {"docs/trust-model.md": "\n".join(["old"] * 401)}
+        self.assertIn("docs/trust-model.md: 399 -> 401 lines; cap 400", check.check_growth_caps(base, head)[0])
+
+    def test_e_over_cap_file_may_shrink_but_not_grow(self):
+        base = {"docs/roadmap.md": "\n".join(["old"] * 650)}
+        self.assertEqual(check.check_growth_caps(base, {"docs/roadmap.md": "\n".join(["old"] * 640)}), [])
+        self.assertTrue(check.check_growth_caps(base, {"docs/roadmap.md": "\n".join(["old"] * 651)}))
 
     def test_f_one_place_passes_in_permitted_homes(self):
         theorem = theorem_fixture("fresh_result")[0]

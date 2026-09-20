@@ -268,6 +268,17 @@ probabilistic confidence statement, or proof of `NewCreatedRegionSeparated`,
 `UnifyPayloadCreatedRegionSeparated`. Labelled
 variants may denote equal certificates and are not independent samples.
 
+`proofnet_ir_tail_law_search` replays the canonical dispatcher over
+derivation-generated checked certificates and checks every prefix's
+remaining-bucket and created-head conditions of
+`CanonicalTagHistory.ActiveTopDebtTailLaw`. The default set covers 20,208
+certificate cases with 80,688 histories through constructor depth five;
+`--wait-focus` covers 1,152 cases with 34,560 histories
+and 25,920 `wait` steps; `--invariant-probe` evaluates the candidate state
+invariants at all 1,217,664 default and 1,071,360 wait-focus reachable
+states. All three modes run in CI, fail closed on budget exhaustion, and
+report exact first failures. Zero failures are finite evidence only.
+
 A separate `proofnet_ir_reconstruction_stress` executable exercises 18
 accepted identity nets with a single repeated internal atom. It crosses
 right-skewed tensor, balanced tensor, balanced par, and alternating shapes;
