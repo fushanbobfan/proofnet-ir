@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- extended `--invariant-probe` with C6 (mate in the active bucket), C7 (bucket
+  pars pairwise covered), C8 (raw and marked counts of the active frontier),
+  and C10, evaluated at every reachable state: a singleton active ready
+  bucket holding a par premise has its mate marked at or above the active
+  raw age. C6 and C7 fail; C8 shows at least two raw vertices at every
+  nop/wait pre-state; C10 holds at all 1,217,664 default and 1,071,360
+  wait-focus reachable states. C10 is the candidate reachable-state
+  invariant for H-tail; nothing is proved and no ledger item is closed;
 - added `--invariant-probe` to the existing history-tail search and CI. It
   counts C1 at Nop, C2 at Wait, and C3--C5 at both rules on the default and
   wait-focused sets, reports first failures with exact occurrence data, and

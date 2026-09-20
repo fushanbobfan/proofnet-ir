@@ -25,6 +25,8 @@ It checks all accepted starts after prioritizing one per distinct initial axiom
 region, and measures the exact mate-age classes that limit wait applicability.
 
 `--invariant-probe` runs both certificate sets and measures C1 at every nop,
+C6--C8 at nop and wait, C10 at every reachable state (a singleton active bucket
+holding a par premise has its mate marked at or above the active age), and
 C2 at every wait, and C3--C5 separately at both rules, before the popped head
 receives its raw mark. C4 counts submitted pars with exactly one premise whose
 raw mark resolves to the active component, including marks created at older
@@ -109,7 +111,9 @@ private structure ProbeCount where
 
 private def probeLabels : Array String :=
   #["C1 rule=nop", "C2 rule=wait", "C3 rule=nop", "C3 rule=wait",
-    "C4 rule=nop", "C4 rule=wait", "C5 rule=nop", "C5 rule=wait"]
+    "C4 rule=nop", "C4 rule=wait", "C5 rule=nop", "C5 rule=wait",
+    "C6 rule=nop", "C6 rule=wait", "C7 rule=nop", "C7 rule=wait",
+    "C8raw2 rule=nop", "C8raw2 rule=wait", "C8nomark rule=nop", "C8nomark rule=wait"]
 
 private structure Stats where
   cases : Nat := 0
@@ -129,7 +133,9 @@ private structure Stats where
   parMateNotOlder : Nat := 0
   parMateMissing : Nat := 0
   invariantProbe : Bool := false
-  probes : Array ProbeCount := Array.replicate 8 {}
+  probes : Array ProbeCount := Array.replicate 16 {}
+  singletonStates : Nat := 0
+  singletonParFails : Nat := 0
   deriving Repr
 
 private def kindIndex : Figure7RuleKind → Nat
@@ -211,8 +217,24 @@ private def observeInvariants (certificate : Certificate) (state : ReservationSt
   let offset := if isWait then 1 else 0
   let localCandidate := if isWait then marked consumer.mate && p
     else unmarked consumer.mate && component.frontier.contains consumer.mate
+  let bucket := prepared.stackResult.remainingTop
+  let mateInBucket := bucket.contains consumer.mate
+  let olderMarked := fun vertex ↦ match state.core.marks[vertex]? with
+    | some (some rawAge) => rawAge < age
+    | _ => false
+  let bucketParsCovered := bucket.all fun vertex ↦
+    match certificate.connectiveBelow? vertex with
+    | some other => other.kind != .par || bucket.contains other.mate || olderMarked other.mate
+    | none => true
+  -- C8: the active frontier is a derivation's conclusion list; count how many of
+  -- its vertices are raw versus marked, and whether the tree is a bare axiom.
+  let rawCount := component.frontier.countP unmarked
+  let markedCount := component.frontier.length - rawCount
+  let treeIsAxiom := match component.tree with | .axiom _ _ => true | _ => false
   let observations := [(offset, localCandidate), (2 + offset, !debt || payers.length ≥ 2),
-    (4 + offset, payers.length ≥ singleMarkedPars), (6 + offset, p)]
+    (4 + offset, payers.length ≥ singleMarkedPars), (6 + offset, p),
+    (8 + offset, mateInBucket), (10 + offset, bucketParsCovered && p),
+    (12 + offset, rawCount ≥ 2), (14 + offset, markedCount == 0)]
   let mut stats := stats
   for (index, holds) in observations do
     let prior := stats.probes[index]!
@@ -225,11 +247,40 @@ private def observeInvariants (certificate : Certificate) (state : ReservationSt
       let frontierMarks := Lean.toJson (component.frontier.map fun vertex ↦
         (vertex, state.core.marks[vertex]?))
       IO.println (s!"frontier_marks={frontierMarks.compress} payers={repr payers} " ++
-        s!"single_marked_pars={singleMarkedPars}")
+        s!"single_marked_pars={singleMarkedPars} raw={rawCount} marked={markedCount} " ++
+        s!"tree_is_axiom={treeIsAxiom} sigma={repr state.stack.sigma} ready={repr state.stack.ready}")
     let next := if holds then { prior with holds := prior.holds + 1 }
       else { prior with fails := prior.fails + 1 }
     stats := { stats with probes := stats.probes.set! index next }
   return stats
+
+-- C9 is evaluated at every reachable state, not only before nop/wait: an active
+-- ready bucket of length exactly one never holds a par premise.
+private def observeSingletonBucket (certificate : Certificate) (state : ReservationState)
+    (context : String) (start step : Nat) (stats : Stats) : IO Stats := do
+  if !stats.invariantProbe then
+    return stats
+  -- C10: a singleton active bucket whose element is a par premise must have a
+  -- mate that is marked with the active raw age itself (so the next rule is
+  -- forward, never nop or wait). Any other mate status is a failure.
+  let holds := match state.stack.sigma.getLast?, state.stack.ready.getLast? with
+    | some age, some [vertex] =>
+        match certificate.connectiveBelow? vertex with
+        | some consumer =>
+            consumer.kind != .par ||
+              (match state.core.marks[consumer.mate]? with
+                | some (some mateAge) => mateAge ≥ age
+                | _ => false)
+        | none => true
+    | _, _ => true
+  if !holds && stats.singletonParFails == 0 then
+    IO.println "invariant-probe-first-failure C10 singleton-par-mate-not-current"
+    IO.println s!"certificate={certificate.canonicalString}"
+    IO.println (s!"{context} start={start} step={step} sigma={repr state.stack.sigma} " ++
+      s!"ready={repr state.stack.ready}")
+  return { stats with
+    singletonStates := stats.singletonStates + 1
+    singletonParFails := stats.singletonParFails + (if holds then 0 else 1) }
 
 private def printProbe (setName : String) (stats : Stats) : IO Unit := do
   if stats.invariantProbe then
@@ -240,6 +291,8 @@ private def printProbe (setName : String) (stats : Stats) : IO Unit := do
         throw (IO.userError s!"invariant-probe-ERROR incomplete counts {probeLabels[index]!}")
       IO.println (s!"invariant-probe set={setName} {probeLabels[index]!} " ++
         s!"holds={count.holds} fails={count.fails}")
+    IO.println (s!"invariant-probe set={setName} C10 singleton-par-mate-current states={stats.singletonStates} " ++
+      s!"fails={stats.singletonParFails}")
 
 private def failViolation (certificate : Certificate) (context : String) (start step : Nat)
     (kinds : List Figure7RuleKind) (result : Figure7DispatchResult)
@@ -263,6 +316,7 @@ private def replay (certificate : Certificate) (correct : certificate.Declarativ
         throw (IO.userError (s!"tail-law-search-INCOMPLETE budget {context} start={start} " ++
           s!"step={step} cases={stats.cases} histories={stats.histories} steps={stats.steps}"))
       let stats := if measureWaitGuard then observeWaitGuard certificate state stats else stats
+      let stats ← observeSingletonBucket certificate state context start step stats
       let invariant := reachable.schedulerInvariant correct.1
       match equation : dispatch? certificate state invariant with
       | none => return { stats with stops := stats.stops + 1 }
