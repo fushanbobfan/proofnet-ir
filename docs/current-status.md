@@ -17,7 +17,7 @@ Status date: 2026-09-20
 | Track | Revision | Status | Authority |
 | --- | --- | --- | --- |
 | Stable library | `v0.9.0` / `9b7dc3d104af8f57ea9123aab2e61b42e05d2216` | Released | [v0.9.0 release audit](v0.9-release-audit.md) |
-| Rolling research | `v0.10.0-dev`; proof `ea64f0b`; audit `1e46573` | Active | This page/commits |
+| Rolling research | `v0.10.0-dev`; proof `8ee8053`; audit `1e46573` | Active | This page/commits |
 
 Documentation-only commits may descend from the proof checkpoint without
 changing its mathematical authority. The stable release and rolling branch
@@ -46,20 +46,21 @@ The exact release guarantees, receipts, and non-goals are frozen in the
 
 ## Rolling main result
 
-The C12 checkpoint reduces the `nop` and `wait` branches of the history-tail
-law to one state predicate. `ParHeadGuardTailNonconclusion` (C12) says that
-when the active ready bucket's head is a par premise whose mate is unmarked or
-marked below the active raw age, the rest of the bucket holds a non-conclusion.
-Every correct initialization satisfies C12
-(`InitialReservationStep.parHeadGuardTail`), and C12 on the pre-state
-discharges the exact remaining-top obligation of a `nop` or `wait` step
-(`NopStep.tailNonconclusion_of_parHeadGuard`,
-`WaitStep.tailNonconclusion_of_parHeadGuard`). C12 is not a state-only
-inductive invariant: `parHeadGuardTail_not_inductive` exhibits a correct
-certificate and a `SchedulerInvariant` state satisfying C12 whose canonical
-`nop` successor violates it, and proves that pre-state canonically
-unreachable. The finite probe reports C12 at every one of 1,217,664 default
-and 1,071,360 wait-focus reachable states.
+The region-closure checkpoint derives C12 from an order-free state predicate
+and switching connectedness. `RegionClosure` places every marked vertex in the
+class of the sigma boundary below its raw mark and requires the marked part of
+each region (a class plus its ready bucket) to be closed under the link
+structure except at pars whose other premise lies outside, with no tensor
+premise of the active class waiting for its `new`.
+`RegionClosure.guardedParHeadTail` proves that closure, `SchedulerInvariant`,
+and `DeclarativelyCorrect` give `ParHeadGuardTailNonconclusion` (C12): cutting
+every boundary par of the active region yields a switching whose boundary edge
+(`boundary_edge_of_correct`) must start at a raw non-conclusion of the bucket.
+`RegionClosure.ofInitialReservation` proves closure after every correct
+initialization. The finite probe reports the executable form of the predicate
+at all 1,217,664 default and 1,071,360 wait-focus reachable states, preserved
+by every rule on 15,405,918 closure-satisfying snapshot edges, and implying C12
+at each of them. Its preservation by the six rules is unproved.
 
 The route to this checkpoint, in dependency order, is:
 
@@ -81,7 +82,9 @@ The route to this checkpoint, in dependency order, is:
    ready-tail failure (the commitment-interval, raw-return, and waiting-mate
    families of August 2026), none of which discharges the obligation;
 5. the termination bound `dispatch_stops` (ledger item D4, closed);
-6. C12 above, which is the `nop`/`wait` half of item 3 as a state predicate.
+6. C12, the `nop`/`wait` half of item 3 as a state predicate, proved after
+   every correct initialization and certified not state-only inductive;
+7. `RegionClosure` above, from which C12 follows by connectedness.
 
 Exact statements are in the [goal ledger](goal-ledger.md); declarations are
 in the generated [API reference](api-reference.md).
@@ -105,10 +108,10 @@ evidence, not a proof of progress; exact counters are maintained in
 
 This checkpoint does not establish any of the following:
 
-- C12 at every canonically reachable state, the history-tail law, the
-  created-head obligations of the `forward` and `unifyPayload` branches, or
-  unconditional progress; the certified obstruction shows that any proof must
-  carry reachability information beyond `SchedulerInvariant` and C12;
+- preservation of `RegionClosure` by any dispatcher rule, hence C12 at every
+  canonically reachable state, the history-tail law, the created-head
+  obligations of the `forward` and `unifyPayload` branches, or unconditional
+  progress; the probe's zero failures are finite evidence only;
 - progress, later-state totality, or terminal-state completeness from the
   termination bound, which counts successful calls and says nothing about the
   state in which a run stops;
@@ -137,12 +140,12 @@ statements are in the [goal ledger](goal-ledger.md); the proof plan is in
 The exact rolling proof checkpoint is:
 
 ```text
-commit    ea64f0b03b93ab556958162741c5bb591c618f5a
-tree      2d73c39aef2d332604cbdf683695221ef1caff20
-parent    b769d1d0ddc4b7624e612585fcce6ebee20684dd
-stage     certify the C12 preservation obstruction
-delta     12 paths, +603/-2
-manifest  EA32864D0381C05F4E54493F592561AF1A792F7A54446C18581399EFFB026830
+commit    8ee80533f8e8a0f3283b1d5fe8c83a28a052a8f7
+tree      8a5e30688ecc70c5b5fa76f132064542797e9880
+parent    4d337aaba62a7c0bcf051a62ff637023a172b555
+stage     derive C12 from region closure and switching connectedness
+delta     11 paths, +988/-1
+manifest  96BA3817F8E699914964F46461EAF36CCDC0A3B4D2A797F89DB6B840DCA1003E
 ```
 
 The manifest hashes canonical
@@ -151,9 +154,9 @@ The manifest hashes canonical
 The checkpoint source receipts are:
 
 ```text
-tail-law source    571FC55B2B76AB15641D883FAAF4B9186DA0D017A328E26A54AAA6B3F1FC223D
-tail-law consumer  2E6E5B8B5F80E072DC5DE5A186DE6E4A835AC28BA7CCAAA526330FC5B9A36BCF
-generated API      27B2A5716ED6908E8C654C9B9CEED0D63B051D6956A330BA3D385F26898CBC91
+closure source     36E14DDF990C1561AFD50049A42BFC0F3008675249EE87F0B035340907E2ADD1
+closure consumer   D0FE2C317572A9C589475726CF0B55F93E754C9EE2F54A6ADCBA450ECC49131A
+generated API      8CCB27E18C50B50ACE3142BB80E02710975D2FD0F4BE53B252DB8412C157B329
 ```
 
 The separately committed finite-audit evidence is:
@@ -169,38 +172,36 @@ manifest  4BBAB7FC99D03D2612459A0FD9291990313A05A184F2572A581BC93C6E49DFDD
 
 Local verification of the committed checkpoint:
 
-- full `lake build`: 722/722 jobs;
-- the four public declarations of the checkpoint report exactly `propext`,
+- full `lake build`: 727/727 jobs;
+- the three public theorems of the checkpoint report exactly `propext`,
   `Classical.choice`, and `Quot.sound`; the module and its consumer compile
   under `--trust=0`, and the consumer printed
-  `C12 consumer passed: initialization, nop/wait implications, preservation
-  obstruction`;
-- public theorem audit: 1119 entries total: 821 standard-three, 25 axiom-free,
+  `Region-closure consumer passed: initialization, C12 from closure, switching
+  boundary`;
+- public theorem audit: 1122 entries total: 824 standard-three, 25 axiom-free,
   132 `propext`-only, and 141 `propext`/`Quot.sound` boundaries;
 - generated API reference current; convergence check passed (one new module,
-  four new public theorems, 306 library lines, 7 prose lines);
-- `--invariant-probe`: C12 holds at all 1,217,664 default and 1,071,360
-  wait-focus reachable states; the C13 suffix strengthening fails at 173,226
-  and 474,336 of them;
+  three new public theorems, 746 library lines, 12 prose lines);
+- `--inductiveness-probe`: CLOSURE preserved by all six rules with zero
+  failures on both sets and `CLOSURE-implies-C12 c12-fails=0` at 6,613,062
+  default and 8,792,856 wait-focus closure states (12m29s locally);
 - `git diff --check` clean on the staged delta.
 
 Exact-head proof GitHub verification:
 
 - workflow: `Lean CI`;
 - event/ref: `push` / `main`;
-- run: [35487810755](https://github.com/fushanbobfan/proofnet-ir/actions/runs/35487810755);
-- build job: [106017290541][proof-job];
-- title/attempt: `docs: record the C12 obstruction in the goal ledger` / 1
-  (the run covers head `4d1c6bd`, whose only change over `ea64f0b` is the
-  ledger row);
-- exact head: `4d1c6bd3e37df1ae3b2718d3b26724301e694873`;
-- result: 40 successful steps, zero failures, and one expected
+- run: [35505402791](https://github.com/fushanbobfan/proofnet-ir/actions/runs/35505402791);
+- build job: [106064234866][proof-job];
+- title/attempt: `feat: derive C12 from region closure and switching connectedness` / 1;
+- exact head: `8ee80533f8e8a0f3283b1d5fe8c83a28a052a8f7`;
+- result: 41 successful steps, 0 failures, and 1 expected
   release-ref-only skip;
-- run: `2026-09-20T03:55:09Z`-`2026-09-20T04:11:04Z` (15m55s);
-- build job: `2026-09-20T03:55:12Z`-`2026-09-20T04:11:03Z`
-  (15m51s).
+- run: `2026-09-20T10:33:21Z`-`2026-09-20T10:46:15Z` (12m54s);
+- build job: `2026-09-20T10:33:24Z`-`2026-09-20T10:46:14Z`
+  (12m50s).
 
-[proof-job]: https://github.com/fushanbobfan/proofnet-ir/actions/runs/35487810755/job/106017290541
+[proof-job]: https://github.com/fushanbobfan/proofnet-ir/actions/runs/35505402791/job/106064234866
 
 Exact-head finite-audit GitHub verification:
 
