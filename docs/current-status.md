@@ -136,7 +136,8 @@ This checkpoint does not establish any of the following:
   `core.allMarked = true`, semantic completion, or terminality;
 - exhaustive enabledness beyond `dispatch_or_allMarked`: a reachable state
   that is not fully marked dispatches, but which rule fires is not classified;
-- pure-worklist completeness (D1) or removal of the recursive fallback (D2);
+- completeness of any checker-free fast path (D1) or removal of the recursive
+  fallback (D2);
 - later-state `NEXTAXIOM` start selection and completion of the Figures 7–8
   executable (D5); or
 - a Guerrini-style whole-program linear bound (D6).
@@ -279,8 +280,10 @@ target statements in the [goal ledger](goal-ledger.md), are:
 
 1. derive the later-state `NEXTAXIOM` start selection and the remaining
    totality needed to complete the Figures 7–8 executable (D5);
-2. prove pure-worklist completeness and remove the recursive fallback without
-   weakening the accepted-certificate theorem (D1, D2);
+2. prove completeness of the sequential fast path (`sequentialFastCheck =
+   check`, from D3, D4, and the single verifiable derivation of a fully marked
+   final state) and make it the public decision without the recursive
+   fallback (D1, D2, retargeted from the flat worklist on 2026-09-20);
 3. prove a whole-program cost theorem over every implemented operation (D6);
 4. continue the traceable, page/chapter-level literature matrix without
    treating file discovery or structural scans as completed reading;

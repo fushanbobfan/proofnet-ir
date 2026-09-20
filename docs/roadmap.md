@@ -428,7 +428,9 @@
     no observed miss or false positive.
   - [ ] Prove
     `Certificate.unificationWorklistFastCheck = Certificate.check` for the
-    current event-driven worklist path (ledger item D1).
+    current event-driven worklist path (ledger item D1-flat; since
+    2026-09-20 the critical path for a complete fast path is the sequential
+    executable in the v0.10 section).
     - [x] Prove that canonical initialization plus the complete production
       worklist run preserve abstraction, ordered parents, component/formula
       consistency, exact pending-premise frontier coverage, atomic
@@ -452,8 +454,8 @@
       modulo the marked-domain/occurrence-thread quotient, and use it to
       exclude the closing-par base. Closing-par exclusion remains open.
     - [ ] Prove correct-quiescent-state progress.
-  - [ ] Remove the recursive reconstruction fallback only after pure worklist
-    completeness is kernel checked (D2).
+  - [ ] Remove the recursive reconstruction fallback only after a complete
+    fast path is kernel checked (D2; see the v0.10 section).
 - [x] Publish `v0.9.0`, verify release-candidate, automatic tag-push, and
   explicit `release_ref=v0.9.0` CI, and pin a clean consumer to the exact
   public tag.
@@ -518,6 +520,14 @@ Exact target statements for the open items are in the
   dispatcher, and later-state totality; then replace the prototype's eager
   axiom starts and flat waiting requeues with the complete Figures 7–8
   executable (D5).
+- [ ] Define `Certificate.sequentialFastCheck` (initialize at the first
+  conclusion, run `dispatch?` to a stop, verify the final derivation) and
+  prove `sequentialFastCheck = check` from D3, D4, and the single verifiable
+  derivation of a fully marked final state (D1, retargeted from the flat
+  worklist on 2026-09-20; the flat-worklist statement stays open as D1-flat).
+- [ ] Make `Certificate.unificationCheck` the sequential fast path alone,
+  removing the recursive reconstruction fallback, with
+  `unificationCheck = check` kept as a theorem (D2).
 - [ ] State a whole-program cost theorem over every implemented operation,
   covering frontier search, representative lookup, verification, and fallback
   (D6).

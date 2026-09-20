@@ -42,9 +42,9 @@ Proved on `main` beyond `v0.9.0`:
   a drained active region has no boundary edge, so it is the whole net.
 
 Open, with exact target statements in the [goal ledger](docs/goal-ledger.md):
-pure worklist completeness and fallback removal (D1, D2), later-state start
-selection and completion of the executable (D5), and a whole-program cost
-bound (D6).
+completeness of the sequential fast path and removal of the recursive
+fallback (D1, D2), later-state start selection and completion of the
+executable (D5), and a whole-program cost bound (D6).
 [Current status](docs/current-status.md) holds the exact revision,
 verification receipts, and gates.
 <!-- ROLLING_MAIN_SUMMARY_END -->
