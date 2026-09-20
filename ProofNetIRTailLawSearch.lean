@@ -24,6 +24,12 @@ the unconsumed frontiers of two independently axiom-started tensor children.
 It checks all accepted starts after prioritizing one per distinct initial axiom
 region, and measures the exact mate-age classes that limit wait applicability.
 
+`--invariant-probe` runs both certificate sets and measures C1 at every nop,
+C2 at every wait, and C3--C5 separately at both rules, before the popped head
+receives its raw mark. C4 counts submitted pars with exactly one premise whose
+raw mark resolves to the active component, including marks created at older
+raw ages. First failures include the submitted occurrence numbering.
+
 The ten-minute limit is checked between complete histories. Exhausting replay
 fuel or missing the requested coverage fails closed and never prints `-ok`.
 There is no theorem here, including no Boolean-reflection or completeness theorem.
@@ -96,6 +102,15 @@ private def tailLawStep (certificate : Certificate) (before : ReservationState)
         bucket
         created := some consumer.conclusion }
 
+private structure ProbeCount where
+  holds : Nat := 0
+  fails : Nat := 0
+  deriving Repr, Inhabited
+
+private def probeLabels : Array String :=
+  #["C1 rule=nop", "C2 rule=wait", "C3 rule=nop", "C3 rule=wait",
+    "C4 rule=nop", "C4 rule=wait", "C5 rule=nop", "C5 rule=wait"]
+
 private structure Stats where
   cases : Nat := 0
   shapes : Nat := 0
@@ -113,6 +128,8 @@ private structure Stats where
   parMateOlder : Nat := 0
   parMateNotOlder : Nat := 0
   parMateMissing : Nat := 0
+  invariantProbe : Bool := false
+  probes : Array ProbeCount := Array.replicate 8 {}
   deriving Repr
 
 private def kindIndex : Figure7RuleKind → Nat
@@ -157,6 +174,73 @@ private def submittedJson (certificate : Certificate) : Lean.Json :=
     ("links", .arr (certificate.links.toArray.map Certificate.linkJson)),
     ("conclusions", Lean.toJson certificate.conclusions)]
 
+-- All observations use the pre-state, never coreMarked from prepare?. C1/C2
+-- have their requested rule-specific domains; the other candidates cover both.
+private def observeInvariants (certificate : Certificate) (state : ReservationState)
+    (context : String) (start step : Nat) (result : Figure7DispatchResult)
+    (stats : Stats) : IO Stats := do
+  if !stats.invariantProbe || !(result.kind == .nop || result.kind == .wait) then
+    return stats
+  let some prepared := prepare? state
+    | throw (IO.userError "invariant-probe-ERROR missing prepared prefix")
+  let head := prepared.stackResult.vertex
+  let age := prepared.stackResult.rawAge
+  let some consumer := certificate.connectiveBelow? head
+    | throw (IO.userError "invariant-probe-ERROR missing par consumer")
+  unless consumer.kind == .par do
+    throw (IO.userError "invariant-probe-ERROR nop/wait consumer is not par")
+  let some (some component) := state.core.components[age]?
+    | throw (IO.userError "invariant-probe-ERROR missing active component")
+  let unmarked := fun vertex ↦ state.core.marks[vertex]? == some none
+  let marked := fun vertex ↦ match state.core.marks[vertex]? with
+    | some (some _) => true
+    | _ => false
+  let activeMarked := fun vertex ↦ match state.core.marks[vertex]? with
+    | some (some rawAge) => state.core.representative rawAge == age
+    | _ => false
+  let nonconclusion := fun vertex ↦ !certificate.conclusions.contains vertex
+  let payers := component.frontier.filter fun vertex ↦ unmarked vertex && nonconclusion vertex
+  let debt := component.frontier.any fun vertex ↦ marked vertex && nonconclusion vertex
+  let singleMarkedPars := certificate.links.countP fun link ↦ match link with
+    | .par left right _ => activeMarked left != activeMarked right
+    | _ => false
+  let p := payers.any (· != head)
+  unless p == hasNonconclusion certificate prepared.stackResult.remainingTop do
+    throw (IO.userError "invariant-probe-ERROR frontier P disagrees with remainingTop")
+  let isWait := result.kind == .wait
+  let offset := if isWait then 1 else 0
+  let localCandidate := if isWait then marked consumer.mate && p
+    else unmarked consumer.mate && component.frontier.contains consumer.mate
+  let observations := [(offset, localCandidate), (2 + offset, !debt || payers.length ≥ 2),
+    (4 + offset, payers.length ≥ singleMarkedPars), (6 + offset, p)]
+  let mut stats := stats
+  for (index, holds) in observations do
+    let prior := stats.probes[index]!
+    if !holds && prior.fails == 0 then
+      IO.println s!"invariant-probe-first-failure {probeLabels[index]!}"
+      IO.println s!"certificate={certificate.canonicalString}"
+      IO.println s!"submitted={submittedJson certificate |>.compress}"
+      IO.println (s!"{context} start={start} step={step} rule={repr result.kind} " ++
+        s!"head={head} mate={consumer.mate} active={age}")
+      let frontierMarks := Lean.toJson (component.frontier.map fun vertex ↦
+        (vertex, state.core.marks[vertex]?))
+      IO.println (s!"frontier_marks={frontierMarks.compress} payers={repr payers} " ++
+        s!"single_marked_pars={singleMarkedPars}")
+    let next := if holds then { prior with holds := prior.holds + 1 }
+      else { prior with fails := prior.fails + 1 }
+    stats := { stats with probes := stats.probes.set! index next }
+  return stats
+
+private def printProbe (setName : String) (stats : Stats) : IO Unit := do
+  if stats.invariantProbe then
+    for index in List.range probeLabels.size do
+      let count := stats.probes[index]!
+      let steps := stats.kinds[if index % 2 == 0 then 1 else 3]!
+      unless count.holds + count.fails == steps do
+        throw (IO.userError s!"invariant-probe-ERROR incomplete counts {probeLabels[index]!}")
+      IO.println (s!"invariant-probe set={setName} {probeLabels[index]!} " ++
+        s!"holds={count.holds} fails={count.fails}")
+
 private def failViolation (certificate : Certificate) (context : String) (start step : Nat)
     (kinds : List Figure7RuleKind) (result : Figure7DispatchResult)
     (observation : TailObservation) : IO α := do
@@ -186,6 +270,7 @@ private def replay (certificate : Certificate) (correct : certificate.Declarativ
           match fuel with
           | 0 => throw (IO.userError s!"tail-law-search-INCOMPLETE replay fuel {context}")
           | fuel + 1 =>
+              let stats ← observeInvariants certificate state context start step result stats
               let observation ← match tailLawStep certificate state result prior with
                 | .ok observation => pure observation
                 | .error message => throw (IO.userError s!"tail-law-search-ERROR {message}")
@@ -381,10 +466,10 @@ private def summary (stats : Stats) (depth labelVariants orderVariants startCap
     s!"random_depths=6..7 seeds={randomSeeds} dispatch_none={stats.stops} " ++
     s!"rules={repr stats.kinds} elapsed_ms={elapsed}"
 
-private def run (smoke : Bool) : IO Unit := do
+private def run (smoke : Bool) (invariantProbe : Bool := false) : IO Unit := do
   let started ← IO.monoMsNow
   let deadline := started + 600000
-  let statsRef ← IO.mkRef ({} : Stats)
+  let statsRef ← IO.mkRef ({ invariantProbe } : Stats)
   let randomSeeds := if smoke then 0 else 4
   let labelVariants := if smoke then 1 else 8
   let orderVariants := 6
@@ -428,6 +513,7 @@ private def run (smoke : Bool) : IO Unit := do
   let label := if smoke then "tail-law-search-smoke-ok" else "tail-law-search-ok"
   IO.println s!"{label} {summary stats completed labelVariants orderVariants startCap
     randomSeeds ((← IO.monoMsNow) - started)}"
+  printProbe (if smoke then "smoke" else "default") stats
 
 private def waitFocusSummary (stats : Stats) (baseTrees labelVariants orderVariants
     startCeiling elapsed : Nat) : String :=
@@ -444,10 +530,10 @@ private def waitFocusSummary (stats : Stats) (baseTrees labelVariants orderVaria
     s!"eligible_not_wait={stats.parMateOlder - stats.kinds[3]!} " ++
     s!"elapsed_ms={elapsed} budget_ms=600000"
 
-private def runWaitFocus : IO Unit := do
+private def runWaitFocus (invariantProbe : Bool := false) : IO Unit := do
   let started ← IO.monoMsNow
   let deadline := started + 600000
-  let statsRef ← IO.mkRef ({} : Stats)
+  let statsRef ← IO.mkRef ({ invariantProbe } : Stats)
   let baseTrees := 24
   let labelVariants := 8
   let orderVariants := 6
@@ -483,6 +569,7 @@ private def runWaitFocus : IO Unit := do
         s!"eligible_not_wait={stats.parMateOlder - stats.kinds[3]!}"))
   IO.println s!"tail-law-search-wait-focus-ok {waitFocusSummary stats baseTrees
     labelVariants orderVariants startCeiling elapsed}"
+  printProbe "wait-focus" stats
 
 end ProofNetIRTailLawSearch
 
@@ -491,5 +578,10 @@ def main (args : List String) : IO Unit := do
   | [] => ProofNetIRTailLawSearch.run false
   | ["--smoke"] => ProofNetIRTailLawSearch.run true
   | ["--wait-focus"] => ProofNetIRTailLawSearch.runWaitFocus
+  | ["--invariant-probe"] =>
+      ProofNetIRTailLawSearch.run false true
+      ProofNetIRTailLawSearch.runWaitFocus true
+  | ["--invariant-probe", "--smoke"] => ProofNetIRTailLawSearch.run true true
+  | ["--invariant-probe", "--wait-focus"] => ProofNetIRTailLawSearch.runWaitFocus true
   | _ => throw (IO.userError
-      "usage: proofnet_ir_tail_law_search [--smoke | --wait-focus]")
+      "usage: proofnet_ir_tail_law_search [--invariant-probe] [--smoke | --wait-focus]")

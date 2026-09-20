@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- added `--invariant-probe` to the existing history-tail search and CI. It
+  counts C1 at Nop, C2 at Wait, and C3--C5 at both rules on the default and
+  wait-focused sets, reports first failures with exact occurrence data, and
+  checks P against the actual remaining ready tail. C1 and C4 fail; C2, C3,
+  and P have no failures in the sampled rule pre-states. Two kernel-checked
+  probes (unregistered) show that C3 is false as a state invariant after a
+  canonical `nop`, and that `SchedulerInvariant` with correctness does not
+  imply P for `nop` without canonical reachability. Nothing here proves an
+  inductive invariant, H-tail, either tail branch, or unconditional
+  progress; no public theorem or ledger item is closed;
 - extended `proofnet_ir_tail_law_search` with a `--wait-focus` mode whose
   depth-three interleaved tensor/par derivations contain eight independent
   axiom regions. It prioritizes distinct initial regions, replays every accepted

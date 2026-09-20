@@ -213,6 +213,8 @@ jobs:
         run: ~/.elan/bin/lake exe proofnet_ir_tail_law_search
       - name: Search wait-focused canonical Figure-7 history-tail counterexamples
         run: ~/.elan/bin/lake exe proofnet_ir_tail_law_search --wait-focus
+      - name: Probe Figure-7 tail invariants on both certificate sets
+        run: ~/.elan/bin/lake exe proofnet_ir_tail_law_search --invariant-probe
       - name: Audit New/Wait/Forward/Unify-created candidate source regions
         run: >-
           ~/.elan/bin/lake exe proofnet_ir_new_progress_audit
