@@ -25212,6 +25212,163 @@ ProofNetIR.SequentialFigure7.RegionClosure.ofInitialReservation : ∀ {certifica
   certificate.StructurallyWellFormed → ProofNetIR.SequentialFigure7.RegionClosure certificate after.stack
 ```
 
+## Region closure preservation and reachable C12
+
+### `ProofNetIR.SequentialFigure7.ConclStep.regionClosure`
+
+Kind: theorem.
+
+The conclusion rule preserves region closure after its exact pop/mark prefix.
+
+```lean
+ProofNetIR.SequentialFigure7.ConclStep.regionClosure : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.ConclStep certificate before after),
+  certificate.StructurallyWellFormed →
+    ProofNetIR.SequentialFigure7.RegionClosure certificate before.stack →
+      ProofNetIR.SequentialFigure7.RegionClosure certificate after.stack
+```
+
+### `ProofNetIR.SequentialFigure7.NopStep.regionClosure`
+
+Kind: theorem.
+
+The nop rule preserves region closure because its par mate is still unmarked.
+
+```lean
+ProofNetIR.SequentialFigure7.NopStep.regionClosure : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.NopStep certificate before after),
+  certificate.StructurallyWellFormed →
+    ProofNetIR.SequentialFigure7.RegionClosure certificate before.stack →
+      ProofNetIR.SequentialFigure7.RegionClosure certificate after.stack
+```
+
+### `ProofNetIR.SequentialFigure7.WaitStep.regionClosure`
+
+Kind: theorem.
+
+Waiting preserves region closure at the exact older destination cell.
+
+```lean
+ProofNetIR.SequentialFigure7.WaitStep.regionClosure : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.WaitStep certificate before after),
+  certificate.StructurallyWellFormed →
+    ProofNetIR.SequentialFigure7.RegionClosure certificate before.stack →
+      ProofNetIR.SequentialFigure7.RegionClosure certificate after.stack
+```
+
+### `ProofNetIR.SequentialFigure7.ForwardStep.regionClosure`
+
+Kind: theorem.
+
+Forwarding preserves region closure by adding the fired par conclusion to the active bucket.
+
+```lean
+ProofNetIR.SequentialFigure7.ForwardStep.regionClosure : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.ForwardStep certificate before after),
+  certificate.StructurallyWellFormed →
+    ProofNetIR.SequentialFigure7.RegionClosure certificate before.stack →
+      ProofNetIR.SequentialFigure7.RegionClosure certificate after.stack
+```
+
+### `ProofNetIR.SequentialFigure7.NewStep.regionClosure`
+
+Kind: theorem.
+
+A new reservation preserves region closure while making a fresh, unmarked axiom region active.
+
+```lean
+ProofNetIR.SequentialFigure7.NewStep.regionClosure : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.NewStep certificate before after),
+  certificate.StructurallyWellFormed →
+    ProofNetIR.SequentialFigure7.RegionClosure certificate before.stack →
+      ProofNetIR.SequentialFigure7.RegionClosure certificate after.stack
+```
+
+### `ProofNetIR.SequentialFigure7.UnifyPayloadStep.regionClosure`
+
+Kind: theorem.
+
+Payload unification preserves region closure when the adjacent classes and waiting payload merge.
+
+```lean
+ProofNetIR.SequentialFigure7.UnifyPayloadStep.regionClosure : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.UnifyPayloadStep certificate before after),
+  certificate.StructurallyWellFormed →
+    ProofNetIR.SequentialFigure7.RegionClosure certificate before.stack →
+      ProofNetIR.SequentialFigure7.RegionClosure certificate after.stack
+```
+
+### `ProofNetIR.SequentialFigure7.DispatchStep.regionClosure`
+
+Kind: theorem.
+
+Every exact canonical dispatcher success preserves region closure.
+
+```lean
+ProofNetIR.SequentialFigure7.DispatchStep.regionClosure : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {invariant : ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before}
+  {result : ProofNetIR.SequentialFigure7.Figure7DispatchResult}
+  (step : ProofNetIR.SequentialFigure7.DispatchStep certificate before invariant result),
+  ProofNetIR.SequentialFigure7.RegionClosure certificate before.stack →
+    ProofNetIR.SequentialFigure7.RegionClosure certificate result.after.stack
+```
+
+### `ProofNetIR.SequentialFigure7.ExecutedHistory.regionClosure`
+
+Kind: theorem.
+
+Region closure holds at the endpoint of every executed history of a structurally valid certificate.
+
+```lean
+ProofNetIR.SequentialFigure7.ExecutedHistory.regionClosure : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state),
+  certificate.StructurallyWellFormed → ProofNetIR.SequentialFigure7.RegionClosure certificate state.stack
+```
+
+### `ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher.regionClosure`
+
+Kind: theorem.
+
+Every dispatcher-reachable stack of a structurally valid certificate is region closed.
+
+```lean
+ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher.regionClosure : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher certificate state →
+    certificate.StructurallyWellFormed → ProofNetIR.SequentialFigure7.RegionClosure certificate state.stack
+```
+
+### `ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher.guardedHeadTail`
+
+Kind: theorem.
+
+Correctness gives C12 at every dispatcher-reachable state.
+
+```lean
+ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher.guardedHeadTail : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher certificate state →
+    certificate.DeclarativelyCorrect → ProofNetIR.SequentialFigure7.ParHeadGuardTailNonconclusion certificate state
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.nopWaitTailLaw_iff`
+
+Kind: theorem.
+
+A nop or wait extension of a canonical prefix adds no remaining tail-law obligation.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.nopWaitTailLaw_iff : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {result : ProofNetIR.SequentialFigure7.Figure7DispatchResult}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before}
+  {invariant : ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before}
+  {dispatch : ProofNetIR.SequentialFigure7.DispatchStep certificate before invariant result}
+  (prior : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history)
+  (evidence : ProofNetIR.SequentialFigure7.DispatchTagEvidence certificate before result),
+  certificate.DeclarativelyCorrect →
+    result.kind = ProofNetIR.SequentialFigure7.Figure7RuleKind.nop ∨
+        result.kind = ProofNetIR.SequentialFigure7.Figure7RuleKind.wait →
+      ((prior.later evidence).ActiveTopDebtTailLaw ↔ prior.ActiveTopDebtTailLaw)
+```
+
 ## Canonical raw-mark causal order
 
 ### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.RawMarkedBefore`

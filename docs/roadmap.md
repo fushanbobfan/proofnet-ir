@@ -505,11 +505,11 @@ Exact target statements for the open items are in the
   correct initialization, exact for the two obligations, certified not
   state-only inductive, and unfalsified at all 2,289,024 probed reachable
   states.
-- [ ] Prove C12 at every canonically reachable state through a
-  history-carrying invariant of the active bucket (the probe shows a run of
-  connective conclusions followed by paired atoms), close the `nop`/`wait`
-  branches of `ActiveTopDebtTailLaw`, then the `forward`/`unifyPayload`
-  created-head branches, and derive Figure-7 progress (D3).
+- [x] Prove C12 at every canonically reachable state through the order-free
+  `RegionClosure` invariant and switching connectedness, and close the
+  `nop`/`wait` branches of `ActiveTopDebtTailLaw`.
+- [ ] Close the `forward`/`unifyPayload` created-head branches of
+  `ActiveTopDebtTailLaw` and derive Figure-7 progress (D3).
 - [ ] Prove later-state `NEXTAXIOM` start selection with a route-local
   freshness invariant, exhaustive nonterminal enabledness of the canonical
   dispatcher, and later-state totality; then replace the prototype's eager

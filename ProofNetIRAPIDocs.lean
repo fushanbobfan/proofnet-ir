@@ -2792,6 +2792,22 @@ def sections : List Section := [
     ]
   },
   {
+    title := "Region closure preservation and reachable C12"
+    declarations := [
+      `ProofNetIR.SequentialFigure7.ConclStep.regionClosure,
+      `ProofNetIR.SequentialFigure7.NopStep.regionClosure,
+      `ProofNetIR.SequentialFigure7.WaitStep.regionClosure,
+      `ProofNetIR.SequentialFigure7.ForwardStep.regionClosure,
+      `ProofNetIR.SequentialFigure7.NewStep.regionClosure,
+      `ProofNetIR.SequentialFigure7.UnifyPayloadStep.regionClosure,
+      `ProofNetIR.SequentialFigure7.DispatchStep.regionClosure,
+      `ProofNetIR.SequentialFigure7.ExecutedHistory.regionClosure,
+      `ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher.regionClosure,
+      `ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher.guardedHeadTail,
+      `ProofNetIR.SequentialFigure7.CanonicalTagHistory.nopWaitTailLaw_iff
+    ]
+  },
+  {
     title := "Canonical raw-mark causal order"
     declarations := [
       `ProofNetIR.SequentialFigure7.CanonicalTagHistory.RawMarkedBefore,

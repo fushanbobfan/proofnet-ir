@@ -1325,6 +1325,17 @@ end ProofNetIR.SequentialFigure7
 #print axioms SequentialFigure7.boundary_edge_of_correct
 #print axioms SequentialFigure7.RegionClosure.guardedParHeadTail
 #print axioms SequentialFigure7.RegionClosure.ofInitialReservation
+#print axioms SequentialFigure7.ConclStep.regionClosure
+#print axioms SequentialFigure7.NopStep.regionClosure
+#print axioms SequentialFigure7.WaitStep.regionClosure
+#print axioms SequentialFigure7.ForwardStep.regionClosure
+#print axioms SequentialFigure7.NewStep.regionClosure
+#print axioms SequentialFigure7.UnifyPayloadStep.regionClosure
+#print axioms SequentialFigure7.DispatchStep.regionClosure
+#print axioms SequentialFigure7.ExecutedHistory.regionClosure
+#print axioms SequentialFigure7.ReachableByImplementedDispatcher.regionClosure
+#print axioms SequentialFigure7.ReachableByImplementedDispatcher.guardedHeadTail
+#print axioms SequentialFigure7.CanonicalTagHistory.nopWaitTailLaw_iff
 #print axioms SequentialFigure7.ConclStep.output_tags_eq
 #print axioms SequentialFigure7.NopStep.output_tags_eq
 #print axioms SequentialFigure7.WaitStep.output_tags_eq

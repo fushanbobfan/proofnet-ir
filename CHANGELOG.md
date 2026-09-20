@@ -7,6 +7,17 @@ and its proof layer on top of `v0.9.0`. Entries are one per mathematics
 checkpoint, newest first; wrapper-transport steps are folded into the family
 they served, and `git log` holds the per-commit record.
 
+- proved `RegionClosure` preserved by every canonical dispatcher rule
+  (`ConclStep`, `NopStep`, `WaitStep`, `ForwardStep`, `NewStep`,
+  `UnifyPayloadStep`, and `DispatchStep.regionClosure`), lifted it to every
+  executed history and dispatcher-reachable state, and derived C12 at every
+  reachable state of a correct certificate
+  (`ReachableByImplementedDispatcher.guardedHeadTail`).
+  `CanonicalTagHistory.nopWaitTailLaw_iff` closes the `nop` and `wait`
+  branches of the history-tail law: extending a canonical prefix by either
+  rule adds no obligation. The `forward` and `unifyPayload` created-head
+  branches remain open and are stated exactly at the end of
+  `ProofNetIR/Figure7/Closure.lean`;
 - proved C12 from region closure and switching connectedness in
   `ProofNetIR/Figure7/Closure.lean`. `RegionClosure` is order-free: it places
   every marked vertex in the class of the sigma boundary below its mark and

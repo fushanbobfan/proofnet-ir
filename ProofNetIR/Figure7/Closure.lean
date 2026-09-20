@@ -742,5 +742,1518 @@ theorem RegionClosure.ofInitialReservation {certificate : Certificate} {after : 
     simp only [ReservationState.empty, SequentialStackState.empty, Array.getElem?_replicate] at lookup
     split at lookup <;> cases lookup
 
+
+/-! ## Stack lemmas for preservation
+
+The class of the last boundary is itself, the bucket lookup after the common
+pop/mark prefix, and the uniqueness of the bucket holding a queued vertex. -/
+
+/-- The last boundary resolves to itself. -/
+private theorem sigmaBoundary?_last {sigma : List RawTokenAge} {age : RawTokenAge}
+    (increasing : sigma.Pairwise (· < ·)) (last : sigma.getLast? = some age) :
+    sigmaBoundary? sigma age = some age := by
+  induction sigma with
+  | nil => simp at last
+  | cons first rest ih =>
+      cases rest with
+      | nil =>
+          simp only [List.getLast?_singleton, Option.some.injEq] at last
+          subst last
+          simp [sigmaBoundary?]
+      | cons second more =>
+          have last' : (second :: more).getLast? = some age := by
+            simpa [List.getLast?_cons_cons] using last
+          have firstLt : first < age :=
+            (List.pairwise_cons.mp increasing).1 age (List.mem_of_getLast? last')
+          have tail := ih (List.pairwise_cons.mp increasing).2 last'
+          show (if first ≤ age then
+              match sigmaBoundary? (second :: more) age with
+              | none => some first
+              | some later => some later
+            else none) = some age
+          rw [if_pos (Nat.le_of_lt firstLt), tail]
+
+/-- A raw age at or above the last boundary resolves to that boundary. -/
+private theorem sigmaBoundary?_of_last_le {sigma : List RawTokenAge} {age boundary : RawTokenAge}
+    (increasing : sigma.Pairwise (· < ·)) (last : sigma.getLast? = some boundary)
+    (le : boundary ≤ age) : sigmaBoundary? sigma age = some boundary := by
+  induction sigma with
+  | nil => simp at last
+  | cons first rest ih =>
+      cases rest with
+      | nil =>
+          simp only [List.getLast?_singleton, Option.some.injEq] at last
+          subst last
+          simp [sigmaBoundary?, le]
+      | cons second more =>
+          have last' : (second :: more).getLast? = some boundary := by
+            simpa [List.getLast?_cons_cons] using last
+          have firstLt : first < boundary :=
+            (List.pairwise_cons.mp increasing).1 boundary (List.mem_of_getLast? last')
+          have tail := ih (List.pairwise_cons.mp increasing).2 last'
+          show (if first ≤ age then
+              match sigmaBoundary? (second :: more) age with
+              | none => some first
+              | some later => some later
+            else none) = some boundary
+          rw [if_pos (Nat.le_trans (Nat.le_of_lt firstLt) le), tail]
+
+/-- The bucket lookup after replacing the last bucket. -/
+private theorem lookup_zip_replaceLast {keys : List Nat} {values : List (List Vertex)}
+    {key : Nat} {old new : List Vertex}
+    (increasing : keys.Pairwise (· < ·)) (aligned : values.length = keys.length)
+    (lastKey : keys.getLast? = some key) (lastValue : values.getLast? = some old)
+    (query : Nat) :
+    (keys.zip (values.dropLast ++ [new])).lookup query =
+      if query = key then some new else (keys.zip values).lookup query := by
+  induction keys generalizing values with
+  | nil => simp at lastKey
+  | cons first rest ih =>
+      cases values with
+      | nil => simp at aligned
+      | cons firstValue restValues =>
+          simp only [List.length_cons, Nat.add_right_cancel_iff] at aligned
+          cases rest with
+          | nil =>
+              cases restValues with
+              | nil =>
+                  simp only [List.getLast?_singleton, Option.some.injEq] at lastKey lastValue
+                  rw [lastKey] at *
+                  by_cases same : query = key
+                  · rw [same]
+                    simp
+                  · have ne : (query == key) = false := by simp [same]
+                    simp [List.lookup, ne, same]
+              | cons _ _ => simp at aligned
+          | cons second more =>
+              cases restValues with
+              | nil => simp at aligned
+              | cons secondValue moreValues =>
+                  have lastKey' : (second :: more).getLast? = some key := by
+                    simpa [List.getLast?_cons_cons] using lastKey
+                  have lastValue' : (secondValue :: moreValues).getLast? = some old := by
+                    simpa [List.getLast?_cons_cons] using lastValue
+                  have firstLt : first < key :=
+                    (List.pairwise_cons.mp increasing).1 key (List.mem_of_getLast? lastKey')
+                  have dropLastEq : (firstValue :: secondValue :: moreValues).dropLast =
+                      firstValue :: (secondValue :: moreValues).dropLast := by
+                    simp [List.dropLast_cons_of_ne_nil]
+                  rw [dropLastEq]
+                  simp only [List.cons_append, List.zip_cons_cons, List.lookup]
+                  by_cases hit : query = first
+                  · rw [hit]
+                    have ne : first ≠ key := Nat.ne_of_lt firstLt
+                    simp [ne]
+                  · have ne : (query == first) = false := by simp [hit]
+                    rw [ne]
+                    exact ih (List.pairwise_cons.mp increasing).2 aligned lastKey' lastValue'
+
+private theorem marked_of_class {stack : SequentialStackState} {v : Vertex} {cls : RawTokenAge}
+    (h : markClass? stack v = some cls) : Marked stack v := by
+  unfold markClass? at h
+  cases eq : stack.marks[v]? with
+  | none => simp [eq] at h
+  | some mark =>
+      cases mark with
+      | none => simp [eq] at h
+      | some age => exact ⟨age, eq⟩
+
+private theorem pop_class_eq {stack : SequentialStackState} {result : PopReadyMarkResult}
+    {size : Nat} (shape : stack.WellShaped size)
+    (pop : stack.popReadyMark? = .ok result) (v : Vertex) :
+    markClass? result.after v =
+      if v = result.vertex then some result.rawAge else markClass? stack v := by
+  obtain ⟨_, last, unmarked, marks, _, sigma, _, _, marked⟩ := popReadyMark?_exact pop
+  by_cases same : v = result.vertex
+  · subst v
+    simp only [markClass?, marked, sigma]
+    exact sigmaBoundary?_last shape.sigma_partition.strictIncreasing last
+  · simp only [if_neg same, markClass?, marks, sigma,
+      Array.getElem?_setIfInBounds_ne (Ne.symm same)]
+
+private theorem pop_marked_iff {stack : SequentialStackState} {result : PopReadyMarkResult}
+    (pop : stack.popReadyMark? = .ok result) (v : Vertex) :
+    Marked result.after v ↔ v = result.vertex ∨ Marked stack v := by
+  obtain ⟨_, _, unmarked, marks, _, _, _, _, marked⟩ := popReadyMark?_exact pop
+  by_cases same : v = result.vertex
+  · subst v
+    exact ⟨fun _ ↦ Or.inl rfl, fun _ ↦ ⟨_, marked⟩⟩
+  · simp only [Marked, marks, Array.getElem?_setIfInBounds_ne (Ne.symm same), same, false_or]
+
+private theorem pop_bucket_eq {stack : SequentialStackState} {result : PopReadyMarkResult}
+    {size : Nat} (shape : stack.WellShaped size)
+    (pop : stack.popReadyMark? = .ok result) (cls : RawTokenAge) :
+    bucketAt? result.after cls =
+      if cls = result.rawAge then some result.remainingTop else bucketAt? stack cls := by
+  obtain ⟨top, last, _, _, _, sigma, ready, _, _⟩ := popReadyMark?_exact pop
+  unfold bucketAt?
+  rw [sigma, ready]
+  exact lookup_zip_replaceLast shape.sigma_partition.strictIncreasing shape.ready_aligned last top cls
+
+private theorem pop_region_iff {stack : SequentialStackState} {result : PopReadyMarkResult}
+    {size : Nat} (shape : stack.WellShaped size)
+    (pop : stack.popReadyMark? = .ok result) (cls : RawTokenAge) (v : Vertex) :
+    InRegion result.after cls v ↔ InRegion stack cls v := by
+  obtain ⟨top, last, unmarked, _⟩ := popReadyMark?_exact pop
+  have bucket := bucketAt?_last shape.sigma_partition.strictIncreasing shape.ready_aligned last top
+  have headNone : markClass? stack result.vertex = none := by simp [markClass?, unmarked]
+  unfold InRegion
+  rw [pop_class_eq shape pop, pop_bucket_eq shape pop]
+  by_cases active : cls = result.rawAge <;> by_cases head : v = result.vertex
+  · subst cls; subst v
+    simp [bucket]
+  · subst cls
+    simp [head, bucket, eq_comm]
+  · subst v
+    simp [active, headNone, eq_comm]
+  · simp [active, head]
+
+private theorem pop_pairs_raw {certificate : Certificate} {stack : SequentialStackState}
+    {result : PopReadyMarkResult} (shape : stack.WellShaped certificate.formulas.size)
+    (pop : stack.popReadyMark? = .ok result) (closure : RegionClosure certificate stack)
+    {left right : Vertex} {cls : RawTokenAge} {bucket : List Vertex}
+    (linked : AxiomLinked certificate left right)
+    (lookup : bucketAt? result.after cls = some bucket) (member : left ∈ bucket) :
+    right ∈ bucket ∨ markClass? result.after right = some cls := by
+  obtain ⟨top, last, unmarked, _⟩ := popReadyMark?_exact pop
+  have oldBucket := bucketAt?_last shape.sigma_partition.strictIncreasing shape.ready_aligned last top
+  rw [pop_bucket_eq shape pop] at lookup
+  by_cases active : cls = result.rawAge
+  · subst cls
+    simp only [ite_true, Option.some.injEq] at lookup
+    subst bucket
+    rcases closure.pairsRaw linked oldBucket (List.mem_cons_of_mem _ member) with raw | marked
+    · rcases List.mem_cons.mp raw with head | tail
+      · exact Or.inr (by simp [pop_class_eq shape pop, head])
+      · exact Or.inl tail
+    · exact Or.inr (by
+        rw [pop_class_eq shape pop]
+        split
+        · rfl
+        · exact marked)
+  · rw [if_neg active] at lookup
+    rcases closure.pairsRaw linked lookup member with raw | marked
+    · exact Or.inl raw
+    · have ne : right ≠ result.vertex := by
+        intro eq; subst right
+        simp [markClass?, unmarked] at marked
+      exact Or.inr (by simpa [pop_class_eq shape pop, ne] using marked)
+
+private theorem pop_pairs_marked {certificate : Certificate} {stack : SequentialStackState}
+    {result : PopReadyMarkResult} (shape : stack.WellShaped certificate.formulas.size)
+    (pop : stack.popReadyMark? = .ok result) (closure : RegionClosure certificate stack)
+    {left right : Vertex} {cls : RawTokenAge} (linked : AxiomLinked certificate left right)
+    (marked : markClass? result.after left = some cls) : InRegion result.after cls right := by
+  apply (pop_region_iff shape pop cls right).mpr
+  rw [pop_class_eq shape pop] at marked
+  by_cases head : left = result.vertex
+  · subst left
+    simp only [ite_true, Option.some.injEq] at marked
+    subst cls
+    obtain ⟨top, last, _⟩ := popReadyMark?_exact pop
+    have bucket := bucketAt?_last shape.sigma_partition.strictIncreasing shape.ready_aligned last top
+    rcases closure.pairsRaw linked bucket (List.mem_cons_self ..) with raw | marked
+    · exact Or.inr ⟨_, bucket, raw⟩
+    · exact Or.inl marked
+  · rw [if_neg head] at marked
+    exact closure.pairsMarked linked marked
+
+private theorem pop_old_class {stack : SequentialStackState} {result : PopReadyMarkResult}
+    {size : Nat} (shape : stack.WellShaped size) (pop : stack.popReadyMark? = .ok result)
+    {v : Vertex} {cls : RawTokenAge} (marked : markClass? stack v = some cls) :
+    markClass? result.after v = some cls := by
+  have unmarked := (popReadyMark?_exact pop).2.2.1
+  have ne : v ≠ result.vertex := by
+    intro same; subst v
+    simp [markClass?, unmarked] at marked
+  simpa [pop_class_eq shape pop, ne] using marked
+
+private theorem pop_closure_inert {certificate : Certificate} {stack : SequentialStackState}
+    {result : PopReadyMarkResult} (shape : stack.WellShaped certificate.formulas.size)
+    (pop : stack.popReadyMark? = .ok result) (closure : RegionClosure certificate stack)
+    (noTensor : ∀ {mate conclusion}, TensorLinked certificate result.vertex mate conclusion → False)
+    (noParMate : ∀ {mate conclusion}, ParLinked certificate result.vertex mate conclusion →
+      mate ≠ result.vertex ∧ ¬ Marked stack mate) : RegionClosure certificate result.after := by
+  have tensorNe : ∀ {p m c}, TensorLinked certificate p m c →
+      p ≠ result.vertex ∧ m ≠ result.vertex := by
+    intro p m c linked
+    constructor
+    · rintro rfl; exact noTensor linked
+    · rintro rfl; exact noTensor linked.symm
+  have tensorClass : ∀ {p m c cls}, TensorLinked certificate p m c →
+      markClass? result.after p = some cls → markClass? stack p = some cls := by
+    intro p m c cls linked marked
+    simpa [pop_class_eq shape pop, (tensorNe linked).1] using marked
+  have parClasses : ∀ {p m c cls cls'}, ParLinked certificate p m c →
+      markClass? result.after p = some cls → markClass? result.after m = some cls' →
+      markClass? stack p = some cls ∧ markClass? stack m = some cls' := by
+    intro p m c cls cls' linked pClass mClass
+    have pNe : p ≠ result.vertex := by
+      intro eq; subst p
+      have ne := (noParMate linked).1
+      have oldMate : markClass? stack m = some cls' := by
+        simpa [pop_class_eq shape pop, ne] using mClass
+      exact (noParMate linked).2 (marked_of_class oldMate)
+    have mNe : m ≠ result.vertex := by
+      intro eq; subst m
+      have oldP : markClass? stack p = some cls := by
+        simpa [pop_class_eq shape pop, pNe] using pClass
+      exact (noParMate linked.symm).2 (marked_of_class oldP)
+    exact ⟨by simpa [pop_class_eq shape pop, pNe] using pClass,
+      by simpa [pop_class_eq shape pop, mNe] using mClass⟩
+  refine {
+    pairsMarked := pop_pairs_marked shape pop closure
+    pairsRaw := pop_pairs_raw shape pop closure
+    tensorTop := ?_
+    tensorOne := ?_
+    tensorFired := ?_
+    parFired := ?_
+    down := ?_
+    waitingForward := ?_
+    waitingBackward := ?_ }
+  · intro p m c active linked last marked
+    have sigma := (popReadyMark?_exact pop).2.2.2.2.2.1
+    rw [sigma] at last
+    exact (pop_marked_iff pop m).mpr
+      (Or.inr (closure.tensorTop linked last (tensorClass linked marked)))
+  · intro p m c p' m' c' cls linked linked' marked absent marked' absent'
+    exact closure.tensorOne linked linked' (tensorClass linked marked)
+      (fun old ↦ absent ((pop_marked_iff pop m).mpr (Or.inr old)))
+      (tensorClass linked' marked')
+      (fun old ↦ absent' ((pop_marked_iff pop m').mpr (Or.inr old)))
+  · intro p m c cls linked pClass mMarked
+    have oldMate : Marked stack m := by
+      rcases (pop_marked_iff pop m).mp mMarked with head | old
+      · exact ((tensorNe linked).2 head).elim
+      · exact old
+    obtain ⟨mClass, conclusion⟩ := closure.tensorFired linked (tensorClass linked pClass) oldMate
+    exact ⟨pop_old_class shape pop mClass, (pop_region_iff shape pop cls c).mpr conclusion⟩
+  · intro p m c cls linked pClass mClass
+    obtain ⟨pOld, mOld⟩ := parClasses linked pClass mClass
+    exact (pop_region_iff shape pop cls c).mpr (closure.parFired linked pOld mOld)
+  · intro p m c cls linked region
+    obtain ⟨pClass, mClass⟩ := closure.down linked ((pop_region_iff shape pop cls c).mp region)
+    exact ⟨pop_old_class shape pop pClass, pop_old_class shape pop mClass⟩
+  · intro p m c cls cls' linked pClass mClass different
+    obtain ⟨pOld, mOld⟩ := parClasses linked pClass mClass
+    rw [(popReadyMark?_exact pop).2.2.2.2.2.2.2.1]
+    exact closure.waitingForward linked pOld mOld different
+  · intro boundary payload c lookup member
+    rw [(popReadyMark?_exact pop).2.2.2.2.2.2.2.1] at lookup
+    obtain ⟨p, m, cls, cls', linked, pClass, mClass, ne, eq⟩ :=
+      closure.waitingBackward lookup member
+    exact ⟨p, m, cls, cls', linked, pop_old_class shape pop pClass,
+      pop_old_class shape pop mClass, ne, eq⟩
+
+private theorem par_tensor_disjoint {certificate : Certificate}
+    (structural : certificate.StructurallyWellFormed) {p m c m' c' : Vertex}
+    (bound : p < certificate.formulas.size) (par : ParLinked certificate p m c)
+    (tensor : TensorLinked certificate p m' c') : False := by
+  rcases par with par | par <;> rcases tensor with tensor | tensor <;>
+    have eq := premise_unique structural par tensor
+      (by simp [Link.premises]) (by simp [Link.premises]) bound <;> cases eq
+
+private theorem par_mate_unique {certificate : Certificate}
+    (structural : certificate.StructurallyWellFormed) {p m c m' c' : Vertex}
+    (bound : p < certificate.formulas.size) (par : ParLinked certificate p m c)
+    (par' : ParLinked certificate p m' c') : m = m' ∧ c = c' := by
+  rcases par with par | par <;> rcases par' with par' | par' <;>
+    have eq := premise_unique structural par par'
+      (by simp [Link.premises]) (by simp [Link.premises]) bound <;>
+    simp only [Link.par.injEq] at eq <;> grind
+
+private theorem pop_vertex_bound {stack : SequentialStackState} {result : PopReadyMarkResult}
+    {size : Nat} (shape : stack.WellShaped size) (pop : stack.popReadyMark? = .ok result) :
+    result.vertex < size := by
+  have top := (popReadyMark?_exact pop).1
+  exact shape.ready_in_bounds _ (List.mem_of_getLast? top) _ (List.mem_cons_self ..)
+
+/-- The conclusion rule preserves region closure after its exact pop/mark prefix. -/
+theorem ConclStep.regionClosure {certificate : Certificate} {before after : ReservationState}
+    (step : ConclStep certificate before after) (structural : certificate.StructurallyWellFormed)
+    (closure : RegionClosure certificate before.stack) : RegionClosure certificate after.stack := by
+  rw [step.output_eq]
+  have noPremise : ∀ {link}, link ∈ certificate.links →
+      step.prepared.stackResult.vertex ∈ link.premises → False := by
+    intro link member premise
+    exact premise_not_conclusion structural member premise
+      (pop_vertex_bound step.before_invariant.stack_wellShaped step.prepared.stack_eq)
+      step.boundary.boundary
+  apply pop_closure_inert step.before_invariant.stack_wellShaped step.prepared.stack_eq closure
+  · intro m c linked
+    rcases linked with member | member <;> exact noPremise member (by simp [Link.premises])
+  · intro m c linked
+    rcases linked with member | member <;> exact (noPremise member (by simp [Link.premises])).elim
+
+/-- The nop rule preserves region closure because its par mate is still unmarked. -/
+theorem NopStep.regionClosure {certificate : Certificate} {before after : ReservationState}
+    (step : NopStep certificate before after) (structural : certificate.StructurallyWellFormed)
+    (closure : RegionClosure certificate before.stack) : RegionClosure certificate after.stack := by
+  rw [step.output_eq]
+  have linked := ConnectiveBelow.parLinked step.consumer step.par_eq
+  have shape := step.before_invariant.stack_wellShaped
+  have bound := pop_vertex_bound shape step.prepared.stack_eq
+  apply pop_closure_inert shape step.prepared.stack_eq closure
+  · exact fun tensor ↦ par_tensor_disjoint structural bound linked tensor
+  · intro m c par
+    obtain ⟨mateEq, _⟩ := par_mate_unique structural bound par linked
+    rw [mateEq]
+    refine ⟨step.consumer.mate_ne, ?_⟩
+    rintro ⟨age, marked⟩
+    have unmarked := step.mate_unmarked_before
+    rw [step.before_invariant.realizesSigma.marks_eq, marked] at unmarked
+    cases unmarked
+
+private theorem axiom_region {certificate : Certificate} {stack : SequentialStackState}
+    (closure : RegionClosure certificate stack) {left right : Vertex} {cls : RawTokenAge}
+    (linked : AxiomLinked certificate left right) (region : InRegion stack cls left) :
+    InRegion stack cls right := by
+  rcases region with marked | ⟨bucket, lookup, member⟩
+  · exact closure.pairsMarked linked marked
+  · rcases closure.pairsRaw linked lookup member with raw | marked
+    · exact Or.inr ⟨bucket, lookup, raw⟩
+    · exact Or.inl marked
+
+private theorem par_update_closure {certificate : Certificate} {stack after : SequentialStackState}
+    {result : PopReadyMarkResult} {mate conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (shape : stack.WellShaped certificate.formulas.size)
+    (pop : stack.popReadyMark? = .ok result) (closure : RegionClosure certificate stack)
+    (linked : ParLinked certificate result.vertex mate conclusion)
+    (marksEq : after.marks = result.after.marks) (sigmaEq : after.sigma = stack.sigma)
+    (extend : ∀ {cls v}, InRegion stack cls v → InRegion after cls v)
+    (restrict : ∀ {cls l r}, AxiomLinked certificate l r →
+      InRegion after cls l → InRegion stack cls l)
+    (down : ∀ {p m c cls}, (TensorLinked certificate p m c ∨ ParLinked certificate p m c) →
+      InRegion after cls c → markClass? after p = some cls ∧ markClass? after m = some cls)
+    (fire : ∀ {cls}, markClass? after result.vertex = some cls →
+      markClass? after mate = some cls → InRegion after cls conclusion)
+    (wait : ∀ {cls cls'}, markClass? after result.vertex = some cls →
+      markClass? after mate = some cls' → cls ≠ cls' →
+      ∃ payload, after.waiting[min cls cls']? = some (.initialized payload) ∧ conclusion ∈ payload)
+    (keepWaiting : ∀ {boundary : RawTokenAge} {payload : List Vertex} {v : Vertex},
+      stack.waiting[boundary]? = some (.initialized payload) →
+      v ∈ payload → ∃ payload', after.waiting[boundary]? = some (.initialized payload') ∧ v ∈ payload')
+    (waitingBack : ∀ {boundary payload c}, after.waiting[boundary]? = some (.initialized payload) →
+      c ∈ payload → ∃ p m cls cls', .par p m c ∈ certificate.links ∧
+        markClass? after p = some cls ∧ markClass? after m = some cls' ∧
+        cls ≠ cls' ∧ min cls cls' = boundary) : RegionClosure certificate after := by
+  have classEq : ∀ v, markClass? after v =
+      if v = result.vertex then some result.rawAge else markClass? stack v := by
+    intro v
+    have eq : markClass? after v = markClass? result.after v := by
+      simp only [markClass?, marksEq, sigmaEq, (popReadyMark?_exact pop).2.2.2.2.2.1]
+    rw [eq, pop_class_eq shape pop]
+  have oldClass : ∀ {v cls}, markClass? stack v = some cls → markClass? after v = some cls := by
+    intro v cls marked
+    have eq := pop_old_class shape pop marked
+    simpa only [markClass?, marksEq, sigmaEq,
+      (popReadyMark?_exact pop).2.2.2.2.2.1] using eq
+  have markedEq : ∀ v, Marked after v ↔ v = result.vertex ∨ Marked stack v := by
+    intro v
+    rw [Marked, marksEq]
+    exact pop_marked_iff pop v
+  have bound := pop_vertex_bound shape pop
+  have tensorNe : ∀ {p m c}, TensorLinked certificate p m c →
+      p ≠ result.vertex ∧ m ≠ result.vertex := by
+    intro p m c tensor
+    constructor
+    · rintro rfl; exact par_tensor_disjoint structural bound linked tensor
+    · rintro rfl; exact par_tensor_disjoint structural bound linked tensor.symm
+  have tensorClass : ∀ {p m c cls}, TensorLinked certificate p m c →
+      markClass? after p = some cls → markClass? stack p = some cls := by
+    intro p m c cls tensor marked
+    simpa [classEq, (tensorNe tensor).1] using marked
+  refine {
+    pairsMarked := fun link marked ↦ extend (axiom_region closure link (restrict link (Or.inl marked)))
+    pairsRaw := ?_
+    tensorTop := ?_
+    tensorOne := ?_
+    tensorFired := ?_
+    parFired := ?_
+    down := down
+    waitingForward := ?_
+    waitingBackward := waitingBack }
+  · intro l r cls bucket link lookup member
+    have region := extend (axiom_region closure link (restrict link (Or.inr ⟨_, lookup, member⟩)))
+    rcases region with marked | ⟨bucket', lookup', raw⟩
+    · exact Or.inr marked
+    · have eq := Option.some.inj (lookup'.symm.trans lookup)
+      subst bucket'
+      exact Or.inl raw
+  · intro p m c active tensor last marked
+    rw [sigmaEq] at last
+    exact (markedEq m).mpr (Or.inr (closure.tensorTop tensor last (tensorClass tensor marked)))
+  · intro p m c p' m' c' cls tensor tensor' marked absent marked' absent'
+    exact closure.tensorOne tensor tensor' (tensorClass tensor marked)
+      (fun old ↦ absent ((markedEq m).mpr (Or.inr old))) (tensorClass tensor' marked')
+      (fun old ↦ absent' ((markedEq m').mpr (Or.inr old)))
+  · intro p m c cls tensor marked mateMarked
+    have oldMate : Marked stack m := by
+      rcases (markedEq m).mp mateMarked with eq | old
+      · exact ((tensorNe tensor).2 eq).elim
+      · exact old
+    obtain ⟨mateClass, region⟩ := closure.tensorFired tensor (tensorClass tensor marked) oldMate
+    exact ⟨oldClass mateClass, extend region⟩
+  · intro p m c cls par pClass mClass
+    by_cases pHead : p = result.vertex
+    · subst p
+      obtain ⟨rfl, rfl⟩ := par_mate_unique structural bound par linked
+      exact fire pClass mClass
+    · by_cases mHead : m = result.vertex
+      · subst m
+        obtain ⟨rfl, rfl⟩ := par_mate_unique structural bound par.symm linked
+        exact fire mClass pClass
+      · exact extend (closure.parFired par (by simpa [classEq, pHead] using pClass)
+          (by simpa [classEq, mHead] using mClass))
+  · intro p m c cls cls' par pClass mClass different
+    by_cases pHead : p = result.vertex
+    · subst p
+      obtain ⟨rfl, rfl⟩ := par_mate_unique structural bound par linked
+      exact wait pClass mClass different
+    · by_cases mHead : m = result.vertex
+      · subst m
+        obtain ⟨rfl, rfl⟩ := par_mate_unique structural bound par.symm linked
+        simpa [Nat.min_comm] using wait mClass pClass (Ne.symm different)
+      · obtain ⟨payload, lookup, member⟩ := closure.waitingForward par
+          (by simpa [classEq, pHead] using pClass) (by simpa [classEq, mHead] using mClass) different
+        exact keepWaiting lookup member
+
+/-- Waiting preserves region closure at the exact older destination cell. -/
+theorem WaitStep.regionClosure {certificate : Certificate} {before after : ReservationState}
+    (step : WaitStep certificate before after) (structural : certificate.StructurallyWellFormed)
+    (closure : RegionClosure certificate before.stack) : RegionClosure certificate after.stack := by
+  have shape := step.before_invariant.stack_wellShaped
+  have pop := step.prepared.stack_eq
+  obtain ⟨_, _, _, _, _, popSigma, _, popWaiting, _⟩ := popReadyMark?_exact pop
+  obtain ⟨payload, initialized, waitingEq, updated, marksEq, _, sigmaEq, readyEq⟩ :=
+    prependWaiting?_exact step.destination.stack_eq
+  have stackEq : after.stack = step.destination.stackAfter :=
+    congrArg ReservationState.stack step.destination.output_eq
+  have afterMarks : after.stack.marks = step.prepared.stackResult.after.marks := by
+    rw [stackEq]; exact marksEq
+  have afterSigma : after.stack.sigma = step.prepared.stackResult.after.sigma := by
+    rw [stackEq]; exact sigmaEq
+  have afterReady : after.stack.ready = step.prepared.stackResult.after.ready := by
+    rw [stackEq]; exact readyEq
+  have classEq : ∀ v, markClass? after.stack v = markClass? step.prepared.stackResult.after v := by
+    intro v; simp only [markClass?, afterMarks, afterSigma]
+  have oldClass : ∀ {v cls}, markClass? before.stack v = some cls →
+      markClass? after.stack v = some cls := by
+    intro v cls marked; rw [classEq]; exact pop_old_class shape pop marked
+  have regions : ∀ cls v, InRegion after.stack cls v ↔ InRegion before.stack cls v := by
+    intro cls v
+    have eq : InRegion after.stack cls v ↔ InRegion step.prepared.stackResult.after cls v := by
+      simp only [InRegion, markClass?, bucketAt?, afterMarks, afterSigma, afterReady]
+    exact eq.trans (pop_region_iff shape pop cls v)
+  have headClass : markClass? after.stack step.prepared.stackResult.vertex =
+      some step.prepared.stackResult.rawAge := by simp [classEq, pop_class_eq shape pop]
+  have mateMark : before.stack.marks[step.consumer.mate]? = some (some step.mateRawAge) := by
+    rw [← step.before_invariant.realizesSigma.marks_eq]
+    exact step.mate_marked_before
+  have mateClass : markClass? after.stack step.consumer.mate = some step.destination.boundary := by
+    apply oldClass
+    unfold markClass?
+    rw [mateMark]
+    simpa only [PreparedStep.after, popSigma] using step.destination.boundary_eq
+  have older : step.destination.boundary < step.prepared.stackResult.rawAge :=
+    Nat.lt_of_le_of_lt step.destination.boundary_properties.2 step.younger
+  have waiting : after.stack.waiting = before.stack.waiting.setIfInBounds
+      step.destination.boundary (.initialized (step.consumer.conclusion :: payload)) := by
+    rw [stackEq, waitingEq]
+    change step.prepared.stackResult.after.waiting.setIfInBounds _ _ = _
+    rw [popWaiting]
+  have oldLookup : before.stack.waiting[step.destination.boundary]? =
+      some (.initialized payload) := by
+    simpa only [PreparedStep.after, popWaiting] using initialized
+  have newLookup : after.stack.waiting[step.destination.boundary]? =
+      some (.initialized (step.consumer.conclusion :: payload)) := by rw [stackEq]; exact updated
+  have linked := ConnectiveBelow.parLinked step.consumer step.par_eq
+  apply par_update_closure structural shape pop closure linked afterMarks (afterSigma.trans popSigma)
+  · intro cls v region; exact (regions cls v).mpr region
+  · intro cls l r _ region; exact (regions cls l).mp region
+  · intro p m c cls link region
+    obtain ⟨pClass, mClass⟩ := closure.down link ((regions cls c).mp region)
+    exact ⟨oldClass pClass, oldClass mClass⟩
+  · intro cls hClass mClass
+    have hEq := Option.some.inj (headClass.symm.trans hClass)
+    have mEq := Option.some.inj (mateClass.symm.trans mClass)
+    exact (Nat.ne_of_gt older (hEq.trans mEq.symm)).elim
+  · intro cls cls' hClass mClass _
+    have hEq := Option.some.inj (headClass.symm.trans hClass)
+    have mEq := Option.some.inj (mateClass.symm.trans mClass)
+    subst cls; subst cls'
+    rw [Nat.min_eq_right (Nat.le_of_lt older)]
+    exact ⟨_, newLookup, List.mem_cons_self ..⟩
+  · intro boundary oldPayload v lookup member
+    by_cases same : boundary = step.destination.boundary
+    · subst boundary
+      have eq := Option.some.inj (oldLookup.symm.trans lookup)
+      cases eq
+      exact ⟨_, newLookup, List.mem_cons_of_mem _ member⟩
+    · refine ⟨oldPayload, ?_, member⟩
+      rw [waiting, Array.getElem?_setIfInBounds_ne (Ne.symm same)]
+      exact lookup
+  · intro boundary newPayload c lookup member
+    have oldEntry : before.stack.waiting[boundary]? = some (.initialized newPayload) →
+        ∃ p m cls cls', .par p m c ∈ certificate.links ∧
+          markClass? after.stack p = some cls ∧ markClass? after.stack m = some cls' ∧
+          cls ≠ cls' ∧ min cls cls' = boundary := by
+      intro old
+      obtain ⟨p, m, cls, cls', link, pClass, mClass, ne, eq⟩ := closure.waitingBackward old member
+      exact ⟨p, m, cls, cls', link, oldClass pClass, oldClass mClass, ne, eq⟩
+    by_cases same : boundary = step.destination.boundary
+    · subst boundary
+      have eq := Option.some.inj (newLookup.symm.trans lookup)
+      cases eq
+      rcases List.mem_cons.mp member with rfl | oldMember
+      · rcases linked with link | link
+        · exact ⟨_, _, _, _, link, headClass, mateClass, Nat.ne_of_gt older,
+            Nat.min_eq_right (Nat.le_of_lt older)⟩
+        · exact ⟨_, _, _, _, link, mateClass, headClass, Nat.ne_of_lt older,
+            Nat.min_eq_left (Nat.le_of_lt older)⟩
+      · obtain ⟨p, m, cls, cls', link, pClass, mClass, ne, eq⟩ :=
+          closure.waitingBackward oldLookup oldMember
+        exact ⟨p, m, cls, cls', link, oldClass pClass, oldClass mClass, ne, eq⟩
+    · apply oldEntry
+      rw [waiting, Array.getElem?_setIfInBounds_ne (Ne.symm same)] at lookup
+      exact lookup
+
+private theorem par_producer_classes {certificate : Certificate} {stack : SequentialStackState}
+    (structural : certificate.StructurallyWellFormed) {left right conclusion cls : Nat}
+    (linked : ParLinked certificate left right conclusion)
+    (leftClass : markClass? stack left = some cls) (rightClass : markClass? stack right = some cls)
+    {p m : Vertex} (other : TensorLinked certificate p m conclusion ∨
+      ParLinked certificate p m conclusion) :
+    markClass? stack p = some cls ∧ markClass? stack m = some cls := by
+  rcases linked with link | link <;>
+    rcases other with (other | other) | (other | other) <;>
+    have eq := UnificationState.StructurallyWellFormed.producerLink_unique structural (conclusion := conclusion)
+      link (by simp [Link.produces]) other (by simp [Link.produces]) <;>
+    cases eq <;> first | exact ⟨leftClass, rightClass⟩ | exact ⟨rightClass, leftClass⟩
+
+/-- Forwarding preserves region closure by adding the fired par conclusion to the active bucket. -/
+theorem ForwardStep.regionClosure {certificate : Certificate} {before after : ReservationState}
+    (step : ForwardStep certificate before after) (structural : certificate.StructurallyWellFormed)
+    (closure : RegionClosure certificate before.stack) : RegionClosure certificate after.stack := by
+  have shape := step.before_invariant.stack_wellShaped
+  have pop := step.prepared.stack_eq
+  obtain ⟨_, last, _, _, _, popSigma, _, popWaiting, _⟩ := popReadyMark?_exact pop
+  have midShape := popReadyMark?_wellShaped shape pop
+  have afterMarks : after.stack.marks = step.prepared.stackResult.after.marks := by
+    simp only [step.output_eq, step.prependStep.after_eq]
+  have afterSigma : after.stack.sigma = step.prepared.stackResult.after.sigma := by
+    simp only [step.output_eq, step.prependStep.after_eq]
+  have afterWaiting : after.stack.waiting = before.stack.waiting := by
+    simp only [step.output_eq, step.prependStep.after_eq]
+    exact popWaiting
+  have classEq : ∀ v, markClass? after.stack v = markClass? step.prepared.stackResult.after v := by
+    intro v; simp only [markClass?, afterMarks, afterSigma]
+  have oldClass : ∀ {v cls}, markClass? before.stack v = some cls →
+      markClass? after.stack v = some cls := by
+    intro v cls marked; rw [classEq]; exact pop_old_class shape pop marked
+  have headClass : markClass? after.stack step.prepared.stackResult.vertex =
+      some step.prepared.stackResult.rawAge := by simp [classEq, pop_class_eq shape pop]
+  have mateMark : step.prepared.stackResult.after.marks[step.consumer.mate]? =
+      some (some step.mateRawAge) := by
+    change step.prepared.after.stack.marks[step.consumer.mate]? = _
+    rw [← (step.prepared.reservationInvariant step.before_invariant).realizesSigma.marks_eq]
+    exact step.mate_marked
+  have mateClass : markClass? after.stack step.consumer.mate =
+      some step.prepared.stackResult.rawAge := by
+    rw [classEq]
+    unfold markClass?
+    rw [mateMark, popSigma]
+    exact sigmaBoundary?_of_last_le shape.sigma_partition.strictIncreasing last step.not_older
+  have midLast : step.prepared.stackResult.after.sigma.getLast? =
+      some step.prepared.stackResult.rawAge := by rw [popSigma]; exact last
+  have readyLast : step.prepared.stackResult.after.ready.getLast? =
+      some step.prependStep.activeReady := by rw [step.prependStep.ready_eq]; simp
+  have midBucket := bucketAt?_last midShape.sigma_partition.strictIncreasing
+    midShape.ready_aligned midLast readyLast
+  have buckets : ∀ cls, bucketAt? after.stack cls =
+      if cls = step.prepared.stackResult.rawAge then
+        some (step.consumer.conclusion :: step.prependStep.activeReady)
+      else bucketAt? step.prepared.stackResult.after cls := by
+    intro cls
+    have ready : after.stack.ready = step.prepared.stackResult.after.ready.dropLast ++
+        [step.consumer.conclusion :: step.prependStep.activeReady] := by
+      simp [step.output_eq, step.prependStep.after_eq, step.prependStep.ready_eq]
+    unfold bucketAt?
+    rw [afterSigma, ready]
+    exact lookup_zip_replaceLast midShape.sigma_partition.strictIncreasing
+      midShape.ready_aligned midLast readyLast cls
+  have regions : ∀ cls v, InRegion after.stack cls v ↔
+      InRegion before.stack cls v ∨
+        (cls = step.prepared.stackResult.rawAge ∧ v = step.consumer.conclusion) := by
+    intro cls v
+    rw [← pop_region_iff shape pop cls v]
+    unfold InRegion
+    rw [classEq, buckets]
+    by_cases active : cls = step.prepared.stackResult.rawAge
+    · subst cls
+      simp only [ite_true, midBucket, Option.some.injEq, true_and]
+      grind
+    · simp [active]
+  have linked := ConnectiveBelow.parLinked step.consumer step.par_eq
+  apply par_update_closure structural shape pop closure linked afterMarks (afterSigma.trans popSigma)
+  · intro cls v region; exact (regions cls v).mpr (Or.inl region)
+  · intro cls l r axLinked region
+    rcases (regions cls l).mp region with old | ⟨_, rfl⟩
+    · exact old
+    · obtain ⟨name, positive, atom⟩ := axiom_endpoint_atom structural axLinked
+      exact (connective_conclusion_not_atom structural (Or.inr linked) atom).elim
+  · intro p m c cls link region
+    rcases (regions cls c).mp region with old | ⟨rfl, rfl⟩
+    · obtain ⟨pClass, mClass⟩ := closure.down link old
+      exact ⟨oldClass pClass, oldClass mClass⟩
+    · exact par_producer_classes structural linked headClass mateClass link
+  · intro cls hClass _
+    have eq := Option.some.inj (headClass.symm.trans hClass)
+    exact (regions cls step.consumer.conclusion).mpr (Or.inr ⟨eq.symm, rfl⟩)
+  · intro cls cls' hClass mClass different
+    have hEq := Option.some.inj (headClass.symm.trans hClass)
+    have mEq := Option.some.inj (mateClass.symm.trans mClass)
+    exact (different (hEq.symm.trans mEq)).elim
+  · intro boundary payload v lookup member
+    exact ⟨payload, by rw [afterWaiting]; exact lookup, member⟩
+  · intro boundary payload c lookup member
+    rw [afterWaiting] at lookup
+    obtain ⟨p, m, cls, cls', link, pClass, mClass, ne, eq⟩ := closure.waitingBackward lookup member
+    exact ⟨p, m, cls, cls', link, oldClass pClass, oldClass mClass, ne, eq⟩
+
+private theorem class_lt_next {stack : SequentialStackState} {size : Nat}
+    (shape : stack.WellShaped size) {v : Vertex} {cls : RawTokenAge}
+    (marked : markClass? stack v = some cls) : cls < stack.nextAge := by
+  unfold markClass? at marked
+  cases eq : stack.marks[v]? with
+  | none => simp [eq] at marked
+  | some mark =>
+      cases mark with
+      | none => simp [eq] at marked
+      | some age =>
+          simp only [eq] at marked
+          exact Nat.lt_of_le_of_lt (sigmaBoundary?_le marked) (shape.assigned_age_bound v age eq)
+
+private theorem lookup_zip_append_fresh {keys : List Nat} {values : List (List Vertex)}
+    {fresh : Nat} {value : List Vertex} (aligned : keys.length = values.length)
+    (absent : fresh ∉ keys) (query : Nat) :
+    ((keys ++ [fresh]).zip (values ++ [value])).lookup query =
+      if query = fresh then some value else (keys.zip values).lookup query := by
+  have none : (keys.zip values).lookup fresh = none := by
+    apply List.lookup_eq_none_iff.mpr
+    intro pair member
+    have ne : fresh ≠ pair.1 := fun eq ↦ absent (eq ▸ (List.of_mem_zip member).1)
+    simpa using ne
+  rw [List.zip_append aligned, List.lookup_append]
+  by_cases same : query = fresh
+  · subst query; simp [none]
+  · have ne : (query == fresh) = false := by simp [same]
+    simp [List.lookup, same, ne]
+
+private theorem tensorLinked_of_query {certificate : Certificate} {v : Vertex} {tensor : TensorBelow}
+    (query : certificate.tensorBelow? v = some tensor) :
+    TensorLinked certificate v tensor.mate tensor.conclusion := by
+  have member := List.mem_of_getElem? (certificate.tensorBelow?_link query)
+  have premise := certificate.tensorBelow?_premise query
+  rw [premise]
+  cases sideEq : tensor.side <;> simp_all [TensorBelow.premise, TensorBelow.mate,
+    TensorPremiseSide.premise, TensorPremiseSide.mate, TensorLinked]
+
+private theorem tensor_mate_unique {certificate : Certificate}
+    (structural : certificate.StructurallyWellFormed) {p m c m' c' : Vertex}
+    (bound : p < certificate.formulas.size) (tensor : TensorLinked certificate p m c)
+    (tensor' : TensorLinked certificate p m' c') : m = m' ∧ c = c' := by
+  rcases tensor with tensor | tensor <;> rcases tensor' with tensor' | tensor' <;>
+    have eq := premise_unique structural tensor tensor'
+      (by simp [Link.premises]) (by simp [Link.premises]) bound <;>
+    simp only [Link.tensor.injEq] at eq <;> grind
+
+/-- A new reservation preserves region closure while making a fresh, unmarked axiom region active. -/
+theorem NewStep.regionClosure {certificate : Certificate} {before after : ReservationState}
+    (step : NewStep certificate before after) (structural : certificate.StructurallyWellFormed)
+    (closure : RegionClosure certificate before.stack) : RegionClosure certificate after.stack := by
+  have shape := step.before_invariant.stack_wellShaped
+  have pop := step.stack_eq
+  have midShape := popReadyMark?_wellShaped shape pop
+  obtain ⟨_, last, _, _, _, popSigma, _, popWaiting, _⟩ := popReadyMark?_exact pop
+  obtain ⟨active, activeLast, _, marksEq, _, sigmaEq, readyEq, waitingEq, updated, _⟩ :=
+    operationalNewEnqueue?_exact step.stack_enqueue_eq
+  have activeEq : active = step.stackResult.rawAge := by
+    rw [popSigma] at activeLast
+    exact Option.some.inj (activeLast.symm.trans last)
+  subst active
+  have stackEq : after.stack = step.stackAfter := congrArg ReservationState.stack step.output_eq
+  have classEq : ∀ v, markClass? after.stack v = markClass? step.stackResult.after v := by
+    intro v
+    unfold markClass?
+    rw [stackEq, marksEq, sigmaEq]
+    cases mark : step.stackResult.after.marks[v]? with
+    | none => rfl
+    | some raw =>
+        cases raw with
+        | none => rfl
+        | some age =>
+            exact sigmaBoundary?_append_fresh_old (midShape.assigned_age_bound v age mark)
+  have oldClass : ∀ {v cls}, markClass? before.stack v = some cls →
+      markClass? after.stack v = some cls := by
+    intro v cls marked; rw [classEq]; exact pop_old_class shape pop marked
+  have markedEq : ∀ v, Marked after.stack v ↔ v = step.stackResult.vertex ∨ Marked before.stack v := by
+    intro v
+    have eq : Marked after.stack v ↔ Marked step.stackResult.after v := by
+      simp only [Marked, stackEq, marksEq]
+    exact eq.trans (pop_marked_iff pop v)
+  have noFresh : ∀ v, markClass? after.stack v ≠ some step.stackResult.after.nextAge := by
+    intro v marked
+    rw [classEq] at marked
+    exact Nat.lt_irrefl _ (class_lt_next midShape marked)
+  have absent : step.stackResult.after.nextAge ∉ step.stackResult.after.sigma := by
+    intro member
+    exact Nat.lt_irrefl _ (midShape.sigma_partition.boundary_lt _ member)
+  have buckets : ∀ cls, bucketAt? after.stack cls =
+      if cls = step.stackResult.after.nextAge then some [step.reached, step.partner]
+      else bucketAt? step.stackResult.after cls := by
+    intro cls
+    unfold bucketAt?
+    rw [stackEq, sigmaEq, readyEq]
+    exact lookup_zip_append_fresh midShape.ready_aligned.symm absent cls
+  have freshNone : bucketAt? step.stackResult.after step.stackResult.after.nextAge = none := by
+    unfold bucketAt?
+    apply List.lookup_eq_none_iff.mpr
+    intro pair member
+    have ne : step.stackResult.after.nextAge ≠ pair.1 :=
+      fun eq ↦ absent (eq ▸ (List.of_mem_zip member).1)
+    simpa using ne
+  have regions : ∀ cls v, InRegion after.stack cls v ↔ InRegion before.stack cls v ∨
+      (cls = step.stackResult.after.nextAge ∧ v ∈ [step.reached, step.partner]) := by
+    intro cls v
+    rw [← pop_region_iff shape pop cls v]
+    unfold InRegion
+    rw [classEq, buckets]
+    by_cases fresh : cls = step.stackResult.after.nextAge
+    · subst cls
+      simp only [ite_true, freshNone, Option.some.injEq, reduceCtorEq, false_and,
+        exists_false, or_false, true_and]
+      grind
+    · simp [fresh]
+  have extend : ∀ {cls v}, InRegion before.stack cls v → InRegion after.stack cls v :=
+    fun {cls v} region ↦ (regions cls v).mpr (Or.inl region)
+  have newAxiom := axiomLinked_of_oriented step.search step.oriented_eq
+  have tensor := tensorLinked_of_query step.tensor_eq
+  have bound := pop_vertex_bound shape pop
+  have mateUnmarked : ¬ Marked after.stack step.tensor.mate := by
+    rintro ⟨age, marked⟩
+    have unmarked := step.mate_unmarked
+    have markEq := step.markedMiddle_reservationInvariant.realizesSigma.marks_eq
+    change step.coreMarked.marks = step.stackResult.after.marks at markEq
+    rw [stackEq, marksEq, ← markEq] at marked
+    rw [unmarked] at marked
+    cases marked
+  have parNe : ∀ {p m c}, ParLinked certificate p m c →
+      p ≠ step.stackResult.vertex ∧ m ≠ step.stackResult.vertex := by
+    intro p m c par
+    constructor
+    · rintro rfl; exact par_tensor_disjoint structural bound par tensor
+    · rintro rfl; exact par_tensor_disjoint structural bound par.symm tensor
+  have headClass : markClass? after.stack step.stackResult.vertex = some step.stackResult.rawAge := by
+    simp [classEq, pop_class_eq shape pop]
+  have beforeClass : ∀ {v cls}, v ≠ step.stackResult.vertex →
+      markClass? after.stack v = some cls → markClass? before.stack v = some cls := by
+    intro v cls ne marked
+    simpa [classEq, pop_class_eq shape pop, ne] using marked
+  have waiting : after.stack.waiting = before.stack.waiting.setIfInBounds step.stackResult.rawAge
+      (.initialized []) := by rw [stackEq, waitingEq, popWaiting]
+  have activeEmpty : after.stack.waiting[step.stackResult.rawAge]? = some (.initialized []) := by
+    rw [stackEq]; exact updated
+  have oldUndefined : before.stack.waiting[step.stackResult.rawAge]? = some .undefined := by
+    obtain ⟨enqueue⟩ := operationalNewEnqueue?_some_iff.mp step.stack_enqueue_eq
+    have same : enqueue.active = step.stackResult.rawAge := by
+      have h := enqueue.ready.2.1
+      rw [popSigma] at h
+      exact Option.some.inj (h.symm.trans last)
+    have h := enqueue.ready.2.2.2.2.2.2.2.2.2.2.1
+    simpa only [same, popWaiting] using h
+  refine {
+    pairsMarked := ?_
+    pairsRaw := ?_
+    tensorTop := ?_
+    tensorOne := ?_
+    tensorFired := ?_
+    parFired := ?_
+    down := ?_
+    waitingForward := ?_
+    waitingBackward := ?_ }
+  · intro l r cls linked marked
+    rw [classEq] at marked
+    exact extend ((pop_region_iff shape pop cls r).mp (pop_pairs_marked shape pop closure linked marked))
+  · intro l r cls bucket linked lookup member
+    rw [buckets] at lookup
+    by_cases fresh : cls = step.stackResult.after.nextAge
+    · subst cls
+      simp only [ite_true, Option.some.injEq] at lookup
+      subst bucket
+      have bounds : ∀ v ∈ [step.reached, step.partner], v < certificate.formulas.size := by
+        intro v mem
+        exact step.reservationInvariant.stack_wellShaped.ready_in_bounds _
+          (by rw [stackEq, readyEq]; simp) v mem
+      have vBound := bounds l member
+      refine Or.inl ?_
+      simp only [List.mem_cons, List.not_mem_nil, or_false] at member
+      rcases member with rfl | rfl
+      · rw [axiom_partner_unique structural linked newAxiom vBound]; simp
+      · rw [axiom_partner_unique structural linked newAxiom.symm vBound]; simp
+    · rw [if_neg fresh] at lookup
+      rcases pop_pairs_raw shape pop closure linked lookup member with raw | marked
+      · exact Or.inl raw
+      · exact Or.inr (by rw [classEq]; exact marked)
+  · intro p m c active linked top marked
+    have topEq : after.stack.sigma.getLast? = some step.stackResult.after.nextAge := by
+      rw [stackEq, sigmaEq]; simp
+    have eq := Option.some.inj (top.symm.trans topEq)
+    subst active
+    exact (noFresh p marked).elim
+  · intro p m c p' m' c' cls linked linked' pClass mAbsent pClass' mAbsent'
+    by_cases pHead : p = step.stackResult.vertex
+    · subst p
+      by_cases pHead' : p' = step.stackResult.vertex
+      · exact pHead'.symm
+      · have eq := Option.some.inj (headClass.symm.trans pClass)
+        subst cls
+        have oldMate := closure.tensorTop linked' last (beforeClass pHead' pClass')
+        exact (mAbsent' ((markedEq m').mpr (Or.inr oldMate))).elim
+    · by_cases pHead' : p' = step.stackResult.vertex
+      · subst p'
+        have eq := Option.some.inj (headClass.symm.trans pClass')
+        subst cls
+        have oldMate := closure.tensorTop linked last (beforeClass pHead pClass)
+        exact (mAbsent ((markedEq m).mpr (Or.inr oldMate))).elim
+      · exact closure.tensorOne linked linked' (beforeClass pHead pClass)
+          (fun old ↦ mAbsent ((markedEq m).mpr (Or.inr old))) (beforeClass pHead' pClass')
+          (fun old ↦ mAbsent' ((markedEq m').mpr (Or.inr old)))
+  · intro p m c cls linked pClass mMarked
+    have pNe : p ≠ step.stackResult.vertex := by
+      intro eq; subst p
+      obtain ⟨mateEq, _⟩ := tensor_mate_unique structural bound linked tensor
+      rw [mateEq] at mMarked
+      exact mateUnmarked mMarked
+    have mNe : m ≠ step.stackResult.vertex := by
+      intro eq; subst m
+      obtain ⟨mateEq, _⟩ := tensor_mate_unique structural bound linked.symm tensor
+      rw [mateEq] at pClass
+      exact mateUnmarked (marked_of_class pClass)
+    have oldMate : Marked before.stack m := by simpa [mNe] using (markedEq m).mp mMarked
+    obtain ⟨mClass, region⟩ := closure.tensorFired linked (beforeClass pNe pClass) oldMate
+    exact ⟨oldClass mClass, extend region⟩
+  · intro p m c cls linked pClass mClass
+    exact extend (closure.parFired linked (beforeClass (parNe linked).1 pClass)
+      (beforeClass (parNe linked).2 mClass))
+  · intro p m c cls linked region
+    rcases (regions cls c).mp region with old | ⟨_, member⟩
+    · obtain ⟨pClass, mClass⟩ := closure.down linked old
+      exact ⟨oldClass pClass, oldClass mClass⟩
+    · have atom : ∃ name positive, certificate.formula? c = some (.atom name positive) := by
+        simp only [List.mem_cons, List.not_mem_nil, or_false] at member
+        rcases member with rfl | rfl
+        · exact axiom_endpoint_atom structural newAxiom
+        · exact axiom_endpoint_atom structural newAxiom.symm
+      obtain ⟨name, positive, atom⟩ := atom
+      exact (connective_conclusion_not_atom structural linked atom).elim
+  · intro p m c cls cls' linked pClass mClass different
+    obtain ⟨payload, lookup, member⟩ := closure.waitingForward linked
+      (beforeClass (parNe linked).1 pClass) (beforeClass (parNe linked).2 mClass) different
+    have ne : min cls cls' ≠ step.stackResult.rawAge := by
+      intro eq
+      rw [eq, oldUndefined] at lookup
+      cases lookup
+    exact ⟨payload, by rw [waiting, Array.getElem?_setIfInBounds_ne (Ne.symm ne)]; exact lookup,
+      member⟩
+  · intro boundary payload c lookup member
+    have ne : boundary ≠ step.stackResult.rawAge := by
+      intro eq; subst boundary
+      rw [activeEmpty] at lookup
+      cases lookup
+      cases member
+    rw [waiting, Array.getElem?_setIfInBounds_ne (Ne.symm ne)] at lookup
+    obtain ⟨p, m, cls, cls', link, pClass, mClass, different, eq⟩ := closure.waitingBackward lookup member
+    exact ⟨p, m, cls, cls', link, oldClass pClass, oldClass mClass, different, eq⟩
+
+private def mergedClass (active previous cls : RawTokenAge) : RawTokenAge :=
+  if cls = active then previous else cls
+
+private theorem boundary_merge {sigmaPrefix : List RawTokenAge} {previous active age : RawTokenAge}
+    (increasing : (sigmaPrefix ++ [previous, active]).Pairwise (· < ·)) :
+    sigmaBoundary? (sigmaPrefix ++ [previous]) age =
+      (sigmaBoundary? (sigmaPrefix ++ [previous, active]) age).map (mergedClass active previous) := by
+  by_cases below : age < active
+  · rw [sigmaBoundary?_popActive_of_lt rfl below]
+    cases lookup : sigmaBoundary? (sigmaPrefix ++ [previous, active]) age with
+    | none => rfl
+    | some cls =>
+        have le := sigmaBoundary?_le lookup
+        have ne : cls ≠ active := Nat.ne_of_lt (Nat.lt_of_le_of_lt le below)
+        simp [mergedClass, ne]
+  · have lower : active ≤ age := Nat.le_of_not_gt below
+    have previousLt : previous < active := by
+      simpa using (List.pairwise_append.mp increasing).2.1
+    have reduced : (sigmaPrefix ++ [previous]).Pairwise (· < ·) := by
+      have h : ((sigmaPrefix ++ [previous]) ++ [active]).Pairwise (· < ·) := by
+        simpa [List.append_assoc] using increasing
+      exact (List.pairwise_append.mp h).1
+    rw [sigmaBoundary?_of_last_le increasing (by simp) lower,
+      sigmaBoundary?_of_last_le reduced (by simp) (Nat.le_trans (Nat.le_of_lt previousLt) lower)]
+    simp [mergedClass]
+
+private theorem class_mem_sigma {stack : SequentialStackState} {v : Vertex} {cls : RawTokenAge}
+    (marked : markClass? stack v = some cls) : cls ∈ stack.sigma := by
+  unfold markClass? at marked
+  cases eq : stack.marks[v]? with
+  | none => simp [eq] at marked
+  | some mark =>
+      cases mark with
+      | none => simp [eq] at marked
+      | some age =>
+          simp only [eq] at marked
+          exact sigmaBoundary?_mem marked
+
+private theorem bucket_mem_sigma {stack : SequentialStackState} {cls : RawTokenAge}
+    {bucket : List Vertex} (lookup : bucketAt? stack cls = some bucket) : cls ∈ stack.sigma := by
+  obtain ⟨front, back, eq, _⟩ := List.lookup_eq_some_iff.mp lookup
+  apply (List.of_mem_zip (l₁ := stack.sigma) (l₂ := stack.ready) (a := cls) (b := bucket) ?_).1
+  rw [eq]
+  simp
+
+private theorem merged_class_cases {previous active s t : RawTokenAge}
+    (same : mergedClass active previous s = mergedClass active previous t) :
+    s = t ∨ (s = previous ∧ t = active) ∨ (s = active ∧ t = previous) := by
+  unfold mergedClass at same
+  split at same <;> split at same <;> grind
+
+private theorem lookup_zip_none {keys : List Nat} {values : List (List Vertex)} {key : Nat}
+    (absent : key ∉ keys) : (keys.zip values).lookup key = none := by
+  apply List.lookup_eq_none_iff.mpr
+  intro pair member
+  have ne : key ≠ pair.1 := fun eq ↦ absent (eq ▸ (List.of_mem_zip member).1)
+  simpa using ne
+
+private theorem merge_class_eq {before after : SequentialStackState} {previous c : Nat} {size : Nat}
+    (shape : before.WellShaped size) (step : MergeTopReadyWaitingStep before after previous c)
+    (v : Vertex) : markClass? after v =
+      (markClass? before v).map (mergedClass step.activeBoundary previous) := by
+  have increasing : (step.sigmaPrefix ++ [previous, step.activeBoundary]).Pairwise (· < ·) := by
+    rw [← step.sigma_eq]; exact shape.sigma_partition.strictIncreasing
+  unfold markClass?
+  have marks : after.marks = before.marks := by
+    simpa only using congrArg SequentialStackState.marks step.after_eq
+  have sigma : after.sigma = step.sigmaPrefix ++ [previous] :=
+    congrArg SequentialStackState.sigma step.after_eq
+  rw [marks, sigma]
+  cases eq : before.marks[v]? with
+  | none => rfl
+  | some mark =>
+      cases mark with
+      | none => rfl
+      | some age => rw [step.sigma_eq]; exact boundary_merge increasing
+
+private theorem merge_region_iff {before after : SequentialStackState} {previous c : Nat} {size : Nat}
+    (shape : before.WellShaped size) (step : MergeTopReadyWaitingStep before after previous c)
+    (cls : RawTokenAge) (v : Vertex) :
+    InRegion after cls v ↔
+      (∃ old, InRegion before old v ∧ mergedClass step.activeBoundary previous old = cls) ∨
+        (cls = previous ∧ (v = c ∨ v ∈ step.payload)) := by
+  have increasing : (step.sigmaPrefix ++ [previous, step.activeBoundary]).Pairwise (· < ·) := by
+    rw [← step.sigma_eq]; exact shape.sigma_partition.strictIncreasing
+  have lt : previous < step.activeBoundary := by
+    simpa using (List.pairwise_append.mp increasing).2.1
+  have below : ∀ q ∈ step.sigmaPrefix, q < previous := by
+    intro q member
+    exact (List.pairwise_append.mp increasing).2.2 q member previous (by simp)
+  have previousAbsent : previous ∉ step.sigmaPrefix := fun member ↦ Nat.lt_irrefl _ (below _ member)
+  have activeAbsent : step.activeBoundary ∉ step.sigmaPrefix := by
+    intro member
+    exact Nat.lt_asymm lt (below _ member)
+  have aligned : step.sigmaPrefix.length = step.readyPrefix.length := by
+    have h := shape.ready_aligned
+    rw [step.sigma_eq, step.ready_eq] at h
+    simpa using h.symm
+  have oldBuckets : ∀ q, bucketAt? before q =
+      if q = step.activeBoundary then some step.activeReady
+      else if q = previous then some step.previousReady
+      else (step.sigmaPrefix.zip step.readyPrefix).lookup q := by
+    intro q
+    unfold bucketAt?
+    rw [step.sigma_eq, step.ready_eq]
+    have keyEq : step.sigmaPrefix ++ [previous, step.activeBoundary] =
+        (step.sigmaPrefix ++ [previous]) ++ [step.activeBoundary] := by simp
+    have valueEq : step.readyPrefix ++ [step.previousReady, step.activeReady] =
+        (step.readyPrefix ++ [step.previousReady]) ++ [step.activeReady] := by simp
+    rw [keyEq, valueEq, lookup_zip_append_fresh (by simp [aligned])
+      (by simp [activeAbsent, Nat.ne_of_gt lt]), lookup_zip_append_fresh aligned previousAbsent]
+  have newBuckets : ∀ q, bucketAt? after q =
+      if q = previous then some (c :: (step.payload ++ step.previousReady ++ step.activeReady))
+      else (step.sigmaPrefix.zip step.readyPrefix).lookup q := by
+    intro q
+    have sigma := congrArg SequentialStackState.sigma step.after_eq
+    have ready := congrArg SequentialStackState.ready step.after_eq
+    unfold bucketAt?
+    rw [sigma, ready]
+    exact lookup_zip_append_fresh aligned previousAbsent q
+  have noActive : (step.sigmaPrefix.zip step.readyPrefix).lookup step.activeBoundary = none :=
+    lookup_zip_none activeAbsent
+  have moveMarked : ∀ {old}, markClass? before v = some old →
+      markClass? after v = some (mergedClass step.activeBoundary previous old) := by
+    intro old marked
+    rw [merge_class_eq shape step, marked]
+    rfl
+  constructor
+  · rintro (marked | ⟨bucket, lookup, member⟩)
+    · rw [merge_class_eq shape step] at marked
+      cases oldEq : markClass? before v with
+      | none => simp [oldEq] at marked
+      | some old =>
+          simp only [oldEq, Option.map_some, Option.some.injEq] at marked
+          exact Or.inl ⟨old, Or.inl oldEq, marked⟩
+    · rw [newBuckets] at lookup
+      by_cases current : cls = previous
+      · subst cls
+        simp only [ite_true, Option.some.injEq] at lookup
+        subst bucket
+        rcases List.mem_cons.mp member with created | member
+        · exact Or.inr ⟨rfl, Or.inl created⟩
+        · rcases List.mem_append.mp member with left | active
+          · rcases List.mem_append.mp left with payload | previousMem
+            · exact Or.inr ⟨rfl, Or.inr payload⟩
+            · exact Or.inl ⟨previous, Or.inr ⟨_, by simp [oldBuckets, Nat.ne_of_lt lt], previousMem⟩,
+                by simp [mergedClass, Nat.ne_of_lt lt]⟩
+          · exact Or.inl ⟨step.activeBoundary, Or.inr ⟨_, by simp [oldBuckets], active⟩,
+              by simp [mergedClass]⟩
+      · rw [if_neg current] at lookup
+        have ne : cls ≠ step.activeBoundary := by
+          intro eq; subst cls; rw [noActive] at lookup; cases lookup
+        exact Or.inl ⟨cls, Or.inr ⟨_, by simpa [oldBuckets, ne, current] using lookup, member⟩,
+          by simp [mergedClass, ne]⟩
+  · rintro (⟨old, marked | ⟨bucket, lookup, member⟩, rfl⟩ | ⟨rfl, created | payload⟩)
+    · exact Or.inl (moveMarked marked)
+    · rw [oldBuckets] at lookup
+      by_cases active : old = step.activeBoundary
+      · subst old
+        simp only [ite_true, Option.some.injEq] at lookup
+        subst bucket
+        refine Or.inr ⟨c :: (step.payload ++ step.previousReady ++ step.activeReady), ?_, ?_⟩
+        · simp [newBuckets, mergedClass]
+        · exact List.mem_cons_of_mem _ (List.mem_append_right _ member)
+      · rw [if_neg active] at lookup
+        by_cases prev : old = previous
+        · subst old
+          simp only [ite_true, Option.some.injEq] at lookup
+          subst bucket
+          refine Or.inr ⟨c :: (step.payload ++ step.previousReady ++ step.activeReady), ?_, ?_⟩
+          · simp [newBuckets, mergedClass, active]
+          · exact List.mem_cons_of_mem _ (List.mem_append_left _ (List.mem_append_right _ member))
+        · rw [if_neg prev] at lookup
+          exact Or.inr ⟨_, by simpa [newBuckets, mergedClass, active, prev] using lookup, member⟩
+    · subst v
+      exact Or.inr ⟨c :: (step.payload ++ step.previousReady ++ step.activeReady), by simp [newBuckets], List.mem_cons_self ..⟩
+    · exact Or.inr ⟨c :: (step.payload ++ step.previousReady ++ step.activeReady), by simp [newBuckets], List.mem_cons_of_mem _
+        (List.mem_append_left _ (List.mem_append_left _ payload))⟩
+
+private theorem merge_min_eq {a p s t : Nat} (lt : p < a)
+    (sDom : s ≤ p ∨ s = a) (tDom : t ≤ p ∨ t = a) (different : s ≠ t)
+    (eq : min s t = p) : mergedClass a p s = p ∧ mergedClass a p t = p := by
+  by_cases sa : s = a <;> by_cases ta : t = a <;>
+    simp only [mergedClass, sa, ta, ite_true, ite_false] <;> grind
+
+private theorem merge_min_ne {a p s t : Nat} (lt : p < a)
+    (sDom : s ≤ p ∨ s = a) (tDom : t ≤ p ∨ t = a) (different : s ≠ t)
+    (ne : min s t ≠ p) :
+    mergedClass a p s ≠ mergedClass a p t ∧
+      min (mergedClass a p s) (mergedClass a p t) = min s t := by
+  by_cases sa : s = a <;> by_cases ta : t = a <;>
+    simp only [mergedClass, sa, ta, ite_true, ite_false] <;> grind
+
+private theorem tensor_producer_classes {certificate : Certificate} {stack : SequentialStackState}
+    (structural : certificate.StructurallyWellFormed) {left right conclusion cls : Nat}
+    (linked : TensorLinked certificate left right conclusion)
+    (leftClass : markClass? stack left = some cls) (rightClass : markClass? stack right = some cls)
+    {p m : Vertex} (other : TensorLinked certificate p m conclusion ∨
+      ParLinked certificate p m conclusion) :
+    markClass? stack p = some cls ∧ markClass? stack m = some cls := by
+  rcases linked with link | link <;>
+    rcases other with (other | other) | (other | other) <;>
+    have eq := UnificationState.StructurallyWellFormed.producerLink_unique structural
+      (conclusion := conclusion) link (by simp [Link.produces]) other (by simp [Link.produces]) <;>
+    cases eq <;> first | exact ⟨leftClass, rightClass⟩ | exact ⟨rightClass, leftClass⟩
+
+/-- Payload unification preserves region closure when the adjacent classes and waiting payload merge. -/
+theorem UnifyPayloadStep.regionClosure {certificate : Certificate} {before after : ReservationState}
+    (step : UnifyPayloadStep certificate before after) (structural : certificate.StructurallyWellFormed)
+    (closure : RegionClosure certificate before.stack) : RegionClosure certificate after.stack := by
+  have shape := step.before_invariant.stack_wellShaped
+  have pop := step.prepared.stack_eq
+  have midShape := popReadyMark?_wellShaped shape pop
+  obtain ⟨_, last, headUnmarked, _, _, popSigma, _, popWaiting, _⟩ := popReadyMark?_exact pop
+  have stackEq : after.stack = step.stackAfter := congrArg ReservationState.stack step.output_eq
+  have oldSigma : before.stack.sigma =
+      step.mergeStep.sigmaPrefix ++ [step.previousBoundary, step.mergeStep.activeBoundary] :=
+    popSigma.symm.trans step.mergeStep.sigma_eq
+  have activeEq : step.mergeStep.activeBoundary = step.prepared.stackResult.rawAge := by
+    rw [oldSigma] at last
+    simpa using last
+  have increasing : (step.mergeStep.sigmaPrefix ++
+      [step.previousBoundary, step.mergeStep.activeBoundary]).Pairwise (· < ·) := by
+    rw [← oldSigma]; exact shape.sigma_partition.strictIncreasing
+  have lt : step.previousBoundary < step.mergeStep.activeBoundary := by
+    simpa using (List.pairwise_append.mp increasing).2.1
+  let collapse := mergedClass step.mergeStep.activeBoundary step.previousBoundary
+  have collapseActive : collapse step.mergeStep.activeBoundary = step.previousBoundary := by
+    simp [collapse, mergedClass]
+  have collapsePrevious : collapse step.previousBoundary = step.previousBoundary := by
+    simp [collapse, mergedClass, Nat.ne_of_lt lt]
+  have classEq : ∀ v, markClass? after.stack v =
+      (markClass? step.prepared.stackResult.after v).map collapse := by
+    intro v
+    rw [stackEq]
+    exact merge_class_eq midShape step.mergeStep v
+  have oldClass : ∀ {v cls}, markClass? before.stack v = some cls →
+      markClass? after.stack v = some (collapse cls) := by
+    intro v cls marked
+    rw [classEq, pop_old_class shape pop marked]
+    rfl
+  have headClass : markClass? after.stack step.prepared.stackResult.vertex =
+      some step.previousBoundary := by
+    simp [classEq, pop_class_eq shape pop, collapse, ← activeEq, mergedClass]
+  have newClass : ∀ {v cls}, markClass? after.stack v = some cls →
+      (v = step.prepared.stackResult.vertex ∧ cls = step.previousBoundary) ∨
+        ∃ old, markClass? before.stack v = some old ∧ collapse old = cls := by
+    intro v cls marked
+    by_cases head : v = step.prepared.stackResult.vertex
+    · subst v
+      exact Or.inl ⟨rfl, (Option.some.inj (headClass.symm.trans marked)).symm⟩
+    · rw [classEq, pop_class_eq shape pop, if_neg head] at marked
+      cases old : markClass? before.stack v with
+      | none => simp [old] at marked
+      | some oldCls =>
+          simp only [old, Option.map_some, Option.some.injEq] at marked
+          exact Or.inr ⟨oldCls, rfl, marked⟩
+  have markedEq : ∀ v, Marked after.stack v ↔
+      v = step.prepared.stackResult.vertex ∨ Marked before.stack v := by
+    intro v
+    have marks : after.stack.marks = step.prepared.stackResult.after.marks := by
+      simp only [stackEq, step.mergeStep.after_eq]
+    rw [Marked, marks]
+    exact pop_marked_iff pop v
+  have regions : ∀ cls v, InRegion after.stack cls v ↔
+      (∃ old, InRegion before.stack old v ∧ collapse old = cls) ∨
+        (cls = step.previousBoundary ∧ (v = step.consumer.conclusion ∨ v ∈ step.mergeStep.payload)) := by
+    intro cls v
+    rw [stackEq]
+    simpa only [pop_region_iff shape pop] using merge_region_iff midShape step.mergeStep cls v
+  have extend : ∀ {cls v}, InRegion before.stack cls v → InRegion after.stack (collapse cls) v := by
+    intro cls v region
+    exact (regions (collapse cls) v).mpr (Or.inl ⟨cls, region, rfl⟩)
+  have created : InRegion after.stack step.previousBoundary step.consumer.conclusion :=
+    (regions _ _).mpr (Or.inr ⟨rfl, Or.inl rfl⟩)
+  have fromPayload : ∀ {v}, v ∈ step.mergeStep.payload → InRegion after.stack step.previousBoundary v :=
+    fun member ↦ (regions _ _).mpr (Or.inr ⟨rfl, Or.inr member⟩)
+  have domain : ∀ {cls}, cls ∈ before.stack.sigma →
+      cls ≤ step.previousBoundary ∨ cls = step.mergeStep.activeBoundary := by
+    intro cls member
+    rw [oldSigma] at member
+    rcases List.mem_append.mp member with member | member
+    · exact Or.inl (Nat.le_of_lt ((List.pairwise_append.mp increasing).2.2 cls member _ (by simp)))
+    · simp only [List.mem_cons, List.not_mem_nil, or_false] at member
+      rcases member with rfl | eq
+      · exact Or.inl (Nat.le_refl _)
+      · exact Or.inr eq
+  have markedDomain : ∀ {v cls}, markClass? before.stack v = some cls →
+      cls ≤ step.previousBoundary ∨ cls = step.mergeStep.activeBoundary :=
+    fun marked ↦ domain (class_mem_sigma marked)
+  have tensor := tensorLinked_of_query step.consumer_eq
+  have bound := pop_vertex_bound shape pop
+  have mateOld : markClass? before.stack step.consumer.mate = some step.previousBoundary := by
+    have marked := step.mate_marked_before
+    rw [step.before_invariant.realizesSigma.marks_eq] at marked
+    unfold markClass?
+    rw [marked]
+    exact shape.sigma_partition.sigmaBoundary?_eq_previous_of_between oldSigma step.lower
+      (by rw [activeEq]; exact step.upper)
+  have mateClass : markClass? after.stack step.consumer.mate = some step.previousBoundary := by
+    simpa only [collapsePrevious] using oldClass mateOld
+  have headAbsent : ¬ Marked before.stack step.prepared.stackResult.vertex := by
+    rintro ⟨age, marked⟩; rw [headUnmarked] at marked; cases marked
+  have parNe : ∀ {p m c}, ParLinked certificate p m c →
+      p ≠ step.prepared.stackResult.vertex ∧ m ≠ step.prepared.stackResult.vertex := by
+    intro p m c par
+    constructor
+    · rintro rfl; exact par_tensor_disjoint structural bound par tensor
+    · rintro rfl; exact par_tensor_disjoint structural bound par.symm tensor
+  have parOld : ∀ {p m c cls}, ParLinked certificate p m c →
+      markClass? after.stack p = some cls → ∃ old, markClass? before.stack p = some old ∧ collapse old = cls := by
+    intro p m c cls par marked
+    rcases newClass marked with ⟨eq, _⟩ | old
+    · exact ((parNe par).1 eq).elim
+    · exact old
+  have waiting : after.stack.waiting = before.stack.waiting.setIfInBounds step.previousBoundary
+      .undefined := by simp only [stackEq, step.mergeStep.after_eq, popWaiting]
+  have payloadLookup : before.stack.waiting[step.previousBoundary]? =
+      some (.initialized step.mergeStep.payload) := by
+    simpa only [popWaiting] using step.mergeStep.waiting_initialized
+  have payloadClasses : ∀ {c}, c ∈ step.mergeStep.payload →
+      ∃ p m, ParLinked certificate p m c ∧
+        markClass? after.stack p = some step.previousBoundary ∧
+        markClass? after.stack m = some step.previousBoundary := by
+    intro c member
+    obtain ⟨p, m, s, t, link, pClass, mClass, different, eq⟩ := closure.waitingBackward payloadLookup member
+    have both := merge_min_eq lt (markedDomain pClass) (markedDomain mClass) different eq
+    exact ⟨p, m, Or.inl link, by simpa only [collapse, both.1] using oldClass pClass,
+      by simpa only [collapse, both.2] using oldClass mClass⟩
+  have activeTensor : ∀ {p m c}, TensorLinked certificate p m c →
+      markClass? after.stack p = some step.previousBoundary → Marked after.stack m := by
+    intro p m c linked marked
+    by_cases oldMarked : Marked before.stack m
+    · exact (markedEq m).mpr (Or.inr oldMarked)
+    · rcases newClass marked with ⟨rfl, _⟩ | ⟨old, pClass, eq⟩
+      · obtain ⟨mateEq, _⟩ := tensor_mate_unique structural bound linked tensor
+        rw [mateEq]
+        exact marked_of_class mateClass
+      · have cases : old = step.previousBoundary ∨ old = step.mergeStep.activeBoundary := by
+          have h := merged_class_cases (eq.trans collapsePrevious.symm)
+          rcases h with h | ⟨h, _⟩ | ⟨h, _⟩
+          · exact Or.inl h
+          · exact Or.inl h
+          · exact Or.inr h
+        rcases cases with rfl | rfl
+        · have premiseEq := closure.tensorOne linked tensor.symm pClass oldMarked mateOld headAbsent
+          subst p
+          have mateBound := (marked_of_class mateOld)
+          have consumerBound : step.consumer.mate < certificate.formulas.size := by
+            obtain ⟨age, raw⟩ := mateBound
+            have rawBound := (Array.getElem?_eq_some_iff.mp raw).1
+            rw [shape.marks_size] at rawBound
+            exact rawBound
+          obtain ⟨mateEq, _⟩ := tensor_mate_unique structural consumerBound linked tensor.symm
+          rw [mateEq]
+          exact marked_of_class headClass
+        · have oldMate := closure.tensorTop linked last (by simpa only [activeEq] using pClass)
+          exact (oldMarked oldMate).elim
+  refine {
+    pairsMarked := ?_
+    pairsRaw := ?_
+    tensorTop := ?_
+    tensorOne := ?_
+    tensorFired := ?_
+    parFired := ?_
+    down := ?_
+    waitingForward := ?_
+    waitingBackward := ?_ }
+  · intro l r cls linked marked
+    rcases (regions cls l).mp (Or.inl marked) with ⟨old, region, eq⟩ | ⟨_, createdOrPayload⟩
+    · rw [← eq]; exact extend (axiom_region closure linked region)
+    · obtain ⟨name, positive, atom⟩ := axiom_endpoint_atom structural linked
+      rcases createdOrPayload with rfl | member
+      · exact (connective_conclusion_not_atom structural (Or.inl tensor) atom).elim
+      · obtain ⟨p, m, par, _⟩ := payloadClasses member
+        exact (connective_conclusion_not_atom structural (Or.inr par) atom).elim
+  · intro l r cls bucket linked lookup member
+    have region : InRegion after.stack cls r := by
+      rcases (regions cls l).mp (Or.inr ⟨_, lookup, member⟩) with ⟨old, region, eq⟩ | ⟨_, other⟩
+      · rw [← eq]; exact extend (axiom_region closure linked region)
+      · obtain ⟨name, positive, atom⟩ := axiom_endpoint_atom structural linked
+        rcases other with rfl | member
+        · exact (connective_conclusion_not_atom structural (Or.inl tensor) atom).elim
+        · obtain ⟨p, m, par, _⟩ := payloadClasses member
+          exact (connective_conclusion_not_atom structural (Or.inr par) atom).elim
+    rcases region with marked | ⟨bucket', lookup', member'⟩
+    · exact Or.inr marked
+    · have eq := Option.some.inj (lookup'.symm.trans lookup)
+      subst bucket'; exact Or.inl member'
+  · intro p m c active linked top marked
+    have topEq : after.stack.sigma.getLast? = some step.previousBoundary := by
+      simp [stackEq, step.mergeStep.after_eq]
+    have eq := Option.some.inj (top.symm.trans topEq)
+    subst active; exact activeTensor linked marked
+  · intro p m c p' m' c' cls linked linked' pClass absent pClass' absent'
+    have notPrevious : cls ≠ step.previousBoundary := by
+      rintro rfl; exact absent (activeTensor linked pClass)
+    obtain ⟨old, pOld, eq⟩ := (newClass pClass).resolve_left (fun h ↦ notPrevious h.2)
+    obtain ⟨old', pOld', eq'⟩ := (newClass pClass').resolve_left (fun h ↦ notPrevious h.2)
+    have oldEq : old = old' := by
+      rcases merged_class_cases (eq.trans eq'.symm) with same | ⟨rfl, _⟩ | ⟨rfl, _⟩
+      · exact same
+      · exact (notPrevious (eq.symm.trans collapsePrevious)).elim
+      · exact (notPrevious (eq.symm.trans collapseActive)).elim
+    subst old'
+    exact closure.tensorOne linked linked' pOld
+      (fun h ↦ absent ((markedEq m).mpr (Or.inr h))) pOld'
+      (fun h ↦ absent' ((markedEq m').mpr (Or.inr h)))
+  · intro p m c cls linked pClass mMarked
+    by_cases pHead : p = step.prepared.stackResult.vertex
+    · subst p
+      obtain ⟨rfl, rfl⟩ := tensor_mate_unique structural bound linked tensor
+      have eq := Option.some.inj (headClass.symm.trans pClass)
+      subst cls; exact ⟨mateClass, created⟩
+    · by_cases mHead : m = step.prepared.stackResult.vertex
+      · subst m
+        obtain ⟨rfl, rfl⟩ := tensor_mate_unique structural bound linked.symm tensor
+        have eq := Option.some.inj (mateClass.symm.trans pClass)
+        subst cls; exact ⟨headClass, created⟩
+      · obtain ⟨old, pOld, eq⟩ := (newClass pClass).resolve_left (fun h ↦ pHead h.1)
+        have oldMarked : Marked before.stack m := ((markedEq m).mp mMarked).resolve_left mHead
+        obtain ⟨mOld, region⟩ := closure.tensorFired linked pOld oldMarked
+        rw [← eq]; exact ⟨oldClass mOld, extend region⟩
+  · intro p m c cls linked pClass mClass
+    obtain ⟨s, pOld, eq⟩ := parOld linked pClass
+    obtain ⟨t, mOld, eq'⟩ := parOld linked.symm mClass
+    by_cases same : s = t
+    · subst t
+      rw [← eq]; exact extend (closure.parFired linked pOld mOld)
+    · have minEq : min s t = step.previousBoundary := by
+        rcases merged_class_cases (eq.trans eq'.symm) with equal | ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩
+        · exact (same equal).elim
+        · exact Nat.min_eq_left (Nat.le_of_lt lt)
+        · exact Nat.min_eq_right (Nat.le_of_lt lt)
+      obtain ⟨payload, lookup, member⟩ := closure.waitingForward linked pOld mOld same
+      rw [minEq] at lookup
+      have payloadEq := Option.some.inj (lookup.symm.trans payloadLookup)
+      cases payloadEq
+      have both := merge_min_eq lt (markedDomain pOld) (markedDomain mOld) same minEq
+      have clsEq : cls = step.previousBoundary := eq.symm.trans both.1
+      rw [clsEq]; exact fromPayload member
+  · intro p m c cls linked region
+    rcases (regions cls c).mp region with ⟨old, oldRegion, eq⟩ | ⟨rfl, createdOrPayload⟩
+    · obtain ⟨pOld, mOld⟩ := closure.down linked oldRegion
+      rw [← eq]; exact ⟨oldClass pOld, oldClass mOld⟩
+    · rcases createdOrPayload with rfl | member
+      · exact tensor_producer_classes structural tensor headClass mateClass linked
+      · obtain ⟨p', m', par, pClass, mClass⟩ := payloadClasses member
+        exact par_producer_classes structural par pClass mClass linked
+  · intro p m c cls cls' linked pClass mClass different
+    obtain ⟨s, pOld, eq⟩ := parOld linked pClass
+    obtain ⟨t, mOld, eq'⟩ := parOld linked.symm mClass
+    have oldDifferent : s ≠ t := by rintro rfl; exact different (eq.symm.trans eq')
+    have ne : min s t ≠ step.previousBoundary := by
+      intro minEq
+      have both := merge_min_eq lt (markedDomain pOld) (markedDomain mOld) oldDifferent minEq
+      exact different (eq.symm.trans (both.1.trans (both.2.symm.trans eq')))
+    have minEq := (merge_min_ne lt (markedDomain pOld) (markedDomain mOld) oldDifferent ne).2
+    obtain ⟨payload, lookup, member⟩ := closure.waitingForward linked pOld mOld oldDifferent
+    refine ⟨payload, ?_, member⟩
+    rw [← eq, ← eq', minEq, waiting, Array.getElem?_setIfInBounds_ne (Ne.symm ne)]
+    exact lookup
+  · intro boundary payload c lookup member
+    have ne : boundary ≠ step.previousBoundary := by
+      intro eq; subst boundary
+      rw [waiting, Array.getElem?_setIfInBounds_self,
+        if_pos ((Array.getElem?_eq_some_iff.mp payloadLookup).1)] at lookup
+      cases lookup
+    rw [waiting, Array.getElem?_setIfInBounds_ne (Ne.symm ne)] at lookup
+    obtain ⟨p, m, s, t, link, pClass, mClass, different, minEq⟩ := closure.waitingBackward lookup member
+    have facts := merge_min_ne lt (markedDomain pClass) (markedDomain mClass) different
+      (fun eq ↦ ne (minEq.symm.trans eq))
+    exact ⟨p, m, collapse s, collapse t, link, oldClass pClass, oldClass mClass,
+      facts.1, facts.2.trans minEq⟩
+
+private theorem empty_region_closure (certificate : Certificate) :
+    RegionClosure certificate (ReservationState.empty certificate).stack := by
+  have noClass : ∀ {v cls}, markClass? (ReservationState.empty certificate).stack v ≠ some cls := by
+    intro v cls
+    by_cases bound : v < certificate.formulas.size <;>
+      simp [markClass?, ReservationState.empty, SequentialStackState.empty, bound]
+  have noBucket : ∀ {cls bucket}, bucketAt? (ReservationState.empty certificate).stack cls ≠
+      some bucket := by intro cls bucket; simp [bucketAt?, ReservationState.empty, SequentialStackState.empty]
+  refine {
+    pairsMarked := fun _ marked ↦ (noClass marked).elim
+    pairsRaw := fun _ lookup _ ↦ (noBucket lookup).elim
+    tensorTop := fun _ _ marked ↦ (noClass marked).elim
+    tensorOne := fun _ _ marked _ _ _ ↦ (noClass marked).elim
+    tensorFired := fun _ marked _ ↦ (noClass marked).elim
+    parFired := fun _ marked _ ↦ (noClass marked).elim
+    down := ?_
+    waitingForward := fun _ marked _ _ ↦ (noClass marked).elim
+    waitingBackward := ?_ }
+  · rintro p m c cls _ (marked | ⟨bucket, lookup, _⟩)
+    · exact (noClass marked).elim
+    · exact (noBucket lookup).elim
+  · intro boundary payload c lookup _
+    by_cases bound : boundary < certificate.formulas.size <;>
+      simp [ReservationState.empty, SequentialStackState.empty, bound] at lookup
+
+/-- Every exact canonical dispatcher success preserves region closure. -/
+theorem DispatchStep.regionClosure {certificate : Certificate} {before : ReservationState}
+    {invariant : SchedulerInvariant certificate before} {result : Figure7DispatchResult}
+    (step : DispatchStep certificate before invariant result)
+    (closure : RegionClosure certificate before.stack) : RegionClosure certificate result.after.stack := by
+  obtain ⟨evidence⟩ := step.tagEvidence
+  cases evidence with
+  | concl typed => exact typed.regionClosure invariant.structural closure
+  | nop typed => exact typed.regionClosure invariant.structural closure
+  | new typed => exact typed.regionClosure invariant.structural closure
+  | wait typed => exact typed.regionClosure invariant.structural closure
+  | forward typed => exact typed.regionClosure invariant.structural closure
+  | unifyPayload typed => exact typed.regionClosure invariant.structural closure
+
+/-- Region closure holds at the endpoint of every executed history of a structurally valid certificate. -/
+theorem ExecutedHistory.regionClosure {certificate : Certificate} {state : ReservationState}
+    (history : ExecutedHistory certificate state) (structural : certificate.StructurallyWellFormed) :
+    RegionClosure certificate state.stack := by
+  induction history with
+  | empty => exact empty_region_closure certificate
+  | init step => exact RegionClosure.ofInitialReservation step structural
+  | later history invariant step ih => exact step.regionClosure ih
+
+/-- Every dispatcher-reachable stack of a structurally valid certificate is region closed. -/
+theorem ReachableByImplementedDispatcher.regionClosure
+    {certificate : Certificate} {state : ReservationState}
+    (reachable : ReachableByImplementedDispatcher certificate state)
+    (structural : certificate.StructurallyWellFormed) : RegionClosure certificate state.stack := by
+  obtain ⟨history⟩ := reachable
+  exact history.regionClosure structural
+
+/-- Correctness gives C12 at every dispatcher-reachable state. -/
+theorem ReachableByImplementedDispatcher.guardedHeadTail
+    {certificate : Certificate} {state : ReservationState}
+    (reachable : ReachableByImplementedDispatcher certificate state)
+    (correct : certificate.DeclarativelyCorrect) : ParHeadGuardTailNonconclusion certificate state :=
+  (reachable.regionClosure correct.1).guardedParHeadTail (reachable.schedulerInvariant correct.1) correct
+
+/-- A nop or wait extension of a canonical prefix adds no remaining tail-law obligation. -/
+theorem CanonicalTagHistory.nopWaitTailLaw_iff
+    {certificate : Certificate} {before : ReservationState} {result : Figure7DispatchResult}
+    {history : ExecutedHistory certificate before} {invariant : SchedulerInvariant certificate before}
+    {dispatch : DispatchStep certificate before invariant result}
+    (prior : CanonicalTagHistory certificate history) (evidence : DispatchTagEvidence certificate before result)
+    (correct : certificate.DeclarativelyCorrect) (kind : result.kind = .nop ∨ result.kind = .wait) :
+    (CanonicalTagHistory.later (dispatch := dispatch) prior evidence).ActiveTopDebtTailLaw ↔
+      prior.ActiveTopDebtTailLaw := by
+  have guard : ParHeadGuardTailNonconclusion certificate before :=
+    ReachableByImplementedDispatcher.guardedHeadTail ⟨history⟩ correct
+  cases evidence with
+  | concl step => simp at kind
+  | new step => simp at kind
+  | forward step => simp at kind
+  | unifyPayload step => simp at kind
+  | nop step =>
+      change (_ ∧ prior.ActiveTopDebtTailLaw) ↔ prior.ActiveTopDebtTailLaw
+      exact ⟨And.right, fun law ↦ ⟨step.tailNonconclusion_of_parHeadGuard guard, law⟩⟩
+  | wait step =>
+      change (_ ∧ prior.ActiveTopDebtTailLaw) ↔ prior.ActiveTopDebtTailLaw
+      exact ⟨And.right, fun law ↦ ⟨step.tailNonconclusion_of_parHeadGuard guard, law⟩⟩
+
+/-
+The remaining created-head goals, for a canonical prefix ending at `before`,
+with `correct : certificate.DeclarativelyCorrect`, are exactly:
+
+  (step : ForwardStep certificate before after) ⊢
+    step.consumer.conclusion ∉ certificate.conclusions ∨
+      (ActiveTopMarkedNonconclusionPresent certificate after →
+        ∃ pending, pending ∈ step.prependStep.activeReady ∧
+          pending ∉ certificate.conclusions)
+
+  (step : UnifyPayloadStep certificate before after) ⊢
+    step.consumer.conclusion ∉ certificate.conclusions ∨
+      (ActiveTopMarkedNonconclusionPresent certificate after →
+        ∃ pending, pending ∈ step.mergeStep.payload ++ step.mergeStep.previousReady ++
+          step.mergeStep.activeReady ∧ pending ∉ certificate.conclusions)
+-/
+
 end SequentialFigure7
 end ProofNetIR
