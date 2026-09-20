@@ -159,29 +159,26 @@ start/forward/unify token rules from Guerrini for the supported cut-free
 fragment while constructing partial derivations. A completed tree is accepted
 only after `verifyDerivation?` independently checks inference,
 desequentialization, and intrinsic proof-net identity, so Lean proves the fast
-path sound. `Certificate.unificationCheck` short-circuits through that path
-and invokes the already complete checker-free recursive sequentializer on a
-miss; Lean therefore proves `unificationCheck = check` for every input. This
-is a switching-free exact API, but not yet the pure complete or linear
-algorithm: the eager pass lacks a completeness proof and the fallback remains
-exhaustive. The exact source/code boundary is recorded in
+path sound. This eager pass lacks a completeness proof and is no longer the
+public decision. The exact source/code boundary is recorded in
 [guerrini-unification-audit.md](guerrini-unification-audit.md).
 
 The `WithStats` variants retain a proof-relevant operational receipt. Their
 candidate records satisfy `passes ≤ |links|` and
 `linkVisits = passes * |links|`, yielding an axiom-free square bound on eager
 link-list visits. That result characterizes the current scan schedule only.
-`Certificate.unificationCheck` orders its tiers as worklist, eager scan, then
-complete recursive reconstruction; general checker-accepted sequentialization
-remains complete through the recursive tier, and recursive fallback removal
-and whole-program linearity are open gates (ledger items D1, D2, D6).
+`Certificate.unificationCheck` is the sequential fast path alone (ledger
+items D1 and D2, closed); general checker-accepted sequentialization remains
+complete through the recursive sequentializer, which is a separate public
+API, and whole-program linearity is an open gate (D6).
 
 ## Sequential Figure-7 layer
 
 The rolling branch builds the Figures 7–8 sequential procedure of Guerrini's
-linear-time algorithm as a separate layer beside the eager checker. It does
-not replace `unificationCheck`; its production path still starts all axioms
-eagerly. The layer is organized bottom-up as follows; every module named here
+linear-time algorithm as a separate layer beside the eager checker, and its
+top module `Figure7/Sequential` now defines the public decision
+`unificationCheck` as the complete sequential fast path. The layer is
+organized bottom-up as follows; every module named here
 is documented in the generated [API reference](api-reference.md), and the
 open theorems are stated in the [goal ledger](goal-ledger.md).
 

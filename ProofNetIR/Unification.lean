@@ -41849,49 +41849,6 @@ theorem unificationFastCheck_sound (certificate : Certificate)
   | some result =>
       exact certificate.unificationReconstruct?_accepted equation
 
-/-- Exact switching-free decision procedure with the event-driven worklist,
-then the eager deterministic scan, then the previously certified recursive
-sequentializer as its completeness fallback.
-
-The fallback is exhaustive in the worst case. Consequently this definition
-does not yet constitute the linear-time algorithm from Guerrini's theorem. -/
-def unificationCheck (certificate : Certificate) : Bool :=
-  certificate.unificationWorklistFastCheck ||
-    (certificate.unificationFastCheck ||
-      certificate.reconstructsDerivation)
-
-/-- The hybrid unification decision is extensionally equal to the reference
-all-switchings checker. -/
-theorem unificationCheck_eq_check (certificate : Certificate) :
-    certificate.unificationCheck = certificate.check := by
-  apply Bool.eq_iff_iff.mpr
-  constructor
-  · intro accepted
-    simp only [unificationCheck, Bool.or_eq_true] at accepted
-    rcases accepted with worklist | fast | fallback
-    · exact certificate.unificationWorklistFastCheck_sound worklist
-    · exact certificate.unificationFastCheck_sound fast
-    · exact certificate.reconstructsDerivation_eq_true_iff_check.mp fallback
-  · intro accepted
-    simp only [unificationCheck, Bool.or_eq_true]
-    exact Or.inr <| Or.inr
-      (certificate.reconstructsDerivation_eq_true_iff_check.mpr accepted)
-
-/-- Iff form of exact agreement between the hybrid unification decision and
-the reference checker. -/
-theorem unificationCheck_eq_true_iff_check (certificate : Certificate) :
-    certificate.unificationCheck = true ↔ certificate.check = true := by
-  rw [certificate.unificationCheck_eq_check]
-
-/-- Proposition-level correctness interface for the hybrid unification
-decision. -/
-theorem unificationCheck_eq_true_iff_declarativelyCorrect
-    (certificate : Certificate) :
-    certificate.unificationCheck = true ↔
-      certificate.DeclarativelyCorrect := by
-  rw [certificate.unificationCheck_eq_check,
-    certificate.check_iff_declarativelyCorrect]
-
 end Certificate
 
 end ProofNetIR

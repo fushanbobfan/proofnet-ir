@@ -488,10 +488,6 @@ def sections : List Section := [
       `ProofNetIR.Certificate.unificationReconstruct?_accepted,
       `ProofNetIR.Certificate.unificationFastCheck_eq_true_iff,
       `ProofNetIR.Certificate.unificationFastCheck_sound,
-      `ProofNetIR.Certificate.unificationCheck,
-      `ProofNetIR.Certificate.unificationCheck_eq_check,
-      `ProofNetIR.Certificate.unificationCheck_eq_true_iff_check,
-      `ProofNetIR.Certificate.unificationCheck_eq_true_iff_declarativelyCorrect,
       `ProofNetIR.ExecutableSequentializationResult.kernelDerivation,
       `ProofNetIR.ExecutableSequentializationResult.proofNetEquivalent
     ]
@@ -2848,6 +2844,11 @@ def sections : List Section := [
       `ProofNetIR.Certificate.sequentialFastCheck_sound,
       `ProofNetIR.Certificate.sequentialFastCheck_complete,
       `ProofNetIR.Certificate.sequentialFastCheck_eq_check,
+      `ProofNetIR.Certificate.unificationCheck,
+      `ProofNetIR.Certificate.unificationCheck_eq_sequentialFastCheck,
+      `ProofNetIR.Certificate.unificationCheck_eq_check,
+      `ProofNetIR.Certificate.unificationCheck_eq_true_iff_check,
+      `ProofNetIR.Certificate.unificationCheck_eq_true_iff_declarativelyCorrect,
       `ProofNetIR.Certificate.StructurallyWellFormed.formulaComplexityAt_lt_size,
       `ProofNetIR.Certificate.StructurallyWellFormed.initializeReservation?_isSome
     ]

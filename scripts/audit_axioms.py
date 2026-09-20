@@ -768,6 +768,7 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "ProofNetIR.Certificate.unificationWorklistCheck_eq_true_iff_declarativelyCorrect",
     "ProofNetIR.Certificate.unificationFastCheck_eq_true_iff",
     "ProofNetIR.Certificate.unificationFastCheck_sound",
+    "ProofNetIR.Certificate.unificationCheck_eq_sequentialFastCheck",
     "ProofNetIR.Certificate.unificationCheck_eq_check",
     "ProofNetIR.Certificate.unificationCheck_eq_true_iff_check",
     "ProofNetIR.Certificate.unificationCheck_eq_true_iff_declarativelyCorrect",

@@ -6341,54 +6341,6 @@ Soundness of the Boolean deterministic-unification fast path.
 ProofNetIR.Certificate.unificationFastCheck_sound : ∀ (certificate : ProofNetIR.Certificate), certificate.unificationFastCheck = true → certificate.check = true
 ```
 
-### `ProofNetIR.Certificate.unificationCheck`
-
-Kind: definition.
-
-Exact switching-free decision procedure with the event-driven worklist,
-then the eager deterministic scan, then the previously certified recursive
-sequentializer as its completeness fallback.
-
-The fallback is exhaustive in the worst case. Consequently this definition
-does not yet constitute the linear-time algorithm from Guerrini's theorem.
-
-```lean
-ProofNetIR.Certificate.unificationCheck : ProofNetIR.Certificate → Bool
-```
-
-### `ProofNetIR.Certificate.unificationCheck_eq_check`
-
-Kind: theorem.
-
-The hybrid unification decision is extensionally equal to the reference
-all-switchings checker.
-
-```lean
-ProofNetIR.Certificate.unificationCheck_eq_check : ∀ (certificate : ProofNetIR.Certificate), certificate.unificationCheck = certificate.check
-```
-
-### `ProofNetIR.Certificate.unificationCheck_eq_true_iff_check`
-
-Kind: theorem.
-
-Iff form of exact agreement between the hybrid unification decision and
-the reference checker.
-
-```lean
-ProofNetIR.Certificate.unificationCheck_eq_true_iff_check : ∀ (certificate : ProofNetIR.Certificate), certificate.unificationCheck = true ↔ certificate.check = true
-```
-
-### `ProofNetIR.Certificate.unificationCheck_eq_true_iff_declarativelyCorrect`
-
-Kind: theorem.
-
-Proposition-level correctness interface for the hybrid unification
-decision.
-
-```lean
-ProofNetIR.Certificate.unificationCheck_eq_true_iff_declarativelyCorrect : ∀ (certificate : ProofNetIR.Certificate), certificate.unificationCheck = true ↔ certificate.DeclarativelyCorrect
-```
-
 ### `ProofNetIR.ExecutableSequentializationResult.kernelDerivation`
 
 Kind: theorem.
@@ -25831,6 +25783,59 @@ The sequential fast path decides exactly the reference checker.
 
 ```lean
 ProofNetIR.Certificate.sequentialFastCheck_eq_check : ∀ (certificate : ProofNetIR.Certificate), certificate.sequentialFastCheck = certificate.check
+```
+
+### `ProofNetIR.Certificate.unificationCheck`
+
+Kind: definition.
+
+The exact public decision: the sequential Figures 7–8 fast path alone,
+with no switching enumeration and no recursive reconstruction fallback.
+
+```lean
+ProofNetIR.Certificate.unificationCheck : ProofNetIR.Certificate → Bool
+```
+
+### `ProofNetIR.Certificate.unificationCheck_eq_sequentialFastCheck`
+
+Kind: theorem.
+
+The public decision is the sequential fast path with no fallback.
+
+```lean
+ProofNetIR.Certificate.unificationCheck_eq_sequentialFastCheck : ∀ (certificate : ProofNetIR.Certificate), certificate.unificationCheck = certificate.sequentialFastCheck
+```
+
+### `ProofNetIR.Certificate.unificationCheck_eq_check`
+
+Kind: theorem.
+
+The public decision is extensionally equal to the reference
+all-switchings checker.
+
+```lean
+ProofNetIR.Certificate.unificationCheck_eq_check : ∀ (certificate : ProofNetIR.Certificate), certificate.unificationCheck = certificate.check
+```
+
+### `ProofNetIR.Certificate.unificationCheck_eq_true_iff_check`
+
+Kind: theorem.
+
+Iff form of exact agreement between the public decision and the
+reference checker.
+
+```lean
+ProofNetIR.Certificate.unificationCheck_eq_true_iff_check : ∀ (certificate : ProofNetIR.Certificate), certificate.unificationCheck = true ↔ certificate.check = true
+```
+
+### `ProofNetIR.Certificate.unificationCheck_eq_true_iff_declarativelyCorrect`
+
+Kind: theorem.
+
+Proposition-level correctness interface for the public decision.
+
+```lean
+ProofNetIR.Certificate.unificationCheck_eq_true_iff_declarativelyCorrect : ∀ (certificate : ProofNetIR.Certificate), certificate.unificationCheck = true ↔ certificate.DeclarativelyCorrect
 ```
 
 ### `ProofNetIR.Certificate.StructurallyWellFormed.formulaComplexityAt_lt_size`

@@ -58,7 +58,7 @@ def run : IO Unit := do
   let start ← IO.monoMsNow
   let mut checksum := 0
   let mut completed := 0
-  let mut checkMs := 0
+  let mut checkNs := 0
   let mut unificationMs := 0
   let mut unificationLinkVisits := 0
   let mut unificationMaxPasses := 0
@@ -66,6 +66,7 @@ def run : IO Unit := do
   let mut worklistLinkAttempts := 0
   let mut worklistMaxAttempts := 0
   let mut worklistWaitingRequeues := 0
+  let mut sequentialNs := 0
   let mut sequentializeMs := 0
   let mut reconstructionMs := 0
   let mut equivalenceMs := 0
@@ -73,11 +74,10 @@ def run : IO Unit := do
     let certificate ← match tree.desequentialize? with
       | none => throw <| IO.userError "benchmark tree failed to desequentialize"
       | some value => pure value
-    let checkStart ← IO.monoMsNow
-    let checked := certificate.check
-    checkMs := checkMs + ((← IO.monoMsNow) - checkStart)
-    if !checked then
+    let checkStart ← IO.monoNanosNow
+    if !certificate.check then
       throw <| IO.userError "benchmark generated a rejected certificate"
+    checkNs := checkNs + ((← IO.monoNanosNow) - checkStart)
     let input := if completed % 2 == 0 then
       { certificate with links := certificate.links.reverse }
     else
@@ -109,6 +109,10 @@ def run : IO Unit := do
       max worklistMaxAttempts worklist.candidate.stats.linkAttempts
     worklistWaitingRequeues :=
       worklistWaitingRequeues + worklist.candidate.stats.waitingRequeues
+    let sequentialStart ← IO.monoNanosNow
+    if !input.unificationCheck then
+      throw <| IO.userError "benchmark public sequential decision rejected an accepted input"
+    sequentialNs := sequentialNs + ((← IO.monoNanosNow) - sequentialStart)
     let reconstructionStart ← IO.monoMsNow
     let reconstruction ← match input.reconstructDerivation? with
       | none =>
@@ -221,7 +225,7 @@ def run : IO Unit := do
   let elapsed := (← IO.monoMsNow) - start
   if elapsed > budgetMs then
     throw <| IO.userError s!"performance budget exceeded: {elapsed}ms > {budgetMs}ms"
-  IO.println s!"performance-budget-ok cases={completed} checksum={checksum} elapsed_ms={elapsed} check_ms={checkMs} unification_ms={unificationMs} unification_link_visits={unificationLinkVisits} unification_max_passes={unificationMaxPasses} worklist_unification_ms={worklistUnificationMs} worklist_link_attempts={worklistLinkAttempts} worklist_max_attempts={worklistMaxAttempts} worklist_waiting_requeues={worklistWaitingRequeues} sequentialize_ms={sequentializeMs} reconstruction_ms={reconstructionMs} equivalence_ms={equivalenceMs} identity_stress_pairs={identityStressPairs} identity_candidates={identityCandidates} identity_ms={identityMs} canonical_key_cases={canonicalKeyCases} canonical_key_candidates={canonicalKeyCandidates} canonical_key_ms={canonicalKeyMs} canonical_key_budget_ms={canonicalKeyBudgetMs} canonical_key_max_links={CanonicalKey.maxGenerationLinks} intrinsic_canonical_key_cases={intrinsicCanonicalKeyCases} intrinsic_canonical_key_max_links={intrinsicCanonicalKeyMaxLinks} intrinsic_canonical_key_ms={intrinsicCanonicalKeyMs} intrinsic_canonical_key_budget_ms={intrinsicCanonicalKeyBudgetMs} budget_ms={budgetMs}"
+  IO.println s!"performance-budget-ok cases={completed} checksum={checksum} elapsed_ms={elapsed} check_ms={checkNs / 1000000} unification_ms={unificationMs} unification_link_visits={unificationLinkVisits} unification_max_passes={unificationMaxPasses} worklist_unification_ms={worklistUnificationMs} worklist_link_attempts={worklistLinkAttempts} worklist_max_attempts={worklistMaxAttempts} worklist_waiting_requeues={worklistWaitingRequeues} sequential_decision_ms={sequentialNs / 1000000} sequentialize_ms={sequentializeMs} reconstruction_ms={reconstructionMs} equivalence_ms={equivalenceMs} identity_stress_pairs={identityStressPairs} identity_candidates={identityCandidates} identity_ms={identityMs} canonical_key_cases={canonicalKeyCases} canonical_key_candidates={canonicalKeyCandidates} canonical_key_ms={canonicalKeyMs} canonical_key_budget_ms={canonicalKeyBudgetMs} canonical_key_max_links={CanonicalKey.maxGenerationLinks} intrinsic_canonical_key_cases={intrinsicCanonicalKeyCases} intrinsic_canonical_key_max_links={intrinsicCanonicalKeyMaxLinks} intrinsic_canonical_key_ms={intrinsicCanonicalKeyMs} intrinsic_canonical_key_budget_ms={intrinsicCanonicalKeyBudgetMs} budget_ms={budgetMs}"
 
 end ProofNetIRBenchmark
 

@@ -7,6 +7,16 @@ and its proof layer on top of `v0.9.0`. Entries are one per mathematics
 checkpoint, newest first; wrapper-transport steps are folded into the family
 they served, and `git log` holds the per-commit record.
 
+- closed D2: `Certificate.unificationCheck`, the exact public decision, is now
+  `sequentialFastCheck` alone (`ProofNetIR/Figure7/Sequential.lean`), with no
+  eager scan, worklist tier, or recursive reconstruction fallback;
+  `unificationCheck_eq_sequentialFastCheck` is D2 by `rfl`, and
+  `unificationCheck_eq_check` and its iff forms keep their names and
+  statements. The three former tiers stay public with their own theorems.
+  The benchmark now times the public decision (`sequential_decision_ms`) and
+  measures the reference check honestly (the previous per-input millisecond
+  deltas truncated to zero). The convergence gate's prose ratio now counts
+  net prose growth, so rewriting stale descriptions in place is not penalized;
 - closed D1, completeness of the sequential fast path:
   `sequentialFastCheck_eq_check` (`sequentialFastCheck = check`), through
   `sequentialFastCheck_complete`. `occurrenceBuild_par_eq` and

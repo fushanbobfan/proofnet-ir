@@ -165,6 +165,17 @@ example : rejected.check = false := by
   rw [← rejected.sequentialFastCheck_eq_check]
   native_decide
 
+-- The public decision is the sequential fast path with no fallback (D2).
+example (cert : Certificate) : cert.unificationCheck = cert.sequentialFastCheck :=
+  cert.unificationCheck_eq_sequentialFastCheck
+
+example (cert : Certificate) : cert.unificationCheck = cert.check :=
+  cert.unificationCheck_eq_check
+
+example : certificate.unificationCheck = true := by native_decide
+
+example : rejected.unificationCheck = false := by native_decide
+
 end ProofNetIR.Figure7SequentialTests
 
 #print axioms ProofNetIR.SequentialFigure7.runDispatcher_spec
@@ -184,12 +195,15 @@ end ProofNetIR.Figure7SequentialTests
 #print axioms ProofNetIR.Certificate.occurrenceBuild_equivalent
 #print axioms ProofNetIR.Certificate.sequentialFastCheck_complete
 #print axioms ProofNetIR.Certificate.sequentialFastCheck_eq_check
+#print axioms ProofNetIR.Certificate.unificationCheck_eq_sequentialFastCheck
+#print axioms ProofNetIR.Certificate.unificationCheck_eq_check
 
 def main : IO Unit := do
   let accepted := ProofNetIR.Figure7SequentialTests.certificate.sequentialFastCheck
   let rejected := ProofNetIR.Figure7SequentialTests.rejected.sequentialFastCheck
   let repeated := ProofNetIR.Figure7SequentialTests.repeated.sequentialFastCheck
-  unless accepted && !rejected && repeated do
+  let decision := ProofNetIR.Figure7SequentialTests.certificate.unificationCheck
+  unless accepted && !rejected && repeated && decision do
     throw (IO.userError "sequential fast path regression failed")
   IO.println ("Sequential consumer passed: final structure, inference, " ++
-    "par/tensor numbering, equivalence, completeness")
+    "par/tensor numbering, equivalence, completeness, public decision")

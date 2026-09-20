@@ -252,10 +252,10 @@ The canonical successful
 integrated into one priority dispatcher and proof-carrying certified history.
 Exhaustive later-state branch enabledness/totality, richer route/tag/slot
 commitments,
-unconditional full reachability, progress, pure-worklist completeness,
-fallback removal, faithful
+unconditional full reachability, pure-worklist completeness, faithful
 `NEXTAXIOM`/token-age sequencing, scheduler correctness, and the whole-scheduler
-linear cost model remain open.
+linear cost model remain open; progress, completeness of the sequential fast
+path, and fallback removal are closed (ledger items D3, D1, D2).
 Future guards must compare raw assigned ages; replacing them by
 representatives would change the algorithm.
 
@@ -263,8 +263,9 @@ An event-driven prototype now precomputes which links consume each occurrence.
 It initially enqueues connectives once, enqueues only consumers of newly
 marked conclusions, stores armed unequal-token pars in a deduplicated waiting
 set, and requeues that set after a tensor union. Candidates still cross
-`verifyDerivation?`. Lean proves worklist fast-path soundness, its fallback
-wrapper equal to `check`, and a conservative `n(n+4)+1` link-attempt cap.
+`verifyDerivation?`. Lean proves worklist fast-path soundness, its own
+wrapper `unificationWorklistCheck` equal to `check`, and a conservative
+`n(n+4)+1` link-attempt cap.
 Current `main` additionally proves that structural single-consumer ownership,
 distinct successful firings, and the bounded waiting registry keep all
 successful insertions within that cap, and exact insertion/pop accounting
@@ -318,13 +319,15 @@ Lean currently proves:
 ```text
 unificationReconstruct? = some result → check = true
 unificationFastCheck = true → check = true
+sequentialFastCheck = check
+unificationCheck = sequentialFastCheck
 unificationCheck = check
 unificationCheck = true ↔ DeclarativelyCorrect
 ```
 
-The default exact decision tries the event-driven worklist, then the eager
-scan, then the already complete checker-free recursive sequentializer. None of
-those branches enumerates switching graphs.
+The default exact decision is the sequential Figures 7–8 fast path alone
+(initialize at the first conclusion, run the canonical dispatcher to a stop,
+verify the final derivation); it enumerates no switching graphs, no fallback.
 
 ## What is not yet proved
 
@@ -332,12 +335,11 @@ The following stronger claims are intentionally absent:
 
 - `unificationFastCheck = check`;
 - `unificationWorklistFastCheck = check`;
-- removal of the recursive reconstruction fallback;
 - completeness or confluence of the eager repeated-scan schedule;
 - exact-state or structural-only confluence of the flat worklist: the first is
   refuted on a derivation-generated correct certificate and the second on a
   structurally well-formed certificate;
-- a polynomial, quasi-linear, or linear bound for the hybrid
+- a polynomial, quasi-linear, or linear bound for the sequential
   `unificationCheck`;
 - a polynomial bound for the complete candidate-plus-verifier execution; the
   current proved quadratic statement counts eager link-list visits only;
@@ -360,9 +362,9 @@ The following stronger claims are intentionally absent:
   proved;
 - support for cuts, dummy links, units, Mix, additives, or exponentials.
 
-The current repeated scan can take a quadratic number of link visits before
-independent derivation verification. A fast-path miss invokes the exhaustive
-recursive fallback. Therefore citing Guerrini's Theorem 16 as a complexity
+The eager repeated scan can take a quadratic number of link visits before
+independent derivation verification, and the sequential decision has no
+proved cost bound. Therefore citing Guerrini's Theorem 16 as a complexity
 theorem for the present executable would be incorrect.
 
 ## Differential evidence
@@ -412,8 +414,7 @@ checked 7,148 enabled critical pairs, observing 0 disabled pairs and
 0 quotient non-diamonds. There is currently no committed script or artifact
 that reproduces these counts, so they are not a release or CI gate. This
 exploratory result does not establish a local-diamond theorem, confluence,
-correct-state progress, pure-worklist completeness, fallback removal, or
-linearity.
+pure-worklist completeness, or linearity.
 
 ## Remaining formalization route
 
@@ -442,8 +443,7 @@ linearity.
    correct-quiescent-state progress. Then prove the current event-driven
    worklist complete, yielding
    `unificationWorklistFastCheck = check`.
-5. Remove the recursive reconstruction fallback from the exact worklist
-   decision only after that equality is kernel checked.
+5. Done: `unificationCheck` is `sequentialFastCheck` with no fallback (D2).
 6. Build on the now-kernel-checked initial/later bridge between bounded/tagged
    `NEXTAXIOM`, delayed raw-age state, and production `UnificationState`.
    `ReservationState`, both executable wrappers and typed `some_iff`

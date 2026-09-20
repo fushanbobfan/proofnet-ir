@@ -1,4 +1,5 @@
 import ProofNetIR.Figure7.TailLaw
+import ProofNetIR.Figure7.Sequential
 import ProofNetIR.Serialization
 import ProofNetIR.Unification
 import ProofNetIR.Generate

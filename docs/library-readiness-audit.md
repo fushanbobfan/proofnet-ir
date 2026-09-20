@@ -204,19 +204,20 @@ part of the engineering and proof-identity gap.
    The v0.9 `Certificate.unificationFastCheck` layer now executes the
    Guerrini Figure-5 token rules while constructing a derivation and is proved
    sound through independent verification. `Certificate.unificationCheck`
-   combines it with the complete checker-free reconstruction fallback and is
-   proved exactly equal to `check`. The clean consumer compiles and executes
-   both APIs. The pure fast path is not yet proved complete; the hybrid's
-   fallback means this is not yet a linear-time production contract. The
+   is now the complete sequential Figures 7–8 fast path alone, proved
+   exactly equal to `check` (ledger items D1 and D2, closed). The clean
+   consumer compiles and executes both APIs. The eager fast path is not
+   proved complete, and no cost bound is proved for the sequential decision,
+   so this is not yet a linear-time production contract. The
    statistics-bearing API now gives callers proof-relevant scan receipts:
    at most `|links|` passes and `|links|²` link visits. The deliberately scoped
    theorem does not bound the complete verifier.
    An additional event-driven worklist precomputes premise consumers and
    retries only waiting par links after a tensor union. Its verified success
-   is sound, its fallback wrapper is exactly equal to `check`, and every run
-   is capped at `n(n+4)+1` link attempts. Pure-worklist completeness (ledger
-   item D1) and removal of the recursive fallback (D2) remain open, so the
-   public decision is not yet a linear-time production contract.
+   is sound, its own wrapper `unificationWorklistCheck` is exactly equal to
+   `check`, and every run is capped at `n(n+4)+1` link attempts.
+   Pure-worklist completeness (ledger item D1-flat) remains open and is no
+   longer on the critical path.
    The rolling branch adds the sequential Figures 7–8 scheduler as a separate
    layer (see [architecture.md](architecture.md#sequential-figure-7-layer)):
    a canonical six-rule dispatcher whose successful steps preserve the
@@ -389,9 +390,8 @@ It should not yet be presented as:
 - a general Lean/mathlib proof assistant extension;
 - a performance-qualified executable sequentializer beyond the documented
   unit-free, cut-free MLL certificate model;
-- a pure-complete or Guerrini-linear flat worklist; general checker-accepted
-  sequentialization is complete, but the flat fast path still relies on the
-  recursive fallback for its exact decision;
+- a pure-complete or Guerrini-linear flat worklist; the exact public
+  decision is the complete sequential fast path, without a proved cost bound;
 - a confluence-checked scheduler: exact-state and structural-only formulations
   have counterexamples, while the marked-domain/thread-partition candidate has
   no committed reproducible audit or theorem;

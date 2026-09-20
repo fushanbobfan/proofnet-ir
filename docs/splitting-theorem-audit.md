@@ -99,8 +99,8 @@ name-level restatement of Yeo:
    `compactCheck` evaluates those fields and is proved equal to `check`.
    A separate token-unification implementation now fires axiom/start,
    par/forward, and tensor/unify rules and independently verifies any produced
-   derivation. Its fast path is proved sound; the hybrid
-   `unificationCheck`, with complete checker-free reconstruction fallback, is
+   derivation. Its fast path is proved sound; the public decision
+   `unificationCheck`, now the complete sequential Figures 7–8 fast path, is
    proved equal to `check` without enumerating switchings. Proving the pure
    eager schedule complete and replacing it by the sequential
    ready/waiting/union-find strategy remain the separate complexity

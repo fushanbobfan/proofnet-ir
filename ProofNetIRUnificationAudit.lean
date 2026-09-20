@@ -58,10 +58,11 @@ def flatAgeIntervalCounterexample : Certificate where
     .tensor 0 2 4]
   conclusions := [7, 1, 3, 6]
 
-/-- Differential audit for the deterministic Guerrini-style fast path and its
-exact hybrid wrapper. The audit intentionally records fast-path misses
-separately: the theorem for `unificationCheck` is unconditional, whereas full
-completeness of `unificationFastCheck` remains a distinct proof obligation. -/
+/-- Differential audit for the deterministic eager fast path and the exact
+public decision `unificationCheck` (the sequential fast path). The audit
+intentionally records eager fast-path misses separately: the theorem for
+`unificationCheck` is unconditional, whereas full completeness of
+`unificationFastCheck` remains a distinct proof obligation. -/
 def run : IO Unit := do
   let start ← IO.monoMsNow
   let mut total := 0
@@ -126,11 +127,11 @@ def run : IO Unit := do
       let worklistResult :=
         candidate.unificationWorklistReconstructWithStats
       let worklistFast := worklistResult.isOk
-      let hybrid := candidate.unificationCheck
+      let decision := candidate.unificationCheck
       let worklistHybrid := candidate.unificationWorklistCheck
-      if hybrid != reference then
+      if decision != reference then
         throw <| IO.userError
-          s!"hybrid/reference mismatch at seed {seed}, case {total}"
+          s!"public decision/reference mismatch at seed {seed}, case {total}"
       if worklistHybrid != reference then
         throw <| IO.userError
           s!"worklist hybrid/reference mismatch at seed {seed}, case {total}"

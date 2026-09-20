@@ -533,7 +533,7 @@ Exact target statements for the open items are in the
   final structure, occurrence exchange, inference, the fresh-index
   correspondence of the desequentializer, and proof-net equivalence of the
   final derivation's output (`sequentialFastCheck_eq_check`).
-- [ ] Make `Certificate.unificationCheck` the sequential fast path alone,
+- [x] Make `Certificate.unificationCheck` the sequential fast path alone,
   removing the recursive reconstruction fallback, with
   `unificationCheck = check` kept as a theorem (D2).
 - [ ] State a whole-program cost theorem over every implemented operation,

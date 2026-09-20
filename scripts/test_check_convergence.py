@@ -69,7 +69,15 @@ class ConvergenceRuleTests(unittest.TestCase):
 
     def test_d_prose_budget_fails(self):
         stats = check.parse_numstat("10\t0\tProofNetIR/A.lean\n6\t0\tCONTRIBUTING.md\n")
-        self.assertIn("prose additions 6", check.check_prose_budget(stats, 0.5)[0])
+        self.assertIn("net prose growth 6", check.check_prose_budget(stats, 0.5)[0])
+
+    def test_d_prose_budget_counts_net_growth(self):
+        rewritten = check.parse_numstat("10\t0\tProofNetIR/A.lean\n40\t38\tdocs/note.md\n")
+        shrunk = check.parse_numstat("10\t0\tProofNetIR/A.lean\n2\t30\tREADME.md\n9\t0\tCHANGELOG.md\n")
+        grown = check.parse_numstat("10\t0\tProofNetIR/A.lean\n40\t30\tdocs/note.md\n")
+        self.assertEqual(check.check_prose_budget(rewritten, 0.5), [])
+        self.assertEqual(check.check_prose_budget(shrunk, 0.5), [])
+        self.assertIn("net prose growth 10", check.check_prose_budget(grown, 0.5)[0])
 
     def test_e_growth_cap_passes(self):
         base = {"docs/current-status.md": "\n".join(["old"] * 399)}

@@ -117,11 +117,11 @@ derivation trees; none of that state is trusted. A result exists only after
 `verifyDerivation?` validates the completed tree, and
 `unificationFastCheck_sound` proves the resulting Boolean fast path cannot
 accept an invalid certificate. `unificationCheck` is the exact public
-decision: it short-circuits on the verified fast path and otherwise invokes
-the already complete checker-free reconstruction decision. Lean proves
-`unificationCheck = check`. Fast-path rejection alone is inconclusive, and no
-linearity claim is made. The current event-driven worklist must first be proved
-complete and the recursive fallback removed; a later Guerrini-style claim also
+decision: it is the sequential Figures 7--8 fast path `sequentialFastCheck`
+alone, which accepts only a derivation that `verifyDerivation?` validates and
+has no recursive fallback. Lean proves `sequentialFastCheck = check`, hence
+`unificationCheck = check`. Rejection by the eager or worklist candidates
+alone is inconclusive, and no linearity claim is made: a Guerrini-style claim
 requires the complete Figures 7--8 `NEXTAXIOM`, token-age,
 ready/waiting-stack, and special union-find invariants together with a
 whole-program cost theorem.
@@ -220,13 +220,13 @@ the same boundary. The trust-relevant facts are:
   `propext`-only, or `propext`/`Quot.sound`. Rolling totals and the exact
   checkpoint receipt live in [current status](current-status.md).
 
-The eager and worklist tiers of `unificationCheck` remain the public
-decision. `unificationDerivationCandidateWithStats` and
-`unificationReconstructWithStats` certify at most `|links|²` eager link-list
-visits, and the worklist candidate carries an axiom-free `n(n+4)+1`
-link-attempt cap; neither bound covers frontier search, representative lookup,
-verification, or fallback, so callers must not treat them as a whole-program
-deadline. The worklist receipt also implies no Figure-7 stack discipline: a
+The eager and worklist candidates remain public.
+`unificationDerivationCandidateWithStats` and `unificationReconstructWithStats`
+certify at most `|links|²` eager link-list visits, and the worklist candidate
+carries an axiom-free `n(n+4)+1` link-attempt cap; neither bound covers
+frontier search, representative lookup, or verification, none is proved for
+the sequential decision (D6), and no whole-program deadline follows. The
+worklist receipt also implies no Figure-7 stack discipline: a
 three-axiom, two-tensor certificate reconstructs with a noncontiguous age
 merge, so callers and proofs must not assume contiguous age intervals,
 adjacent stack union, or LIFO behavior for the flat worklist.

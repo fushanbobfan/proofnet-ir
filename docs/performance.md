@@ -3,8 +3,9 @@
 ## CI workload
 
 `ProofNetIRBenchmark.lean` runs the native checker, deterministic
-unification fast path, executable sequentializer, checker-free automatic
-reconstruction, and `ProofNetEquivalent` decision procedure on 291 deterministic
+unification fast path, the public sequential decision `unificationCheck`,
+executable sequentializer, checker-free automatic reconstruction, and
+`ProofNetEquivalent` decision procedure on 291 deterministic
 derivation-generated certificates, followed by one adversarial pairwise-
 identity case:
 
@@ -50,8 +51,12 @@ partial derivation per live token class and accepts only after the completed
 tree passes `verifyDerivation?`. The benchmark requires this fast path to
 succeed on every one of the 291 accepted inputs and records a separate
 `unification_ms` counter. The eager repeated scan can revisit waiting links,
-and the exact `unificationCheck` wrapper retains the exhaustive recursive
-fallback on a miss, so the counter is not a linearity theorem.
+so the counter is not a linearity theorem. The public decision
+`unificationCheck` is the sequential fast path alone; the benchmark requires
+it to accept every input and records `sequential_decision_ms` (nanosecond
+accumulation, as `check_ms` now is). First recorded Windows run, 291 inputs:
+sequential decision 68 ms, worklist candidate 44 ms, eager candidate 47 ms,
+reference all-switchings check 513 ms. No bound is proved for it (D6).
 
 The statistics-bearing candidate and verification APIs expose `passes`,
 `linkVisits`, and `successfulFirings`. Their result type carries proofs of

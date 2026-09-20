@@ -65,14 +65,15 @@ class Theorem:
     last_line: int
 
 
-def parse_numstat(text: str) -> dict[str, int]:
-    """Parse --no-renames --numstat, including its NUL-delimited form."""
+def parse_numstat(text: str) -> dict[str, tuple[int, int]]:
+    """Parse --no-renames --numstat, including its NUL-delimited form, into
+    per-path (added, deleted) line counts; binary paths count as (0, 0)."""
     result = {}
     for record in text.split("\0") if "\0" in text else text.splitlines():
         if not record:
             continue
-        added, _deleted, path = record.split("\t", 2)
-        result[path] = 0 if added == "-" else int(added)
+        added, deleted, path = record.split("\t", 2)
+        result[path] = (0, 0) if added == "-" else (int(added), int(deleted))
     return result
 
 
@@ -219,17 +220,19 @@ def prose_path(path: str) -> bool:
     )
 
 
-def line_totals(numstat: dict[str, int]) -> tuple[int, int]:
+def line_totals(numstat: dict[str, tuple[int, int]]) -> tuple[int, int]:
+    """Library lines added and net prose growth (additions minus deletions,
+    floored at zero): rewriting a stale description in place is not growth."""
     return (
-        sum(n for p, n in numstat.items() if p.startswith("ProofNetIR/")),
-        sum(n for p, n in numstat.items() if prose_path(p)),
+        sum(added for p, (added, _) in numstat.items() if p.startswith("ProofNetIR/")),
+        max(0, sum(added - deleted for p, (added, deleted) in numstat.items() if prose_path(p))),
     )
 
 
-def check_prose_budget(numstat: dict[str, int], ratio: float = 0.5) -> list[str]:
+def check_prose_budget(numstat: dict[str, tuple[int, int]], ratio: float = 0.5) -> list[str]:
     lean, prose = line_totals(numstat)
     return [
-        f"(d) prose additions {prose} exceed {ratio:g} * {lean} library additions = {ratio * lean:g}"
+        f"(d) net prose growth {prose} exceeds {ratio:g} * {lean} library additions = {ratio * lean:g}"
     ] if lean and prose > ratio * lean else []
 
 
@@ -381,7 +384,7 @@ def main(argv: list[str] | None = None) -> int:
         lean, prose = line_totals(numstat)
         if args.explain:
             print("Rules: (a) path suffix <=40; (b) new-file limit; (c) written public theorem name <=60;")
-            print("(d) added-line prose budget (skipped with zero library additions); (e) max(base, cap),")
+            print("(d) net prose growth budget (skipped with zero library additions); (e) max(base, cap),")
             print("with one over-cap Unreleased entry of at most 12 lines allowed per range and an")
             print(f"over-cap current-status receipt replacement netting at most {STATUS_REPLACEMENT_SLACK} lines;")
             print("(f) new theorem names across all tracked head text, except Lean, scripts and four prose homes.")
@@ -395,7 +398,7 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"  {error}", file=sys.stderr)
             return 1
         modules = sum(d.new and d.path.startswith("ProofNetIR/") for d in diffs)
-        print(f"Convergence check passed: {modules} new modules, {len(theorems)} new public theorems, {lean} library lines added, {prose} prose lines added" + (" (prose budget skipped)." if not lean else "."))
+        print(f"Convergence check passed: {modules} new modules, {len(theorems)} new public theorems, {lean} library lines added, {prose} prose lines net growth" + (" (prose budget skipped)." if not lean else "."))
         return 0
     except (RuntimeError, ValueError, OSError) as error:
         print(f"Convergence check error: {error}", file=sys.stderr)

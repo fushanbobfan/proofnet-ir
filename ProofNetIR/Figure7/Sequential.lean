@@ -1722,5 +1722,34 @@ theorem sequentialFastCheck_eq_check (certificate : Certificate) :
       | true => exact absurd (certificate.sequentialFastCheck_sound fast) (by simp [accepted])
       | false => rfl
 
+/-- The exact public decision: the sequential Figures 7–8 fast path alone,
+with no switching enumeration and no recursive reconstruction fallback. -/
+def unificationCheck (certificate : Certificate) : Bool :=
+  certificate.sequentialFastCheck
+
+/-- The public decision is the sequential fast path with no fallback. -/
+theorem unificationCheck_eq_sequentialFastCheck (certificate : Certificate) :
+    certificate.unificationCheck = certificate.sequentialFastCheck := rfl
+
+/-- The public decision is extensionally equal to the reference
+all-switchings checker. -/
+theorem unificationCheck_eq_check (certificate : Certificate) :
+    certificate.unificationCheck = certificate.check :=
+  certificate.sequentialFastCheck_eq_check
+
+/-- Iff form of exact agreement between the public decision and the
+reference checker. -/
+theorem unificationCheck_eq_true_iff_check (certificate : Certificate) :
+    certificate.unificationCheck = true ↔ certificate.check = true := by
+  rw [certificate.unificationCheck_eq_check]
+
+/-- Proposition-level correctness interface for the public decision. -/
+theorem unificationCheck_eq_true_iff_declarativelyCorrect
+    (certificate : Certificate) :
+    certificate.unificationCheck = true ↔
+      certificate.DeclarativelyCorrect := by
+  rw [certificate.unificationCheck_eq_check,
+    certificate.check_iff_declarativelyCorrect]
+
 end Certificate
 end ProofNetIR

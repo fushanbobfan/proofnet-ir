@@ -1490,6 +1490,7 @@ end ProofNetIR.SequentialFigure7
 #print axioms Certificate.unificationWorklistCheck_eq_true_iff_declarativelyCorrect
 #print axioms Certificate.unificationFastCheck_eq_true_iff
 #print axioms Certificate.unificationFastCheck_sound
+#print axioms Certificate.unificationCheck_eq_sequentialFastCheck
 #print axioms Certificate.unificationCheck_eq_check
 #print axioms Certificate.unificationCheck_eq_true_iff_check
 #print axioms Certificate.unificationCheck_eq_true_iff_declarativelyCorrect

@@ -150,9 +150,9 @@ example :
 ```
 
 Every fast-path success has passed independent derivation verification and is
-formally sound. The hybrid equality theorem is unconditional. The pure fast
-path is not yet proved complete, and the fallback prevents a linear
-worst-case claim; see
+formally sound. `unificationCheck` is the sequential fast path alone and its
+equality with `check` is unconditional. The eager fast path is not proved
+complete, and no linear worst-case bound is proved; see
 [the Guerrini implementation audit](guerrini-unification-audit.md).
 Use `unificationReconstruct` instead of the `?` wrapper when a caller needs
 stable malformed/incomplete/deadlock/boundary/verification diagnostics; only
