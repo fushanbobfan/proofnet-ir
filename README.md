@@ -39,7 +39,10 @@ Proved on `main` beyond `v0.9.0`:
   either dispatches or has every occurrence marked
   (`CanonicalTagHistory.dispatch_or_allMarked`). The proof uses an order-free
   region-closure invariant of the ready stack and switching connectedness:
-  a drained active region has no boundary edge, so it is the whole net.
+  a drained active region has no boundary edge, so it is the whole net;
+- a sound sequential fast path, `Certificate.sequentialFastCheck`, that runs
+  the dispatcher to a stop and accepts only an independently verified
+  derivation; initialization succeeds at every in-bounds start.
 
 Open, with exact target statements in the [goal ledger](docs/goal-ledger.md):
 completeness of the sequential fast path and removal of the recursive
