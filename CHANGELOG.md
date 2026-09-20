@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- extended `--invariant-probe` with two bucket-structure probes evaluated at
+  every reachable state: SHAPE (the active ready bucket is a run of
+  connective conclusions followed by a run of atoms) and PAIRS (every atom
+  in that atom run has its axiom partner in the run or already marked). Both
+  hold at all 1,217,664 default and 1,071,360 wait-focus reachable states;
+  they are candidate scaffolding for a history-carrying invariant and prove
+  nothing by themselves;
 - proved C12 for correct initial reservations and its exact implications for
   the `nop` and `wait` remaining-top obligations. A correct-certificate
   counterexample shows that C12 plus `SchedulerInvariant` is not preserved

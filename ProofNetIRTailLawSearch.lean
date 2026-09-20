@@ -27,7 +27,10 @@ region, and measures the exact mate-age classes that limit wait applicability.
 `--invariant-probe` runs both certificate sets and measures C1 at every nop,
 C6--C8 and C11 at nop and wait, C12 at every reachable state (a par-premise
 head whose mate is unmarked or older leaves a non-conclusion in the rest of the
-active bucket), C13 (the same condition on every suffix of that bucket), and
+active bucket), C13 (the same condition on every suffix of that bucket),
+SHAPE and PAIRS at every reachable state (the bucket is connective
+conclusions then atoms; each atom's axiom partner is in the atom run or
+marked), and
 C2 at every wait, and C3--C5 separately at both rules, before the popped head
 receives its raw mark. C4 counts submitted pars with exactly one premise whose
 raw mark resolves to the active component, including marks created at older
@@ -137,6 +140,8 @@ private structure Stats where
   invariantProbe : Bool := false
   probes : Array ProbeCount := Array.replicate 18 {}
   singletonStates : Nat := 0
+  shapeFails : Nat := 0
+  pairFails : Nat := 0
   singletonParFails : Nat := 0
   suffixParFails : Nat := 0
   deriving Repr
@@ -302,7 +307,39 @@ private def observeSingletonBucket (certificate : Certificate) (state : Reservat
     IO.println s!"certificate={certificate.canonicalString}"
     IO.println (s!"{context} start={start} step={step} sigma={repr state.stack.sigma} " ++
       s!"ready={repr state.stack.ready}")
+  -- Shape probe: the active bucket read as roles (P = produced by a par link,
+  -- T = produced by a tensor link, A = atom) must match P* then at most two A.
+  let role := fun vertex ↦ match certificate.formulas[vertex]? with
+    | some (.par _ _) => 'P'
+    | some (.tensor _ _) => 'T'
+    | _ => 'A'
+  let shapeOk := match state.stack.ready.getLast? with
+    | some bucket =>
+        let roles := bucket.map role
+        let connectives := roles.takeWhile (· != 'A')
+        let restRoles := roles.drop connectives.length
+        restRoles.all (· == 'A')
+    | none => true
+  let axiomPartner := fun vertex ↦ certificate.links.findSome? fun link ↦ match link with
+    | .axiom l r => if l == vertex then some r else if r == vertex then some l else none
+    | _ => none
+  let atomSegment := match state.stack.ready.getLast? with
+    | some bucket => bucket.filter fun v ↦ role v == 'A'
+    | none => []
+  let pairsOk := atomSegment.all fun v ↦ match axiomPartner v with
+    | some w => atomSegment.contains w || (match state.core.marks[w]? with | some (some _) => true | _ => false)
+    | none => true
+  if !pairsOk && stats.pairFails == 0 then
+    IO.println "invariant-probe-first-failure PAIRS atom-partner-not-in-segment-nor-marked"
+    IO.println (s!"{context} start={start} step={step} sigma={repr state.stack.sigma} " ++
+      s!"ready={repr state.stack.ready} marks={repr (atomSegment.map fun v ↦ (v, axiomPartner v, state.core.marks[v]?))}")
+  let stats := { stats with pairFails := stats.pairFails + (if pairsOk then 0 else 1) }
+  if !shapeOk && stats.shapeFails == 0 then
+    IO.println "invariant-probe-first-failure SHAPE bucket-not-(P|T)*A*"
+    IO.println (s!"{context} start={start} step={step} sigma={repr state.stack.sigma} " ++
+      s!"ready={repr state.stack.ready} roles={repr ((state.stack.ready.getLast?.getD []).map role)}")
   return { stats with
+    shapeFails := stats.shapeFails + (if shapeOk then 0 else 1)
     singletonStates := stats.singletonStates + 1
     singletonParFails := stats.singletonParFails + (if holds then 0 else 1)
     suffixParFails := stats.suffixParFails + (if suffixHolds then 0 else 1) }
@@ -316,6 +353,8 @@ private def printProbe (setName : String) (stats : Stats) : IO Unit := do
         throw (IO.userError s!"invariant-probe-ERROR incomplete counts {probeLabels[index]!}")
       IO.println (s!"invariant-probe set={setName} {probeLabels[index]!} " ++
         s!"holds={count.holds} fails={count.fails}")
+    IO.println s!"invariant-probe set={setName} SHAPE bucket-PT*A* states={stats.singletonStates} fails={stats.shapeFails}"
+    IO.println s!"invariant-probe set={setName} PAIRS atom-partner-in-segment-or-marked states={stats.singletonStates} fails={stats.pairFails}"
     IO.println (s!"invariant-probe set={setName} C12 par-head-guard-tail-nonconclusion states={stats.singletonStates} " ++
       s!"fails={stats.singletonParFails}")
     IO.println (s!"invariant-probe set={setName} C13 par-suffix-guard-tail-nonconclusion " ++
