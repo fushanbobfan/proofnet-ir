@@ -1318,6 +1318,10 @@ end ProofNetIR.SequentialFigure7
 #print axioms SequentialFigure7.DispatchStep.measure_lt
 #print axioms SequentialFigure7.ExecutedHistory.dispatchCount_le
 #print axioms SequentialFigure7.dispatch_stops
+#print axioms SequentialFigure7.InitialReservationStep.parHeadGuardTail
+#print axioms SequentialFigure7.NopStep.tailNonconclusion_of_parHeadGuard
+#print axioms SequentialFigure7.WaitStep.tailNonconclusion_of_parHeadGuard
+#print axioms SequentialFigure7.parHeadGuardTail_not_inductive
 #print axioms SequentialFigure7.ConclStep.output_tags_eq
 #print axioms SequentialFigure7.NopStep.output_tags_eq
 #print axioms SequentialFigure7.WaitStep.output_tags_eq

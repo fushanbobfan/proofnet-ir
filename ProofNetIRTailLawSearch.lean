@@ -27,7 +27,7 @@ region, and measures the exact mate-age classes that limit wait applicability.
 `--invariant-probe` runs both certificate sets and measures C1 at every nop,
 C6--C8 and C11 at nop and wait, C12 at every reachable state (a par-premise
 head whose mate is unmarked or older leaves a non-conclusion in the rest of the
-active bucket), and
+active bucket), C13 (the same condition on every suffix of that bucket), and
 C2 at every wait, and C3--C5 separately at both rules, before the popped head
 receives its raw mark. C4 counts submitted pars with exactly one premise whose
 raw mark resolves to the active component, including marks created at older
@@ -138,6 +138,7 @@ private structure Stats where
   probes : Array ProbeCount := Array.replicate 18 {}
   singletonStates : Nat := 0
   singletonParFails : Nat := 0
+  suffixParFails : Nat := 0
   deriving Repr
 
 private def kindIndex : Figure7RuleKind → Nat
@@ -277,6 +278,25 @@ private def observeSingletonBucket (certificate : Certificate) (state : Reservat
               rest.any fun vertex ↦ !certificate.conclusions.contains vertex
         | none => true
     | _, _ => true
+  -- C13 is the proposed suffix strengthening for pop preservation of C12.
+  let suffixHolds := match state.stack.sigma.getLast?, state.stack.ready.getLast? with
+    | some age, some bucket => (List.range bucket.length).all fun index ↦
+        match bucket.drop index with
+        | [] => true
+        | head :: rest =>
+            match certificate.connectiveBelow? head with
+            | some consumer =>
+                consumer.kind != .par ||
+                  (match state.core.marks[consumer.mate]? with
+                    | some (some mateAge) => mateAge ≥ age
+                    | _ => false) || hasNonconclusion certificate rest
+            | none => true
+    | _, _ => true
+  if !suffixHolds && stats.suffixParFails == 0 then
+    IO.println "invariant-probe-first-failure C13 par-suffix-guard-tail-nonconclusion"
+    IO.println s!"submitted={submittedJson certificate |>.compress}"
+    IO.println (s!"{context} start={start} step={step} sigma={repr state.stack.sigma} " ++
+      s!"ready={repr state.stack.ready} marks={repr state.core.marks}")
   if !holds && stats.singletonParFails == 0 then
     IO.println "invariant-probe-first-failure C12 par-head-guard-tail-nonconclusion"
     IO.println s!"certificate={certificate.canonicalString}"
@@ -284,7 +304,8 @@ private def observeSingletonBucket (certificate : Certificate) (state : Reservat
       s!"ready={repr state.stack.ready}")
   return { stats with
     singletonStates := stats.singletonStates + 1
-    singletonParFails := stats.singletonParFails + (if holds then 0 else 1) }
+    singletonParFails := stats.singletonParFails + (if holds then 0 else 1)
+    suffixParFails := stats.suffixParFails + (if suffixHolds then 0 else 1) }
 
 private def printProbe (setName : String) (stats : Stats) : IO Unit := do
   if stats.invariantProbe then
@@ -297,6 +318,8 @@ private def printProbe (setName : String) (stats : Stats) : IO Unit := do
         s!"holds={count.holds} fails={count.fails}")
     IO.println (s!"invariant-probe set={setName} C12 par-head-guard-tail-nonconclusion states={stats.singletonStates} " ++
       s!"fails={stats.singletonParFails}")
+    IO.println (s!"invariant-probe set={setName} C13 par-suffix-guard-tail-nonconclusion " ++
+      s!"states={stats.singletonStates} fails={stats.suffixParFails}")
 
 private def failViolation (certificate : Certificate) (context : String) (start step : Nat)
     (kinds : List Figure7RuleKind) (result : Figure7DispatchResult)

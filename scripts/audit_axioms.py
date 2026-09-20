@@ -12,6 +12,10 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 AUDIT_FILE = ROOT / "ProofNetIRAxiomAudit.lean"
 EXPECTED_CLASSICAL_THEOREMS = {
+    "ProofNetIR.SequentialFigure7.InitialReservationStep.parHeadGuardTail",
+    "ProofNetIR.SequentialFigure7.NopStep.tailNonconclusion_of_parHeadGuard",
+    "ProofNetIR.SequentialFigure7.WaitStep.tailNonconclusion_of_parHeadGuard",
+    "ProofNetIR.SequentialFigure7.parHeadGuardTail_not_inductive",
     "ProofNetIR.SequentialFigure7.NewGuard.not_sourceLeftReachable_mate_head",
     "ProofNetIR.SequentialFigure7.NewGuard.terminalPartner_ne_head_of_declarativelyCorrect",
     "ProofNetIR.Certificate.OccurrenceDerivation.sourceLeftRegion_owned",

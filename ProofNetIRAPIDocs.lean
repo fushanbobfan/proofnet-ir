@@ -2765,6 +2765,16 @@ def sections : List Section := [
     ]
   },
   {
+    title := "Guarded par-head tails and preservation obstruction"
+    declarations := [
+      `ProofNetIR.SequentialFigure7.ParHeadGuardTailNonconclusion,
+      `ProofNetIR.SequentialFigure7.InitialReservationStep.parHeadGuardTail,
+      `ProofNetIR.SequentialFigure7.NopStep.tailNonconclusion_of_parHeadGuard,
+      `ProofNetIR.SequentialFigure7.WaitStep.tailNonconclusion_of_parHeadGuard,
+      `ProofNetIR.SequentialFigure7.parHeadGuardTail_not_inductive
+    ]
+  },
+  {
     title := "Canonical raw-mark causal order"
     declarations := [
       `ProofNetIR.SequentialFigure7.CanonicalTagHistory.RawMarkedBefore,

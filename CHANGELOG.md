@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- proved C12 for correct initial reservations and its exact implications for
+  the `nop` and `wait` remaining-top obligations. A correct-certificate
+  counterexample shows that C12 plus `SchedulerInvariant` is not preserved
+  by a canonical `nop` call; its pre-state is proved canonically unreachable.
+  The C13 suffix strengthening fails at 173,226 default and 474,336 wait-focus
+  states. C12 reachability, unconditional H-tail, and D3 remain unproved;
 - extended `--invariant-probe` with C6 (mate in the active bucket), C7 (bucket
   pars pairwise covered), C8 (raw and marked counts of the active frontier),
   C11 (no conclusion in the remaining tail), and C12, evaluated at every

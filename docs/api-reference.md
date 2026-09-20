@@ -24992,6 +24992,76 @@ ProofNetIR.SequentialFigure7.dispatch_stops : ∀ {certificate : ProofNetIR.Cert
           ∃ invariant, ProofNetIR.SequentialFigure7.dispatch? certificate (run n) invariant = none
 ```
 
+## Guarded par-head tails and preservation obstruction
+
+### `ProofNetIR.SequentialFigure7.ParHeadGuardTailNonconclusion`
+
+Kind: definition.
+
+A guarded active par head leaves a non-conclusion in its ready tail.
+
+```lean
+ProofNetIR.SequentialFigure7.ParHeadGuardTailNonconclusion : ProofNetIR.Certificate → ProofNetIR.SequentialSchedulerBridge.ReservationState → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.InitialReservationStep.parHeadGuardTail`
+
+Kind: theorem.
+
+On a correct certificate, an initial axiom bucket satisfies C12.
+
+```lean
+ProofNetIR.SequentialFigure7.InitialReservationStep.parHeadGuardTail : ∀ {certificate : ProofNetIR.Certificate} {after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {start : ProofNetIR.Vertex}
+  (step : ProofNetIR.SequentialSchedulerBridge.InitialReservationStep certificate after start),
+  certificate.DeclarativelyCorrect → ProofNetIR.SequentialFigure7.ParHeadGuardTailNonconclusion certificate after
+```
+
+### `ProofNetIR.SequentialFigure7.NopStep.tailNonconclusion_of_parHeadGuard`
+
+Kind: theorem.
+
+C12 on the pre-state discharges the exact `nop` remaining-top obligation.
+
+```lean
+ProofNetIR.SequentialFigure7.NopStep.tailNonconclusion_of_parHeadGuard : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.NopStep certificate before after),
+  ProofNetIR.SequentialFigure7.ParHeadGuardTailNonconclusion certificate before →
+    ∃ pending, pending ∈ step.prepared.stackResult.remainingTop ∧ ¬pending ∈ certificate.conclusions
+```
+
+### `ProofNetIR.SequentialFigure7.WaitStep.tailNonconclusion_of_parHeadGuard`
+
+Kind: theorem.
+
+C12 uses precisely the active raw age compared by the `wait` guard.
+
+```lean
+ProofNetIR.SequentialFigure7.WaitStep.tailNonconclusion_of_parHeadGuard : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.WaitStep certificate before after),
+  ProofNetIR.SequentialFigure7.ParHeadGuardTailNonconclusion certificate before →
+    ∃ pending, pending ∈ step.prepared.stackResult.remainingTop ∧ ¬pending ∈ certificate.conclusions
+```
+
+### `ProofNetIR.SequentialFigure7.parHeadGuardTail_not_inductive`
+
+Kind: theorem.
+
+C12 and the scheduler invariant do not suffice for one-step preservation,
+even on a correct certificate and a canonical `nop` call. The exhibited
+pre-state is proved unreachable by the implemented dispatcher.
+
+```lean
+ProofNetIR.SequentialFigure7.parHeadGuardTail_not_inductive : ∃ certificate before after invariant,
+  certificate.DeclarativelyCorrect ∧
+    ProofNetIR.SequentialFigure7.ParHeadGuardTailNonconclusion certificate before ∧
+      Nonempty
+          (ProofNetIR.SequentialFigure7.DispatchStep certificate before invariant
+            { kind := ProofNetIR.SequentialFigure7.Figure7RuleKind.nop, after := after }) ∧
+        ¬ProofNetIR.SequentialFigure7.ParHeadGuardTailNonconclusion certificate after ∧
+          ¬ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher certificate before
+```
+
 ## Canonical raw-mark causal order
 
 ### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.RawMarkedBefore`
