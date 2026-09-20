@@ -23,72 +23,29 @@ latest research surface and are prepared for documented development changes.
 <!-- ROLLING_MAIN_SUMMARY_START -->
 ### Rolling-main summary
 
-Canonical history strictly orders authentic raw marks; distinct marked vertices are
-comparable, while equality identifies the same age/vertex event. The Wait first
-descent carries the outer mate as terminal and re-roots its sibling continuation
-after the shared conclusion. Ready-head unmarkedness removes the marked-global
-sibling endpoint. Complete cancellation retains both endpoint junctions and puts
-the cyclic source strictly before the authenticated outer terminal.
-The Nop return is eliminated. Wait raw work lies outside the active carrier or
-returns exactly to the selected/mate pair. An outside terminal is strictly older;
-its mate is older outside (ready or waiting) or active-owned; the latter cannot be ready.
-Its waiting continuation reaches the outside submitted conclusion as strictly
-older future work or a strictly older mark, with no raw return to the older terminal.
-Under reference-switching connectedness and exact ready-tail failure, both external
-endpoints retain their strict commitment split, owned-to-external crossing, reversed
-re-entry, and failure-conditioned target status. In the outer older-mate branch,
-stored-right orientation rules out the nested selected-head target. Each nested path
-may start at its waiting consumer conclusion. Frontier ownership and the enclosing
-mate's externality separate the marked target from that mate; unique parent alignment
-then makes its continuation raw-unmarked outside, future at a strictly older boundary,
-or marked at a strictly older representative. This status reaches the typed Wait trace
-without changing unrelated trace branches or causal/cyclic receipts. Under the same exact
-ready-tail failure, finite normalization preserves `path.start = endpoint`.
-Carrier-forest marked ownership plus live-carrier disjointness makes every retained chain
-reflexive: the first marked outside parent conclusion has either the active owner,
-contradicting outside, or a distinct live owner whose closure also owns the active origin.
-This removes the selected/current-mate and marked-global exits and rules out an older ready
-future endpoint. Exactly two parent forms remain: a raw-unmarked target consumer mate
-outside active ownership, or its conclusion as strictly older future work in an exact
-initialized waiting cell retaining payload, par/source data, oriented marked premises,
-and boundary equations. In that older waiting producer, the active-representative target
-is exactly the younger premise and its consumer mate is the older premise, with both
-representative equations exposed. Under `DeclarativelyCorrect`, the exact location gives a
-mate-to-target reference path avoiding the inner waiting conclusion. With an explicit
-active-carrier lookup and occurrence witness, forest ownership aligns the target inside
-that carrier and the older mate outside. Two generic ready-head lemmas show that any
-selected connective conclusion is not `Produced` and, under exact occurrence accounting,
-lies outside any supplied owned carrier. They strengthen the outer split without adding
-hypotheses. Under canonical history, a selected outer par, and exact ready-tail failure,
-the theorem returns those outer-conclusion facts unconditionally and retains the common
-exact path, target finish, outside-to-inside edge, and inner avoidance. Outer avoidance
-yields a marked historical re-entry target for the older-mate endpoint. Under an explicit
-stored-right orientation, the containing branch keeps outer-conclusion membership and
-narrows its separate failure status to a marked historical re-entry target for the outer-
-conclusion endpoint. These existential classifiers are not identified with the common exact
-path or crossing. Separately, under `SchedulerInvariant`, current-state queue semantics
-identify `queuedVertices` membership with proof-relevant `FutureWorkAt` at some scheduler
-boundary. Given component lookup and occurrence evidence that identifies a supplied `owned`
-list as the active carrier, an unmarked vertex outside it is either currently absent from the
-queue and live-production domains or has exact ready or waiting work at a strictly older
-boundary. The stored-right outer result now lifts only the raw-unmarked mate leaf to this
-status, with `currentMateOutside : current.mate ∉ owned` as its sole added hypothesis. The
-result remains a disjunction: the avoiding branch classifies `consumer.mate`, while the
-containing branch keeps outer-conclusion membership and classifies `current.conclusion`.
-The exact initialized-waiting conclusion leaf is unchanged. The common path and crossing are
-preserved, and neither branch-local classifier is identified with them or with the other
-branch. The queue-status leaf supplies no unique boundary, queue history, persistence,
-reachability, elimination, payer, tail law, or progress. That nested target is now transported
-through the two-case waiting-parent external-reentry outcome without changing its older-future
-or older-marked receipts or identifying the outer crossing with the target's internal path.
-The future-work-mate status now copies its older-outside branch and, in its active-owned branch,
-preserves membership, representative equality, and the waiting witness while refining only the
-external endpoint. It introduces no equality among the scheduler-status, endpoint older-future,
-and nested future-work boundaries. The continuation outcome now preserves both raw exits and
-every future-work receipt while refining only that nested mate status. The sibling target copies
-its other three exits and changes only the causal continuation field. Typed-Wait transport remains
-open, as do completion and totality; dispatcher termination is proved as a bounded history length.
-[Current status](docs/current-status.md) owns exact revision, verification receipt, and gates.
+`main` adds, on top of the released model, an executable sequential
+scheduler for the Figures 7–8 procedure of Guerrini's linear-time
+correctness algorithm: a stack of ready buckets, a canonical history of raw
+marks, a state invariant, and six dispatch rules (`concl`, `nop`, `new`,
+`wait`, `forward`, `unifyPayload`) run in that fixed order.
+
+Proved on `main` beyond `v0.9.0`:
+
+- every successful dispatch rule preserves the scheduler invariant
+  (`Figure7SuccessfulStep.schedulerInvariant`);
+- repeated dispatch stops within `formulas.size + 1` calls
+  (`dispatch_stops`);
+- the `nop` and `wait` branches of the history-tail law reduce to one state
+  predicate, C12, which holds after every correct initialization and at all
+  2,289,024 finite-probe reachable states; C12 alone is not inductive, so a
+  full proof must carry bucket-order reachability.
+
+Open, with exact target statements in the [goal ledger](docs/goal-ledger.md):
+Figure-7 progress (D3, conditional on the tail law), pure worklist
+completeness and fallback removal (D1, D2), later-state start selection and
+completion of the executable (D5), and a whole-program cost bound (D6).
+[Current status](docs/current-status.md) holds the exact revision,
+verification receipts, and gates.
 <!-- ROLLING_MAIN_SUMMARY_END -->
 
 ## Scope
