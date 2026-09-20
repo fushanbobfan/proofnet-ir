@@ -961,6 +961,14 @@ theorem sequentialFinalTree?_infer_eq {certificate : Certificate} {state : Reser
     CutFreeDerivation.desequentialize?_exists_checked_of_infer? inferred
   exact ⟨.exchange order component.tree, sequent, finalEq, labels, inferred, output, built, checked⟩
 
+/-- Rename the fresh indices of a builder link to the occurrences they represent. -/
+def relabelLink (numbering : List Nat) : Link → Link
+  | .axiom left right => .axiom (numbering[left]?.getD 0) (numbering[right]?.getD 0)
+  | .tensor left right conclusion => .tensor (numbering[left]?.getD 0)
+      (numbering[right]?.getD 0) (numbering[conclusion]?.getD 0)
+  | .par left right conclusion => .par (numbering[left]?.getD 0)
+      (numbering[right]?.getD 0) (numbering[conclusion]?.getD 0)
+
 /-- Exact correspondence between fresh builder indices and submitted occurrences.
 `numbering[i]` is the input occurrence represented by fresh vertex `i`.
 The ordered roots are literal; only the link storage order may vary. -/
@@ -971,13 +979,8 @@ structure OccurrenceBuildMatch (certificate : Certificate) (fragment : NetFragme
   labels_eq : ∀ index, index < fragment.formulas.size →
     certificate.formula? (numbering[index]?.getD 0) = fragment.formulas[index]?
   roots_eq : fragment.roots.map (fun index ↦ numbering[index]?.getD 0) = frontier
-  links_perm : (fragment.links.map (fun link ↦ match link with
-    | .axiom left right => .axiom (numbering[left]?.getD 0) (numbering[right]?.getD 0)
-    | .tensor left right conclusion => .tensor (numbering[left]?.getD 0)
-        (numbering[right]?.getD 0) (numbering[conclusion]?.getD 0)
-    | .par left right conclusion => .par (numbering[left]?.getD 0)
-        (numbering[right]?.getD 0) (numbering[conclusion]?.getD 0))).Perm
-      (used.filterMap fun index ↦ certificate.links[index]?)
+  links_perm : (fragment.links.map (relabelLink numbering)).Perm
+    (used.filterMap fun index ↦ certificate.links[index]?)
 
 /-- The axiom build uses fresh vertices zero and one for the exact submitted
 endpoints, retaining their orientation even when other labels repeat. -/
@@ -1008,7 +1011,7 @@ theorem occurrenceBuild_axiom_eq {certificate : Certificate}
     rcases cases with rfl | rfl
     · exact label
     · exact rightLabel
-  · simp [fragment, lookup]
+  · simp [fragment, lookup, relabelLink]
 
 /-- An exact occurrence exchange preserves the same fresh-vertex numbering,
 formula labels, and submitted links, changing only the ordered roots. -/
@@ -1030,28 +1033,623 @@ theorem occurrenceBuild_exchange_eq {certificate : Certificate} {tree : CutFreeD
   · simp [CutFreeDerivation.build?, built, entriesReorder]
   · simpa [NetFragment.ofEntries, List.map_map, Function.comp_def, project] using entriesMapped
 
-/- Unproved induction target. Par extends the premise numbering by [conclusion].
-Tensor concatenates the left numbering, the right numbering, and [conclusion];
-the right fragment's fresh vertices are shifted by the left formula count.
-The exact picks must identify the selected fresh roots with the input premises.
-The axiom and exchange branches are proved above; par and tensor remain open. -/
-private def OccurrenceBuildTarget : Prop :=
-  ∀ {certificate : Certificate} {tree : CutFreeDerivation}
-    {frontier used owned : List Nat},
-    certificate.StructurallyWellFormed →
-    certificate.OccurrenceDerivation tree frontier used owned →
-    ∃ fragment numbering, tree.build? = some fragment ∧
-      OccurrenceBuildMatch certificate fragment frontier used owned numbering
+/-- Every vertex of a well-formed link is inside the carrier. -/
+private theorem LinkWellFormed.vertices_lt {certificate : Certificate} {link : Link}
+    (wf : certificate.LinkWellFormed link) :
+    ∀ vertex ∈ link.vertices, vertex < certificate.formulas.size := by
+  intro vertex member
+  cases link with
+  | «axiom» left right =>
+      simp [Link.vertices] at member
+      rcases member with rfl | rfl
+      · exact wf.2.1
+      · exact wf.2.2.1
+  | tensor left right conclusion | par left right conclusion =>
+      simp [Link.vertices] at member
+      rcases member with rfl | rfl | rfl
+      · exact wf.2.2.2.1
+      · exact wf.2.2.2.2.1
+      · exact wf.2.2.2.2.2.1
 
-/- Unproved full-carrier consequence required by the verifier. The numbering
-must yield a bounded VertexRenaming, and its link permutation must cover every
-submitted link, including axioms. Equivalence is the conclusion of this target. -/
-private def OccurrenceEquivalenceTarget : Prop :=
-  ∀ {certificate : Certificate} {tree : CutFreeDerivation} {used owned : List Nat},
-    certificate.StructurallyWellFormed →
-    certificate.ComponentOccurrenceWitness ⟨tree, certificate.conclusions⟩ used owned →
-    (∀ vertex, vertex ∈ owned ↔ vertex < certificate.formulas.size) →
-    ∃ output, tree.desequentialize? = some output ∧ output.ProofNetEquivalent certificate
+/-- Extending a numbering does not change the relabelling of an in-bounds link. -/
+private theorem relabelLink_append {numbering extra : List Nat} {link : Link}
+    (bounded : ∀ vertex ∈ link.vertices, vertex < numbering.length) :
+    relabelLink (numbering ++ extra) link = relabelLink numbering link := by
+  cases link with
+  | «axiom» left right =>
+      simp only [Link.vertices, List.mem_cons, List.not_mem_nil,
+        or_false, forall_eq_or_imp, forall_eq] at bounded
+      simp [relabelLink, List.getElem?_append_left bounded.1, List.getElem?_append_left bounded.2]
+  | tensor left right conclusion | par left right conclusion =>
+      simp only [Link.vertices, List.mem_cons, List.not_mem_nil,
+        or_false, forall_eq_or_imp, forall_eq] at bounded
+      simp [relabelLink, List.getElem?_append_left bounded.1,
+        List.getElem?_append_left bounded.2.1, List.getElem?_append_left bounded.2.2]
+
+/-- A vertex shifted past a prefix numbering is looked up in the suffix numbering. -/
+private theorem getElem?_append_shift {front back extra : List Nat} {vertex : Nat}
+    (bound : vertex < back.length) :
+    (front ++ (back ++ extra))[vertex + front.length]? = back[vertex]? := by
+  rw [List.getElem?_append_right (by omega), Nat.add_sub_cancel, List.getElem?_append_left bound]
+
+/-- A link shifted past a prefix numbering is relabelled by the suffix numbering. -/
+private theorem relabelLink_shift {front back extra : List Nat} {link : Link}
+    (bounded : ∀ vertex ∈ link.vertices, vertex < back.length) :
+    relabelLink (front ++ (back ++ extra)) (link.shift front.length) =
+      relabelLink back link := by
+  have lookup : ∀ vertex, vertex < back.length →
+      (front ++ (back ++ extra))[vertex + front.length]? = back[vertex]? :=
+    fun _ bound ↦ getElem?_append_shift bound
+  cases link with
+  | «axiom» left right =>
+      simp only [Link.vertices, List.mem_cons, List.not_mem_nil,
+        or_false, forall_eq_or_imp, forall_eq] at bounded
+      simp [relabelLink, Link.shift, lookup _ bounded.1, lookup _ bounded.2]
+  | tensor left right conclusion | par left right conclusion =>
+      simp only [Link.vertices, List.mem_cons, List.not_mem_nil,
+        or_false, forall_eq_or_imp, forall_eq] at bounded
+      simp [relabelLink, Link.shift, lookup _ bounded.1, lookup _ bounded.2.1,
+        lookup _ bounded.2.2]
+
+/-- Every boundary entry of a built fragment is labelled and in bounds, so its
+numbering image carries the entry's formula in the input. -/
+private theorem entry_label {certificate : Certificate} {tree : CutFreeDerivation}
+    {fragment : NetFragment} {frontier used owned numbering : List Nat}
+    (built : tree.build? = some fragment)
+    (matched : OccurrenceBuildMatch certificate fragment frontier used owned numbering)
+    {entry : Formula × Vertex} (member : entry ∈ fragment.entries) :
+    entry.2 < numbering.length ∧
+      certificate.formula? (numbering[entry.2]?.getD 0) = some entry.1 := by
+  have lookup := CutFreeDerivation.build?_formulaConsistent built entry member
+  have bound := (Array.getElem?_eq_some_iff.mp lookup).1
+  exact ⟨matched.size_eq ▸ bound, (matched.labels_eq entry.2 bound).trans lookup⟩
+
+/-- Built links stay inside the fragment carrier. -/
+private theorem built_link_bounded {tree : CutFreeDerivation} {fragment : NetFragment}
+    (built : tree.build? = some fragment) {link : Link} (member : link ∈ fragment.links) :
+    ∀ vertex ∈ link.vertices, vertex < fragment.formulas.size :=
+  LinkWellFormed.vertices_lt
+    ((CutFreeDerivation.build?_structurallyWellFormed built).2.2.2.2.1 link member)
+
+/-- The par build appends one fresh conclusion vertex numbered by the submitted
+conclusion, keeping the premise numbering for every older vertex. -/
+theorem occurrenceBuild_par_eq {certificate : Certificate}
+    (structural : certificate.StructurallyWellFormed) {premise : CutFreeDerivation}
+    {fragment : NetFragment} {frontier used owned numbering : List Nat}
+    (built : premise.build? = some fragment)
+    (matched : OccurrenceBuildMatch certificate fragment frontier used owned numbering)
+    {index left right conclusion leftFocus rightFocus : Nat} {afterLeft context : List Nat}
+    (lookup : certificate.links[index]? = some (.par left right conclusion))
+    (leftPick : CutFreeDerivation.pick? frontier leftFocus = some (left, afterLeft))
+    (rightPick : CutFreeDerivation.pick? afterLeft rightFocus = some (right, context)) :
+    ∃ output, (CutFreeDerivation.par leftFocus rightFocus premise).build? = some output ∧
+      OccurrenceBuildMatch certificate output (context ++ [conclusion]) (index :: used)
+        (conclusion :: owned) (numbering ++ [conclusion]) := by
+  let project := fun entry : Formula × Vertex ↦ numbering[entry.2]?.getD 0
+  have entriesEq : fragment.entries.map project = frontier := by
+    rw [← matched.roots_eq, ← fragment.entries_map_snd (CutFreeDerivation.build?_balanced built)]
+    simp [List.map_map, project]
+  obtain ⟨leftEntry, afterLeftEntries, leftPickEntries, leftProj, afterLeftEq⟩ :=
+    CutFreeDerivation.pick?_exists_of_map_eq_some project (by rwa [entriesEq])
+  obtain ⟨rightEntry, contextEntries, rightPickEntries, rightProj, contextEq⟩ :=
+    CutFreeDerivation.pick?_exists_of_map_eq_some project
+      (values := afterLeftEntries) (by rw [afterLeftEq]; exact rightPick)
+  simp only [project] at leftProj rightProj
+  have afterLeftSub : ∀ entry ∈ afterLeftEntries, entry ∈ fragment.entries := fun entry mem ↦
+    (CutFreeDerivation.pick?_perm leftPickEntries).mem_iff.mpr (by simp [mem])
+  have leftMem : leftEntry ∈ fragment.entries :=
+    (CutFreeDerivation.pick?_perm leftPickEntries).mem_iff.mpr (by simp)
+  have rightMem : rightEntry ∈ fragment.entries :=
+    afterLeftSub _ ((CutFreeDerivation.pick?_perm rightPickEntries).mem_iff.mpr (by simp))
+  have contextSub : ∀ entry ∈ contextEntries, entry ∈ fragment.entries := fun entry mem ↦
+    afterLeftSub _ ((CutFreeDerivation.pick?_perm rightPickEntries).mem_iff.mpr (by simp [mem]))
+  obtain ⟨leftBound, leftLabel⟩ := entry_label built matched leftMem
+  obtain ⟨rightBound, rightLabel⟩ := entry_label built matched rightMem
+  rw [leftProj] at leftLabel
+  rw [rightProj] at rightLabel
+  have wf := structural.2.2.2.2.1 _ (List.mem_of_getElem? lookup)
+  have conclusionLabel :
+      certificate.formula? conclusion = some (.par leftEntry.1 rightEntry.1) := by
+    have typing := wf.2.2.2.2.2.2
+    rw [leftLabel, rightLabel] at typing
+    cases conclusionEq : certificate.formula? conclusion with
+    | none => simp [conclusionEq] at typing
+    | some formula =>
+        simp [conclusionEq] at typing
+        simp [typing]
+  let conclusionFormula : Formula := .par leftEntry.1 rightEntry.1
+  let output : NetFragment := NetFragment.ofEntries (fragment.formulas.push conclusionFormula)
+    (fragment.links ++ [.par leftEntry.2 rightEntry.2 fragment.formulas.size])
+    (contextEntries ++ [(conclusionFormula, fragment.formulas.size)])
+  have sizeEq := matched.size_eq
+  have rootLookup : (numbering ++ [conclusion])[fragment.formulas.size]? = some conclusion := by
+    rw [← sizeEq]
+    exact List.getElem?_concat_length
+  refine ⟨output, ?_, ?_, ?_, ?_, ?_, ?_⟩
+  · simp [CutFreeDerivation.build?, built, leftPickEntries, rightPickEntries, output,
+      conclusionFormula]
+  · simp [output, NetFragment.ofEntries, matched.size_eq]
+  · exact (matched.owned_perm.append_right [conclusion]).trans List.perm_append_comm
+  · intro i bound
+    change certificate.formula? ((numbering ++ [conclusion])[i]?.getD 0) =
+      (fragment.formulas.push conclusionFormula)[i]?
+    have bound' : i < fragment.formulas.size + 1 := by
+      simpa [output, NetFragment.ofEntries] using bound
+    by_cases lt : i < fragment.formulas.size
+    · rw [List.getElem?_append_left (by omega), Array.getElem?_push_lt lt,
+        ← Array.getElem?_eq_getElem lt]
+      exact matched.labels_eq i lt
+    · have eq : i = fragment.formulas.size := by omega
+      subst eq
+      rw [rootLookup, Array.getElem?_push_size]
+      exact conclusionLabel
+  · change ((contextEntries ++ [(conclusionFormula, fragment.formulas.size)]).map Prod.snd).map
+      (fun i ↦ (numbering ++ [conclusion])[i]?.getD 0) = context ++ [conclusion]
+    rw [List.map_append, List.map_append]
+    congr 1
+    · rw [List.map_map, ← contextEq]
+      apply List.map_congr_left
+      intro entry member
+      have bound := (entry_label built matched (contextSub entry member)).1
+      simp [List.getElem?_append_left bound, project]
+    · simp [rootLookup]
+  · change ((fragment.links ++ [Link.par leftEntry.2 rightEntry.2 fragment.formulas.size]).map
+      (relabelLink (numbering ++ [conclusion]))).Perm
+      ((index :: used).filterMap fun i ↦ certificate.links[i]?)
+    rw [List.map_append, List.filterMap_cons_some lookup]
+    have oldLinks : fragment.links.map (relabelLink (numbering ++ [conclusion])) =
+        fragment.links.map (relabelLink numbering) := by
+      apply List.map_congr_left
+      intro link member
+      exact relabelLink_append fun vertex mem ↦
+        matched.size_eq ▸ built_link_bounded built member vertex mem
+    have newLink : [Link.par leftEntry.2 rightEntry.2 fragment.formulas.size].map
+        (relabelLink (numbering ++ [conclusion])) = [.par left right conclusion] := by
+      simp [relabelLink, List.getElem?_append_left leftBound,
+        List.getElem?_append_left rightBound, leftProj, rightProj, rootLookup]
+    rw [oldLinks, newLink]
+    exact (matched.links_perm.append_right _).trans List.perm_append_comm
+
+/-- The tensor build concatenates the left and right numberings, shifting the
+right fragment's fresh vertices, and appends the submitted conclusion. -/
+theorem occurrenceBuild_tensor_eq {certificate : Certificate}
+    (structural : certificate.StructurallyWellFormed)
+    {leftTree rightTree : CutFreeDerivation} {leftFragment rightFragment : NetFragment}
+    {leftFrontier leftUsed leftOwned leftNumbering : List Nat}
+    {rightFrontier rightUsed rightOwned rightNumbering : List Nat}
+    (leftBuilt : leftTree.build? = some leftFragment)
+    (leftMatched : OccurrenceBuildMatch certificate leftFragment
+      leftFrontier leftUsed leftOwned leftNumbering)
+    (rightBuilt : rightTree.build? = some rightFragment)
+    (rightMatched : OccurrenceBuildMatch certificate rightFragment
+      rightFrontier rightUsed rightOwned rightNumbering)
+    {index left right conclusion leftFocus rightFocus : Nat}
+    {leftContext rightContext : List Nat}
+    (lookup : certificate.links[index]? = some (.tensor left right conclusion))
+    (leftPick : CutFreeDerivation.pick? leftFrontier leftFocus = some (left, leftContext))
+    (rightPick : CutFreeDerivation.pick? rightFrontier rightFocus = some (right, rightContext)) :
+    ∃ output,
+      (CutFreeDerivation.tensor leftFocus rightFocus leftTree rightTree).build? = some output ∧
+      OccurrenceBuildMatch certificate output (conclusion :: (leftContext ++ rightContext))
+        (index :: (leftUsed ++ rightUsed)) (conclusion :: (leftOwned ++ rightOwned))
+        (leftNumbering ++ rightNumbering ++ [conclusion]) := by
+  let leftProject := fun entry : Formula × Vertex ↦ leftNumbering[entry.2]?.getD 0
+  let rightProject := fun entry : Formula × Vertex ↦ rightNumbering[entry.2]?.getD 0
+  have leftEntriesEq : leftFragment.entries.map leftProject = leftFrontier := by
+    rw [← leftMatched.roots_eq,
+      ← leftFragment.entries_map_snd (CutFreeDerivation.build?_balanced leftBuilt)]
+    simp [List.map_map, leftProject]
+  have rightEntriesEq : rightFragment.entries.map rightProject = rightFrontier := by
+    rw [← rightMatched.roots_eq,
+      ← rightFragment.entries_map_snd (CutFreeDerivation.build?_balanced rightBuilt)]
+    simp [List.map_map, rightProject]
+  obtain ⟨leftEntry, leftRemaining, leftPickEntries, leftProj, leftRemainingEq⟩ :=
+    CutFreeDerivation.pick?_exists_of_map_eq_some leftProject (by rwa [leftEntriesEq])
+  obtain ⟨rightEntry, rightRemaining, rightPickEntries, rightProj, rightRemainingEq⟩ :=
+    CutFreeDerivation.pick?_exists_of_map_eq_some rightProject (by rwa [rightEntriesEq])
+  simp only [leftProject] at leftProj
+  simp only [rightProject] at rightProj
+  have leftSub : ∀ entry ∈ leftRemaining, entry ∈ leftFragment.entries := fun entry mem ↦
+    (CutFreeDerivation.pick?_perm leftPickEntries).mem_iff.mpr (by simp [mem])
+  have rightSub : ∀ entry ∈ rightRemaining, entry ∈ rightFragment.entries := fun entry mem ↦
+    (CutFreeDerivation.pick?_perm rightPickEntries).mem_iff.mpr (by simp [mem])
+  have leftMem : leftEntry ∈ leftFragment.entries :=
+    (CutFreeDerivation.pick?_perm leftPickEntries).mem_iff.mpr (by simp)
+  have rightMem : rightEntry ∈ rightFragment.entries :=
+    (CutFreeDerivation.pick?_perm rightPickEntries).mem_iff.mpr (by simp)
+  obtain ⟨leftBound, leftLabel⟩ := entry_label leftBuilt leftMatched leftMem
+  obtain ⟨rightBound, rightLabel⟩ := entry_label rightBuilt rightMatched rightMem
+  rw [leftProj] at leftLabel
+  rw [rightProj] at rightLabel
+  have wf := structural.2.2.2.2.1 _ (List.mem_of_getElem? lookup)
+  have conclusionLabel :
+      certificate.formula? conclusion = some (.tensor leftEntry.1 rightEntry.1) := by
+    have typing := wf.2.2.2.2.2.2
+    rw [leftLabel, rightLabel] at typing
+    cases conclusionEq : certificate.formula? conclusion with
+    | none => simp [conclusionEq] at typing
+    | some formula =>
+        simp [conclusionEq] at typing
+        simp [typing]
+  have leftSizeEq := leftMatched.size_eq
+  have rightSizeEq := rightMatched.size_eq
+  let conclusionFormula : Formula := .tensor leftEntry.1 rightEntry.1
+  let combined := leftFragment.formulas ++ rightFragment.formulas
+  let output : NetFragment := NetFragment.ofEntries (combined.push conclusionFormula)
+    (leftFragment.links ++ rightFragment.links.map (·.shift leftFragment.formulas.size) ++
+      [.tensor leftEntry.2 (rightEntry.2 + leftFragment.formulas.size) combined.size])
+    ((conclusionFormula, combined.size) ::
+      (leftRemaining ++
+        rightRemaining.map (CutFreeDerivation.shiftEntry leftFragment.formulas.size)))
+  have combinedSize :
+      combined.size = leftFragment.formulas.size + rightFragment.formulas.size :=
+    Array.size_append
+  have pairLength : (leftNumbering ++ rightNumbering).length = combined.size := by
+    simp [combinedSize, leftSizeEq, rightSizeEq]
+  have rootLookup :
+      (leftNumbering ++ (rightNumbering ++ [conclusion]))[combined.size]? = some conclusion := by
+    rw [← List.append_assoc, ← pairLength]
+    exact List.getElem?_concat_length
+  have leftLookup : ∀ vertex, vertex < leftNumbering.length →
+      (leftNumbering ++ (rightNumbering ++ [conclusion]))[vertex]? = leftNumbering[vertex]? :=
+    fun _ bound ↦ List.getElem?_append_left bound
+  have rightLookup : ∀ vertex, vertex < rightNumbering.length →
+      (leftNumbering ++ (rightNumbering ++ [conclusion]))[vertex + leftFragment.formulas.size]? =
+        rightNumbering[vertex]? := by
+    intro vertex bound
+    rw [← leftSizeEq]
+    exact getElem?_append_shift bound
+  refine ⟨output, ?_, ?_, ?_, ?_, ?_, ?_⟩
+  · simp [CutFreeDerivation.build?, leftBuilt, rightBuilt, leftPickEntries, rightPickEntries,
+      output, conclusionFormula, combined]
+  · simp [output, NetFragment.ofEntries, combined, leftSizeEq, rightSizeEq]
+  · exact ((leftMatched.owned_perm.append rightMatched.owned_perm).append_right
+      [conclusion]).trans List.perm_append_comm
+  · intro i bound
+    rw [List.append_assoc]
+    change certificate.formula? ((leftNumbering ++ (rightNumbering ++ [conclusion]))[i]?.getD 0) =
+      (combined.push conclusionFormula)[i]?
+    have bound' : i < combined.size + 1 := by
+      simpa [output, NetFragment.ofEntries] using bound
+    by_cases lt : i < combined.size
+    · rw [Array.getElem?_push_lt lt, ← Array.getElem?_eq_getElem lt]
+      by_cases leftCase : i < leftFragment.formulas.size
+      · rw [leftLookup i (by omega), Array.getElem?_append_left leftCase]
+        exact leftMatched.labels_eq i leftCase
+      · have shifted :
+            i = (i - leftFragment.formulas.size) + leftFragment.formulas.size := by omega
+        rw [shifted, rightLookup _ (by omega), Array.getElem?_append_right (by omega),
+          Nat.add_sub_cancel]
+        exact rightMatched.labels_eq _ (by omega)
+    · have eq : i = combined.size := by omega
+      subst eq
+      rw [rootLookup, Array.getElem?_push_size]
+      exact conclusionLabel
+  · change ((combined.size :: (leftRemaining ++
+        rightRemaining.map (CutFreeDerivation.shiftEntry leftFragment.formulas.size)).map
+          Prod.snd).map
+      (fun i ↦ (leftNumbering ++ rightNumbering ++ [conclusion])[i]?.getD 0)) =
+      conclusion :: (leftContext ++ rightContext)
+    simp only [List.map_cons, List.map_append, List.map_map, List.append_assoc]
+    congr 1
+    · simp [rootLookup]
+    congr 1
+    · rw [← leftRemainingEq]
+      apply List.map_congr_left
+      intro entry member
+      have bound := (entry_label leftBuilt leftMatched (leftSub entry member)).1
+      simp [Function.comp, leftLookup _ bound, leftProject]
+    · rw [← rightRemainingEq]
+      apply List.map_congr_left
+      intro entry member
+      have bound := (entry_label rightBuilt rightMatched (rightSub entry member)).1
+      simp [Function.comp, CutFreeDerivation.shiftEntry, rightLookup _ bound, rightProject]
+  · change ((leftFragment.links ++
+        rightFragment.links.map (·.shift leftFragment.formulas.size) ++
+        [Link.tensor leftEntry.2 (rightEntry.2 + leftFragment.formulas.size) combined.size]).map
+      (relabelLink (leftNumbering ++ rightNumbering ++ [conclusion]))).Perm
+      ((index :: (leftUsed ++ rightUsed)).filterMap fun i ↦ certificate.links[i]?)
+    rw [List.map_append, List.map_append, List.map_map, List.filterMap_cons_some lookup,
+      List.filterMap_append]
+    have leftLinks : leftFragment.links.map
+        (relabelLink (leftNumbering ++ rightNumbering ++ [conclusion])) =
+        leftFragment.links.map (relabelLink leftNumbering) := by
+      apply List.map_congr_left
+      intro link member
+      rw [List.append_assoc]
+      exact relabelLink_append fun vertex mem ↦
+        leftSizeEq ▸ built_link_bounded leftBuilt member vertex mem
+    have rightLinks : rightFragment.links.map
+        (relabelLink (leftNumbering ++ rightNumbering ++ [conclusion]) ∘
+          (·.shift leftFragment.formulas.size)) =
+        rightFragment.links.map (relabelLink rightNumbering) := by
+      apply List.map_congr_left
+      intro link member
+      simp only [Function.comp]
+      rw [List.append_assoc, ← leftSizeEq]
+      exact relabelLink_shift fun vertex mem ↦
+        rightSizeEq ▸ built_link_bounded rightBuilt member vertex mem
+    have newLink : [Link.tensor leftEntry.2 (rightEntry.2 + leftFragment.formulas.size)
+        combined.size].map (relabelLink (leftNumbering ++ rightNumbering ++ [conclusion])) =
+        [.tensor left right conclusion] := by
+      simp [relabelLink, leftLookup _ leftBound, rightLookup _ rightBound, leftProj, rightProj,
+        rootLookup]
+    rw [leftLinks, rightLinks, newLink]
+    exact ((leftMatched.links_perm.append rightMatched.links_perm).append_right _).trans
+      List.perm_append_comm
+
+/-- Every occurrence derivation of a structurally well-formed certificate builds,
+with its fresh vertices numbered exactly by the submitted occurrences. -/
+theorem occurrenceBuild_exists {certificate : Certificate}
+    (structural : certificate.StructurallyWellFormed) {tree : CutFreeDerivation}
+    {frontier used owned : List Nat}
+    (witness : certificate.OccurrenceDerivation tree frontier used owned) :
+    ∃ fragment numbering, tree.build? = some fragment ∧
+      OccurrenceBuildMatch certificate fragment frontier used owned numbering := by
+  induction witness with
+  | «axiom» index left right name positive lookup label =>
+      obtain ⟨fragment, built, matched⟩ := occurrenceBuild_axiom_eq structural lookup label
+      exact ⟨fragment, _, built, matched⟩
+  | par _ index left right conclusion leftFocus rightFocus afterLeft context lookup
+      leftPick rightPick ih =>
+      obtain ⟨fragment, numbering, built, matched⟩ := ih
+      obtain ⟨output, builtOut, matchedOut⟩ := occurrenceBuild_par_eq structural built matched
+        lookup leftPick.positional rightPick.positional
+      exact ⟨output, _, builtOut, matchedOut⟩
+  | tensor _ _ index left right conclusion leftFocus rightFocus leftContext rightContext
+      lookup leftPick rightPick leftIH rightIH =>
+      obtain ⟨leftFragment, leftNumbering, leftBuilt, leftMatched⟩ := leftIH
+      obtain ⟨rightFragment, rightNumbering, rightBuilt, rightMatched⟩ := rightIH
+      obtain ⟨output, builtOut, matchedOut⟩ := occurrenceBuild_tensor_eq structural leftBuilt
+        leftMatched rightBuilt rightMatched lookup leftPick.positional rightPick.positional
+      exact ⟨output, _, builtOut, matchedOut⟩
+  | exchange _ order reordered reorderEq ih =>
+      obtain ⟨fragment, numbering, built, matched⟩ := ih
+      obtain ⟨output, builtOut, matchedOut⟩ := occurrenceBuild_exchange_eq built matched reorderEq
+      exact ⟨output, _, builtOut, matchedOut⟩
+
+
+/-- Two submitted axiom links sharing an endpoint are the same link. -/
+private theorem axiom_link_unique {certificate : Certificate}
+    (structural : certificate.StructurallyWellFormed)
+    {firstLeft firstRight secondLeft secondRight vertex : Vertex}
+    (first : Link.axiom firstLeft firstRight ∈ certificate.links)
+    (firstEndpoint : vertex = firstLeft ∨ vertex = firstRight)
+    (second : Link.axiom secondLeft secondRight ∈ certificate.links)
+    (secondEndpoint : vertex = secondLeft ∨ vertex = secondRight) :
+    Link.axiom firstLeft firstRight = Link.axiom secondLeft secondRight := by
+  have wf := structural.2.2.2.2.1 _ first
+  obtain ⟨name, positive, lookup⟩ := wf.axiom_endpointFormula firstEndpoint
+  have bound : vertex < certificate.formulas.size := by
+    rcases firstEndpoint with rfl | rfl
+    · exact wf.2.1
+    · exact wf.2.2.1
+  have count : certificate.axiomCount vertex = 1 := by
+    simpa [NodeWellFormed, lookup] using (structural.2.2.2.2.2 vertex bound).1
+  unfold axiomCount at count
+  obtain ⟨link, eq⟩ := List.length_eq_one_iff.mp count
+  have firstIn : Link.axiom firstLeft firstRight ∈
+      certificate.links.filter (·.containsAxiomEndpoint vertex) :=
+    List.mem_filter.mpr ⟨first, by rcases firstEndpoint with rfl | rfl <;>
+      simp [Link.containsAxiomEndpoint]⟩
+  have secondIn : Link.axiom secondLeft secondRight ∈
+      certificate.links.filter (·.containsAxiomEndpoint vertex) :=
+    List.mem_filter.mpr ⟨second, by rcases secondEndpoint with rfl | rfl <;>
+      simp [Link.containsAxiomEndpoint]⟩
+  rw [eq] at firstIn secondIn
+  simp only [List.mem_singleton] at firstIn secondIn
+  rw [firstIn, secondIn]
+
+/-- An owned axiom endpoint's submitted axiom is a used link. -/
+private theorem owned_axiom_used {certificate : Certificate}
+    (structural : certificate.StructurallyWellFormed) {tree : CutFreeDerivation}
+    {frontier used owned : List Nat}
+    (witness : certificate.OccurrenceDerivation tree frontier used owned)
+    {vertex : Vertex} (member : vertex ∈ owned) {left right : Vertex}
+    (submitted : Link.axiom left right ∈ certificate.links)
+    (endpoint : vertex = left ∨ vertex = right) :
+    ∃ index ∈ used, certificate.links[index]? = some (.axiom left right) := by
+  induction witness with
+  | «axiom» index l r name positive lookup formula =>
+      have stored : vertex = l ∨ vertex = r := by simpa using member
+      have eq := axiom_link_unique structural (List.mem_of_getElem? lookup) stored submitted
+        endpoint
+      exact ⟨index, by simp, lookup.trans (congrArg some eq)⟩
+  | par _ index l r conclusion lf rf afterLeft context lookup lp rp ih =>
+      rcases List.mem_cons.mp member with rfl | member
+      · exact (structural.axiomEndpoint_ne_connectiveConclusion submitted endpoint
+          (List.mem_of_getElem? lookup) (by simp [Link.produces])).elim
+      · obtain ⟨i, mem, eq⟩ := ih member
+        exact ⟨i, by simp [mem], eq⟩
+  | tensor _ _ index l r conclusion lf rf lc rc lookup lp rp lih rih =>
+      rcases List.mem_cons.mp member with rfl | member
+      · exact (structural.axiomEndpoint_ne_connectiveConclusion submitted endpoint
+          (List.mem_of_getElem? lookup) (by simp [Link.produces])).elim
+      · rcases List.mem_append.mp member with lm | rm
+        · obtain ⟨i, mem, eq⟩ := lih lm
+          exact ⟨i, by simp [mem], eq⟩
+        · obtain ⟨i, mem, eq⟩ := rih rm
+          exact ⟨i, by simp [mem], eq⟩
+  | exchange _ order reordered equation ih => exact ih member
+
+private theorem filterMap_getElem?_range {α : Type} (values : List α) :
+    (List.range values.length).filterMap (fun index ↦ values[index]?) = values := by
+  induction values with
+  | nil => rfl
+  | cons head tail ih =>
+      simp [List.range_succ_eq_map, List.filterMap_map, Function.comp_def, ih]
+
+/-- A linear derivation covering the carrier uses every submitted link exactly
+once, so its used links enumerate the input link list. -/
+private theorem usedLinks_perm {certificate : Certificate}
+    (structural : certificate.StructurallyWellFormed) {tree : CutFreeDerivation}
+    {frontier used owned : List Nat}
+    (witness : certificate.OccurrenceDerivation tree frontier used owned)
+    (usedNodup : used.Nodup)
+    (covers : ∀ vertex, vertex ∈ owned ↔ vertex < certificate.formulas.size) :
+    (used.filterMap fun index ↦ certificate.links[index]?).Perm certificate.links := by
+  have range : used.Perm (List.range certificate.links.length) := by
+    apply List.perm_iff_count.mpr
+    intro index
+    have iff : index ∈ used ↔ index < certificate.links.length := by
+      refine ⟨witness.usedLinkIndex_lt, fun bound ↦ ?_⟩
+      have lookup : certificate.links[index]? = some certificate.links[index] :=
+        List.getElem?_eq_getElem bound
+      have submitted := List.mem_of_getElem? lookup
+      have wf := structural.2.2.2.2.1 _ submitted
+      obtain ⟨j, memJ, lookupJ⟩ : ∃ j ∈ used,
+          certificate.links[j]? = some certificate.links[index] := by
+        cases linkEq : certificate.links[index] with
+        | «axiom» left right =>
+            rw [linkEq] at wf submitted
+            exact owned_axiom_used structural witness ((covers left).mpr wf.2.1) submitted
+              (.inl rfl)
+        | tensor left right conclusion =>
+            rw [linkEq] at wf submitted
+            exact owned_producer_used structural witness
+              ((covers conclusion).mpr wf.2.2.2.2.2.1) submitted (by simp [Link.produces])
+        | par left right conclusion =>
+            rw [linkEq] at wf submitted
+            exact owned_producer_used structural witness
+              ((covers conclusion).mpr wf.2.2.2.2.2.1) submitted (by simp [Link.produces])
+      have eq : j = index := (List.getElem?_inj (witness.usedLinkIndex_lt memJ)
+        structural.links_nodup).mp (lookupJ.trans lookup.symm)
+      exact eq ▸ memJ
+    simp only [usedNodup.count, List.nodup_range.count, List.mem_range, iff]
+  exact (range.filterMap _).trans (by rw [filterMap_getElem?_range])
+
+/-- The bounded vertex renaming induced by a duplicate-free numbering that
+enumerates exactly the carrier below `bound`. -/
+private def numberingRenaming (numbering : List Nat) (bound : Nat)
+    (size : numbering.length = bound) (nodup : numbering.Nodup)
+    (covers : ∀ vertex, vertex ∈ numbering ↔ vertex < bound) : VertexRenaming bound where
+  forward vertex := if h : vertex < numbering.length then numbering[vertex] else vertex
+  inverse vertex := (numbering.idxOf? vertex).getD vertex
+  inverse_forward := by
+    intro vertex
+    by_cases h : vertex < numbering.length
+    · simp only [dif_pos h]
+      have mem : numbering[vertex] ∈ numbering := List.getElem_mem h
+      obtain ⟨j, found⟩ := Option.isSome_iff_exists.mp (List.isSome_idxOf?.mpr mem)
+      obtain ⟨_, jEq, _⟩ := List.idxOf?_eq_some_iff.mp found
+      rw [found, Option.getD_some]
+      exact (List.getElem_inj nodup).mp jEq
+    · simp only [dif_neg h]
+      have notMem : vertex ∉ numbering := fun mem ↦ h (size ▸ (covers vertex).mp mem)
+      rw [List.idxOf?_eq_none_iff.mpr notMem, Option.getD_none]
+  forward_inverse := by
+    intro vertex
+    by_cases mem : vertex ∈ numbering
+    · obtain ⟨j, found⟩ := Option.isSome_iff_exists.mp (List.isSome_idxOf?.mpr mem)
+      obtain ⟨jBound, jEq, _⟩ := List.idxOf?_eq_some_iff.mp found
+      simp only [found, Option.getD_some, dif_pos jBound]
+      exact jEq
+    · rw [List.idxOf?_eq_none_iff.mpr mem, Option.getD_none]
+      have notLt : ¬ vertex < numbering.length := fun h ↦ mem ((covers vertex).mpr (size ▸ h))
+      simp only [dif_neg notLt]
+  forward_lt_iff := by
+    intro vertex
+    by_cases h : vertex < numbering.length
+    · simp only [dif_pos h]
+      exact ⟨fun _ ↦ size ▸ h, fun _ ↦ (covers _).mp (List.getElem_mem h)⟩
+    · simp only [dif_neg h]
+
+private theorem numberingRenaming_forward {numbering : List Nat} {bound : Nat}
+    {size : numbering.length = bound} {nodup : numbering.Nodup}
+    {covers : ∀ vertex, vertex ∈ numbering ↔ vertex < bound} {vertex : Nat}
+    (h : vertex < numbering.length) :
+    (numberingRenaming numbering bound size nodup covers).forward vertex =
+      numbering[vertex]?.getD 0 := by
+  simp [numberingRenaming, dif_pos h, List.getElem?_eq_getElem h]
+
+private theorem numberingRenaming_inverse {numbering : List Nat} {bound : Nat}
+    {size : numbering.length = bound} {nodup : numbering.Nodup}
+    {covers : ∀ vertex, vertex ∈ numbering ↔ vertex < bound} {vertex : Nat}
+    (mem : vertex ∈ numbering) :
+    ∃ index, index < numbering.length ∧ numbering[index]?.getD 0 = vertex ∧
+      (numberingRenaming numbering bound size nodup covers).inverse vertex = index := by
+  obtain ⟨index, found⟩ := Option.isSome_iff_exists.mp (List.isSome_idxOf?.mpr mem)
+  obtain ⟨bound', eq, _⟩ := List.idxOf?_eq_some_iff.mp found
+  refine ⟨index, bound', by rw [List.getElem?_eq_getElem bound', Option.getD_some, eq], ?_⟩
+  simp [numberingRenaming, found]
+
+/-- Reindexing an in-bounds link by the numbering renaming is relabelling. -/
+private theorem reindex_eq_relabelLink {numbering : List Nat} {bound : Nat}
+    {size : numbering.length = bound} {nodup : numbering.Nodup}
+    {covers : ∀ vertex, vertex ∈ numbering ↔ vertex < bound} {link : Link}
+    (bounded : ∀ vertex ∈ link.vertices, vertex < numbering.length) :
+    link.reindex (numberingRenaming numbering bound size nodup covers) =
+      relabelLink numbering link := by
+  cases link with
+  | «axiom» left right =>
+      simp only [Link.vertices, List.mem_cons, List.not_mem_nil, or_false, forall_eq_or_imp,
+        forall_eq] at bounded
+      simp [Link.reindex, relabelLink, numberingRenaming_forward bounded.1,
+        numberingRenaming_forward bounded.2]
+  | tensor left right conclusion | par left right conclusion =>
+      simp only [Link.vertices, List.mem_cons, List.not_mem_nil, or_false, forall_eq_or_imp,
+        forall_eq] at bounded
+      simp [Link.reindex, relabelLink, numberingRenaming_forward bounded.1,
+        numberingRenaming_forward bounded.2.1, numberingRenaming_forward bounded.2.2]
+
+/-- The desequentialization of a linear occurrence derivation that covers the
+carrier and exposes the input conclusions is proof-net equivalent to the input. -/
+theorem occurrenceBuild_equivalent {certificate : Certificate}
+    (structural : certificate.StructurallyWellFormed) {tree : CutFreeDerivation}
+    {used owned : List Nat}
+    (witness : certificate.OccurrenceDerivation tree certificate.conclusions used owned)
+    (usedNodup : used.Nodup) (ownedNodup : owned.Nodup)
+    (covers : ∀ vertex, vertex ∈ owned ↔ vertex < certificate.formulas.size) :
+    ∃ output, tree.desequentialize? = some output ∧ output.ProofNetEquivalent certificate := by
+  obtain ⟨fragment, numbering, built, matched⟩ := occurrenceBuild_exists structural witness
+  have ownedRange : owned.Perm (List.range certificate.formulas.size) := by
+    apply List.perm_iff_count.mpr
+    intro vertex
+    simp only [ownedNodup.count, List.nodup_range.count, List.mem_range, covers]
+  have sizesEq : certificate.formulas.size = fragment.formulas.size := by
+    rw [← matched.size_eq, matched.owned_perm.length_eq, ownedRange.length_eq, List.length_range]
+  have numberingNodup : numbering.Nodup := ownedNodup.perm matched.owned_perm.symm
+  have numberingCovers : ∀ vertex, vertex ∈ numbering ↔ vertex < fragment.formulas.size := by
+    intro vertex
+    rw [matched.owned_perm.mem_iff, covers, sizesEq]
+  let vertexMap := numberingRenaming numbering fragment.formulas.size matched.size_eq
+    numberingNodup numberingCovers
+  have sizeEq := matched.size_eq
+  refine ⟨fragment.toCertificate, by simp [CutFreeDerivation.desequentialize?, built], ?_⟩
+  apply DirectProofNetEquivalent.toProofNetEquivalent
+  refine ⟨vertexMap, ?_, ?_, ?_⟩
+  · apply Array.ext
+    · simp [Certificate.reindex, NetFragment.toCertificate, sizesEq]
+    · intro i bound₁ bound₂
+      have mem : i ∈ numbering := (numberingCovers i).mpr (sizesEq ▸ bound₂)
+      obtain ⟨j, jBound, jEq, inverseEq⟩ := numberingRenaming_inverse
+        (size := matched.size_eq) (nodup := numberingNodup) (covers := numberingCovers) mem
+      simp only [Certificate.reindex, Array.getElem_ofFn]
+      have inverseBound : vertexMap.inverse i < fragment.toCertificate.formulas.size :=
+        (vertexMap.inverse_lt_iff i).mpr (sizesEq ▸ bound₂)
+      apply Option.some.inj
+      rw [← Array.getElem?_eq_getElem inverseBound, ← Array.getElem?_eq_getElem bound₂]
+      change fragment.formulas[vertexMap.inverse i]? = certificate.formulas[i]?
+      rw [inverseEq, ← matched.labels_eq j (sizeEq ▸ jBound), jEq]
+      rfl
+  · change (fragment.links.map (Link.reindex vertexMap)).Perm certificate.links
+    have linksEq : fragment.links.map (Link.reindex vertexMap) =
+        fragment.links.map (relabelLink numbering) := by
+      apply List.map_congr_left
+      intro link member
+      exact reindex_eq_relabelLink fun vertex mem ↦
+        sizeEq ▸ built_link_bounded built member vertex mem
+    rw [linksEq]
+    exact matched.links_perm.trans (usedLinks_perm structural witness usedNodup covers)
+  · change fragment.roots.map vertexMap.forward = certificate.conclusions
+    rw [← matched.roots_eq]
+    apply List.map_congr_left
+    intro root member
+    have rootsEq := fragment.entries_map_snd (CutFreeDerivation.build?_balanced built)
+    rw [← rootsEq] at member
+    obtain ⟨entry, entryMember, entryEq⟩ := List.mem_map.mp member
+    subst entryEq
+    exact numberingRenaming_forward (entry_label built matched entryMember).1
 
 /-- Boolean acceptance of the sequential proof-bearing reconstruction. -/
 def sequentialFastCheck (certificate : Certificate) : Bool :=
@@ -1066,6 +1664,63 @@ theorem sequentialFastCheck_sound (certificate : Certificate)
   | some result =>
       rw [← result.equivalent.check_eq]
       exact result.outputAccepted
+
+/-- Every certificate accepted by the reference checker is accepted by the
+sequential fast path: initialization succeeds at the first conclusion, the
+bounded run marks every occurrence, and the exchanged final derivation is
+verified through the proof-net equivalence of its desequentialization. -/
+theorem sequentialFastCheck_complete (certificate : Certificate)
+    (accepted : certificate.check = true) : certificate.sequentialFastCheck = true := by
+  have correct := certificate.check_iff_declarativelyCorrect.mp accepted
+  have structural := correct.1
+  have wellFormed : certificate.wellFormed = true :=
+    certificate.wellFormed_iff_structurallyWellFormed.mpr structural
+  obtain ⟨start, headEq, startMember⟩ : ∃ start, certificate.conclusions.head? = some start ∧
+      start ∈ certificate.conclusions := by
+    cases conclusionsEq : certificate.conclusions with
+    | nil => exact absurd structural.2.1 (by simp [conclusionsEq])
+    | cons first rest => exact ⟨first, rfl, by simp⟩
+  obtain ⟨state, initEq⟩ :=
+    structural.initializeReservation?_isSome (structural.2.2.1 start startMember)
+  obtain ⟨step⟩ := initializeReservation?_some_iff.mp initEq
+  have started : 0 < state.stack.nextAge := by
+    have nextAgeEq :=
+      (SequentialSchedulerState.SequentialStackState.initEnqueue?_exact step.stack_eq).2.1
+    rw [step.output_eq]
+    change 0 < step.stackAfter.nextAge
+    rw [nextAgeEq]
+    exact Nat.one_pos
+  have reachable : ReachableByImplementedDispatcher certificate state := ⟨.init step⟩
+  have invariant := initializeReservation?_schedulerInvariant structural initEq
+  obtain ⟨finalReachable, _, _, marked⟩ := runDispatcher_spec invariant reachable correct started
+  obtain ⟨component, order, used, owned, _, witness, covers, _, _, reorder, finalEq⟩ :=
+    sequentialFinalTree?_eq_some finalReachable correct marked
+  have derivation := witness.derivation.exchange order certificate.conclusions reorder
+  obtain ⟨sequent, inferred, labels⟩ := derivation.formulaConsistent structural
+  obtain ⟨output, built, equivalent⟩ := occurrenceBuild_equivalent structural derivation
+    witness.usedLinks_nodup witness.owned_nodup covers
+  obtain ⟨result, verified⟩ := verifyDerivation?_complete structural labels inferred built equivalent
+  unfold sequentialFastCheck sequentialReconstruct?
+  rw [dif_pos wellFormed]
+  simp only [headEq, Option.bind_eq_bind, Option.bind_some]
+  split
+  · rename_i none
+    rw [initEq] at none
+    cases none
+  · rename_i state' someEq
+    obtain rfl : state = state' := Option.some.inj (initEq.symm.trans someEq)
+    rw [finalEq, Option.bind_some, verified]
+    rfl
+
+/-- The sequential fast path decides exactly the reference checker. -/
+theorem sequentialFastCheck_eq_check (certificate : Certificate) :
+    certificate.sequentialFastCheck = certificate.check := by
+  cases accepted : certificate.check with
+  | true => exact certificate.sequentialFastCheck_complete accepted
+  | false =>
+      cases fast : certificate.sequentialFastCheck with
+      | true => exact absurd (certificate.sequentialFastCheck_sound fast) (by simp [accepted])
+      | false => rfl
 
 end Certificate
 end ProofNetIR

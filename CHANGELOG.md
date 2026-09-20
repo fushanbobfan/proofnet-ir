@@ -7,6 +7,15 @@ and its proof layer on top of `v0.9.0`. Entries are one per mathematics
 checkpoint, newest first; wrapper-transport steps are folded into the family
 they served, and `git log` holds the per-commit record.
 
+- closed D1, completeness of the sequential fast path:
+  `sequentialFastCheck_eq_check` (`sequentialFastCheck = check`), through
+  `sequentialFastCheck_complete`. `occurrenceBuild_par_eq` and
+  `occurrenceBuild_tensor_eq` prove the par and tensor cases of the fresh-index
+  correspondence (`relabelLink` names its link action), `occurrenceBuild_exists`
+  closes the induction over occurrence derivations, and
+  `occurrenceBuild_equivalent` turns a covering linear derivation into a bounded
+  vertex renaming plus link permutation, so the desequentialized final tree is
+  `ProofNetEquivalent` to the input and `verifyDerivation?` accepts it;
 - proved final structure and inference for fully marked reachable correct nets:
   `finalComponents_eq_singleton` identifies the sole component and full ownership;
   `finalFrontier_perm` identifies its frontier with the input conclusions;

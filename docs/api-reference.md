@@ -25682,6 +25682,102 @@ ProofNetIR.Certificate.occurrenceBuild_exchange_eq : ∀ {certificate : ProofNet
             certificate.OccurrenceBuildMatch output reordered used owned numbering
 ```
 
+### `ProofNetIR.Certificate.relabelLink`
+
+Kind: definition.
+
+Rename the fresh indices of a builder link to the occurrences they represent.
+
+```lean
+ProofNetIR.Certificate.relabelLink : List Nat → ProofNetIR.Link → ProofNetIR.Link
+```
+
+### `ProofNetIR.Certificate.occurrenceBuild_par_eq`
+
+Kind: theorem.
+
+The par build appends one fresh conclusion vertex numbered by the submitted
+conclusion, keeping the premise numbering for every older vertex.
+
+```lean
+ProofNetIR.Certificate.occurrenceBuild_par_eq : ∀ {certificate : ProofNetIR.Certificate},
+  certificate.StructurallyWellFormed →
+    ∀ {premise : ProofNetIR.CutFreeDerivation} {fragment : ProofNetIR.NetFragment}
+      {frontier used owned numbering : List Nat},
+      premise.build? = some fragment →
+        certificate.OccurrenceBuildMatch fragment frontier used owned numbering →
+          ∀ {index left right conclusion leftFocus rightFocus : Nat} {afterLeft context : List Nat},
+            certificate.links[index]? = some (ProofNetIR.Link.par left right conclusion) →
+              ProofNetIR.CutFreeDerivation.pick? frontier leftFocus = some (left, afterLeft) →
+                ProofNetIR.CutFreeDerivation.pick? afterLeft rightFocus = some (right, context) →
+                  ∃ output,
+                    (ProofNetIR.CutFreeDerivation.par leftFocus rightFocus premise).build? = some output ∧
+                      certificate.OccurrenceBuildMatch output (context ++ [conclusion]) (index :: used)
+                        (conclusion :: owned) (numbering ++ [conclusion])
+```
+
+### `ProofNetIR.Certificate.occurrenceBuild_tensor_eq`
+
+Kind: theorem.
+
+The tensor build concatenates the left and right numberings, shifting the
+right fragment's fresh vertices, and appends the submitted conclusion.
+
+```lean
+ProofNetIR.Certificate.occurrenceBuild_tensor_eq : ∀ {certificate : ProofNetIR.Certificate},
+  certificate.StructurallyWellFormed →
+    ∀ {leftTree rightTree : ProofNetIR.CutFreeDerivation} {leftFragment rightFragment : ProofNetIR.NetFragment}
+      {leftFrontier leftUsed leftOwned leftNumbering rightFrontier rightUsed rightOwned rightNumbering : List Nat},
+      leftTree.build? = some leftFragment →
+        certificate.OccurrenceBuildMatch leftFragment leftFrontier leftUsed leftOwned leftNumbering →
+          rightTree.build? = some rightFragment →
+            certificate.OccurrenceBuildMatch rightFragment rightFrontier rightUsed rightOwned rightNumbering →
+              ∀ {index left right conclusion leftFocus rightFocus : Nat} {leftContext rightContext : List Nat},
+                certificate.links[index]? = some (ProofNetIR.Link.tensor left right conclusion) →
+                  ProofNetIR.CutFreeDerivation.pick? leftFrontier leftFocus = some (left, leftContext) →
+                    ProofNetIR.CutFreeDerivation.pick? rightFrontier rightFocus = some (right, rightContext) →
+                      ∃ output,
+                        (ProofNetIR.CutFreeDerivation.tensor leftFocus rightFocus leftTree rightTree).build? =
+                            some output ∧
+                          certificate.OccurrenceBuildMatch output (conclusion :: (leftContext ++ rightContext))
+                            (index :: (leftUsed ++ rightUsed)) (conclusion :: (leftOwned ++ rightOwned))
+                            (leftNumbering ++ rightNumbering ++ [conclusion])
+```
+
+### `ProofNetIR.Certificate.occurrenceBuild_exists`
+
+Kind: theorem.
+
+Every occurrence derivation of a structurally well-formed certificate builds,
+with its fresh vertices numbered exactly by the submitted occurrences.
+
+```lean
+ProofNetIR.Certificate.occurrenceBuild_exists : ∀ {certificate : ProofNetIR.Certificate},
+  certificate.StructurallyWellFormed →
+    ∀ {tree : ProofNetIR.CutFreeDerivation} {frontier used owned : List Nat},
+      certificate.OccurrenceDerivation tree frontier used owned →
+        ∃ fragment numbering,
+          tree.build? = some fragment ∧ certificate.OccurrenceBuildMatch fragment frontier used owned numbering
+```
+
+### `ProofNetIR.Certificate.occurrenceBuild_equivalent`
+
+Kind: theorem.
+
+The desequentialization of a linear occurrence derivation that covers the
+carrier and exposes the input conclusions is proof-net equivalent to the input.
+
+```lean
+ProofNetIR.Certificate.occurrenceBuild_equivalent : ∀ {certificate : ProofNetIR.Certificate},
+  certificate.StructurallyWellFormed →
+    ∀ {tree : ProofNetIR.CutFreeDerivation} {used owned : List Nat},
+      certificate.OccurrenceDerivation tree certificate.conclusions used owned →
+        used.Nodup →
+          owned.Nodup →
+            (∀ (vertex : Nat), vertex ∈ owned ↔ vertex < certificate.formulas.size) →
+              ∃ output, tree.desequentialize? = some output ∧ output.ProofNetEquivalent certificate
+```
+
 ### `ProofNetIR.Certificate.sequentialReconstruct?`
 
 Kind: definition.
@@ -25712,6 +25808,29 @@ Every accepted sequential candidate is accepted by the reference checker.
 
 ```lean
 ProofNetIR.Certificate.sequentialFastCheck_sound : ∀ (certificate : ProofNetIR.Certificate), certificate.sequentialFastCheck = true → certificate.check = true
+```
+
+### `ProofNetIR.Certificate.sequentialFastCheck_complete`
+
+Kind: theorem.
+
+Every certificate accepted by the reference checker is accepted by the
+sequential fast path: initialization succeeds at the first conclusion, the
+bounded run marks every occurrence, and the exchanged final derivation is
+verified through the proof-net equivalence of its desequentialization.
+
+```lean
+ProofNetIR.Certificate.sequentialFastCheck_complete : ∀ (certificate : ProofNetIR.Certificate), certificate.check = true → certificate.sequentialFastCheck = true
+```
+
+### `ProofNetIR.Certificate.sequentialFastCheck_eq_check`
+
+Kind: theorem.
+
+The sequential fast path decides exactly the reference checker.
+
+```lean
+ProofNetIR.Certificate.sequentialFastCheck_eq_check : ∀ (certificate : ProofNetIR.Certificate), certificate.sequentialFastCheck = certificate.check
 ```
 
 ### `ProofNetIR.Certificate.StructurallyWellFormed.formulaComplexityAt_lt_size`

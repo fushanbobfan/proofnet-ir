@@ -113,6 +113,58 @@ private def repeated : Certificate where
 example : repeated.check = true := by decide +kernel
 example : repeated.sequentialFastCheck = true := by native_decide
 
+-- The par build numbers its fresh conclusion by the submitted conclusion.
+example : ∃ output,
+    (CutFreeDerivation.par 0 0 (.axiom "p" true)).build? = some output ∧
+      Certificate.OccurrenceBuildMatch certificate output [2] [1, 0] [2, 0, 1] [0, 1, 2] := by
+  obtain ⟨fragment, built, matched⟩ := Certificate.occurrenceBuild_axiom_eq correct.1
+    (index := 0) (left := 0) (right := 1) (name := "p") (positive := true) rfl rfl
+  exact Certificate.occurrenceBuild_par_eq correct.1 built matched (index := 1)
+    (afterLeft := [1]) (context := []) rfl rfl rfl
+
+private theorem repeatedCorrect : repeated.DeclarativelyCorrect :=
+  repeated.check_iff_declarativelyCorrect.mp (by decide)
+
+-- The tensor build concatenates both numberings and shifts the right fragment.
+example : ∃ output,
+    (CutFreeDerivation.tensor 0 0 (.axiom "p" true) (.axiom "p" true)).build? = some output ∧
+      Certificate.OccurrenceBuildMatch repeated output [4, 1, 3] [2, 0, 1] [4, 0, 1, 2, 3]
+        [0, 1, 2, 3, 4] := by
+  obtain ⟨leftFragment, leftBuilt, leftMatched⟩ := Certificate.occurrenceBuild_axiom_eq
+    repeatedCorrect.1 (index := 0) (left := 0) (right := 1) (name := "p") (positive := true) rfl rfl
+  obtain ⟨rightFragment, rightBuilt, rightMatched⟩ := Certificate.occurrenceBuild_axiom_eq
+    repeatedCorrect.1 (index := 1) (left := 2) (right := 3) (name := "p") (positive := true) rfl rfl
+  exact Certificate.occurrenceBuild_tensor_eq repeatedCorrect.1 leftBuilt leftMatched rightBuilt
+    rightMatched (index := 2) (leftContext := [1]) (rightContext := [3]) rfl rfl rfl
+
+-- Every occurrence derivation builds with an exact numbering, and a covering one
+-- desequentializes to a proof-net equivalent certificate.
+example {cert : Certificate} (structural : cert.StructurallyWellFormed)
+    {tree : CutFreeDerivation} {frontier used owned : List Nat}
+    (witness : cert.OccurrenceDerivation tree frontier used owned) :
+    ∃ fragment numbering, tree.build? = some fragment ∧
+      Certificate.OccurrenceBuildMatch cert fragment frontier used owned numbering :=
+  Certificate.occurrenceBuild_exists structural witness
+
+example {cert : Certificate} (structural : cert.StructurallyWellFormed)
+    {tree : CutFreeDerivation} {used owned : List Nat}
+    (witness : cert.OccurrenceDerivation tree cert.conclusions used owned)
+    (usedNodup : used.Nodup) (ownedNodup : owned.Nodup)
+    (covers : ∀ vertex, vertex ∈ owned ↔ vertex < cert.formulas.size) :
+    ∃ output, tree.desequentialize? = some output ∧ output.ProofNetEquivalent cert :=
+  Certificate.occurrenceBuild_equivalent structural witness usedNodup ownedNodup covers
+
+-- Completeness: the fast path decides exactly the reference checker.
+example (accepted : certificate.check = true) : certificate.sequentialFastCheck = true :=
+  certificate.sequentialFastCheck_complete accepted
+
+example (cert : Certificate) : cert.sequentialFastCheck = cert.check :=
+  cert.sequentialFastCheck_eq_check
+
+example : rejected.check = false := by
+  rw [← rejected.sequentialFastCheck_eq_check]
+  native_decide
+
 end ProofNetIR.Figure7SequentialTests
 
 #print axioms ProofNetIR.SequentialFigure7.runDispatcher_spec
@@ -126,6 +178,12 @@ end ProofNetIR.Figure7SequentialTests
 #print axioms ProofNetIR.Certificate.sequentialFinalTree?_infer_eq
 #print axioms ProofNetIR.Certificate.occurrenceBuild_axiom_eq
 #print axioms ProofNetIR.Certificate.occurrenceBuild_exchange_eq
+#print axioms ProofNetIR.Certificate.occurrenceBuild_par_eq
+#print axioms ProofNetIR.Certificate.occurrenceBuild_tensor_eq
+#print axioms ProofNetIR.Certificate.occurrenceBuild_exists
+#print axioms ProofNetIR.Certificate.occurrenceBuild_equivalent
+#print axioms ProofNetIR.Certificate.sequentialFastCheck_complete
+#print axioms ProofNetIR.Certificate.sequentialFastCheck_eq_check
 
 def main : IO Unit := do
   let accepted := ProofNetIR.Figure7SequentialTests.certificate.sequentialFastCheck
@@ -134,4 +192,4 @@ def main : IO Unit := do
   unless accepted && !rejected && repeated do
     throw (IO.userError "sequential fast path regression failed")
   IO.println ("Sequential consumer passed: final structure, inference, " ++
-    "axiom/exchange numbering, repeated-label tensor")
+    "par/tensor numbering, equivalence, completeness")

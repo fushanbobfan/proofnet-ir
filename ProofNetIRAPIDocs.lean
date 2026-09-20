@@ -2838,9 +2838,16 @@ def sections : List Section := [
       `ProofNetIR.Certificate.OccurrenceBuildMatch,
       `ProofNetIR.Certificate.occurrenceBuild_axiom_eq,
       `ProofNetIR.Certificate.occurrenceBuild_exchange_eq,
+      `ProofNetIR.Certificate.relabelLink,
+      `ProofNetIR.Certificate.occurrenceBuild_par_eq,
+      `ProofNetIR.Certificate.occurrenceBuild_tensor_eq,
+      `ProofNetIR.Certificate.occurrenceBuild_exists,
+      `ProofNetIR.Certificate.occurrenceBuild_equivalent,
       `ProofNetIR.Certificate.sequentialReconstruct?,
       `ProofNetIR.Certificate.sequentialFastCheck,
       `ProofNetIR.Certificate.sequentialFastCheck_sound,
+      `ProofNetIR.Certificate.sequentialFastCheck_complete,
+      `ProofNetIR.Certificate.sequentialFastCheck_eq_check,
       `ProofNetIR.Certificate.StructurallyWellFormed.formulaComplexityAt_lt_size,
       `ProofNetIR.Certificate.StructurallyWellFormed.initializeReservation?_isSome
     ]

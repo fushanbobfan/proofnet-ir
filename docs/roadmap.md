@@ -528,10 +528,11 @@ Exact target statements for the open items are in the
 - [x] Prove initialization totality at every in-bounds start
   (`StructurallyWellFormed.initializeReservation?_isSome`) through the carrier
   complexity bound.
-- [ ] Prove `sequentialFastCheck = check` (D1, retargeted from the flat
+- [x] Prove `sequentialFastCheck = check` (D1, retargeted from the flat
   worklist on 2026-09-20; the flat-worklist statement stays open as D1-flat):
-  final structure, occurrence exchange, and inference are proved; equivalence
-  of the desequentialized final tree to the input remains open.
+  final structure, occurrence exchange, inference, the fresh-index
+  correspondence of the desequentializer, and proof-net equivalence of the
+  final derivation's output (`sequentialFastCheck_eq_check`).
 - [ ] Make `Certificate.unificationCheck` the sequential fast path alone,
   removing the recursive reconstruction fallback, with
   `unificationCheck = check` kept as a theorem (D2).

@@ -1350,7 +1350,13 @@ end ProofNetIR.SequentialFigure7
 #print axioms Certificate.sequentialFinalTree?_infer_eq
 #print axioms Certificate.occurrenceBuild_axiom_eq
 #print axioms Certificate.occurrenceBuild_exchange_eq
+#print axioms Certificate.occurrenceBuild_par_eq
+#print axioms Certificate.occurrenceBuild_tensor_eq
+#print axioms Certificate.occurrenceBuild_exists
+#print axioms Certificate.occurrenceBuild_equivalent
 #print axioms Certificate.sequentialFastCheck_sound
+#print axioms Certificate.sequentialFastCheck_complete
+#print axioms Certificate.sequentialFastCheck_eq_check
 #print axioms Certificate.StructurallyWellFormed.formulaComplexityAt_lt_size
 #print axioms Certificate.StructurallyWellFormed.initializeReservation?_isSome
 #print axioms SequentialFigure7.ConclStep.output_tags_eq
