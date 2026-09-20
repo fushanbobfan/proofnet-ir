@@ -7,6 +7,17 @@ and its proof layer on top of `v0.9.0`. Entries are one per mathematics
 checkpoint, newest first; wrapper-transport steps are folded into the family
 they served, and `git log` holds the per-commit record.
 
+- added the sequential fast path (`ProofNetIR/Figure7/Sequential.lean`):
+  `runDispatcher` executes the canonical dispatcher for a bounded number of
+  calls threading the scheduler invariant; `sequentialReconstruct?` and
+  `sequentialFastCheck` initialize at the first conclusion, run the
+  formula-carrier budget, exchange the final component's frontier into the
+  conclusion order, and accept only after `verifyDerivation?`, so
+  `sequentialFastCheck_sound` is by construction. `runDispatcher_spec`
+  proves that from a started reachable state of a correct certificate the
+  run ends reachable, fully marked, and unable to dispatch. Completeness
+  (D1) remains open: initialization totality at the first conclusion and
+  verification of the final component's derivation are not proved;
 - refuted D5's unrestricted nonterminal enabledness: the reachable empty
   scheduler of one correct axiom is unmarked and cannot dispatch
   (`priorityEnabled_not_allReachable`). Proved the corrected conjunction

@@ -521,11 +521,14 @@ Exact target statements for the open items are in the
 - [ ] Replace the prototype's eager axiom starts and flat waiting requeues
   with the complete Figures 7–8 executable; recursive API completion in D5
   does not establish this replacement.
-- [ ] Define `Certificate.sequentialFastCheck` (initialize at the first
-  conclusion, run `dispatch?` to a stop, verify the final derivation) and
-  prove `sequentialFastCheck = check` from D3, D4, and the single verifiable
-  derivation of a fully marked final state (D1, retargeted from the flat
-  worklist on 2026-09-20; the flat-worklist statement stays open as D1-flat).
+- [x] Define `Certificate.sequentialFastCheck` (initialize at the first
+  conclusion, run `dispatch?` to a stop, verify the final derivation), prove
+  it sound, and prove the bounded run ends reachable, fully marked, and
+  stopped (`runDispatcher_spec`).
+- [ ] Prove `sequentialFastCheck = check` (D1, retargeted from the flat
+  worklist on 2026-09-20; the flat-worklist statement stays open as D1-flat):
+  initialization totality at the first conclusion, and verification of the
+  exchanged final component's derivation.
 - [ ] Make `Certificate.unificationCheck` the sequential fast path alone,
   removing the recursive reconstruction fallback, with
   `unificationCheck = check` kept as a theorem (D2).

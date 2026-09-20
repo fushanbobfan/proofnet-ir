@@ -2824,6 +2824,16 @@ def sections : List Section := [
     ]
   },
   {
+    title := "Sequential fast path"
+    declarations := [
+      `ProofNetIR.SequentialFigure7.runDispatcher,
+      `ProofNetIR.SequentialFigure7.runDispatcher_spec,
+      `ProofNetIR.Certificate.sequentialReconstruct?,
+      `ProofNetIR.Certificate.sequentialFastCheck,
+      `ProofNetIR.Certificate.sequentialFastCheck_sound
+    ]
+  },
+  {
     title := "Canonical raw-mark causal order"
     declarations := [
       `ProofNetIR.SequentialFigure7.CanonicalTagHistory.RawMarkedBefore,

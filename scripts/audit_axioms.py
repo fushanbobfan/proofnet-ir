@@ -36,6 +36,8 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "ProofNetIR.SequentialFigure7.CanonicalTagHistory.dispatch_or_allMarked",
     "ProofNetIR.SequentialFigure7.figure7Enabledness_started_and_sequentialize",
     "ProofNetIR.SequentialFigure7.priorityEnabled_not_allReachable",
+    "ProofNetIR.SequentialFigure7.runDispatcher_spec",
+    "ProofNetIR.Certificate.sequentialFastCheck_sound",
     "ProofNetIR.SequentialFigure7.NewGuard.not_sourceLeftReachable_mate_head",
     "ProofNetIR.SequentialFigure7.NewGuard.terminalPartner_ne_head_of_declarativelyCorrect",
     "ProofNetIR.Certificate.OccurrenceDerivation.sourceLeftRegion_owned",

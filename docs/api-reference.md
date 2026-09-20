@@ -25483,6 +25483,75 @@ ProofNetIR.SequentialFigure7.priorityEnabled_not_allReachable : ¬∀ {certifica
     state.core.allMarked ≠ true → ∃ kind, ProofNetIR.SequentialFigure7.PriorityEnabled certificate state invariant kind
 ```
 
+## Sequential fast path
+
+### `ProofNetIR.SequentialFigure7.runDispatcher`
+
+Kind: definition.
+
+Execute at most `fuel` canonical dispatches, stopping at the first failed call.
+The invariant argument is proof-only and is threaded through successful steps.
+
+```lean
+ProofNetIR.SequentialFigure7.runDispatcher : (certificate : ProofNetIR.Certificate) →
+  Nat →
+    (state : ProofNetIR.SequentialSchedulerBridge.ReservationState) →
+      ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+        ProofNetIR.SequentialSchedulerBridge.ReservationState
+```
+
+### `ProofNetIR.SequentialFigure7.runDispatcher_spec`
+
+Kind: theorem.
+
+From any started reachable state of a correct certificate, the carrier-sized
+run ends at a reachable, invariant, fully marked state where dispatch fails.
+
+```lean
+ProofNetIR.SequentialFigure7.runDispatcher_spec : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (invariant : ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state),
+  ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher certificate state →
+    certificate.DeclarativelyCorrect →
+      0 < state.stack.nextAge →
+        have final :=
+          ProofNetIR.SequentialFigure7.runDispatcher certificate (certificate.formulas.size + 1) state invariant;
+        ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher certificate final ∧
+          ∃ finalInvariant,
+            ProofNetIR.SequentialFigure7.dispatch? certificate final finalInvariant = none ∧ final.core.allMarked = true
+```
+
+### `ProofNetIR.Certificate.sequentialReconstruct?`
+
+Kind: definition.
+
+Initialize at the first conclusion, run the canonical dispatcher with the
+formula-carrier budget, and independently verify the exchanged final component.
+No switching enumeration or recursive reconstruction fallback is executed.
+
+```lean
+ProofNetIR.Certificate.sequentialReconstruct? : (certificate : ProofNetIR.Certificate) → Option (ProofNetIR.DerivationVerificationResult certificate)
+```
+
+### `ProofNetIR.Certificate.sequentialFastCheck`
+
+Kind: definition.
+
+Boolean acceptance of the sequential proof-bearing reconstruction.
+
+```lean
+ProofNetIR.Certificate.sequentialFastCheck : ProofNetIR.Certificate → Bool
+```
+
+### `ProofNetIR.Certificate.sequentialFastCheck_sound`
+
+Kind: theorem.
+
+Every accepted sequential candidate is accepted by the reference checker.
+
+```lean
+ProofNetIR.Certificate.sequentialFastCheck_sound : ∀ (certificate : ProofNetIR.Certificate), certificate.sequentialFastCheck = true → certificate.check = true
+```
+
 ## Canonical raw-mark causal order
 
 ### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.RawMarkedBefore`
