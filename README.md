@@ -44,12 +44,14 @@ Proved on `main` beyond `v0.9.0`:
   the dispatcher to a stop and accepts only an independently verified
   derivation, and `sequentialFastCheck_eq_check` proves it decides exactly
   the reference checker, with no switching enumeration and no recursive
-  reconstruction.
+  reconstruction;
+- the public decision `Certificate.unificationCheck` is now that fast path
+  alone: the eager scan, the flat worklist, and the recursive fallback are
+  no longer part of the exact decision (`unificationCheck = check` remains a
+  theorem).
 
 Open, with exact target statements in the [goal ledger](docs/goal-ledger.md):
-making the sequential fast path the public decision without the recursive
-fallback (D2), completion of the Figures 7–8 executable (D5), and a
-whole-program cost bound (D6).
+a whole-program cost bound (D6).
 [Current status](docs/current-status.md) holds the exact revision,
 verification receipts, and gates.
 <!-- ROLLING_MAIN_SUMMARY_END -->

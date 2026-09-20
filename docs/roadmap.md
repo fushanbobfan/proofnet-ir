@@ -518,9 +518,9 @@ Exact target statements for the open items are in the
 - [x] Prove reachable later-state `NEXTAXIOM` guard sufficiency and exact
   nonterminal enabledness after initialization (corrected D5); retain the
   kernel counterexample to enabledness before initialization.
-- [ ] Replace the prototype's eager axiom starts and flat waiting requeues
-  with the complete Figures 7–8 executable; recursive API completion in D5
-  does not establish this replacement.
+- [x] Replace the prototype's eager axiom starts and flat waiting requeues
+  with the complete Figures 7–8 executable: `unificationCheck` is the
+  sequential fast path alone (D2).
 - [x] Define `Certificate.sequentialFastCheck` (initialize at the first
   conclusion, run `dispatch?` to a stop, verify the final derivation), prove
   it sound, and prove the bounded run ends reachable, fully marked, and
