@@ -35,15 +35,16 @@ Proved on `main` beyond `v0.9.0`:
   (`Figure7SuccessfulStep.schedulerInvariant`);
 - repeated dispatch stops within `formulas.size + 1` calls
   (`dispatch_stops`);
-- the `nop` and `wait` branches of the history-tail law reduce to one state
-  predicate, C12, which holds after every correct initialization and at all
-  2,289,024 finite-probe reachable states; C12 alone is not inductive, so a
-  full proof must carry bucket-order reachability.
+- Figure-7 progress: a started reachable state of a correct certificate
+  either dispatches or has every occurrence marked
+  (`CanonicalTagHistory.dispatch_or_allMarked`). The proof uses an order-free
+  region-closure invariant of the ready stack and switching connectedness:
+  a drained active region has no boundary edge, so it is the whole net.
 
 Open, with exact target statements in the [goal ledger](docs/goal-ledger.md):
-Figure-7 progress (D3, conditional on the tail law), pure worklist
-completeness and fallback removal (D1, D2), later-state start selection and
-completion of the executable (D5), and a whole-program cost bound (D6).
+pure worklist completeness and fallback removal (D1, D2), later-state start
+selection and completion of the executable (D5), and a whole-program cost
+bound (D6).
 [Current status](docs/current-status.md) holds the exact revision,
 verification receipts, and gates.
 <!-- ROLLING_MAIN_SUMMARY_END -->

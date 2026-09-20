@@ -17,7 +17,7 @@ Status date: 2026-09-20
 | Track | Revision | Status | Authority |
 | --- | --- | --- | --- |
 | Stable library | `v0.9.0` / `9b7dc3d104af8f57ea9123aab2e61b42e05d2216` | Released | [v0.9.0 release audit](v0.9-release-audit.md) |
-| Rolling research | `v0.10.0-dev`; proof `8ee8053`; audit `1e46573` | Active | This page/commits |
+| Rolling research | `v0.10.0-dev`; proof `9099a18`; audit `1e46573` | Active | This page/commits |
 
 Documentation-only commits may descend from the proof checkpoint without
 changing its mathematical authority. The stable release and rolling branch
@@ -46,21 +46,30 @@ The exact release guarantees, receipts, and non-goals are frozen in the
 
 ## Rolling main result
 
-The region-closure checkpoint derives C12 from an order-free state predicate
-and switching connectedness. `RegionClosure` places every marked vertex in the
-class of the sigma boundary below its raw mark and requires the marked part of
-each region (a class plus its ready bucket) to be closed under the link
-structure except at pars whose other premise lies outside, with no tensor
-premise of the active class waiting for its `new`.
-`RegionClosure.guardedParHeadTail` proves that closure, `SchedulerInvariant`,
-and `DeclarativelyCorrect` give `ParHeadGuardTailNonconclusion` (C12): cutting
-every boundary par of the active region yields a switching whose boundary edge
-(`boundary_edge_of_correct`) must start at a raw non-conclusion of the bucket.
-`RegionClosure.ofInitialReservation` proves closure after every correct
-initialization. The finite probe reports the executable form of the predicate
-at all 1,217,664 default and 1,071,360 wait-focus reachable states, preserved
-by every rule on 15,405,918 closure-satisfying snapshot edges, and implying C12
-at each of them. Its preservation by the six rules is unproved.
+The region-closure checkpoints close Figure-7 progress (ledger item D3).
+`CanonicalTagHistory.dispatch_or_allMarked` proves that a started
+dispatcher-reachable state of a correct certificate either dispatches or has
+every occurrence marked. `RegionClosure` is an order-free predicate on the
+delayed stack: every marked vertex belongs to the class of the sigma boundary
+below its raw mark, and the marked part of each region (a class plus its
+ready bucket) is closed under the link structure except at pars whose other
+premise lies outside, with no tensor premise of the active class waiting for
+its `new`. It holds after every correct initialization
+(`RegionClosure.ofInitialReservation`) and is preserved by every canonical
+rule (`DispatchStep.regionClosure`), so every reachable stack is closed
+(`ReachableByImplementedDispatcher.regionClosure`). Cutting every boundary
+par of the active region yields a switching whose boundary edge
+(`boundary_edge_of_correct`) must start at a raw non-conclusion of the
+active bucket. With a nonempty bucket this gives C12 at every reachable
+state (`ReachableByImplementedDispatcher.guardedHeadTail`) and closes the
+`nop`/`wait` branches of the history-tail law
+(`CanonicalTagHistory.nopWaitTailLaw_iff`); with an empty bucket there is no
+boundary edge, so the active class is the whole net
+(`RegionClosure.class_of_empty_active`,
+`ReachableByImplementedDispatcher.allMarked_of_drained`), which combined
+with `dispatch_or_activeTopDrained` is D3. The history-tail law is not used
+by D3; its `forward` and `unifyPayload` created-head branches remain open
+and are stated exactly at the end of `ProofNetIR/Figure7/Closure.lean`.
 
 The route to this checkpoint, in dependency order, is:
 
@@ -69,7 +78,7 @@ The route to this checkpoint, in dependency order, is:
    preserved by every successful rule;
 2. `ReachableByImplementedDispatcher.dispatch_or_activeTopDrained`: a
    reachable state either dispatches or its active top is drained, which
-   reduces Figure-7 progress (ledger item D3) to draining;
+   reduces Figure-7 progress to the drained case;
 3. `CanonicalTagHistory.ActiveTopDebtTailLaw`, the exact remaining
    obligation along a canonical history: every `nop` or `wait` leaves a
    non-conclusion in its remaining bucket, `new` resets the law, and a
@@ -82,9 +91,11 @@ The route to this checkpoint, in dependency order, is:
    ready-tail failure (the commitment-interval, raw-return, and waiting-mate
    families of August 2026), none of which discharges the obligation;
 5. the termination bound `dispatch_stops` (ledger item D4, closed);
-6. C12, the `nop`/`wait` half of item 3 as a state predicate, proved after
-   every correct initialization and certified not state-only inductive;
-7. `RegionClosure` above, from which C12 follows by connectedness.
+6. C12, the `nop`/`wait` half of item 3 as a state predicate, certified not
+   state-only inductive;
+7. `RegionClosure` above: initial, preserved, and sufficient by connectedness
+   both for C12 (nonempty bucket) and for the drained case of item 2 (empty
+   bucket), which closes D3 without items 3 to 5.
 
 Exact statements are in the [goal ledger](goal-ledger.md); declarations are
 in the generated [API reference](api-reference.md).
@@ -108,10 +119,9 @@ evidence, not a proof of progress; exact counters are maintained in
 
 This checkpoint does not establish any of the following:
 
-- preservation of `RegionClosure` by any dispatcher rule, hence C12 at every
-  canonically reachable state, the history-tail law, the created-head
-  obligations of the `forward` and `unifyPayload` branches, or unconditional
-  progress; the probe's zero failures are finite evidence only;
+- the created-head obligations of the `forward` and `unifyPayload` branches
+  of the history-tail law, hence the law itself; they are no longer needed for
+  progress and are stated exactly in `ProofNetIR/Figure7/Closure.lean`;
 - progress, later-state totality, or terminal-state completeness from the
   termination bound, which counts successful calls and says nothing about the
   state in which a run stops;
@@ -124,8 +134,8 @@ This checkpoint does not establish any of the following:
   yields the non-conclusion the tail law requires;
 - an unconditional reachable-state proof that `ActiveTopDrained` implies
   `core.allMarked = true`, semantic completion, or terminality;
-- exhaustive enabledness of the canonical dispatcher, or that every relevant
-  semantic nonterminal state presents a ready head;
+- exhaustive enabledness beyond `dispatch_or_allMarked`: a reachable state
+  that is not fully marked dispatches, but which rule fires is not classified;
 - pure-worklist completeness (D1) or removal of the recursive fallback (D2);
 - later-state `NEXTAXIOM` start selection and completion of the Figures 7–8
   executable (D5); or
@@ -140,12 +150,12 @@ statements are in the [goal ledger](goal-ledger.md); the proof plan is in
 The exact rolling proof checkpoint is:
 
 ```text
-commit    8ee80533f8e8a0f3283b1d5fe8c83a28a052a8f7
-tree      8a5e30688ecc70c5b5fa76f132064542797e9880
-parent    4d337aaba62a7c0bcf051a62ff637023a172b555
-stage     derive C12 from region closure and switching connectedness
-delta     11 paths, +988/-1
-manifest  96BA3817F8E699914964F46461EAF36CCDC0A3B4D2A797F89DB6B840DCA1003E
+commit    9099a1849d32ddf30929a2c012c819cf0126f42a
+tree      6d670ffe7955c11d11db4993faa6c634308a836e
+parent    2a845d5218edb629b67a83fa967c8b9306154a40
+stage     close Figure-7 progress from region closure
+delta     9 paths, +367/-4
+manifest  C818944A8D3DE816E905B123F47D520B782A797D2D73F02E4CE495FD084A6311
 ```
 
 The manifest hashes canonical
@@ -154,9 +164,9 @@ The manifest hashes canonical
 The checkpoint source receipts are:
 
 ```text
-closure source     36E14DDF990C1561AFD50049A42BFC0F3008675249EE87F0B035340907E2ADD1
-closure consumer   D0FE2C317572A9C589475726CF0B55F93E754C9EE2F54A6ADCBA450ECC49131A
-generated API      8CCB27E18C50B50ACE3142BB80E02710975D2FD0F4BE53B252DB8412C157B329
+closure source     443EF1498802D5A3A4E4D2BDA05C1F07996558A8209C487BE7E0E7DA3EC329DF
+closure consumer   F8ECCED87A97944ADAB74CC987F296FDDB73226C51551CF57B17EFFAA9B6FE56
+generated API      93722DD52FA6BEFF3AAF0EE33AAF9BC5EE5854BBD688BA7D94454D668481722C
 ```
 
 The separately committed finite-audit evidence is:
@@ -173,35 +183,33 @@ manifest  4BBAB7FC99D03D2612459A0FD9291990313A05A184F2572A581BC93C6E49DFDD
 Local verification of the committed checkpoint:
 
 - full `lake build`: 727/727 jobs;
-- the three public theorems of the checkpoint report exactly `propext`,
+- the four new public theorems report exactly `propext`,
   `Classical.choice`, and `Quot.sound`; the module and its consumer compile
   under `--trust=0`, and the consumer printed
   `Region-closure consumer passed: initialization, C12 from closure, switching
-  boundary`;
-- public theorem audit: 1122 entries total: 824 standard-three, 25 axiom-free,
+  boundary, six-rule preservation, reachable C12, nop/wait tail law, D3
+  progress`;
+- public theorem audit: 1137 entries total: 839 standard-three, 25 axiom-free,
   132 `propext`-only, and 141 `propext`/`Quot.sound` boundaries;
-- generated API reference current; convergence check passed (one new module,
-  three new public theorems, 746 library lines, 12 prose lines);
-- `--inductiveness-probe`: CLOSURE preserved by all six rules with zero
-  failures on both sets and `CLOSURE-implies-C12 c12-fails=0` at 6,613,062
-  default and 8,792,856 wait-focus closure states (12m29s locally);
+- generated API reference current; convergence check passed (no new module,
+  four new public theorems, 231 library lines, 16 prose lines);
 - `git diff --check` clean on the staged delta.
 
 Exact-head proof GitHub verification:
 
 - workflow: `Lean CI`;
 - event/ref: `push` / `main`;
-- run: [35505402791](https://github.com/fushanbobfan/proofnet-ir/actions/runs/35505402791);
-- build job: [106064234866][proof-job];
-- title/attempt: `feat: derive C12 from region closure and switching connectedness` / 1;
-- exact head: `8ee80533f8e8a0f3283b1d5fe8c83a28a052a8f7`;
+- run: [35516796149](https://github.com/fushanbobfan/proofnet-ir/actions/runs/35516796149);
+- build job: [106093996942][proof-job];
+- title/attempt: `feat: close Figure-7 progress from region closure` / 1;
+- exact head: `9099a1849d32ddf30929a2c012c819cf0126f42a`;
 - result: 41 successful steps, 0 failures, and 1 expected
   release-ref-only skip;
-- run: `2026-09-20T10:33:21Z`-`2026-09-20T10:46:15Z` (12m54s);
-- build job: `2026-09-20T10:33:24Z`-`2026-09-20T10:46:14Z`
-  (12m50s).
+- run: `2026-09-20T14:32:26Z`-`2026-09-20T14:48:50Z` (16m24s);
+- build job: `2026-09-20T14:32:29Z`-`2026-09-20T14:48:49Z`
+  (16m20s).
 
-[proof-job]: https://github.com/fushanbobfan/proofnet-ir/actions/runs/35505402791/job/106064234866
+[proof-job]: https://github.com/fushanbobfan/proofnet-ir/actions/runs/35516796149/job/106093996942
 
 Exact-head finite-audit GitHub verification:
 
@@ -269,21 +277,14 @@ deployment.
 The project goal remains open. The principal outstanding gates, with exact
 target statements in the [goal ledger](goal-ledger.md), are:
 
-1. prove C12 at every canonically reachable state through a history-carrying
-   invariant of the active bucket (the finite probe shows the bucket is a run
-   of connective conclusions followed by paired atoms), close the `nop` and
-   `wait` branches of `ActiveTopDebtTailLaw`, then the `forward` and
-   `unifyPayload` created-head branches; the law combined with
-   `dispatch_or_activeTopDrained` gives Figure-7 progress (D3);
-2. derive exhaustive nonterminal dispatcher enabledness and later-state
-   totality, and the later-state `NEXTAXIOM` start selection needed to
-   complete the Figures 7–8 executable (D5);
-3. prove pure-worklist completeness and remove the recursive fallback without
+1. derive the later-state `NEXTAXIOM` start selection and the remaining
+   totality needed to complete the Figures 7–8 executable (D5);
+2. prove pure-worklist completeness and remove the recursive fallback without
    weakening the accepted-certificate theorem (D1, D2);
-4. prove a whole-program cost theorem over every implemented operation (D6);
-5. continue the traceable, page/chapter-level literature matrix without
+3. prove a whole-program cost theorem over every implemented operation (D6);
+4. continue the traceable, page/chapter-level literature matrix without
    treating file discovery or structural scans as completed reading;
-6. preserve public API, migration, downstream, experiment, and release gates
+5. preserve public API, migration, downstream, experiment, and release gates
    as the mathematical surface grows.
 
 ## Navigation
