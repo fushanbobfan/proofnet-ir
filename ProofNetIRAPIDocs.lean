@@ -2775,6 +2775,23 @@ def sections : List Section := [
     ]
   },
   {
+    title := "Region closure and C12 from switching connectedness"
+    declarations := [
+      `ProofNetIR.SequentialFigure7.Marked,
+      `ProofNetIR.SequentialFigure7.markClass?,
+      `ProofNetIR.SequentialFigure7.bucketAt?,
+      `ProofNetIR.SequentialFigure7.InRegion,
+      `ProofNetIR.SequentialFigure7.AxiomLinked,
+      `ProofNetIR.SequentialFigure7.TensorLinked,
+      `ProofNetIR.SequentialFigure7.ParLinked,
+      `ProofNetIR.SequentialFigure7.RegionClosure,
+      `ProofNetIR.SequentialFigure7.cutChoice,
+      `ProofNetIR.SequentialFigure7.boundary_edge_of_correct,
+      `ProofNetIR.SequentialFigure7.RegionClosure.guardedParHeadTail,
+      `ProofNetIR.SequentialFigure7.RegionClosure.ofInitialReservation
+    ]
+  },
+  {
     title := "Canonical raw-mark causal order"
     declarations := [
       `ProofNetIR.SequentialFigure7.CanonicalTagHistory.RawMarkedBefore,

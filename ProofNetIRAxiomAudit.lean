@@ -1322,6 +1322,9 @@ end ProofNetIR.SequentialFigure7
 #print axioms SequentialFigure7.NopStep.tailNonconclusion_of_parHeadGuard
 #print axioms SequentialFigure7.WaitStep.tailNonconclusion_of_parHeadGuard
 #print axioms SequentialFigure7.parHeadGuardTail_not_inductive
+#print axioms SequentialFigure7.boundary_edge_of_correct
+#print axioms SequentialFigure7.RegionClosure.guardedParHeadTail
+#print axioms SequentialFigure7.RegionClosure.ofInitialReservation
 #print axioms SequentialFigure7.ConclStep.output_tags_eq
 #print axioms SequentialFigure7.NopStep.output_tags_eq
 #print axioms SequentialFigure7.WaitStep.output_tags_eq

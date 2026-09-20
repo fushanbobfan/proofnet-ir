@@ -7,6 +7,17 @@ and its proof layer on top of `v0.9.0`. Entries are one per mathematics
 checkpoint, newest first; wrapper-transport steps are folded into the family
 they served, and `git log` holds the per-commit record.
 
+- proved C12 from region closure and switching connectedness in
+  `ProofNetIR/Figure7/Closure.lean`. `RegionClosure` is order-free: it places
+  every marked vertex in the class of the sigma boundary below its mark and
+  requires the marked part of each region to be closed under the link
+  structure except at pars whose other premise lies outside.
+  `RegionClosure.guardedParHeadTail` derives C12 from closure, `SchedulerInvariant`,
+  and `DeclarativelyCorrect` by cutting every boundary par of the active
+  region and taking a boundary edge of that switching
+  (`boundary_edge_of_correct`); `RegionClosure.ofInitialReservation` proves closure after
+  every correct initialization. Preservation by the six rules, reachability,
+  and the tail-law branches remain open;
 - added `--inductiveness-probe` to `proofnet_ir_tail_law_search`: bucket
   permutations (with a compiled `SchedulerInvariant` proof) and bare pop/mark
   prefixes seed finite dispatcher-closed snapshot sets on which each candidate

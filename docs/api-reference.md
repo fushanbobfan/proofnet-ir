@@ -25062,6 +25062,156 @@ ProofNetIR.SequentialFigure7.parHeadGuardTail_not_inductive : ∃ certificate be
           ¬ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher certificate before
 ```
 
+## Region closure and C12 from switching connectedness
+
+### `ProofNetIR.SequentialFigure7.Marked`
+
+Kind: definition.
+
+The raw mark of a vertex, if any.
+
+```lean
+ProofNetIR.SequentialFigure7.Marked : ProofNetIR.SequentialSchedulerState.SequentialStackState → ProofNetIR.Vertex → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.markClass?`
+
+Kind: definition.
+
+The class of a marked vertex: the sigma boundary at or below its raw mark.
+
+```lean
+ProofNetIR.SequentialFigure7.markClass? : ProofNetIR.SequentialSchedulerState.SequentialStackState →
+  ProofNetIR.Vertex → Option ProofNetIR.SequentialSchedulerState.RawTokenAge
+```
+
+### `ProofNetIR.SequentialFigure7.bucketAt?`
+
+Kind: definition.
+
+The ready bucket stored at a sigma boundary.
+
+```lean
+ProofNetIR.SequentialFigure7.bucketAt? : ProofNetIR.SequentialSchedulerState.SequentialStackState →
+  ProofNetIR.SequentialSchedulerState.RawTokenAge → Option (List ProofNetIR.Vertex)
+```
+
+### `ProofNetIR.SequentialFigure7.InRegion`
+
+Kind: definition.
+
+A vertex is in the region of a class when it is marked in that class or
+raw in that class's ready bucket.
+
+```lean
+ProofNetIR.SequentialFigure7.InRegion : ProofNetIR.SequentialSchedulerState.SequentialStackState →
+  ProofNetIR.SequentialSchedulerState.RawTokenAge → ProofNetIR.Vertex → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.AxiomLinked`
+
+Kind: definition.
+
+The two endpoints of a submitted axiom link, in either order.
+
+```lean
+ProofNetIR.SequentialFigure7.AxiomLinked : ProofNetIR.Certificate → ProofNetIR.Vertex → ProofNetIR.Vertex → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.TensorLinked`
+
+Kind: definition.
+
+A premise, its mate, and the conclusion of a submitted tensor link, in
+either premise order.
+
+```lean
+ProofNetIR.SequentialFigure7.TensorLinked : ProofNetIR.Certificate → ProofNetIR.Vertex → ProofNetIR.Vertex → ProofNetIR.Vertex → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.ParLinked`
+
+Kind: definition.
+
+A premise, its mate, and the conclusion of a submitted par link, in either
+premise order.
+
+```lean
+ProofNetIR.SequentialFigure7.ParLinked : ProofNetIR.Certificate → ProofNetIR.Vertex → ProofNetIR.Vertex → ProofNetIR.Vertex → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.RegionClosure`
+
+Kind: inductive type.
+
+Region closure of a delayed stack state.
+
+```lean
+ProofNetIR.SequentialFigure7.RegionClosure : ProofNetIR.Certificate → ProofNetIR.SequentialSchedulerState.SequentialStackState → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.cutChoice`
+
+Kind: definition.
+
+The par choice that cuts the edge on the inside premise.
+
+```lean
+ProofNetIR.SequentialFigure7.cutChoice : (ProofNetIR.Vertex → Bool) → ProofNetIR.Edge × ProofNetIR.Edge → ProofNetIR.Edge
+```
+
+### `ProofNetIR.SequentialFigure7.boundary_edge_of_correct`
+
+Kind: theorem.
+
+In a correct certificate, any set containing one in-bounds vertex and
+missing another has a boundary edge of the cutting switching.
+
+```lean
+ProofNetIR.SequentialFigure7.boundary_edge_of_correct : ∀ {certificate : ProofNetIR.Certificate},
+  certificate.DeclarativelyCorrect →
+    ∀ (inside : ProofNetIR.Vertex → Bool) {start finish : ProofNetIR.Vertex},
+      start < certificate.formulas.size →
+        finish < certificate.formulas.size →
+          inside start = true →
+            inside finish = false →
+              ∃ u v,
+                inside u = true ∧
+                  inside v = false ∧
+                    (certificate.graphForSelection
+                          (List.map (ProofNetIR.SequentialFigure7.cutChoice inside) certificate.parChoices)).Adjacent
+                      u v
+```
+
+### `ProofNetIR.SequentialFigure7.RegionClosure.guardedParHeadTail`
+
+Kind: theorem.
+
+Region closure, the scheduler invariant, and correctness give C12: after the
+head of the active bucket, a guarded par premise, is cut from its mate, the
+remaining region still reaches the rest of the net through a raw non-conclusion
+of the bucket.
+
+```lean
+ProofNetIR.SequentialFigure7.RegionClosure.guardedParHeadTail : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  ProofNetIR.SequentialFigure7.RegionClosure certificate state.stack →
+    ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+      certificate.DeclarativelyCorrect → ProofNetIR.SequentialFigure7.ParHeadGuardTailNonconclusion certificate state
+```
+
+### `ProofNetIR.SequentialFigure7.RegionClosure.ofInitialReservation`
+
+Kind: theorem.
+
+Every correct initialization is region closed.
+
+```lean
+ProofNetIR.SequentialFigure7.RegionClosure.ofInitialReservation : ∀ {certificate : ProofNetIR.Certificate} {after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {start : ProofNetIR.Vertex}
+  (step : ProofNetIR.SequentialSchedulerBridge.InitialReservationStep certificate after start),
+  certificate.StructurallyWellFormed → ProofNetIR.SequentialFigure7.RegionClosure certificate after.stack
+```
+
 ## Canonical raw-mark causal order
 
 ### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.RawMarkedBefore`

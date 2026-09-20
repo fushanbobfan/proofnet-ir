@@ -40,6 +40,7 @@ jobs:
           ~/.elan/bin/lake exe proofnet_ir_figure7_primitives_tests
           ~/.elan/bin/lake exe proofnet_ir_figure7_termination_tests
           ~/.elan/bin/lake exe proofnet_ir_figure7_tail_law_tests
+          ~/.elan/bin/lake exe proofnet_ir_figure7_closure_tests
           ~/.elan/bin/lake exe proofnet_ir_figure7_unify_payload_invariant_tests
           ~/.elan/bin/lake exe proofnet_ir_tensor_adjacency_tests
           ~/.elan/bin/lake exe proofnet_ir_progress_invariant_tests
