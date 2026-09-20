@@ -50,14 +50,27 @@ private def rejected : Certificate where
 
 example : rejected.sequentialFastCheck = false := by native_decide
 
+-- Initialization succeeds at every in-bounds start, through the carrier complexity bound.
+example : ∃ state, initializeReservation? certificate 2 = some state :=
+  correct.1.initializeReservation?_isSome (by decide)
+
+example : certificate.formulaComplexityAt 2 < certificate.formulas.size :=
+  correct.1.formulaComplexityAt_lt_size (by decide)
+
+example {cert : Certificate} (structural : cert.StructurallyWellFormed) {start : Vertex}
+    (bound : start < cert.formulas.size) : ∃ state, initializeReservation? cert start = some state :=
+  structural.initializeReservation?_isSome bound
+
 end ProofNetIR.Figure7SequentialTests
 
 #print axioms ProofNetIR.SequentialFigure7.runDispatcher_spec
 #print axioms ProofNetIR.Certificate.sequentialFastCheck_sound
+#print axioms ProofNetIR.Certificate.StructurallyWellFormed.formulaComplexityAt_lt_size
+#print axioms ProofNetIR.Certificate.StructurallyWellFormed.initializeReservation?_isSome
 
 def main : IO Unit := do
   let accepted := ProofNetIR.Figure7SequentialTests.certificate.sequentialFastCheck
   let rejected := ProofNetIR.Figure7SequentialTests.rejected.sequentialFastCheck
   unless accepted && !rejected do
     throw (IO.userError "sequential fast path regression failed")
-  IO.println "Sequential consumer passed: bounded run spec, accepted axiom-par net, rejected non-dual net, soundness"
+  IO.println "Sequential consumer passed: bounded run spec, accepted axiom-par net, rejected non-dual net, soundness, initialization totality"

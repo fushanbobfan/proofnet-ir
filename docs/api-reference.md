@@ -25552,6 +25552,34 @@ Every accepted sequential candidate is accepted by the reference checker.
 ProofNetIR.Certificate.sequentialFastCheck_sound : ∀ (certificate : ProofNetIR.Certificate), certificate.sequentialFastCheck = true → certificate.check = true
 ```
 
+### `ProofNetIR.Certificate.StructurallyWellFormed.formulaComplexityAt_lt_size`
+
+Kind: theorem.
+
+The complexity of an in-bounds occurrence is below the carrier size.
+
+```lean
+ProofNetIR.Certificate.StructurallyWellFormed.formulaComplexityAt_lt_size : ∀ {certificate : ProofNetIR.Certificate},
+  certificate.StructurallyWellFormed →
+    ∀ {vertex : ProofNetIR.Vertex},
+      vertex < certificate.formulas.size → certificate.formulaComplexityAt vertex < certificate.formulas.size
+```
+
+### `ProofNetIR.Certificate.StructurallyWellFormed.initializeReservation?_isSome`
+
+Kind: theorem.
+
+Initialization succeeds at every in-bounds start of a structurally
+well-formed certificate.
+
+```lean
+ProofNetIR.Certificate.StructurallyWellFormed.initializeReservation?_isSome : ∀ {certificate : ProofNetIR.Certificate},
+  certificate.StructurallyWellFormed →
+    ∀ {start : ProofNetIR.Vertex},
+      start < certificate.formulas.size →
+        ∃ state, ProofNetIR.SequentialSchedulerBridge.initializeReservation? certificate start = some state
+```
+
 ## Canonical raw-mark causal order
 
 ### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.RawMarkedBefore`

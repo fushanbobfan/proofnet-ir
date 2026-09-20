@@ -2830,7 +2830,9 @@ def sections : List Section := [
       `ProofNetIR.SequentialFigure7.runDispatcher_spec,
       `ProofNetIR.Certificate.sequentialReconstruct?,
       `ProofNetIR.Certificate.sequentialFastCheck,
-      `ProofNetIR.Certificate.sequentialFastCheck_sound
+      `ProofNetIR.Certificate.sequentialFastCheck_sound,
+      `ProofNetIR.Certificate.StructurallyWellFormed.formulaComplexityAt_lt_size,
+      `ProofNetIR.Certificate.StructurallyWellFormed.initializeReservation?_isSome
     ]
   },
   {

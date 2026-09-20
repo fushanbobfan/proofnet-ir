@@ -525,10 +525,12 @@ Exact target statements for the open items are in the
   conclusion, run `dispatch?` to a stop, verify the final derivation), prove
   it sound, and prove the bounded run ends reachable, fully marked, and
   stopped (`runDispatcher_spec`).
+- [x] Prove initialization totality at every in-bounds start
+  (`StructurallyWellFormed.initializeReservation?_isSome`) through the carrier
+  complexity bound.
 - [ ] Prove `sequentialFastCheck = check` (D1, retargeted from the flat
   worklist on 2026-09-20; the flat-worklist statement stays open as D1-flat):
-  initialization totality at the first conclusion, and verification of the
-  exchanged final component's derivation.
+  verification of the exchanged final component's derivation.
 - [ ] Make `Certificate.unificationCheck` the sequential fast path alone,
   removing the recursive reconstruction fallback, with
   `unificationCheck = check` kept as a theorem (D2).

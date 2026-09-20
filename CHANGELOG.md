@@ -7,6 +7,16 @@ and its proof layer on top of `v0.9.0`. Entries are one per mathematics
 checkpoint, newest first; wrapper-transport steps are folded into the family
 they served, and `git log` holds the per-commit record.
 
+- proved initialization totality for the sequential fast path:
+  `StructurallyWellFormed.initializeReservation?_isSome` shows that
+  `initializeReservation?` succeeds at every in-bounds start of a structurally
+  well-formed certificate, through the carrier bound
+  `StructurallyWellFormed.formulaComplexityAt_lt_size` (descending through
+  producer links visits distinct occurrences, so a formula's connective count
+  is below the occurrence count), the clear-through search totality, the
+  exact route's endpoint orientation, and the initial enqueue and
+  reservation guards. Completeness of `sequentialFastCheck` now rests only on
+  the verification of the final component's derivation;
 - added the sequential fast path (`ProofNetIR/Figure7/Sequential.lean`):
   `runDispatcher` executes the canonical dispatcher for a bounded number of
   calls threading the scheduler invariant; `sequentialReconstruct?` and

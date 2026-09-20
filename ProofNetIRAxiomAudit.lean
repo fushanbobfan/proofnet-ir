@@ -1344,6 +1344,8 @@ end ProofNetIR.SequentialFigure7
 #print axioms SequentialFigure7.priorityEnabled_not_allReachable
 #print axioms SequentialFigure7.runDispatcher_spec
 #print axioms Certificate.sequentialFastCheck_sound
+#print axioms Certificate.StructurallyWellFormed.formulaComplexityAt_lt_size
+#print axioms Certificate.StructurallyWellFormed.initializeReservation?_isSome
 #print axioms SequentialFigure7.ConclStep.output_tags_eq
 #print axioms SequentialFigure7.NopStep.output_tags_eq
 #print axioms SequentialFigure7.WaitStep.output_tags_eq
