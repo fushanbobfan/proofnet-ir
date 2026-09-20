@@ -508,8 +508,11 @@ Exact target statements for the open items are in the
 - [x] Prove C12 at every canonically reachable state through the order-free
   `RegionClosure` invariant and switching connectedness, and close the
   `nop`/`wait` branches of `ActiveTopDebtTailLaw`.
+- [x] Derive Figure-7 progress (D3) from region closure: a drained active
+  region has no switching boundary edge, so its class is the whole net and
+  every occurrence is marked.
 - [ ] Close the `forward`/`unifyPayload` created-head branches of
-  `ActiveTopDebtTailLaw` and derive Figure-7 progress (D3).
+  `ActiveTopDebtTailLaw`; no longer required for D3.
 - [ ] Prove later-state `NEXTAXIOM` start selection with a route-local
   freshness invariant, exhaustive nonterminal enabledness of the canonical
   dispatcher, and later-state totality; then replace the prototype's eager

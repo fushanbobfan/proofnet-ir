@@ -25369,6 +25369,78 @@ ProofNetIR.SequentialFigure7.CanonicalTagHistory.nopWaitTailLaw_iff : ∀ {certi
       ((prior.later evidence).ActiveTopDebtTailLaw ↔ prior.ActiveTopDebtTailLaw)
 ```
 
+## Figure-7 progress from region closure
+
+### `ProofNetIR.SequentialFigure7.RegionClosure.class_of_empty_active`
+
+Kind: theorem.
+
+With an empty active bucket and one vertex of the active class, every
+in-bounds vertex is marked in the active class.
+
+```lean
+ProofNetIR.SequentialFigure7.RegionClosure.class_of_empty_active : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  ProofNetIR.SequentialFigure7.RegionClosure certificate state.stack →
+    ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+      certificate.DeclarativelyCorrect →
+        ∀ {age : ProofNetIR.SequentialSchedulerState.RawTokenAge},
+          state.stack.sigma.getLast? = some age →
+            state.stack.ready.getLast? = some [] →
+              ∀ {seed : ProofNetIR.Vertex},
+                ProofNetIR.SequentialFigure7.markClass? state.stack seed = some age →
+                  seed < certificate.formulas.size →
+                    ∀ {vertex : ProofNetIR.Vertex},
+                      vertex < certificate.formulas.size →
+                        ProofNetIR.SequentialFigure7.markClass? state.stack vertex = some age
+```
+
+### `ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher.allMarked_of_drained`
+
+Kind: theorem.
+
+A drained, dispatcher-reachable state of a correct certificate has every
+occurrence marked: the active class is the whole net.
+
+```lean
+ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher.allMarked_of_drained : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher certificate state →
+    certificate.DeclarativelyCorrect → ProofNetIR.SequentialFigure7.ActiveTopDrained state → state.core.allMarked = true
+```
+
+### `ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher.dispatch_or_allMarked`
+
+Kind: theorem.
+
+Figure-7 progress: a started reachable state of a correct certificate
+either dispatches or is completely marked.
+
+```lean
+ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher.dispatch_or_allMarked : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (reachable : ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher certificate state)
+  (correct : certificate.DeclarativelyCorrect),
+  0 < state.stack.nextAge →
+    have invariant := ⋯;
+    (∃ result, ProofNetIR.SequentialFigure7.dispatch? certificate state invariant = some result) ∨
+      state.core.allMarked = true
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.dispatch_or_allMarked`
+
+Kind: theorem.
+
+The ledger form of Figure-7 progress, over the exact canonical history.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.dispatch_or_allMarked : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  (_tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history)
+  (correct : certificate.DeclarativelyCorrect),
+  0 < state.stack.nextAge →
+    have invariant := ⋯;
+    (∃ result, ProofNetIR.SequentialFigure7.dispatch? certificate state invariant = some result) ∨
+      state.core.allMarked = true
+```
+
 ## Canonical raw-mark causal order
 
 ### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.RawMarkedBefore`

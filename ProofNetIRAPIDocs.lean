@@ -2808,6 +2808,15 @@ def sections : List Section := [
     ]
   },
   {
+    title := "Figure-7 progress from region closure"
+    declarations := [
+      `ProofNetIR.SequentialFigure7.RegionClosure.class_of_empty_active,
+      `ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher.allMarked_of_drained,
+      `ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher.dispatch_or_allMarked,
+      `ProofNetIR.SequentialFigure7.CanonicalTagHistory.dispatch_or_allMarked
+    ]
+  },
+  {
     title := "Canonical raw-mark causal order"
     declarations := [
       `ProofNetIR.SequentialFigure7.CanonicalTagHistory.RawMarkedBefore,

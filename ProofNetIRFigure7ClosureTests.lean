@@ -116,6 +116,32 @@ example : ∃ (step : InitialReservationStep certificate initial 0) (result : Fi
       exact ⟨step, result, kind, invariant, dispatch, evidence,
         CanonicalTagHistory.nopWaitTailLaw_iff _ evidence correct (Or.inl kind)⟩
 
+
+-- Figure-7 progress (ledger item D3): a started reachable state dispatches or is fully marked.
+example : (∃ result : Figure7DispatchResult,
+      dispatch? certificate initial (initialReachable.schedulerInvariant correct.1) = some result) ∨
+    initial.core.allMarked = true :=
+  initialReachable.dispatch_or_allMarked correct (by decide +kernel)
+
+example (drained : ActiveTopDrained initial) : initial.core.allMarked = true :=
+  initialReachable.allMarked_of_drained correct drained
+
+example : ∃ step : InitialReservationStep certificate initial 0,
+    (∃ result : Figure7DispatchResult,
+      dispatch? certificate initial ((ExecutedHistory.init step).schedulerInvariant correct.1) =
+        some result) ∨ initial.core.allMarked = true := by
+  obtain ⟨step⟩ := initializeReservation?_some_iff.mp initialEq
+  exact ⟨step, (CanonicalTagHistory.init step).dispatch_or_allMarked correct (by decide +kernel)⟩
+
+example {cert : Certificate} {state : ReservationState} (closure : RegionClosure cert state.stack)
+    (invariant : SchedulerInvariant cert state) (correct : cert.DeclarativelyCorrect)
+    {age : SequentialSchedulerState.RawTokenAge}
+    (sigmaLast : state.stack.sigma.getLast? = some age) (readyLast : state.stack.ready.getLast? = some [])
+    {seed : Vertex} (seedClass : markClass? state.stack seed = some age)
+    (seedBound : seed < cert.formulas.size) {vertex : Vertex} (bound : vertex < cert.formulas.size) :
+    markClass? state.stack vertex = some age :=
+  closure.class_of_empty_active invariant correct sigmaLast readyLast seedClass seedBound bound
+
 end ProofNetIR.Figure7ClosureTests
 
 #print axioms ProofNetIR.SequentialFigure7.boundary_edge_of_correct
@@ -132,6 +158,10 @@ end ProofNetIR.Figure7ClosureTests
 #print axioms ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher.regionClosure
 #print axioms ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher.guardedHeadTail
 #print axioms ProofNetIR.SequentialFigure7.CanonicalTagHistory.nopWaitTailLaw_iff
+#print axioms ProofNetIR.SequentialFigure7.RegionClosure.class_of_empty_active
+#print axioms ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher.allMarked_of_drained
+#print axioms ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher.dispatch_or_allMarked
+#print axioms ProofNetIR.SequentialFigure7.CanonicalTagHistory.dispatch_or_allMarked
 
 def main : IO Unit :=
-  IO.println "Region-closure consumer passed: initialization, C12 from closure, switching boundary, six-rule preservation, reachable C12, nop/wait tail law"
+  IO.println "Region-closure consumer passed: initialization, C12 from closure, switching boundary, six-rule preservation, reachable C12, nop/wait tail law, D3 progress"

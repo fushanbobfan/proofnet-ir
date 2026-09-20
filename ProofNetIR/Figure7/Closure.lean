@@ -1,4 +1,5 @@
 import ProofNetIR.Figure7.TailLaw
+import ProofNetIR.SequentialFigure7ActiveTopResidual
 
 /-!
 # Region closure of the delayed stack
@@ -2254,6 +2255,236 @@ with `correct : certificate.DeclarativelyCorrect`, are exactly:
         ∃ pending, pending ∈ step.mergeStep.payload ++ step.mergeStep.previousReady ++
           step.mergeStep.activeReady ∧ pending ∉ certificate.conclusions)
 -/
+
+
+/-! ## Draining
+
+When the active bucket is empty, the active region has no boundary edge at
+all, so switching connectedness makes the active class the whole net. -/
+
+/-- With an empty active bucket and one vertex of the active class, every
+in-bounds vertex is marked in the active class. -/
+theorem RegionClosure.class_of_empty_active {certificate : Certificate} {state : ReservationState}
+    (closure : RegionClosure certificate state.stack)
+    (invariant : SchedulerInvariant certificate state)
+    (correct : certificate.DeclarativelyCorrect) {age : RawTokenAge}
+    (sigmaLast : state.stack.sigma.getLast? = some age)
+    (readyLast : state.stack.ready.getLast? = some [])
+    {seed : Vertex} (seedClass : markClass? state.stack seed = some age)
+    (seedBound : seed < certificate.formulas.size)
+    {vertex : Vertex} (bound : vertex < certificate.formulas.size) :
+    markClass? state.stack vertex = some age := by
+  by_cases inside : markClass? state.stack vertex = some age
+  · exact inside
+  exfalso
+  have structural := correct.1
+  have bucketEq : bucketAt? state.stack age = some [] :=
+    bucketAt?_last invariant.stack_wellShaped.sigma_partition.strictIncreasing
+      invariant.stack_wellShaped.ready_aligned sigmaLast readyLast
+  have seedInside : activeInside state.stack age [] seed = true :=
+    activeInside_iff.mpr (Or.inl seedClass)
+  have vertexOutside : activeInside state.stack age [] vertex = false := by
+    rw [Bool.eq_false_iff, Ne, activeInside_iff]
+    rintro (marked | member)
+    · exact inside marked
+    · simp at member
+  obtain ⟨u, v, uIn, vOut, adjacent⟩ :=
+    boundary_edge_of_correct correct (activeInside state.stack age []) seedBound bound
+      seedInside vertexOutside
+  have uIn' : markClass? state.stack u = some age := by
+    rcases activeInside_iff.mp uIn with marked | member
+    · exact marked
+    · simp at member
+  have vOut' : ¬ markClass? state.stack v = some age := by
+    intro h
+    have := (activeInside_iff (bucket := [])).mpr (Or.inl h)
+    rw [vOut] at this
+    exact Bool.false_ne_true this
+  have ofRegion : ∀ {w : Vertex}, InRegion state.stack age w → markClass? state.stack w = some age := by
+    rintro w (marked | ⟨bucket, lookup, member⟩)
+    · exact marked
+    · rw [bucketEq] at lookup
+      cases lookup
+      simp at member
+  obtain ⟨edge, edgeMember, orientation⟩ := adjacent
+  rcases List.mem_append.mp edgeMember with fixed | selected
+  · rcases mem_fixedEdges fixed with ⟨l, r, member, rfl⟩ | ⟨l, r, c, member, edgeEq⟩
+    · have linked : AxiomLinked certificate u v := by
+        rcases orientation with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩
+        · exact Or.inl member
+        · exact Or.inr member
+      exact vOut' (ofRegion (closure.pairsMarked linked uIn'))
+    · have premiseCase : ∀ {premise mate : Vertex}, TensorLinked certificate premise mate c →
+          u = premise → v = c → False := by
+        intro premise mate linked uEq vEq
+        subst uEq; subst vEq
+        have mateMarked := closure.tensorTop linked sigmaLast uIn'
+        exact vOut' (ofRegion (closure.tensorFired linked uIn' mateMarked).2)
+      have conclusionCase : ∀ {premise mate : Vertex}, TensorLinked certificate premise mate c →
+          u = c → v = premise → False := by
+        intro premise mate linked uEq vEq
+        subst uEq; subst vEq
+        exact vOut' (closure.down (Or.inl linked) (Or.inl uIn')).1
+      rcases edgeEq with rfl | rfl
+      · rcases orientation with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩
+        · exact premiseCase (Or.inl member) rfl rfl
+        · exact conclusionCase (Or.inl member) rfl rfl
+      · rcases orientation with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩
+        · exact premiseCase (Or.inr member) rfl rfl
+        · exact conclusionCase (Or.inr member) rfl rfl
+  · obtain ⟨l, r, c, member, edgeEq⟩ := mem_cutSelection selected
+    have conclusionCase : ∀ {premise mate : Vertex}, ParLinked certificate premise mate c →
+        u = c → v = premise → False := by
+      intro premise mate linked uEq vEq
+      subst uEq; subst vEq
+      exact vOut' (closure.down (Or.inr linked) (Or.inl uIn')).1
+    unfold cutChoice at edgeEq
+    simp only at edgeEq
+    split at edgeEq
+    · rename_i cond
+      rw [Bool.and_eq_true, Bool.not_eq_true'] at cond
+      subst edgeEq
+      rcases orientation with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩
+      · rw [uIn] at cond
+        exact Bool.false_ne_true cond.2.symm
+      · exact conclusionCase (Or.inr member) rfl rfl
+    · split at edgeEq
+      · rename_i cond
+        rw [Bool.and_eq_true, Bool.not_eq_true'] at cond
+        subst edgeEq
+        rcases orientation with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩
+        · rw [uIn] at cond
+          exact Bool.false_ne_true cond.2.symm
+        · exact conclusionCase (Or.inl member) rfl rfl
+      · rename_i notFirst _
+        subst edgeEq
+        rcases orientation with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩
+        · have rIn : activeInside state.stack age [] r = true := by
+            cases rIn : activeInside state.stack age [] r
+            · exact absurd (by rw [uIn, rIn]; rfl) notFirst
+            · rfl
+          have rClass : markClass? state.stack r = some age := by
+            rcases activeInside_iff.mp rIn with marked | member
+            · exact marked
+            · simp at member
+          exact vOut' (ofRegion (closure.parFired (Or.inl member) uIn' rClass))
+        · exact conclusionCase (Or.inl member) rfl rfl
+
+
+private theorem owned_ne_nil {certificate : Certificate} {tree : CutFreeDerivation}
+    {frontier usedLinks owned : List Nat}
+    (witness : Certificate.OccurrenceDerivation certificate tree frontier usedLinks owned) :
+    owned ≠ [] := by
+  induction witness <;> simp_all
+
+/-- A started drained state has an empty active bucket and a vertex marked in
+the active class: the seed of the connectivity argument. -/
+private theorem seed_of_drained {certificate : Certificate} {state : ReservationState}
+    (invariant : SchedulerInvariant certificate state) (drained : ActiveTopDrained state) :
+    ∃ age seed, state.stack.sigma.getLast? = some age ∧
+      state.stack.ready.getLast? = some [] ∧
+      markClass? state.stack seed = some age ∧ seed < certificate.formulas.size := by
+  obtain ⟨age, component, sigmaLast, componentLookup, frontierMarked⟩ := drained
+  have shape := invariant.stack_wellShaped
+  have marksEq : state.core.marks = state.stack.marks := invariant.realizesSigma.marks_eq
+  -- the last bucket is exactly the raw-unmarked frontier, hence empty
+  have sigmaIndex : state.stack.sigma[state.stack.sigma.length - 1]? = some age := by
+    rw [← List.getLast?_eq_getElem?]; exact sigmaLast
+  have readyLength : state.stack.ready.length - 1 = state.stack.sigma.length - 1 := by
+    rw [shape.ready_aligned]
+  have readyLast : state.stack.ready.getLast? = some [] := by
+    rw [List.getLast?_eq_getElem?, readyLength]
+    cases readyIndex : state.stack.ready[state.stack.sigma.length - 1]? with
+    | none =>
+        exfalso
+        obtain ⟨sigmaPos, _⟩ := List.getElem?_eq_some_iff.mp sigmaIndex
+        have := List.getElem?_eq_none_iff.mp readyIndex
+        rw [shape.ready_aligned] at this
+        omega
+    | some bucket =>
+        obtain ⟨component', componentLookup', exact⟩ :=
+          invariant.ready_bucket_frontier_exact sigmaIndex readyIndex
+        rw [componentLookup] at componentLookup'
+        cases componentLookup'
+        congr
+        cases bucket with
+        | nil => rfl
+        | cons head rest =>
+            exfalso
+            have := (exact head).mp (List.mem_cons_self ..)
+            exact frontierMarked head this.1 this.2
+  -- a marked owned occurrence of the active component
+  obtain ⟨usedAt, ownedAt, live, _, _⟩ := invariant.component_forest_provenance
+  obtain ⟨witness, accounted⟩ := live componentLookup
+  have ownedNonempty : ownedAt age ≠ [] := owned_ne_nil witness.derivation
+  cases ownedEq : ownedAt age with
+  | nil => exact (ownedNonempty ownedEq).elim
+  | cons seed _ =>
+      have seedOwned : seed ∈ ownedAt age := by rw [ownedEq]; simp
+      rcases accounted seed seedOwned with ⟨raw, marked, representative⟩ | ⟨unmarked, frontier⟩
+      · have rawBound : raw < state.stack.nextAge := by
+          apply shape.assigned_age_bound seed raw
+          rw [← marksEq]; exact marked
+        have seedBound : seed < certificate.formulas.size := by
+          have := (Array.getElem?_eq_some_iff.mp marked).1
+          rwa [invariant.core_abstractable.markArraySize] at this
+        refine ⟨age, seed, sigmaLast, readyLast, ?_, seedBound⟩
+        unfold markClass?
+        rw [← marksEq, marked]
+        show sigmaBoundary? state.stack.sigma raw = some age
+        rw [invariant.realizesSigma.representative_eq_boundary rawBound, representative]
+      · exact (frontierMarked seed frontier unmarked).elim
+
+/-- A drained, dispatcher-reachable state of a correct certificate has every
+occurrence marked: the active class is the whole net. -/
+theorem ReachableByImplementedDispatcher.allMarked_of_drained
+    {certificate : Certificate} {state : ReservationState}
+    (reachable : ReachableByImplementedDispatcher certificate state)
+    (correct : certificate.DeclarativelyCorrect)
+    (drained : ActiveTopDrained state) : state.core.allMarked = true := by
+  have invariant := reachable.schedulerInvariant correct.1
+  have closure := reachable.regionClosure correct.1
+  obtain ⟨age, seed, sigmaLast, readyLast, seedClass, seedBound⟩ :=
+    seed_of_drained invariant drained
+  have marksEq : state.core.marks = state.stack.marks := invariant.realizesSigma.marks_eq
+  unfold UnificationState.allMarked
+  rw [Array.all_eq_true]
+  intro vertex bound
+  have bound' : vertex < certificate.formulas.size := by
+    rwa [invariant.core_abstractable.markArraySize] at bound
+  have marked : Marked state.stack vertex :=
+    marked_of_class (closure.class_of_empty_active invariant correct sigmaLast readyLast
+      seedClass seedBound bound')
+  obtain ⟨raw, lookup⟩ := marked
+  have : state.core.marks[vertex]? = some (some raw) := by rw [marksEq]; exact lookup
+  rw [Array.getElem?_eq_getElem bound] at this
+  rw [Option.some.inj this]
+  rfl
+
+/-- Figure-7 progress: a started reachable state of a correct certificate
+either dispatches or is completely marked. -/
+theorem ReachableByImplementedDispatcher.dispatch_or_allMarked
+    {certificate : Certificate} {state : ReservationState}
+    (reachable : ReachableByImplementedDispatcher certificate state)
+    (correct : certificate.DeclarativelyCorrect) (started : 0 < state.stack.nextAge) :
+    let invariant := reachable.schedulerInvariant correct.1
+    (∃ result : Figure7DispatchResult, dispatch? certificate state invariant = some result) ∨
+      state.core.allMarked = true := by
+  intro invariant
+  rcases reachable.dispatch_or_activeTopDrained correct started with dispatch | drained
+  · exact Or.inl dispatch
+  · exact Or.inr (reachable.allMarked_of_drained correct drained)
+
+/-- The ledger form of Figure-7 progress, over the exact canonical history. -/
+theorem CanonicalTagHistory.dispatch_or_allMarked
+    {certificate : Certificate} {state : ReservationState}
+    {history : ExecutedHistory certificate state}
+    (_tagHistory : CanonicalTagHistory certificate history)
+    (correct : certificate.DeclarativelyCorrect) (started : 0 < state.stack.nextAge) :
+    let invariant := history.schedulerInvariant correct.1
+    (∃ result : Figure7DispatchResult, dispatch? certificate state invariant = some result) ∨
+      state.core.allMarked = true :=
+  ReachableByImplementedDispatcher.dispatch_or_allMarked ⟨history⟩ correct started
 
 end SequentialFigure7
 end ProofNetIR

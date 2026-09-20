@@ -7,6 +7,16 @@ and its proof layer on top of `v0.9.0`. Entries are one per mathematics
 checkpoint, newest first; wrapper-transport steps are folded into the family
 they served, and `git log` holds the per-commit record.
 
+- closed ledger item D3, Figure-7 progress:
+  `CanonicalTagHistory.dispatch_or_allMarked` (and its reachable-state form
+  `ReachableByImplementedDispatcher.dispatch_or_allMarked`) proves that a
+  started reachable state of a correct certificate either dispatches or has
+  every occurrence marked. The drained case is
+  `ReachableByImplementedDispatcher.allMarked_of_drained`: with an
+  empty active bucket the active region has no switching boundary edge
+  (`RegionClosure.class_of_empty_active`), so connectedness makes the active
+  class the whole net. The history-tail law and its created-head branches
+  are not used; they remain open as stated in `ProofNetIR/Figure7/Closure.lean`;
 - proved `RegionClosure` preserved by every canonical dispatcher rule
   (`ConclStep`, `NopStep`, `WaitStep`, `ForwardStep`, `NewStep`,
   `UnifyPayloadStep`, and `DispatchStep.regionClosure`), lifted it to every

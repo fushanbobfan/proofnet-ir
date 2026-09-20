@@ -1336,6 +1336,10 @@ end ProofNetIR.SequentialFigure7
 #print axioms SequentialFigure7.ReachableByImplementedDispatcher.regionClosure
 #print axioms SequentialFigure7.ReachableByImplementedDispatcher.guardedHeadTail
 #print axioms SequentialFigure7.CanonicalTagHistory.nopWaitTailLaw_iff
+#print axioms SequentialFigure7.RegionClosure.class_of_empty_active
+#print axioms SequentialFigure7.ReachableByImplementedDispatcher.allMarked_of_drained
+#print axioms SequentialFigure7.ReachableByImplementedDispatcher.dispatch_or_allMarked
+#print axioms SequentialFigure7.CanonicalTagHistory.dispatch_or_allMarked
 #print axioms SequentialFigure7.ConclStep.output_tags_eq
 #print axioms SequentialFigure7.NopStep.output_tags_eq
 #print axioms SequentialFigure7.WaitStep.output_tags_eq
