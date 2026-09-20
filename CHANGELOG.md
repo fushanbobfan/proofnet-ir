@@ -7,6 +7,15 @@ and its proof layer on top of `v0.9.0`. Entries are one per mathematics
 checkpoint, newest first; wrapper-transport steps are folded into the family
 they served, and `git log` holds the per-commit record.
 
+- proved final structure and inference for fully marked reachable correct nets:
+  `finalComponents_eq_singleton` identifies the sole component and full ownership;
+  `finalFrontier_perm` identifies its frontier with the input conclusions;
+  `sequentialFinalTree?_eq_some` proves extraction with a duplicate-free exchange;
+  `sequentialFinalTree?_infer_eq` proves exact inference and accepted desequentialization.
+  Exposed the unchanged closure seed `seed_of_drained`. The fresh-index correspondence
+  tracks labels, roots, and submitted links; `occurrenceBuild_axiom_eq` and
+  `occurrenceBuild_exchange_eq` prove its axiom and exchange cases. The par/tensor
+  cases, full-carrier proof-net equivalence, and fast-path completeness (D1) remain open;
 - proved initialization totality for the sequential fast path:
   `StructurallyWellFormed.initializeReservation?_isSome` shows that
   `initializeReservation?` succeeds at every in-bounds start of a structurally

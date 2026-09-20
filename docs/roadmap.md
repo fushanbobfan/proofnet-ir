@@ -530,7 +530,8 @@ Exact target statements for the open items are in the
   complexity bound.
 - [ ] Prove `sequentialFastCheck = check` (D1, retargeted from the flat
   worklist on 2026-09-20; the flat-worklist statement stays open as D1-flat):
-  verification of the exchanged final component's derivation.
+  final structure, occurrence exchange, and inference are proved; equivalence
+  of the desequentialized final tree to the input remains open.
 - [ ] Make `Certificate.unificationCheck` the sequential fast path alone,
   removing the recursive reconstruction fallback, with
   `unificationCheck = check` kept as a theorem (D2).

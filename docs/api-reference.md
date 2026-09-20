@@ -25520,6 +25520,168 @@ ProofNetIR.SequentialFigure7.runDispatcher_spec : ∀ {certificate : ProofNetIR.
             ProofNetIR.SequentialFigure7.dispatch? certificate final finalInvariant = none ∧ final.core.allMarked = true
 ```
 
+### `ProofNetIR.SequentialFigure7.seed_of_drained`
+
+Kind: theorem.
+
+A started drained state has an empty active bucket and a vertex marked in
+the active class: the seed of the connectivity argument.
+
+```lean
+ProofNetIR.SequentialFigure7.seed_of_drained : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+    ProofNetIR.SequentialFigure7.ActiveTopDrained state →
+      ∃ age seed,
+        state.stack.sigma.getLast? = some age ∧
+          state.stack.ready.getLast? = some [] ∧
+            ProofNetIR.SequentialFigure7.markClass? state.stack seed = some age ∧ seed < certificate.formulas.size
+```
+
+### `ProofNetIR.SequentialFigure7.finalComponents_eq_singleton`
+
+Kind: theorem.
+
+A fully marked reachable correct state has exactly one live component,
+at its active boundary, and that component owns every input occurrence.
+
+```lean
+ProofNetIR.SequentialFigure7.finalComponents_eq_singleton : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher certificate state →
+    certificate.DeclarativelyCorrect →
+      state.core.allMarked = true →
+        ∃ age component used owned,
+          state.stack.sigma.getLast? = some age ∧
+            state.core.components[age]? = some (some component) ∧
+              state.core.liveComponents = [component] ∧
+                certificate.ComponentOccurrenceWitness component used owned ∧
+                  ∀ (vertex : Nat), vertex ∈ owned ↔ vertex < certificate.formulas.size
+```
+
+### `ProofNetIR.Certificate.finalFrontier_perm`
+
+Kind: theorem.
+
+A linear occurrence derivation covering the input carrier exposes exactly
+the certificate conclusions, up to their order.
+
+```lean
+ProofNetIR.Certificate.finalFrontier_perm : ∀ {certificate : ProofNetIR.Certificate},
+  certificate.StructurallyWellFormed →
+    ∀ {component : ProofNetIR.UnificationComponent} {used owned : List Nat},
+      certificate.ComponentOccurrenceWitness component used owned →
+        (∀ (vertex : Nat), vertex ∈ owned ↔ vertex < certificate.formulas.size) →
+          component.frontier.Perm certificate.conclusions
+```
+
+### `ProofNetIR.Certificate.occurrenceOrder?`
+
+Kind: definition.
+
+Find the source position of each requested occurrence, retaining target order.
+
+```lean
+ProofNetIR.Certificate.occurrenceOrder? : List ProofNetIR.Vertex → List ProofNetIR.Vertex → Option (List Nat)
+```
+
+### `ProofNetIR.Certificate.sequentialFinalTree?`
+
+Kind: definition.
+
+Extract the sole live component and exchange it into the input conclusion order.
+
+```lean
+ProofNetIR.Certificate.sequentialFinalTree? : ProofNetIR.Certificate → ProofNetIR.SequentialSchedulerBridge.ReservationState → Option ProofNetIR.CutFreeDerivation
+```
+
+### `ProofNetIR.Certificate.sequentialFinalTree?_eq_some`
+
+Kind: theorem.
+
+Final extraction succeeds with a duplicate-free occurrence order that
+reorders the sole live component into the exact ordered input boundary.
+
+```lean
+ProofNetIR.Certificate.sequentialFinalTree?_eq_some : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher certificate state →
+    certificate.DeclarativelyCorrect →
+      state.core.allMarked = true →
+        ∃ component order used owned,
+          state.core.liveComponents = [component] ∧
+            certificate.ComponentOccurrenceWitness component used owned ∧
+              (∀ (vertex : Nat), vertex ∈ owned ↔ vertex < certificate.formulas.size) ∧
+                ProofNetIR.Certificate.occurrenceOrder? component.frontier certificate.conclusions = some order ∧
+                  order.Nodup ∧
+                    ProofNetIR.CutFreeDerivation.reorder? component.frontier order = some certificate.conclusions ∧
+                      certificate.sequentialFinalTree? state =
+                        some (ProofNetIR.CutFreeDerivation.exchange order component.tree)
+```
+
+### `ProofNetIR.Certificate.sequentialFinalTree?_infer_eq`
+
+Kind: theorem.
+
+Final extraction infers the exact input sequent and builds an accepted
+certificate. Equivalence of that output to the input is a separate obligation.
+
+```lean
+ProofNetIR.Certificate.sequentialFinalTree?_infer_eq : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher certificate state →
+    certificate.DeclarativelyCorrect →
+      state.core.allMarked = true →
+        ∃ tree sequent,
+          certificate.sequentialFinalTree? state = some tree ∧
+            certificate.conclusionFormulas? = some sequent ∧
+              tree.infer? = some sequent ∧ ∃ output, tree.desequentialize? = some output ∧ output.check = true
+```
+
+### `ProofNetIR.Certificate.OccurrenceBuildMatch`
+
+Kind: inductive type.
+
+Exact correspondence between fresh builder indices and submitted occurrences.
+`numbering[i]` is the input occurrence represented by fresh vertex `i`.
+The ordered roots are literal; only the link storage order may vary.
+
+```lean
+ProofNetIR.Certificate.OccurrenceBuildMatch : ProofNetIR.Certificate → ProofNetIR.NetFragment → List Nat → List Nat → List Nat → List Nat → Prop
+```
+
+### `ProofNetIR.Certificate.occurrenceBuild_axiom_eq`
+
+Kind: theorem.
+
+The axiom build uses fresh vertices zero and one for the exact submitted
+endpoints, retaining their orientation even when other labels repeat.
+
+```lean
+ProofNetIR.Certificate.occurrenceBuild_axiom_eq : ∀ {certificate : ProofNetIR.Certificate},
+  certificate.StructurallyWellFormed →
+    ∀ {index left right : Nat} {name : String} {positive : Bool},
+      certificate.links[index]? = some (ProofNetIR.Link.axiom left right) →
+        certificate.formula? left = some (ProofNetIR.Formula.atom name positive) →
+          ∃ fragment,
+            (ProofNetIR.CutFreeDerivation.axiom name positive).build? = some fragment ∧
+              certificate.OccurrenceBuildMatch fragment [left, right] [index] [left, right] [left, right]
+```
+
+### `ProofNetIR.Certificate.occurrenceBuild_exchange_eq`
+
+Kind: theorem.
+
+An exact occurrence exchange preserves the same fresh-vertex numbering,
+formula labels, and submitted links, changing only the ordered roots.
+
+```lean
+ProofNetIR.Certificate.occurrenceBuild_exchange_eq : ∀ {certificate : ProofNetIR.Certificate} {tree : ProofNetIR.CutFreeDerivation} {fragment : ProofNetIR.NetFragment}
+  {frontier used owned numbering order reordered : List Nat},
+  tree.build? = some fragment →
+    certificate.OccurrenceBuildMatch fragment frontier used owned numbering →
+      ProofNetIR.CutFreeDerivation.reorder? frontier order = some reordered →
+        ∃ output,
+          (ProofNetIR.CutFreeDerivation.exchange order tree).build? = some output ∧
+            certificate.OccurrenceBuildMatch output reordered used owned numbering
+```
+
 ### `ProofNetIR.Certificate.sequentialReconstruct?`
 
 Kind: definition.

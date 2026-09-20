@@ -1343,6 +1343,13 @@ end ProofNetIR.SequentialFigure7
 #print axioms SequentialFigure7.figure7Enabledness_started_and_sequentialize
 #print axioms SequentialFigure7.priorityEnabled_not_allReachable
 #print axioms SequentialFigure7.runDispatcher_spec
+#print axioms SequentialFigure7.seed_of_drained
+#print axioms SequentialFigure7.finalComponents_eq_singleton
+#print axioms Certificate.finalFrontier_perm
+#print axioms Certificate.sequentialFinalTree?_eq_some
+#print axioms Certificate.sequentialFinalTree?_infer_eq
+#print axioms Certificate.occurrenceBuild_axiom_eq
+#print axioms Certificate.occurrenceBuild_exchange_eq
 #print axioms Certificate.sequentialFastCheck_sound
 #print axioms Certificate.StructurallyWellFormed.formulaComplexityAt_lt_size
 #print axioms Certificate.StructurallyWellFormed.initializeReservation?_isSome

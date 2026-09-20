@@ -15,8 +15,11 @@ of a correct certificate the run ends reachable, fully marked, and unable to
 dispatch (ledger items D3 and D4). `StructurallyWellFormed.initializeReservation?_isSome` proves that
 initialization succeeds at every in-bounds start, through the carrier
 complexity bound `StructurallyWellFormed.formulaComplexityAt_lt_size`.
-Completeness of `sequentialFastCheck` (ledger item D1) is not proved here:
-the verification of the final component's derivation remains open.
+At a fully marked reachable correct state the sole component owns the full
+carrier, its frontier permutes the conclusions, and the final exchange
+infers their formula sequent. The builder succeeds on that tree. Completeness
+(D1) still requires equivalence of the built certificate to the input; the
+exact numbering correspondence and its remaining induction cases are below.
 -/
 
 namespace ProofNetIR
@@ -119,20 +122,150 @@ theorem runDispatcher_spec {certificate : Certificate} {state : ReservationState
     cases equation
   · exact marked
 
+private theorem allMarked_lookup {certificate : Certificate} {state : ReservationState}
+    (invariant : SchedulerInvariant certificate state) (marked : state.core.allMarked = true)
+    {vertex : Vertex} (bound : vertex < certificate.formulas.size) :
+    ∃ raw, state.core.marks[vertex]? = some (some raw) := by
+  have sizeBound : vertex < state.core.marks.size := by
+    rwa [invariant.core_abstractable.markArraySize]
+  have someMark := (Array.all_eq_true.mp marked) vertex sizeBound
+  obtain ⟨raw, equation⟩ := Option.isSome_iff_exists.mp someMark
+  exact ⟨raw, by rw [Array.getElem?_eq_getElem sizeBound, equation]⟩
+
+private theorem occurrence_owned_ne_nil {certificate : Certificate} {tree : CutFreeDerivation}
+    {frontier used owned : List Nat}
+    (witness : certificate.OccurrenceDerivation tree frontier used owned) : owned ≠ [] := by
+  induction witness <;> simp_all
+
+private theorem filterMap_singleton_of_unique {α : Type} (items : List (Option α))
+    {index : Nat} {value : α} (lookup : items[index]? = some (some value))
+    (unique : ∀ i v, items[i]? = some (some v) → i = index) :
+    items.filterMap id = [value] := by
+  induction items generalizing index with
+  | nil => simp at lookup
+  | cons head tail ih =>
+      cases index with
+      | zero =>
+          simp only [List.getElem?_cons_zero, Option.some.injEq] at lookup
+          subst head
+          have empty : tail.filterMap id = [] := by
+            apply List.eq_nil_iff_forall_not_mem.mpr
+            intro v member
+            obtain ⟨cell, member, equation⟩ := List.mem_filterMap.mp member
+            have cellEq : cell = some v := equation
+            subst cell
+            obtain ⟨i, bound, eq⟩ := List.mem_iff_getElem.mp member
+            have impossible := unique (i + 1) v (by simpa using
+              (List.getElem?_eq_getElem bound).trans (congrArg some eq))
+            omega
+          simp [empty]
+      | succ index =>
+          have headEq : head = none := by
+            cases head with
+            | none => rfl
+            | some v => have := unique 0 v rfl; omega
+          subst head
+          simpa using ih (by simpa using lookup) (fun i v eq ↦ by
+            have := unique (i + 1) v (by simpa using eq)
+            omega)
+
+/-- A fully marked reachable correct state has exactly one live component,
+at its active boundary, and that component owns every input occurrence. -/
+theorem finalComponents_eq_singleton {certificate : Certificate} {state : ReservationState}
+    (reachable : ReachableByImplementedDispatcher certificate state)
+    (correct : certificate.DeclarativelyCorrect) (marked : state.core.allMarked = true) :
+    ∃ age component used owned,
+      state.stack.sigma.getLast? = some age ∧
+      state.core.components[age]? = some (some component) ∧
+      state.core.liveComponents = [component] ∧
+      certificate.ComponentOccurrenceWitness component used owned ∧
+      (∀ vertex, vertex ∈ owned ↔ vertex < certificate.formulas.size) := by
+  have invariant := reachable.schedulerInvariant correct.1
+  have marksEq := invariant.realizesSigma.marks_eq
+  obtain ⟨raw, rawLookup⟩ := allMarked_lookup invariant marked correct.1.1
+  have started : 0 < state.stack.nextAge := Nat.zero_lt_of_lt
+    (invariant.stack_wellShaped.assigned_age_bound 0 raw (by rw [← marksEq]; exact rawLookup))
+  have sigmaNonempty : state.stack.sigma ≠ [] := by
+    intro empty
+    have := invariant.stack_wellShaped.sigma_partition.empty_iff.mp empty
+    exact (Nat.ne_of_gt started) this
+  obtain ⟨age, sigmaLast⟩ := Option.isSome_iff_exists.mp
+    (List.getLast?_isSome.mpr sigmaNonempty)
+  obtain ⟨component, componentLookup⟩ :=
+    (invariant.component_domain_exact age).mpr (List.mem_of_getLast? sigmaLast)
+  have drained : ActiveTopDrained state := by
+    refine ⟨age, component, sigmaLast, componentLookup, ?_⟩
+    intro vertex _ unmarked
+    have bound : vertex < certificate.formulas.size := by
+      have := (Array.getElem?_eq_some_iff.mp unmarked).1
+      rwa [invariant.core_abstractable.markArraySize] at this
+    obtain ⟨raw, lookup⟩ := allMarked_lookup invariant marked bound
+    rw [lookup] at unmarked
+    cases unmarked
+  obtain ⟨active, seed, activeLast, readyLast, seedClass, seedBound⟩ :=
+    seed_of_drained invariant drained
+  have activeEq : active = age := Option.some.inj (activeLast.symm.trans sigmaLast)
+  subst active
+  have classes : ∀ {vertex}, vertex < certificate.formulas.size →
+      markClass? state.stack vertex = some age :=
+    (reachable.regionClosure correct.1).class_of_empty_active invariant correct
+      sigmaLast readyLast seedClass seedBound
+  have representative : ∀ {vertex raw : Nat},
+      state.core.marks[vertex]? = some (some raw) → state.core.representative raw = age := by
+    intro vertex raw lookup
+    have bound : vertex < certificate.formulas.size := by
+      have := (Array.getElem?_eq_some_iff.mp lookup).1
+      rwa [invariant.core_abstractable.markArraySize] at this
+    have rawBound := invariant.stack_wellShaped.assigned_age_bound vertex raw
+      (by rw [← marksEq]; exact lookup)
+    have cls := classes bound
+    unfold markClass? at cls
+    rw [← marksEq, lookup] at cls
+    change SequentialSchedulerState.sigmaBoundary?
+      state.stack.sigma raw = some age at cls
+    rw [invariant.realizesSigma.representative_eq_boundary rawBound] at cls
+    exact Option.some.inj cls
+  obtain ⟨usedAt, ownedAt, live, _, owns⟩ := invariant.component_forest_provenance
+  have unique : ∀ i c, state.core.components[i]? = some (some c) → i = age := by
+    intro i c lookup
+    obtain ⟨witness, accounted⟩ := live lookup
+    obtain ⟨vertex, member⟩ := List.exists_mem_of_ne_nil _
+      (occurrence_owned_ne_nil witness.derivation)
+    rcases accounted vertex member with ⟨raw, assigned, rep⟩ | ⟨unmarked, _⟩
+    · exact rep.symm.trans (representative assigned)
+    · obtain ⟨raw, assigned⟩ := allMarked_lookup invariant marked
+        (witness.derivation.owned_inBounds correct.1 vertex member)
+      rw [assigned] at unmarked
+      cases unmarked
+  refine ⟨age, component, usedAt age, ownedAt age, sigmaLast, componentLookup, ?_,
+    (live componentLookup).1, ?_⟩
+  · exact filterMap_singleton_of_unique state.core.components.toList
+      (by simpa using componentLookup) (by simpa using unique)
+  · intro vertex
+    constructor
+    · exact (live componentLookup).1.derivation.owned_inBounds correct.1 vertex
+    · intro bound
+      obtain ⟨raw, assigned⟩ := allMarked_lookup invariant marked bound
+      obtain ⟨i, c, rep, _, member⟩ := owns assigned
+      have eq : i = age := rep.symm.trans (representative assigned)
+      simpa [eq] using member
+
 end SequentialFigure7
 
 namespace Certificate
 
 open SequentialSchedulerBridge SequentialFigure7
 
-private def occurrenceOrder? (source : List Vertex) : List Vertex → Option (List Nat)
+/-- Find the source position of each requested occurrence, retaining target order. -/
+def occurrenceOrder? (source : List Vertex) : List Vertex → Option (List Nat)
   | [] => some []
   | vertex :: rest => do
       let index ← source.findIdx? (· == vertex)
       let tail ← occurrenceOrder? source rest
       pure (index :: tail)
 
-private def sequentialFinalTree? (certificate : Certificate)
+/-- Extract the sole live component and exchange it into the input conclusion order. -/
+def sequentialFinalTree? (certificate : Certificate)
     (state : ReservationState) : Option CutFreeDerivation := do
   let [component] := state.core.liveComponents | none
   guard (component.frontier.length = certificate.conclusions.length)
@@ -604,6 +737,321 @@ theorem StructurallyWellFormed.initializeReservation?_isSome {certificate : Cert
     rw [reserveEq]
     rfl
   exact Option.isSome_iff_exists.mp isSome
+
+private def consumedOccurrences (certificate : Certificate) (used : List Nat) : List Vertex :=
+  used.flatMap fun index ↦ (certificate.links[index]?.map Link.premises).getD []
+
+private theorem occurrence_count_eq {certificate : Certificate} {tree : CutFreeDerivation}
+    {frontier used owned : List Nat}
+    (witness : certificate.OccurrenceDerivation tree frontier used owned) (vertex : Vertex) :
+    owned.count vertex =
+      frontier.count vertex + (consumedOccurrences certificate used).count vertex := by
+  induction witness with
+  | «axiom» index left right name positive lookup formula =>
+      simp [consumedOccurrences, lookup, Link.premises]
+  | par witness index left right conclusion lf rf afterLeft context lookup lp rp ih =>
+      have lcount := (CutFreeDerivation.pick?_perm lp.positional).count_eq vertex
+      have rcount := (CutFreeDerivation.pick?_perm rp.positional).count_eq vertex
+      simp only [List.count_cons, beq_iff_eq] at lcount rcount
+      simp [consumedOccurrences, lookup, Link.premises, List.count_append, List.count_cons] at ih ⊢
+      omega
+  | tensor lw rw index left right conclusion lf rf lc rc lookup lp rp lih rih =>
+      have lcount := (CutFreeDerivation.pick?_perm lp.positional).count_eq vertex
+      have rcount := (CutFreeDerivation.pick?_perm rp.positional).count_eq vertex
+      simp only [List.count_cons, beq_iff_eq] at lcount rcount
+      simp [consumedOccurrences, lookup, Link.premises, List.count_append, List.count_cons]
+        at lih rih ⊢
+      omega
+  | exchange witness order reordered equation ih =>
+      have counts := (CutFreeDerivation.reorder?_perm equation).count_eq vertex
+      omega
+
+private theorem owned_producer_used {certificate : Certificate}
+    (structural : certificate.StructurallyWellFormed) {tree : CutFreeDerivation}
+    {frontier used owned : List Nat}
+    (witness : certificate.OccurrenceDerivation tree frontier used owned)
+    {vertex : Vertex} (member : vertex ∈ owned) {link : Link}
+    (submitted : link ∈ certificate.links) (produces : link.produces vertex = true) :
+    ∃ index ∈ used, certificate.links[index]? = some link := by
+  induction witness with
+  | «axiom» index left right name positive lookup formula =>
+      have endpoint : vertex = left ∨ vertex = right := by simpa using member
+      exact (structural.axiomEndpoint_ne_connectiveConclusion
+        (List.mem_of_getElem? lookup) endpoint submitted produces).elim
+  | par witness index left right conclusion lf rf afterLeft context lookup lp rp ih =>
+      rcases List.mem_cons.mp member with rfl | member
+      · have eq := UnificationState.StructurallyWellFormed.producerLink_unique structural
+          (List.mem_of_getElem? lookup) (by simp [Link.produces]) submitted produces
+        exact ⟨index, by simp, lookup.trans (congrArg some eq)⟩
+      · obtain ⟨i, mem, eq⟩ := ih member
+        exact ⟨i, by simp [mem], eq⟩
+  | tensor lw rw index left right conclusion lf rf lc rc lookup lp rp lih rih =>
+      rcases List.mem_cons.mp member with rfl | member
+      · have eq := UnificationState.StructurallyWellFormed.producerLink_unique structural
+          (List.mem_of_getElem? lookup) (by simp [Link.produces]) submitted produces
+        exact ⟨index, by simp, lookup.trans (congrArg some eq)⟩
+      · rcases List.mem_append.mp member with lm | rm
+        · obtain ⟨i, mem, eq⟩ := lih lm
+          exact ⟨i, by simp [mem], eq⟩
+        · obtain ⟨i, mem, eq⟩ := rih rm
+          exact ⟨i, by simp [mem], eq⟩
+  | exchange witness order reordered equation ih => exact ih member
+
+private theorem consumed_iff_premise {certificate : Certificate} {used : List Nat}
+    {vertex : Vertex} :
+    vertex ∈ consumedOccurrences certificate used ↔
+      ∃ index ∈ used, ∃ link, certificate.links[index]? = some link ∧ vertex ∈ link.premises := by
+  simp only [consumedOccurrences, List.mem_flatMap]
+  constructor
+  · rintro ⟨index, member, premise⟩
+    cases lookup : certificate.links[index]? with
+    | none => simp [lookup] at premise
+    | some link => exact ⟨index, member, link, lookup, by simpa [lookup] using premise⟩
+  · rintro ⟨index, member, link, lookup, premise⟩
+    exact ⟨index, member, by simpa [lookup] using premise⟩
+
+/-- A linear occurrence derivation covering the input carrier exposes exactly
+the certificate conclusions, up to their order. -/
+theorem finalFrontier_perm {certificate : Certificate}
+    (structural : certificate.StructurallyWellFormed) {component : UnificationComponent}
+    {used owned : List Nat} (witness : certificate.ComponentOccurrenceWitness component used owned)
+    (covers : ∀ vertex, vertex ∈ owned ↔ vertex < certificate.formulas.size) :
+    component.frontier.Perm certificate.conclusions := by
+  have boundary : ∀ vertex, vertex ∈ component.frontier ↔ vertex ∈ certificate.conclusions := by
+    intro vertex
+    have counts := occurrence_count_eq witness.derivation vertex
+    constructor
+    · intro frontier
+      have owned := witness.derivation.frontier_subset_owned vertex frontier
+      have bound := (covers vertex).mp owned
+      apply Classical.byContradiction
+      intro nonconclusion
+      have uses := (structural.2.2.2.2.2 vertex bound).2
+      rw [if_neg nonconclusion] at uses
+      obtain ⟨link, eq⟩ := List.length_eq_one_iff.mp uses
+      have inFilter : link ∈ certificate.links.filter (Link.usesAsPremise vertex) := by
+        rw [eq]; simp
+      obtain ⟨submitted, premise⟩ := List.mem_filter.mp inFilter
+      have premiseMem : vertex ∈ link.premises := by simpa [Link.usesAsPremise] using premise
+      have consumed : vertex ∈ consumedOccurrences certificate used := by
+        cases link with
+        | «axiom» left right => simp [Link.premises] at premiseMem
+        | tensor left right conclusion | par left right conclusion =>
+            have wf := structural.2.2.2.2.1 _ submitted
+            obtain ⟨i, mem, lookup⟩ := owned_producer_used structural witness.derivation
+              ((covers conclusion).mpr wf.2.2.2.2.2.1) submitted (by simp [Link.produces])
+            exact consumed_iff_premise.mpr ⟨i, mem, _, lookup, premiseMem⟩
+      have one := (List.nodup_iff_count.mp witness.owned_nodup) vertex
+      have positive := List.count_pos_iff.mpr frontier
+      have consumedPositive := List.count_pos_iff.mpr consumed
+      omega
+    · intro conclusion
+      have owned := (covers vertex).mpr (structural.2.2.1 vertex conclusion)
+      have notConsumed : vertex ∉ consumedOccurrences certificate used := by
+        intro consumed
+        obtain ⟨i, _, link, lookup, premise⟩ := consumed_iff_premise.mp consumed
+        exact premise_not_conclusion structural (List.mem_of_getElem? lookup) premise
+          (structural.2.2.1 vertex conclusion) conclusion
+      have zero := List.count_eq_zero.mpr notConsumed
+      have positive := List.count_pos_iff.mpr owned
+      apply List.count_pos_iff.mp
+      omega
+  have conclusionsNodup := CutFreeDerivation.nodup_of_eraseDups_length_eq structural.2.2.2.1
+  apply List.perm_iff_count.mpr
+  intro vertex
+  have leftLe := (List.nodup_iff_count.mp witness.frontier_nodup) vertex
+  have rightLe := (List.nodup_iff_count.mp conclusionsNodup) vertex
+  by_cases member : vertex ∈ component.frontier
+  · have leftPos := List.count_pos_iff.mpr member
+    have rightPos := List.count_pos_iff.mpr ((boundary vertex).mp member)
+    omega
+  · rw [List.count_eq_zero.mpr member, List.count_eq_zero.mpr
+      (fun inConclusions ↦ member ((boundary vertex).mpr inConclusions))]
+
+private theorem occurrenceOrder_spec {source target : List Vertex}
+    (subset : target ⊆ source) (nodup : target.Nodup) :
+    ∃ order, occurrenceOrder? source target = some order ∧
+      order.mapM (fun index ↦ source[index]?) = some target ∧
+      order.length = target.length ∧ order.Nodup ∧
+      (∀ index ∈ order, ∃ vertex ∈ target, source[index]? = some vertex) := by
+  induction target with
+  | nil => exact ⟨[], rfl, rfl, rfl, .nil, by simp⟩
+  | cons vertex tail ih =>
+      have find := List.findIdx?_eq_some_of_exists
+        (xs := source) (p := (· == vertex)) ⟨vertex, subset (by simp), by simp⟩
+      obtain ⟨bound, eq, _⟩ := List.findIdx?_eq_some_iff_getElem.mp find
+      have lookup : source[source.findIdx (· == vertex)]? = some vertex := by
+        rw [List.getElem?_eq_getElem bound, beq_iff_eq.mp eq]
+      obtain ⟨order, orderEq, mapped, length, orderNodup, members⟩ :=
+        ih (fun _ mem ↦ subset (by simp [mem])) (List.nodup_cons.mp nodup).2
+      refine ⟨source.findIdx (· == vertex) :: order, ?_, ?_, by simp [length], ?_, ?_⟩
+      · simp [occurrenceOrder?, find, orderEq]
+      · simp [lookup, mapped]
+      · apply List.nodup_cons.mpr
+        refine ⟨?_, orderNodup⟩
+        intro member
+        obtain ⟨v, mem, eq⟩ := members _ member
+        have same : v = vertex := Option.some.inj (eq.symm.trans lookup)
+        exact (List.nodup_cons.mp nodup).1 (same ▸ mem)
+      · intro i mem
+        rcases List.mem_cons.mp mem with rfl | mem
+        · exact ⟨vertex, by simp, lookup⟩
+        · obtain ⟨v, mem, eq⟩ := members i mem
+          exact ⟨v, by simp [mem], eq⟩
+
+private theorem eraseDups_eq_of_nodup {values : List Nat} (nodup : values.Nodup) :
+    values.eraseDups = values := by
+  induction values with
+  | nil => rfl
+  | cons head tail ih =>
+      obtain ⟨fresh, tailNodup⟩ := List.nodup_cons.mp nodup
+      rw [List.eraseDups_cons]
+      have filterEq : tail.filter (fun v ↦ !v == head) = tail := by
+        apply List.filter_eq_self.mpr
+        intro v member
+        simp only [Bool.not_eq_true', beq_eq_false_iff_ne]
+        intro eq
+        exact fresh (eq ▸ member)
+      rw [filterEq, ih tailNodup]
+
+/-- Final extraction succeeds with a duplicate-free occurrence order that
+reorders the sole live component into the exact ordered input boundary. -/
+theorem sequentialFinalTree?_eq_some {certificate : Certificate} {state : ReservationState}
+    (reachable : ReachableByImplementedDispatcher certificate state)
+    (correct : certificate.DeclarativelyCorrect) (marked : state.core.allMarked = true) :
+    ∃ component order used owned,
+      state.core.liveComponents = [component] ∧
+      certificate.ComponentOccurrenceWitness component used owned ∧
+      (∀ vertex, vertex ∈ owned ↔ vertex < certificate.formulas.size) ∧
+      occurrenceOrder? component.frontier certificate.conclusions = some order ∧
+      order.Nodup ∧
+      CutFreeDerivation.reorder? component.frontier order = some certificate.conclusions ∧
+      sequentialFinalTree? certificate state = some (.exchange order component.tree) := by
+  obtain ⟨_, component, used, owned, _, _, live, witness, covers⟩ :=
+    finalComponents_eq_singleton reachable correct marked
+  have permutation := finalFrontier_perm correct.1 witness covers
+  obtain ⟨order, orderEq, mapped, length, nodup, members⟩ := occurrenceOrder_spec
+    (fun _ mem ↦ permutation.mem_iff.mpr mem) (permutation.nodup witness.frontier_nodup)
+  have eraseEq := eraseDups_eq_of_nodup nodup
+  have bounded : ∀ i ∈ order, i < component.frontier.length := by
+    intro i mem
+    obtain ⟨v, _, lookup⟩ := members i mem
+    exact (List.getElem?_eq_some_iff.mp lookup).1
+  have orderLength : order.length = component.frontier.length :=
+    length.trans permutation.length_eq.symm
+  refine ⟨component, order, used, owned, live, witness, covers, orderEq, nodup, ?_, ?_⟩
+  · rw [CutFreeDerivation.reorder?_eq_reorderCandidate?]
+    simpa [CutFreeDerivation.reorderCandidate?, orderLength, eraseEq, List.all_eq_true, mapped]
+      using bounded
+  · simp [sequentialFinalTree?, live, permutation.length_eq, orderEq, eraseEq, guard]
+
+/-- Final extraction infers the exact input sequent and builds an accepted
+certificate. Equivalence of that output to the input is a separate obligation. -/
+theorem sequentialFinalTree?_infer_eq {certificate : Certificate} {state : ReservationState}
+    (reachable : ReachableByImplementedDispatcher certificate state)
+    (correct : certificate.DeclarativelyCorrect) (marked : state.core.allMarked = true) :
+    ∃ tree sequent, sequentialFinalTree? certificate state = some tree ∧
+      certificate.conclusionFormulas? = some sequent ∧ tree.infer? = some sequent ∧
+      ∃ output, tree.desequentialize? = some output ∧ output.check = true := by
+  obtain ⟨component, order, _, _, _, witness, _, _, _, reorder, finalEq⟩ :=
+    sequentialFinalTree?_eq_some reachable correct marked
+  obtain ⟨sequent, inferred, labels⟩ :=
+    (witness.derivation.exchange order certificate.conclusions reorder).formulaConsistent correct.1
+  obtain ⟨output, built, _, checked⟩ :=
+    CutFreeDerivation.desequentialize?_exists_checked_of_infer? inferred
+  exact ⟨.exchange order component.tree, sequent, finalEq, labels, inferred, output, built, checked⟩
+
+/-- Exact correspondence between fresh builder indices and submitted occurrences.
+`numbering[i]` is the input occurrence represented by fresh vertex `i`.
+The ordered roots are literal; only the link storage order may vary. -/
+structure OccurrenceBuildMatch (certificate : Certificate) (fragment : NetFragment)
+    (frontier used owned numbering : List Nat) : Prop where
+  size_eq : numbering.length = fragment.formulas.size
+  owned_perm : numbering.Perm owned
+  labels_eq : ∀ index, index < fragment.formulas.size →
+    certificate.formula? (numbering[index]?.getD 0) = fragment.formulas[index]?
+  roots_eq : fragment.roots.map (fun index ↦ numbering[index]?.getD 0) = frontier
+  links_perm : (fragment.links.map (fun link ↦ match link with
+    | .axiom left right => .axiom (numbering[left]?.getD 0) (numbering[right]?.getD 0)
+    | .tensor left right conclusion => .tensor (numbering[left]?.getD 0)
+        (numbering[right]?.getD 0) (numbering[conclusion]?.getD 0)
+    | .par left right conclusion => .par (numbering[left]?.getD 0)
+        (numbering[right]?.getD 0) (numbering[conclusion]?.getD 0))).Perm
+      (used.filterMap fun index ↦ certificate.links[index]?)
+
+/-- The axiom build uses fresh vertices zero and one for the exact submitted
+endpoints, retaining their orientation even when other labels repeat. -/
+theorem occurrenceBuild_axiom_eq {certificate : Certificate}
+    (structural : certificate.StructurallyWellFormed) {index left right : Nat}
+    {name : String} {positive : Bool}
+    (lookup : certificate.links[index]? = some (.axiom left right))
+    (label : certificate.formula? left = some (.atom name positive)) :
+    ∃ fragment, (CutFreeDerivation.axiom name positive).build? = some fragment ∧
+      OccurrenceBuildMatch certificate fragment
+        [left, right] [index] [left, right] [left, right] := by
+  let formula : Formula := .atom name positive
+  let fragment : NetFragment :=
+    ⟨#[formula, formula.dual], [.axiom 0 1], [formula, formula.dual], [0, 1]⟩
+  have wf := structural.2.2.2.2.1 _ (List.mem_of_getElem? lookup)
+  have rightLabel : certificate.formula? right = some formula.dual := by
+    have typing := wf.2.2.2
+    rw [label] at typing
+    cases rightEq : certificate.formula? right with
+    | none => simp [rightEq] at typing
+    | some rightFormula =>
+        simp [rightEq] at typing
+        simp [formula, typing]
+  refine ⟨fragment, rfl, rfl, .refl _, ?_, rfl, ?_⟩
+  · intro vertex bound
+    have two : vertex < 2 := bound
+    have cases : vertex = 0 ∨ vertex = 1 := by omega
+    rcases cases with rfl | rfl
+    · exact label
+    · exact rightLabel
+  · simp [fragment, lookup]
+
+/-- An exact occurrence exchange preserves the same fresh-vertex numbering,
+formula labels, and submitted links, changing only the ordered roots. -/
+theorem occurrenceBuild_exchange_eq {certificate : Certificate} {tree : CutFreeDerivation}
+    {fragment : NetFragment} {frontier used owned numbering order reordered : List Nat}
+    (built : tree.build? = some fragment)
+    (matched : OccurrenceBuildMatch certificate fragment frontier used owned numbering)
+    (reorder : CutFreeDerivation.reorder? frontier order = some reordered) :
+    ∃ output, (CutFreeDerivation.exchange order tree).build? = some output ∧
+      OccurrenceBuildMatch certificate output reordered used owned numbering := by
+  let project := fun entry : Formula × Vertex ↦ numbering[entry.2]?.getD 0
+  have entriesEq : fragment.entries.map project = frontier := by
+    rw [← matched.roots_eq, ← fragment.entries_map_snd (CutFreeDerivation.build?_balanced built)]
+    simp [List.map_map, project]
+  obtain ⟨entries, entriesReorder, entriesMapped⟩ :=
+    CutFreeDerivation.reorder?_exists_of_map_eq_some project (by rwa [entriesEq])
+  refine ⟨NetFragment.ofEntries fragment.formulas fragment.links entries, ?_,
+    matched.size_eq, matched.owned_perm, matched.labels_eq, ?_, matched.links_perm⟩
+  · simp [CutFreeDerivation.build?, built, entriesReorder]
+  · simpa [NetFragment.ofEntries, List.map_map, Function.comp_def, project] using entriesMapped
+
+/- Unproved induction target. Par extends the premise numbering by [conclusion].
+Tensor concatenates the left numbering, the right numbering, and [conclusion];
+the right fragment's fresh vertices are shifted by the left formula count.
+The exact picks must identify the selected fresh roots with the input premises.
+The axiom and exchange branches are proved above; par and tensor remain open. -/
+private def OccurrenceBuildTarget : Prop :=
+  ∀ {certificate : Certificate} {tree : CutFreeDerivation}
+    {frontier used owned : List Nat},
+    certificate.StructurallyWellFormed →
+    certificate.OccurrenceDerivation tree frontier used owned →
+    ∃ fragment numbering, tree.build? = some fragment ∧
+      OccurrenceBuildMatch certificate fragment frontier used owned numbering
+
+/- Unproved full-carrier consequence required by the verifier. The numbering
+must yield a bounded VertexRenaming, and its link permutation must cover every
+submitted link, including axioms. Equivalence is the conclusion of this target. -/
+private def OccurrenceEquivalenceTarget : Prop :=
+  ∀ {certificate : Certificate} {tree : CutFreeDerivation} {used owned : List Nat},
+    certificate.StructurallyWellFormed →
+    certificate.ComponentOccurrenceWitness ⟨tree, certificate.conclusions⟩ used owned →
+    (∀ vertex, vertex ∈ owned ↔ vertex < certificate.formulas.size) →
+    ∃ output, tree.desequentialize? = some output ∧ output.ProofNetEquivalent certificate
 
 /-- Boolean acceptance of the sequential proof-bearing reconstruction. -/
 def sequentialFastCheck (certificate : Certificate) : Bool :=

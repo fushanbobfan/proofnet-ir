@@ -2379,7 +2379,7 @@ private theorem owned_ne_nil {certificate : Certificate} {tree : CutFreeDerivati
 
 /-- A started drained state has an empty active bucket and a vertex marked in
 the active class: the seed of the connectivity argument. -/
-private theorem seed_of_drained {certificate : Certificate} {state : ReservationState}
+theorem seed_of_drained {certificate : Certificate} {state : ReservationState}
     (invariant : SchedulerInvariant certificate state) (drained : ActiveTopDrained state) :
     ∃ age seed, state.stack.sigma.getLast? = some age ∧
       state.stack.ready.getLast? = some [] ∧
