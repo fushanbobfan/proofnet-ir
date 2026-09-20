@@ -17,7 +17,7 @@ Status date: 2026-09-18
 | Track | Revision | Status | Authority |
 | --- | --- | --- | --- |
 | Stable library | `v0.9.0` / `9b7dc3d104af8f57ea9123aab2e61b42e05d2216` | Released | [v0.9.0 release audit](v0.9-release-audit.md) |
-| Rolling research | `v0.10.0-dev`; proof `2377775`; audit `1e46573` | Active | This page/commits |
+| Rolling research | `v0.10.0-dev`; proof `ea64f0b`; audit `1e46573` | Active | This page/commits |
 
 Documentation-only commits may descend from the proof checkpoint without
 changing its mathematical authority. The stable release and rolling branch
@@ -46,17 +46,21 @@ The exact release guarantees, receipts, and non-goals are frozen in the
 
 ## Rolling main result
 
-The termination checkpoint bounds every canonical dispatcher history.
-`dispatchMeasure` counts the marked occurrences of the production core; every
-successful `dispatch?` call marks exactly one more (`DispatchStep.measure_eq`,
-through the now-public `DispatchTagEvidence.after_core_marks_eq_prepared`); and
-the scheduler invariant bounds the measure by `certificate.formulas.size`.
-Hence `ExecutedHistory.dispatchCount_le`: a history holds at most
-`formulas.size` dispatcher calls, initialization excluded, and `dispatch_stops`:
-a run that feeds every successful output below that index forward from a
-scheduler-invariant start meets `dispatch? = none` at an index at most
-`formulas.size`. The queue-status checkpoints below are unchanged by this
-layer.
+The C12 checkpoint reduces the `nop` and `wait` branches of the history-tail
+law to one state predicate. `ParHeadGuardTailNonconclusion` (C12) says that
+when the active ready bucket's head is a par premise whose mate is unmarked or
+marked below the active raw age, the rest of the bucket holds a non-conclusion.
+Every correct initialization satisfies C12
+(`InitialReservationStep.parHeadGuardTail`), and C12 on the pre-state
+discharges the exact remaining-top obligation of a `nop` or `wait` step
+(`NopStep.tailNonconclusion_of_parHeadGuard`,
+`WaitStep.tailNonconclusion_of_parHeadGuard`). C12 is not a state-only
+inductive invariant: `parHeadGuardTail_not_inductive` exhibits a correct
+certificate and a `SchedulerInvariant` state satisfying C12 whose canonical
+`nop` successor violates it, and proves that pre-state canonically
+unreachable. The finite probe reports C12 at every one of 1,217,664 default
+and 1,071,360 wait-focus reachable states. The termination checkpoint and the
+queue-status checkpoints below are unchanged.
 
 The preceding temporal checkpoint specializes the normalized parent escape to actual Nop
 and Wait failures. The preceding source and continuation-credit normalizers
@@ -1158,6 +1162,10 @@ completion argument.
 
 This checkpoint does not establish any of the following:
 
+- C12 at every canonically reachable state, the history-tail law, the
+  created-head obligations of the `forward` and `unifyPayload` branches, or
+  unconditional progress; the certified obstruction shows that any proof must
+  carry reachability information beyond `SchedulerInvariant` and C12;
 - progress, later-state totality, or terminal-state completeness from the
   termination bound, which counts successful calls and says nothing about the
   state in which a run stops;
@@ -1270,12 +1278,12 @@ plan is maintained in [v0.10-design.md](v0.10-design.md) and
 The exact rolling proof checkpoint is:
 
 ```text
-commit    2377775bbcc1ac482e2dcdae2085cbbcbc5639ea
-tree      a852317ec298c9a49f294ba627599060a40e4686
-parent    80bb2a64fb9d426461d8a32f49b7076fb49a13ea
-stage     bound canonical dispatcher history length
-delta     12 paths, +417/-2
-manifest  23223FD8F401A65A03759AA7798880FBDBAFC4678D68A87C1845F442B5D0A353
+commit    ea64f0b03b93ab556958162741c5bb591c618f5a
+tree      2d73c39aef2d332604cbdf683695221ef1caff20
+parent    b769d1d0ddc4b7624e612585fcce6ebee20684dd
+stage     certify the C12 preservation obstruction
+delta     12 paths, +603/-2
+manifest  EA32864D0381C05F4E54493F592561AF1A792F7A54446C18581399EFFB026830
 ```
 
 The manifest hashes canonical
@@ -1284,9 +1292,9 @@ The manifest hashes canonical
 The checkpoint source receipts are:
 
 ```text
-termination source    B1410F48A043A52E1F940B4351D4B371D9770C7B22B403B051E2150821A3285D
-termination consumer  78CFAAF2D6AEACEA4D3AEE137DE3DBEDEACCD94C4CE5FC13B2D1455164F56E41
-generated API         48E96F925881BD05030140CF143F360792C7DA3B3F4D301AEF4F5A719788F551
+tail-law source    571FC55B2B76AB15641D883FAAF4B9186DA0D017A328E26A54AAA6B3F1FC223D
+tail-law consumer  2E6E5B8B5F80E072DC5DE5A186DE6E4A835AC28BA7CCAAA526330FC5B9A36BCF
+generated API      27B2A5716ED6908E8C654C9B9CEED0D63B051D6956A330BA3D385F26898CBC91
 ```
 
 The separately committed finite-audit evidence is:
@@ -1302,38 +1310,38 @@ manifest  4BBAB7FC99D03D2612459A0FD9291990313A05A184F2572A581BC93C6E49DFDD
 
 Local verification of the committed checkpoint:
 
-- full `lake build`: 714/714 jobs;
-- token scan for `sorry` and `admit` across the 332 tracked Lean files: no
-  proof placeholder; the only two hits are the word "admit" inside docstrings
-  of `ProofNetIR/Unification.lean`;
-- library inventory: 332 tracked Lean files and 205,612 Lean source lines,
-  including 184 module files under `ProofNetIR/` counted recursively, the first
-  of them in the `ProofNetIR/Figure7/` directory;
-- generated API reference: current at 107 sections and 1,843 declarations;
-- the runnable termination consumer built at `warningAsError`, ran, and printed
-  `Figure-7 termination consumer passed: two dispatches, bound 2, stop at
-  index 2`; the module and the consumer also compiled under `--trust=0`;
-- the six public declarations of the checkpoint report exactly `propext`,
-  `Classical.choice`, and `Quot.sound`;
-- public theorem audit: 1115 entries total: 817 standard-three, 25 axiom-free,
+- full `lake build`: 722/722 jobs;
+- the four public declarations of the checkpoint report exactly `propext`,
+  `Classical.choice`, and `Quot.sound`; the module and its consumer compile
+  under `--trust=0`, and the consumer printed
+  `C12 consumer passed: initialization, nop/wait implications, preservation
+  obstruction`;
+- public theorem audit: 1119 entries total: 821 standard-three, 25 axiom-free,
   132 `propext`-only, and 141 `propext`/`Quot.sound` boundaries;
+- generated API reference current; convergence check passed (one new module,
+  four new public theorems, 306 library lines, 7 prose lines);
+- `--invariant-probe`: C12 holds at all 1,217,664 default and 1,071,360
+  wait-focus reachable states; the C13 suffix strengthening fails at 173,226
+  and 474,336 of them;
 - `git diff --check` clean on the staged delta.
 
 Exact-head proof GitHub verification:
 
 - workflow: `Lean CI`;
 - event/ref: `push` / `main`;
-- run: [35424021458](https://github.com/fushanbobfan/proofnet-ir/actions/runs/35424021458);
-- build job: [105846734995][proof-job];
-- title/attempt: `feat: bound canonical dispatcher history length` / 1;
-- exact head: `2377775bbcc1ac482e2dcdae2085cbbcbc5639ea`;
-- result: 36 successful steps, zero failures, and one expected
+- run: [35487810755](https://github.com/fushanbobfan/proofnet-ir/actions/runs/35487810755);
+- build job: [106017290541][proof-job];
+- title/attempt: `docs: record the C12 obstruction in the goal ledger` / 1
+  (the run covers head `4d1c6bd`, whose only change over `ea64f0b` is the
+  ledger row);
+- exact head: `4d1c6bd3e37df1ae3b2718d3b26724301e694873`;
+- result: 40 successful steps, zero failures, and one expected
   release-ref-only skip;
-- run: `2026-09-19T05:28:01Z`-`2026-09-19T05:41:13Z` (13m12s);
-- build job: `2026-09-19T05:28:04Z`-`2026-09-19T05:41:13Z`
-  (13m09s).
+- run: `2026-09-20T03:55:09Z`-`2026-09-20T04:11:04Z` (15m55s);
+- build job: `2026-09-20T03:55:12Z`-`2026-09-20T04:11:03Z`
+  (15m51s).
 
-[proof-job]: https://github.com/fushanbobfan/proofnet-ir/actions/runs/35424021458/job/105846734995
+[proof-job]: https://github.com/fushanbobfan/proofnet-ir/actions/runs/35487810755/job/106017290541
 [reentry-failure]: api-reference.md#commitment-interval-par-guard-re-entry-failure-target
 [reentry-mate-separation]: api-reference.md#commitment-interval-par-guard-re-entry-mate-separation
 [target-temporal]: api-reference.md#commitment-interval-marked-re-entry-target-temporal-reduction
