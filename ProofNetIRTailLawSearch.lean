@@ -1,4 +1,4 @@
-import ProofNetIR.SequentialFigure7ActiveTopDebtHistoryTail
+import ProofNetIR.Figure7.TailLaw
 import ProofNetIR.Serialization
 import ProofNetIR.Unification
 import ProofNetIR.Generate
@@ -30,15 +30,33 @@ head whose mate is unmarked or older leaves a non-conclusion in the rest of the
 active bucket), C13 (the same condition on every suffix of that bucket),
 SHAPE and PAIRS at every reachable state (the bucket is connective
 conclusions then atoms; each atom's axiom partner is in the atom run or
-marked), and
+marked), I1--I6, the whole ready-stack shape, the seven conditions of the
+order-free region-closure candidate CLOSURE (marked axiom endpoints and raw
+bucket atoms keep their partner in the same region, the active class has no
+tensor premise waiting for its mate, each class has at most one such premise,
+fired tensors and same-class pars keep their conclusion in the region,
+region conclusions have both premises marked there, and cross-class pars sit
+in the waiting cell of the older class), and
 C2 at every wait, and C3--C5 separately at both rules, before the popped head
 receives its raw mark. C4 counts submitted pars with exactly one premise whose
 raw mark resolves to the active component, including marks created at older
 raw ages. First failures include the submitted occurrence numbering.
 
+`--inductiveness-probe` uses one label decoration and all six ordering variants
+of both shape families, with no deep random trees. At reachable states with at
+most 32 vertices and at most four active entries, it permutes the active bucket
+and takes zero or more bare pop/mark prefixes. These seeds carry a proof of
+SchedulerInvariant but need not be reachable. Every seed is replayed to a stop;
+the resulting snapshot list is checked closed under dispatch. Preservation is
+measured per rule only when the candidate bundle holds before that rule, and
+the implication CLOSURE to C12 is counted at every snapshot where CLOSURE
+holds. Counts include repeated snapshots. Skipped reachable states are
+reported.
+
 The ten-minute limit is checked between complete histories. Exhausting replay
 fuel or missing the requested coverage fails closed and never prints `-ok`.
-There is no theorem here, including no Boolean-reflection or completeness theorem.
+The private obstruction regression is kernel checked; the aggregate measurements
+have no Boolean-reflection, completeness, or unbounded preservation theorem.
 -/
 
 open ProofNetIR
@@ -113,6 +131,396 @@ private structure ProbeCount where
   fails : Nat := 0
   deriving Repr, Inhabited
 
+private def bucketLabels : Array String :=
+  #["I1 last-guarded-atom-has-unmarked-partner", "I2 pairs-with-at-most-one-singleton",
+    "I3 prefix-marked-suffix-guard", "STACK every-bucket-shaped",
+    "I4 legal-pop-prefix", "I5 adjacent-live-axiom-pairs",
+    "I6 marked-premises-have-marked-or-queued-conclusion",
+    "CLOSURE PAIRS-class", "CLOSURE T-top", "CLOSURE T-one", "CLOSURE T-fired",
+    "CLOSURE P-fired", "CLOSURE D-down", "CLOSURE W-exact"]
+
+private def mergeLabels : Array String :=
+  #["payload-atoms", "previous-atoms", "active-atoms", "payload-connectives"]
+
+private def bundleLabels : Array String :=
+  #["BASE", "BASE+I4", "BASE+I5", "BASE+I4+I5+STACK", "BASE+I4+I5+STACK+I6",
+    "CLOSURE", "CLOSURE+C12"]
+
+private def atomAt (certificate : Certificate) (vertex : Vertex) : Bool :=
+  match certificate.formulas[vertex]? with
+  | some (.atom _ _) => true
+  | _ => false
+
+private def axiomPartner? (certificate : Certificate) (vertex : Vertex) : Option Vertex :=
+  certificate.links.findSome? fun link ↦ match link with
+    | .axiom left right =>
+        if left == vertex then some right else if right == vertex then some left else none
+    | _ => none
+
+private def shaped (certificate : Certificate) (bucket : List Vertex) : Bool :=
+  (bucket.dropWhile fun vertex ↦ !atomAt certificate vertex).all (atomAt certificate)
+
+private def completePairs (certificate : Certificate) : List Vertex → Bool
+  | [] => true
+  | left :: right :: rest =>
+      axiomPartner? certificate left == some right && completePairs certificate rest
+  | [_] => false
+
+-- Only concl/nop/wait may advance this lookahead. Forward and tensor consumers
+-- end it: their created vertices, suspension, and merging change the order.
+private def popPrefixSafe (certificate : Certificate) (state : ReservationState)
+    (age : RawTokenAge) : List Vertex → List Vertex → Bool
+  | _, [] => true
+  | earlier, head :: rest =>
+      if certificate.conclusions.contains head then
+        popPrefixSafe certificate state age (head :: earlier) rest
+      else match certificate.connectiveBelow? head with
+        | none => true
+        | some consumer =>
+            let guarded := consumer.kind == .par && !earlier.contains consumer.mate &&
+              (state.core.marks[consumer.mate]? == some none ||
+                match state.core.marks[consumer.mate]? with
+                | some (some mateAge) => mateAge < age
+                | _ => false)
+            !guarded || (hasNonconclusion certificate rest &&
+              popPrefixSafe certificate state age (head :: earlier) rest)
+
+private def adjacentLivePairs (certificate : Certificate) (state : ReservationState) :
+    List Vertex → Bool
+  | [] => true
+  | head :: rest => match axiomPartner? certificate head with
+    | none => false
+    | some partner =>
+        match state.core.marks[partner]? with
+        | some (some _) => adjacentLivePairs certificate state rest
+        | _ => match rest with
+          | [] => false
+          | next :: tail => partner == next && adjacentLivePairs certificate state tail
+
+private def oneSingletonPairs (certificate : Certificate) (state : ReservationState) :
+    List Vertex → Bool
+  | [] => true
+  | head :: rest => match axiomPartner? certificate head with
+    | none => false
+    | some partner => match state.core.marks[partner]? with
+      | some (some _) => completePairs certificate rest
+      | _ => match rest with
+        | [] => false
+        | next :: tail => partner == next && oneSingletonPairs certificate state tail
+
+private def markedPremisesAccounted (certificate : Certificate) (state : ReservationState) : Bool :=
+  let marked := fun vertex ↦ match state.core.marks[vertex]? with
+    | some (some _) => true
+    | _ => false
+  certificate.links.all fun link ↦ match link with
+    | .axiom _ _ => true
+    | .par left right conclusion | .tensor left right conclusion =>
+        !marked left || !marked right || marked conclusion ||
+          state.stack.queuedVertices.contains conclusion
+
+-- CLOSURE: an order-free candidate. Every vertex is placed in the class
+-- (union-find representative of its mark) of the layer that consumed it;
+-- the region of a class is its marked vertices plus the raw vertices of the
+-- ready bucket at that class's sigma boundary. The conditions say that the
+-- marked part of every region is closed under the link structure except at
+-- par links whose other premise lies outside the region, and that the active
+-- class carries no tensor premise still waiting for a `new`.
+private def classOf (state : ReservationState) (vertex : Vertex) : Option RawTokenAge :=
+  match state.core.marks[vertex]? with
+  | some (some age) => some (state.core.representative age)
+  | _ => none
+
+private def bucketOfClass (state : ReservationState) (cls : RawTokenAge) : List Vertex :=
+  ((state.stack.sigma.zip state.stack.ready).find? fun entry ↦
+    state.core.representative entry.1 == cls).map (·.2) |>.getD []
+
+private def inRegion (state : ReservationState) (cls : RawTokenAge) (vertex : Vertex) : Bool :=
+  classOf state vertex == some cls || (bucketOfClass state cls).contains vertex
+
+private def closureLabels : Array String :=
+  #["PAIRS-class", "T-top", "T-one", "T-fired", "P-fired", "D-down", "W-exact"]
+
+private def closureConditions (certificate : Certificate) (state : ReservationState) :
+    Array Bool :=
+  let marked := fun vertex ↦ (classOf state vertex).isSome
+  let active := state.stack.sigma.getLast?
+  let sameClass := fun (left right : Vertex) ↦
+    match classOf state left, classOf state right with
+    | some l, some r => l == r
+    | _, _ => false
+  let regionOfMarked := fun (premise target : Vertex) ↦
+    match classOf state premise with
+    | some cls => inRegion state cls target
+    | none => true
+  let pairs := certificate.links.all fun link ↦ match link with
+    | .axiom left right => regionOfMarked left right && regionOfMarked right left
+    | _ => true
+  let tTop := certificate.links.all fun link ↦ match link with
+    | .tensor left right _ =>
+        (classOf state left != active || marked right) &&
+          (classOf state right != active || marked left)
+    | _ => true
+  let pendingTensors := certificate.links.flatMap fun link ↦ match link with
+    | .tensor left right _ =>
+        (if marked left && !marked right then [classOf state left] else []) ++
+          (if marked right && !marked left then [classOf state right] else [])
+    | _ => []
+  let tOne := pendingTensors.all fun cls ↦ pendingTensors.count cls ≤ 1
+  let tFired := certificate.links.all fun link ↦ match link with
+    | .tensor left right conclusion =>
+        !(marked left && marked right) ||
+          (sameClass left right && regionOfMarked left conclusion)
+    | _ => true
+  let pFired := certificate.links.all fun link ↦ match link with
+    | .par left right conclusion =>
+        !sameClass left right || regionOfMarked left conclusion
+    | _ => true
+  let dDown := certificate.links.all fun link ↦ match link with
+    | .tensor left right conclusion | .par left right conclusion =>
+        (match classOf state conclusion with
+          | some cls => classOf state left == some cls && classOf state right == some cls
+          | none => true) &&
+        ((state.stack.sigma.zip state.stack.ready).all fun entry ↦
+          !entry.2.contains conclusion ||
+            (classOf state left == some (state.core.representative entry.1) &&
+              classOf state right == some (state.core.representative entry.1)))
+    | _ => true
+  let waitingCell := fun (boundary : RawTokenAge) ↦ match state.stack.waiting[boundary]? with
+    | some (.initialized vertices) => vertices
+    | _ => []
+  let wForward := certificate.links.all fun link ↦ match link with
+    | .par left right conclusion =>
+        match classOf state left, classOf state right with
+        | some l, some r => l == r || (waitingCell (min l r)).contains conclusion
+        | _, _ => true
+    | _ => true
+  let wBackward := state.stack.sigma.all fun boundary ↦ (waitingCell boundary).all fun vertex ↦
+    certificate.links.any fun link ↦ match link with
+      | .par left right conclusion => conclusion == vertex &&
+          (match classOf state left, classOf state right with
+            | some l, some r => l != r && min l r == state.core.representative boundary
+            | _, _ => false)
+      | _ => false
+  #[pairs, tTop, tOne, tFired, pFired, dDown, wForward && wBackward]
+
+private def closureHolds (certificate : Certificate) (state : ReservationState) : Bool :=
+  (closureConditions certificate state).all id
+
+-- I1 quantifies over atoms; "last" is with respect to non-conclusions in that
+-- atom run. I2 permits one singleton anywhere, a relaxation of requiring that
+-- it come from the current layer's original pair.
+-- I3 virtually marks every earlier bucket entry at the active age. It makes
+-- no assumption that those virtual pops are legal dispatcher transitions.
+private def bucketCandidates (certificate : Certificate) (state : ReservationState) : Array Bool :=
+  let bucket := state.stack.ready.getLast?.getD []
+  let atoms := bucket.filter (atomAt certificate)
+  let guarded := fun age vertex (earlier : List Vertex) ↦
+    match certificate.connectiveBelow? vertex with
+    | some consumer => consumer.kind == .par && !earlier.contains consumer.mate &&
+        (state.core.marks[consumer.mate]? == some none ||
+          match state.core.marks[consumer.mate]? with
+          | some (some mateAge) => mateAge < age
+          | _ => false)
+    | none => false
+  let i1 := match state.stack.sigma.getLast? with
+    | none => true
+    | some age => (List.range atoms.length).all fun index ↦
+        let vertex := atoms[index]!
+        !guarded age vertex ([] : List Vertex) ||
+          hasNonconclusion certificate (atoms.drop (index + 1)) ||
+          match axiomPartner? certificate vertex with
+          | some partner => atoms.contains partner && state.core.marks[partner]? == some none
+          | none => false
+  let i2 := oneSingletonPairs certificate state atoms
+  let i3 := match state.stack.sigma.getLast? with
+    | none => true
+    | some age => (List.range bucket.length).all fun index ↦
+        !guarded age bucket[index]! (bucket.take index) ||
+          hasNonconclusion certificate (bucket.drop (index + 1))
+  let i4 := (state.stack.sigma.getLast?).all fun age ↦
+    popPrefixSafe certificate state age [] bucket
+  #[i1, i2, i3, state.stack.ready.all (shaped certificate),
+    i4, adjacentLivePairs certificate state atoms, markedPremisesAccounted certificate state] ++
+    closureConditions certificate state
+
+private theorem mapReadyInvariant {certificate : Certificate} {state : ReservationState}
+    (invariant : SchedulerInvariant certificate state) (f : List Vertex → List Vertex)
+    (permutation : ∀ bucket, (f bucket).Perm bucket) :
+    SchedulerInvariant certificate
+      { state with stack := { state.stack with ready := state.stack.ready.map f } } := by
+  have flattened : (state.stack.ready.map f).flatten.Perm state.stack.ready.flatten := by
+    induction state.stack.ready with
+    | nil => exact .nil
+    | cons bucket rest ih =>
+        simpa using (permutation bucket).append ih
+  have queued := flattened.append_right state.stack.waitingVertices
+  refine { invariant with
+    stack_wellShaped := ?_
+    stack_operationalWaitingDomain := ?_
+    realizesSigma := ?_
+    ready_bucket_frontier_exact := ?_
+    queued_vertices_nodup := ?_
+    queued_vertices_unmarked := ?_
+    pending_premises_covered_except_ready := ?_ }
+  · refine { invariant.stack_wellShaped with
+      ready_aligned := by simpa using invariant.stack_wellShaped.ready_aligned
+      ready_nodup := ?_
+      ready_in_bounds := ?_ }
+    · intro bucket member
+      obtain ⟨old, oldMember, rfl⟩ := List.mem_map.mp member
+      exact (permutation old).nodup_iff.mpr (invariant.stack_wellShaped.ready_nodup old oldMember)
+    · intro bucket member vertex inside
+      obtain ⟨old, oldMember, rfl⟩ := List.mem_map.mp member
+      exact invariant.stack_wellShaped.ready_in_bounds old oldMember vertex
+        ((permutation old).mem_iff.mp inside)
+  · exact { invariant.stack_operationalWaitingDomain with }
+  · exact { invariant.realizesSigma with }
+  · intro position boundary bucket sigmaLookup readyLookup
+    change (state.stack.ready.map f)[position]? = some bucket at readyLookup
+    rw [List.getElem?_map] at readyLookup
+    cases oldEq : state.stack.ready[position]? with
+    | none => simp [oldEq] at readyLookup
+    | some old =>
+        have same : f old = bucket := by simpa [oldEq] using readyLookup
+        subst bucket
+        obtain ⟨component, lookup, membership⟩ :=
+          invariant.ready_bucket_frontier_exact sigmaLookup oldEq
+        exact ⟨component, lookup, fun vertex ↦ (permutation old).mem_iff.trans (membership vertex)⟩
+  · exact queued.nodup_iff.mpr invariant.queued_vertices_nodup
+  · intro vertex member
+    exact invariant.queued_vertices_unmarked vertex (queued.mem_iff.mp member)
+  · intro link member
+    have old := invariant.pending_premises_covered_except_ready member
+    cases link with
+    | «axiom» _ _ => trivial
+    | par left right conclusion | tensor left right conclusion =>
+        intro raw absent
+        exact old raw fun member ↦ absent (flattened.mem_iff.mpr member)
+
+private def invariantBundles (certificate : Certificate) (state : ReservationState) : Array Bool :=
+  let bucket := state.stack.ready.getLast?.getD []
+  let atoms := bucket.filter (atomAt certificate)
+  let pairs := atoms.all fun vertex ↦ match axiomPartner? certificate vertex with
+    | none => false
+    | some partner => atoms.contains partner || match state.core.marks[partner]? with
+      | some (some _) => true
+      | _ => false
+  let c12 := match state.stack.sigma.getLast?, bucket with
+    | some age, head :: rest => match certificate.connectiveBelow? head with
+      | none => true
+      | some consumer =>
+          let guarded := consumer.kind == .par &&
+            (state.core.marks[consumer.mate]? == some none ||
+              match state.core.marks[consumer.mate]? with
+              | some (some mateAge) => mateAge < age
+              | _ => false)
+          !guarded || hasNonconclusion certificate rest
+    | _, _ => true
+  let base := shaped certificate bucket && pairs && c12
+  let candidates := bucketCandidates certificate state
+  let combined := base && candidates[4]! && candidates[5]! && candidates[3]!
+  let closure := closureHolds certificate state
+  #[base, base && candidates[4]!, base && candidates[5]!, combined,
+    combined && candidates[6]!, closure, closure && c12]
+
+private structure Snapshot (certificate : Certificate) where
+  state : ReservationState
+  invariant : SchedulerInvariant certificate state
+
+private def traceSnapshots (certificate : Certificate) :
+    Nat → Snapshot certificate → IO (List (Snapshot certificate))
+  | fuel, snapshot => do
+      match equation : dispatch? certificate snapshot.state snapshot.invariant with
+      | none => return [snapshot]
+      | some result => match fuel with
+        | 0 => throw (IO.userError "inductiveness-probe-INCOMPLETE snapshot fuel")
+        | fuel + 1 =>
+            let rest ← traceSnapshots certificate fuel
+              ⟨result.after, dispatch?_schedulerInvariant snapshot.invariant equation⟩
+            return snapshot :: rest
+
+private def preparedSnapshots (certificate : Certificate) :
+    Nat → Snapshot certificate → List (Snapshot certificate)
+  | 0, snapshot => [snapshot]
+  | fuel + 1, snapshot => snapshot ::
+      match prepare? snapshot.state with
+      | none => []
+      | some prepared => preparedSnapshots certificate fuel
+          ⟨prepared.after, prepared.schedulerInvariant snapshot.invariant⟩
+
+private def insertEverywhere (vertex : Vertex) : List Vertex → List (List Vertex)
+  | [] => [[vertex]]
+  | head :: rest => (vertex :: head :: rest) ::
+      (insertEverywhere vertex rest).map (head :: ·)
+
+private def permutations : List Vertex → List (List Vertex)
+  | [] => [[]]
+  | head :: rest => (permutations rest).flatMap (insertEverywhere head)
+
+namespace BucketObstruction
+
+set_option maxRecDepth 8192
+set_option maxHeartbeats 4000000
+
+private def certificate : Certificate where
+  formulas := #[.atom "p4" true, .atom "p4" false, .atom "p5" false, .atom "p5" true,
+    .tensor (.atom "p4" true) (.atom "p5" false),
+    .par (.tensor (.atom "p4" true) (.atom "p5" false)) (.atom "p4" false),
+    .atom "p4" false, .atom "p4" true,
+    .tensor (.atom "p5" true) (.atom "p4" false),
+    .par (.tensor (.atom "p5" true) (.atom "p4" false))
+      (.par (.tensor (.atom "p4" true) (.atom "p5" false)) (.atom "p4" false))]
+  links := [.axiom 0 1, .axiom 2 3, .tensor 0 2 4, .par 4 1 5,
+    .axiom 6 7, .tensor 3 6 8, .par 8 5 9]
+  conclusions := [7, 9]
+
+private theorem correct : certificate.DeclarativelyCorrect :=
+  certificate.check_iff_declarativelyCorrect.mp (by decide +kernel)
+
+private def initial : Snapshot certificate :=
+  let state := (initializeReservation? certificate 0).getD (ReservationState.empty certificate)
+  have equation : initializeReservation? certificate 0 = some state := by decide +kernel
+  ⟨state, initializeReservation?_schedulerInvariant correct.1 equation⟩
+
+private def advance (snapshot : Snapshot certificate) : Snapshot certificate :=
+  match equation : dispatch? certificate snapshot.state snapshot.invariant with
+  | none => snapshot
+  | some result => ⟨result.after, dispatch?_schedulerInvariant snapshot.invariant equation⟩
+
+private def reordered : Snapshot certificate :=
+  let first := advance initial
+  ⟨{ first.state with stack := { first.state.stack with ready := first.state.stack.ready.map List.reverse } },
+    mapReadyInvariant first.invariant List.reverse (fun _ ↦ List.reverse_perm _)⟩
+
+private def skipped : Snapshot certificate :=
+  let prepared := (prepare? reordered.state).get (by decide +kernel)
+  ⟨prepared.after, prepared.schedulerInvariant reordered.invariant⟩
+
+private def before := advance (advance skipped)
+private def result := (dispatch? certificate before.state before.invariant).getD ⟨.concl, before.state⟩
+
+-- Kernel regression for the strongest tested bundle: a skipped tensor search
+-- can satisfy every current candidate, then fail C12 at a canonical forward.
+private theorem forward_obstruction :
+    certificate.DeclarativelyCorrect ∧
+    invariantBundles certificate before.state = #[true, true, true, true, true, false, false] ∧
+    before.state.stack.ready = [[1]] ∧
+    dispatch? certificate before.state before.invariant = some result ∧
+    result.kind = .forward ∧ result.after.stack.ready = [[5]] ∧
+    invariantBundles certificate result.after =
+      #[false, false, false, false, false, false, false] ∧
+    ¬ ParHeadGuardTailNonconclusion certificate result.after := by
+  refine ⟨correct, by decide +kernel, by decide +kernel, by decide +kernel,
+    by decide +kernel, by decide +kernel, by decide +kernel, ?_⟩
+  intro law
+  let consumer := (certificate.connectiveBelow? 5).get (by decide +kernel)
+  have tail := law (age := 0) (head := 5) (rest := []) consumer
+    (by decide +kernel) (by decide +kernel) (by decide +kernel)
+    (Or.inl (by decide +kernel))
+  simp at tail
+
+end BucketObstruction
+
 private def probeLabels : Array String :=
   #["C1 rule=nop", "C2 rule=wait", "C3 rule=nop", "C3 rule=wait",
     "C4 rule=nop", "C4 rule=wait", "C5 rule=nop", "C5 rule=wait",
@@ -144,6 +552,16 @@ private structure Stats where
   pairFails : Nat := 0
   singletonParFails : Nat := 0
   suffixParFails : Nat := 0
+  bucketProbes : Array ProbeCount := Array.replicate bucketLabels.size {}
+  mergeProbes : Array ProbeCount := Array.replicate mergeLabels.size {}
+  inductivenessProbe : Bool := false
+  preservation : Array ProbeCount := Array.replicate (bundleLabels.size * 6) {}
+  snapshotSeeds : Nat := 0
+  snapshotStates : Nat := 0
+  snapshotEdges : Nat := 0
+  snapshotSkipped : Nat := 0
+  closureStates : Nat := 0
+  closureC12Fails : Nat := 0
   deriving Repr
 
 private def kindIndex : Figure7RuleKind → Nat
@@ -187,6 +605,75 @@ private def submittedJson (certificate : Certificate) : Lean.Json :=
     ("formulas", .arr (certificate.formulas.map Certificate.formulaJson)),
     ("links", .arr (certificate.links.toArray.map Certificate.linkJson)),
     ("conclusions", Lean.toJson certificate.conclusions)]
+
+-- The seeds need not be reachable. Bucket permutations carry a Lean proof of
+-- SchedulerInvariant, and every successor uses its existing preservation proof.
+-- Each finite trace is checked closed under dispatch before testing antecedents.
+private def observePreservation (certificate : Certificate) (state : ReservationState)
+    (invariant : SchedulerInvariant certificate state) (context : String) (start step : Nat)
+    (stats : Stats) : IO Stats := do
+  if !stats.inductivenessProbe then return stats
+  let bucket := state.stack.ready.getLast?.getD []
+  if bucket.length > 4 || certificate.formulas.size > 32 then
+    return { stats with snapshotSkipped := stats.snapshotSkipped + 1 }
+  let mut stats := stats
+  for replacement in permutations bucket do
+    let f := fun old ↦ if replacement.Perm old then replacement else old
+    have perm : ∀ old, (f old).Perm old := by
+      intro old
+      dsimp [f]
+      split
+      · assumption
+      · exact .refl _
+    let seed : Snapshot certificate :=
+      ⟨{ state with stack := { state.stack with ready := state.stack.ready.map f } },
+        mapReadyInvariant invariant f perm⟩
+    for (preparedSeed, pops) in (preparedSnapshots certificate bucket.length seed).zipIdx do
+      let snapshots ← traceSnapshots certificate (2 * certificate.formulas.size + 1) preparedSeed
+      let states := snapshots.map Snapshot.state
+      stats := { stats with
+        snapshotSeeds := stats.snapshotSeeds + 1
+        snapshotStates := stats.snapshotStates + snapshots.length }
+      for (snapshot, offset) in snapshots.zipIdx do
+        match dispatch? certificate snapshot.state snapshot.invariant with
+        | none => pure ()
+        | some result =>
+            unless states.contains result.after do
+              throw (IO.userError "inductiveness-probe-ERROR snapshot set is not closed")
+            stats := { stats with snapshotEdges := stats.snapshotEdges + 1 }
+            let before := invariantBundles certificate snapshot.state
+            let after := invariantBundles certificate result.after
+            if before[5]! then
+              stats := { stats with closureStates := stats.closureStates + 1 }
+              if !before[6]! then
+                if stats.closureC12Fails == 0 then
+                  IO.println "inductiveness-probe-first-failure CLOSURE-implies-C12"
+                  IO.println s!"submitted={submittedJson certificate |>.compress}"
+                  IO.println (s!"{context} start={start} step={step} replacement={repr replacement} " ++
+                    s!"pops={pops} offset={offset} sigma={repr snapshot.state.stack.sigma} " ++
+                    s!"ready={repr snapshot.state.stack.ready} marks={repr snapshot.state.core.marks}")
+                stats := { stats with closureC12Fails := stats.closureC12Fails + 1 }
+            for bundle in List.range bundleLabels.size do
+              if before[bundle]! then
+                let index := bundle * 6 + kindIndex result.kind
+                let prior := stats.preservation[index]!
+                let holds := after[bundle]!
+                if !holds && prior.fails == 0 then
+                  IO.println (s!"inductiveness-probe-first-failure {bundleLabels[bundle]!} " ++
+                    s!"rule={repr result.kind}")
+                  IO.println s!"submitted={submittedJson certificate |>.compress}"
+                  IO.println (s!"{context} start={start} step={step} replacement={repr replacement} " ++
+                    s!"pops={pops} offset={offset} sigma={repr snapshot.state.stack.sigma}")
+                  IO.println (s!"before_ready={repr snapshot.state.stack.ready} " ++
+                    s!"before_marks={repr snapshot.state.core.marks} " ++
+                    s!"before_waiting={repr snapshot.state.stack.waiting}")
+                  IO.println (s!"after_ready={repr result.after.stack.ready} " ++
+                    s!"after_marks={repr result.after.core.marks} " ++
+                    s!"before_bundles={repr before} after_bundles={repr after}")
+                let next := if holds then { prior with holds := prior.holds + 1 }
+                  else { prior with fails := prior.fails + 1 }
+                stats := { stats with preservation := stats.preservation.set! index next }
+  return stats
 
 -- All observations use the pre-state, never coreMarked from prepare?. C1/C2
 -- have their requested rule-specific domains; the other candidates cover both.
@@ -263,12 +750,60 @@ private def observeInvariants (certificate : Certificate) (state : ReservationSt
     stats := { stats with probes := stats.probes.set! index next }
   return stats
 
--- C9 is evaluated at every reachable state, not only before nop/wait: an active
--- ready bucket of length exactly one never holds a par premise.
-private def observeSingletonBucket (certificate : Certificate) (state : ReservationState)
+private def observeMerge (certificate : Certificate) (state : ReservationState)
+    (context : String) (start step : Nat) (result : Figure7DispatchResult)
+    (stats : Stats) : IO Stats := do
+  if !stats.invariantProbe || result.kind != .unifyPayload then return stats
+  let some prepared := prepare? state
+    | throw (IO.userError "invariant-probe-ERROR missing merge prefix")
+  let stack := prepared.stackResult.after
+  let some previous := stack.ready.dropLast.getLast?
+    | throw (IO.userError "invariant-probe-ERROR missing previous bucket")
+  let some active := stack.ready.getLast?
+    | throw (IO.userError "invariant-probe-ERROR missing active bucket")
+  let some boundary := stack.sigma.dropLast.getLast?
+    | throw (IO.userError "invariant-probe-ERROR missing previous boundary")
+  let some (.initialized payload) := stack.waiting[boundary]?
+    | throw (IO.userError "invariant-probe-ERROR missing waiting payload")
+  let observations := #[payload.all (atomAt certificate), previous.all (atomAt certificate),
+    active.all (atomAt certificate), payload.all fun vertex ↦ !atomAt certificate vertex]
+  let mut stats := stats
+  for index in List.range observations.size do
+    let prior := stats.mergeProbes[index]!
+    let holds := observations[index]!
+    if !holds && prior.fails == 0 then
+      IO.println s!"invariant-probe-first-failure MERGE {mergeLabels[index]!}"
+      IO.println s!"submitted={submittedJson certificate |>.compress}"
+      IO.println (s!"{context} start={start} step={step} payload={repr payload} " ++
+        s!"previous={repr previous} active={repr active}")
+    let next := if holds then { prior with holds := prior.holds + 1 }
+      else { prior with fails := prior.fails + 1 }
+    stats := { stats with mergeProbes := stats.mergeProbes.set! index next }
+  return stats
+
+private def observeBucketCandidates (certificate : Certificate) (state : ReservationState)
     (context : String) (start step : Nat) (stats : Stats) : IO Stats := do
   if !stats.invariantProbe then
     return stats
+  let observations := bucketCandidates certificate state
+  let mut stats := stats
+  for index in List.range observations.size do
+    let prior := stats.bucketProbes[index]!
+    let holds := observations[index]!
+    if !holds && prior.fails == 0 then
+      IO.println s!"invariant-probe-first-failure {bucketLabels[index]!}"
+      IO.println s!"submitted={submittedJson certificate |>.compress}"
+      IO.println (s!"{context} start={start} step={step} sigma={repr state.stack.sigma} " ++
+        s!"ready={repr state.stack.ready} marks={repr state.core.marks}")
+    let next := if holds then { prior with holds := prior.holds + 1 }
+      else { prior with fails := prior.fails + 1 }
+    stats := { stats with bucketProbes := stats.bucketProbes.set! index next }
+  return stats
+
+private def observeSingletonBucket (certificate : Certificate) (state : ReservationState)
+    (context : String) (start step : Nat) (stats : Stats) : IO Stats := do
+  if !stats.invariantProbe then return stats
+  let stats ← observeBucketCandidates certificate state context start step stats
   -- C12, at every reachable state: if the active bucket's head is a par
   -- premise whose mate is not marked at or above the active age (the nop or
   -- wait guard), then the rest of the bucket contains a non-conclusion.
@@ -326,7 +861,7 @@ private def observeSingletonBucket (certificate : Certificate) (state : Reservat
   let atomSegment := match state.stack.ready.getLast? with
     | some bucket => bucket.filter fun v ↦ role v == 'A'
     | none => []
-  let pairsOk := atomSegment.all fun v ↦ match axiomPartner v with
+  let pairsOk : Bool := atomSegment.all fun v ↦ match axiomPartner v with
     | some w => atomSegment.contains w || (match state.core.marks[w]? with | some (some _) => true | _ => false)
     | none => true
   if !pairsOk && stats.pairFails == 0 then
@@ -345,6 +880,17 @@ private def observeSingletonBucket (certificate : Certificate) (state : Reservat
     suffixParFails := stats.suffixParFails + (if suffixHolds then 0 else 1) }
 
 private def printProbe (setName : String) (stats : Stats) : IO Unit := do
+  if stats.inductivenessProbe then
+    IO.println (s!"inductiveness-probe set={setName} closed-traces={stats.snapshotSeeds} " ++
+      s!"states={stats.snapshotStates} edges={stats.snapshotEdges} " ++
+      s!"skipped-reachable-states={stats.snapshotSkipped} bucket-cap=4 vertex-cap=32")
+    for bundle in List.range bundleLabels.size do
+      for kind in [.concl, .nop, .new, .wait, .forward, .unifyPayload] do
+        let count := stats.preservation[bundle * 6 + kindIndex kind]!
+        IO.println (s!"inductiveness-probe set={setName} {bundleLabels[bundle]!} " ++
+          s!"rule={repr kind} holds={count.holds} fails={count.fails}")
+    IO.println (s!"inductiveness-probe set={setName} CLOSURE-implies-C12 " ++
+      s!"closure-states={stats.closureStates} c12-fails={stats.closureC12Fails}")
   if stats.invariantProbe then
     for index in List.range probeLabels.size do
       let count := stats.probes[index]!
@@ -359,6 +905,18 @@ private def printProbe (setName : String) (stats : Stats) : IO Unit := do
       s!"fails={stats.singletonParFails}")
     IO.println (s!"invariant-probe set={setName} C13 par-suffix-guard-tail-nonconclusion " ++
       s!"states={stats.singletonStates} fails={stats.suffixParFails}")
+    for index in List.range bucketLabels.size do
+      let count := stats.bucketProbes[index]!
+      unless count.holds + count.fails == stats.singletonStates do
+        throw (IO.userError "invariant-probe-ERROR incomplete bucket counts")
+      IO.println (s!"invariant-probe set={setName} {bucketLabels[index]!} " ++
+        s!"states={stats.singletonStates} fails={count.fails}")
+    for index in List.range mergeLabels.size do
+      let count := stats.mergeProbes[index]!
+      unless count.holds + count.fails == stats.kinds[5]! do
+        throw (IO.userError "invariant-probe-ERROR incomplete merge counts")
+      IO.println (s!"invariant-probe set={setName} MERGE {mergeLabels[index]!} " ++
+        s!"holds={count.holds} fails={count.fails}")
 
 private def failViolation (certificate : Certificate) (context : String) (start step : Nat)
     (kinds : List Figure7RuleKind) (result : Figure7DispatchResult)
@@ -384,6 +942,7 @@ private def replay (certificate : Certificate) (correct : certificate.Declarativ
       let stats := if measureWaitGuard then observeWaitGuard certificate state stats else stats
       let stats ← observeSingletonBucket certificate state context start step stats
       let invariant := reachable.schedulerInvariant correct.1
+      let stats ← observePreservation certificate state invariant context start step stats
       match equation : dispatch? certificate state invariant with
       | none => return { stats with stops := stats.stops + 1 }
       | some result =>
@@ -391,6 +950,7 @@ private def replay (certificate : Certificate) (correct : certificate.Declarativ
           | 0 => throw (IO.userError s!"tail-law-search-INCOMPLETE replay fuel {context}")
           | fuel + 1 =>
               let stats ← observeInvariants certificate state context start step result stats
+              let stats ← observeMerge certificate state context start step result stats
               let observation ← match tailLawStep certificate state result prior with
                 | .ok observation => pure observation
                 | .error message => throw (IO.userError s!"tail-law-search-ERROR {message}")
@@ -586,12 +1146,13 @@ private def summary (stats : Stats) (depth labelVariants orderVariants startCap
     s!"random_depths=6..7 seeds={randomSeeds} dispatch_none={stats.stops} " ++
     s!"rules={repr stats.kinds} elapsed_ms={elapsed}"
 
-private def run (smoke : Bool) (invariantProbe : Bool := false) : IO Unit := do
+private def run (smoke : Bool) (invariantProbe : Bool := false)
+    (inductivenessProbe : Bool := false) : IO Unit := do
   let started ← IO.monoMsNow
   let deadline := started + 600000
-  let statsRef ← IO.mkRef ({ invariantProbe } : Stats)
-  let randomSeeds := if smoke then 0 else 4
-  let labelVariants := if smoke then 1 else 8
+  let statsRef ← IO.mkRef ({ invariantProbe, inductivenessProbe } : Stats)
+  let randomSeeds := if smoke || inductivenessProbe then 0 else 4
+  let labelVariants := if smoke || inductivenessProbe then 1 else 8
   let orderVariants := 6
   let startCap := if smoke then 2 else 4
   -- Run the deep seeded families first so an interrupted exhaustive layer does
@@ -628,7 +1189,8 @@ private def run (smoke : Bool) (invariantProbe : Bool := false) : IO Unit := do
     levels := levels.push (← layerRef.get)
     completed := depth
   let stats ← statsRef.get
-  unless smoke || (stats.cases ≥ 20000 && completed ≥ 5 && stats.stops == stats.histories) do
+  let minimumCases := if inductivenessProbe then 2000 else 20000
+  unless smoke || (stats.cases ≥ minimumCases && completed ≥ 5 && stats.stops == stats.histories) do
     throw (IO.userError s!"tail-law-search-INCOMPLETE coverage {repr stats}")
   let label := if smoke then "tail-law-search-smoke-ok" else "tail-law-search-ok"
   IO.println s!"{label} {summary stats completed labelVariants orderVariants startCap
@@ -650,12 +1212,13 @@ private def waitFocusSummary (stats : Stats) (baseTrees labelVariants orderVaria
     s!"eligible_not_wait={stats.parMateOlder - stats.kinds[3]!} " ++
     s!"elapsed_ms={elapsed} budget_ms=600000"
 
-private def runWaitFocus (invariantProbe : Bool := false) : IO Unit := do
+private def runWaitFocus (invariantProbe : Bool := false)
+    (inductivenessProbe : Bool := false) : IO Unit := do
   let started ← IO.monoMsNow
   let deadline := started + 600000
-  let statsRef ← IO.mkRef ({ invariantProbe } : Stats)
+  let statsRef ← IO.mkRef ({ invariantProbe, inductivenessProbe } : Stats)
   let baseTrees := 24
-  let labelVariants := 8
+  let labelVariants := if inductivenessProbe then 1 else 8
   let orderVariants := 6
   let startCeiling := 64
   try
@@ -674,15 +1237,18 @@ private def runWaitFocus (invariantProbe : Bool := false) : IO Unit := do
     throw error
   let stats ← statsRef.get
   let elapsed := (← IO.monoMsNow) - started
+  let minimumWaitCertificates := if inductivenessProbe then 60 else 500
+  let minimumWaitSteps := if inductivenessProbe then 625 else 5000
   IO.println s!"tail-law-wait-focus-coverage {waitFocusSummary stats baseTrees
     labelVariants orderVariants startCeiling elapsed}"
   unless stats.cases == baseTrees * labelVariants * orderVariants &&
       stats.skippedStarts == 0 && stats.stops == stats.histories &&
-      stats.waitCertificates ≥ 500 && stats.kinds[3]! ≥ 5000 && elapsed ≤ 600000 do
+      stats.waitCertificates ≥ minimumWaitCertificates &&
+      stats.kinds[3]! ≥ minimumWaitSteps && elapsed ≤ 600000 do
     throw (IO.userError
       (s!"tail-law-search-INCOMPLETE wait coverage " ++
-        s!"wait_certificates={stats.waitCertificates}/500 " ++
-        s!"wait_steps={stats.kinds[3]!}/5000 wait_pairs={stats.waitPairs}; " ++
+        s!"wait_certificates={stats.waitCertificates}/{minimumWaitCertificates} " ++
+        s!"wait_steps={stats.kinds[3]!}/{minimumWaitSteps} wait_pairs={stats.waitPairs}; " ++
         s!"measured dispatcher geometry: par={stats.parPremisePops}, " ++
         s!"mate_unmarked={stats.parMateUnmarked}, mate_older={stats.parMateOlder}, " ++
         s!"mate_not_older={stats.parMateNotOlder}, mate_missing={stats.parMateMissing}, " ++
@@ -703,5 +1269,11 @@ def main (args : List String) : IO Unit := do
       ProofNetIRTailLawSearch.runWaitFocus true
   | ["--invariant-probe", "--smoke"] => ProofNetIRTailLawSearch.run true true
   | ["--invariant-probe", "--wait-focus"] => ProofNetIRTailLawSearch.runWaitFocus true
+  | ["--inductiveness-probe"] =>
+      ProofNetIRTailLawSearch.run false false true
+      ProofNetIRTailLawSearch.runWaitFocus false true
+  | ["--inductiveness-probe", "--smoke"] => ProofNetIRTailLawSearch.run true false true
+  | ["--inductiveness-probe", "--wait-focus"] => ProofNetIRTailLawSearch.runWaitFocus false true
   | _ => throw (IO.userError
-      "usage: proofnet_ir_tail_law_search [--invariant-probe] [--smoke | --wait-focus]")
+      ("usage: proofnet_ir_tail_law_search [--invariant-probe | --inductiveness-probe] " ++
+        "[--smoke | --wait-focus]"))

@@ -7,6 +7,15 @@ and its proof layer on top of `v0.9.0`. Entries are one per mathematics
 checkpoint, newest first; wrapper-transport steps are folded into the family
 they served, and `git log` holds the per-commit record.
 
+- added `--inductiveness-probe` to `proofnet_ir_tail_law_search`: bucket
+  permutations (with a compiled `SchedulerInvariant` proof) and bare pop/mark
+  prefixes seed finite dispatcher-closed snapshot sets on which each candidate
+  is tested for preservation by every rule. Order-based candidates I1-I3
+  are refuted at reachable states; I4-I6 hold there but the strongest bundle
+  is not inductive (kernel-checked `forward` obstruction). The order-free
+  region-closure candidate CLOSURE holds at all 2,289,024 reachable states,
+  is preserved by all six rules on 15,405,918 closure-satisfying snapshot
+  edges, and implies C12 at every one of them; scaffolding only, no theorem;
 - probed the active ready bucket at every reachable state of the finite
   tail-law search: SHAPE (connective conclusions followed by atoms) and PAIRS
   (every atom's axiom partner is in the run or already marked) hold at all

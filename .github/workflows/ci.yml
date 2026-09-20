@@ -216,6 +216,8 @@ jobs:
         run: ~/.elan/bin/lake exe proofnet_ir_tail_law_search --wait-focus
       - name: Probe Figure-7 tail invariants on both certificate sets
         run: ~/.elan/bin/lake exe proofnet_ir_tail_law_search --invariant-probe
+      - name: Probe Figure-7 tail-invariant inductiveness on the smoke set
+        run: ~/.elan/bin/lake exe proofnet_ir_tail_law_search --inductiveness-probe --smoke
       - name: Audit New/Wait/Forward/Unify-created candidate source regions
         run: >-
           ~/.elan/bin/lake exe proofnet_ir_new_progress_audit
