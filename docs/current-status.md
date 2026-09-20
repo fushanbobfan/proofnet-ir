@@ -17,7 +17,7 @@ Status date: 2026-09-20
 | Track | Revision | Status | Authority |
 | --- | --- | --- | --- |
 | Stable library | `v0.9.0` / `9b7dc3d104af8f57ea9123aab2e61b42e05d2216` | Released | [v0.9.0 release audit](v0.9-release-audit.md) |
-| Rolling research | `v0.10.0-dev`; proof `4fffc62`; audit `1e46573` | Active | This page/commits |
+| Rolling research | `v0.10.0-dev`; proof `43b0dd0`; audit `1e46573` | Active | This page/commits |
 
 Documentation-only commits may descend from the proof checkpoint without
 changing its mathematical authority. The stable release and rolling branch
@@ -47,28 +47,33 @@ The exact release guarantees, receipts, and non-goals are frozen in the
 ## Rolling main result
 
 The sequential fast path exists and is sound; its completeness (ledger item
-D1) rests on one remaining fact. `ProofNetIR/Figure7/Sequential.lean` defines
-`runDispatcher` (a bounded loop of the canonical dispatcher threading the
-scheduler invariant), `Certificate.sequentialReconstruct?` and
-`Certificate.sequentialFastCheck` (initialize at the first conclusion, run the
-formula-carrier budget, exchange the final component's frontier into the
-conclusion order, accept only after `verifyDerivation?`), and proves
-`sequentialFastCheck_sound`. `runDispatcher_spec` shows that from a started
-reachable state of a correct certificate the run ends reachable, fully
-marked, and unable to dispatch, by Figure-7 progress D3
-(`CanonicalTagHistory.dispatch_or_allMarked`, from the order-free
-`RegionClosure` invariant and switching connectedness) and termination D4.
-`StructurallyWellFormed.initializeReservation?_isSome` shows initialization
-succeeds at every in-bounds start, through the carrier bound
-`StructurallyWellFormed.formulaComplexityAt_lt_size`. What remains for D1 is
-that the exchanged final component's derivation passes the verifier: one live
-component owning every occurrence with frontier equal to the conclusions, and
-the bridge from an occurrence derivation to `desequentialize?` and
-`ProofNetEquivalent`. Separately, the ledger's D5 was refuted as stated by the
-reachable empty scheduler of one axiom (`priorityEnabled_not_allReachable`)
-and closed in corrected form (`figure7Enabledness_started_and_sequentialize`:
-reachable `new` guards suffice, and a reachable nonterminal state has a
-priority branch exactly when initialized).
+D1) rests on the numbering correspondence of the desequentializer.
+`ProofNetIR/Figure7/Sequential.lean` defines `runDispatcher` (a bounded loop
+of the canonical dispatcher threading the scheduler invariant),
+`Certificate.sequentialReconstruct?` and `Certificate.sequentialFastCheck`
+(initialize at the first conclusion, run the formula-carrier budget, exchange
+the final component's frontier into the conclusion order, accept only after
+`verifyDerivation?`), and proves `sequentialFastCheck_sound`.
+`runDispatcher_spec` shows that from a started reachable state of a correct
+certificate the run ends reachable, fully marked, and unable to dispatch, by
+Figure-7 progress D3 (`CanonicalTagHistory.dispatch_or_allMarked`, from the
+order-free `RegionClosure` invariant and switching connectedness) and
+termination D4. `StructurallyWellFormed.initializeReservation?_isSome` shows
+initialization succeeds at every in-bounds start. At a fully marked reachable
+state, `finalComponents_eq_singleton` and `finalFrontier_perm` give one live
+component owning every occurrence with frontier equal to the conclusions up
+to order, `sequentialFinalTree?_eq_some` extracts it with a duplicate-free
+exchange, and `sequentialFinalTree?_infer_eq` proves that the extracted
+derivation infers the input sequent and desequentializes to an accepted
+certificate. What remains for D1 is that this output is proof-net equivalent
+to the input: the par and tensor cases of the fresh-index correspondence
+`OccurrenceBuildMatch` (its axiom and exchange cases are proved) and the
+bounded vertex renaming they yield over the full carrier. Separately, the
+ledger's D5 was refuted as stated by the reachable empty scheduler of one
+axiom (`priorityEnabled_not_allReachable`) and closed in corrected form
+(`figure7Enabledness_started_and_sequentialize`: reachable `new` guards
+suffice, and a reachable nonterminal state has a priority branch exactly when
+initialized).
 
 The route to this checkpoint, in dependency order, is:
 
@@ -96,7 +101,9 @@ The route to this checkpoint, in dependency order, is:
    both for C12 (nonempty bucket) and for the drained case of item 2 (empty
    bucket), which closes D3 without items 3 to 5;
 8. `runDispatcher_spec` and `initializeReservation?_isSome`, the executable
-   half of D1, leaving only the verification of the final derivation.
+   half of D1;
+9. the final structure and inference theorems above, leaving only the
+   numbering correspondence and equivalence of the desequentialized output.
 
 Exact statements are in the [goal ledger](goal-ledger.md); declarations are
 in the generated [API reference](api-reference.md).
@@ -137,9 +144,10 @@ This checkpoint does not establish any of the following:
   `core.allMarked = true`, semantic completion, or terminality;
 - exhaustive enabledness beyond `dispatch_or_allMarked`: a reachable state
   that is not fully marked dispatches, but which rule fires is not classified;
-- completeness of `sequentialFastCheck` (D1): that the exchanged final
-  component's derivation passes `verifyDerivation?`; or removal of the
-  recursive fallback (D2);
+- completeness of `sequentialFastCheck` (D1): the par and tensor cases of
+  the fresh-index correspondence and proof-net equivalence of the
+  desequentialized final derivation; or removal of the recursive fallback
+  (D2);
 - later-state `NEXTAXIOM` start selection and completion of the Figures 7–8
   executable (D5); or
 - a Guerrini-style whole-program linear bound (D6).
@@ -153,12 +161,12 @@ statements are in the [goal ledger](goal-ledger.md); the proof plan is in
 The exact rolling proof checkpoint is:
 
 ```text
-commit    4fffc62e7ddd94b52ba4bba41f331f1a6f58c750
-tree      c4d61883cdeb9ee8c0e75cf0ffbb1eae4d548f09
-parent    59833a20181d3276c0ea4e9b5877de1a1af3ebf5
-stage     prove initialization totality through the carrier complexity bound
-delta     9 paths, +517/-9
-manifest  4D5BFD5A5CB09D687F49AD3408FA9CE158163F50923012388795D6BD8C58349D
+commit    43b0dd0f6e6b8f7e5f755b0f2e6cbff8d36c5753
+tree      f2a730c4ace9045e703740d37d2a4ecc95b0cc78
+parent    9134f0093c0fb5a2511e6fb378d27e684bd86921
+stage     prove sequential final structure and inference
+delta     10 paths, +714/-9
+manifest  BB5F195DB35681C4DE97FDCCB62E086DDBD43A9BE33A70D5C8F32AD07346BAC1
 ```
 
 The manifest hashes canonical
@@ -167,9 +175,9 @@ The manifest hashes canonical
 The checkpoint source receipts are:
 
 ```text
-sequential source  19DF707F2492187DEF98507275013A4A7E6FFED9E78629BFE9805F2423C07278
-sequential consumer 812CD3CDEBEF76DE99B21EBE5E7941AC1FC5FC265A1D3627B84B52030E6EA78B
-generated API      7BD750B534DD23DAC2D114C9A6918848A53C7B10B4A3EA6B49D836AD3A559914
+sequential source  4C4180CB48A01FBA4C76021864E48054B4A302780130F6259F19BAD9470C43E5
+sequential consumer 80BB24F434B2E53C1F05EFBB0CF0C81872C065997870062BA496DDA325684C26
+generated API      F84B2BC1687CB62659ECFA19A55845E010933C71C711A74FCA80D2411A0D7DAE
 ```
 
 The separately committed finite-audit evidence is:
@@ -186,32 +194,31 @@ manifest  4BBAB7FC99D03D2612459A0FD9291990313A05A184F2572A581BC93C6E49DFDD
 Local verification of the committed checkpoint:
 
 - full `lake build`: 737/737 jobs;
-- the two new public theorems report exactly `propext`, `Classical.choice`,
+- the seven new public theorems report exactly `propext`, `Classical.choice`,
   and `Quot.sound`; the module and its consumer compile under `--trust=0`,
-  and the consumer printed `Sequential consumer passed: bounded run spec,
-  accepted axiom-par net, rejected non-dual net, soundness, initialization
-  totality`;
-- public theorem audit: 1143 entries total: 845 standard-three, 25 axiom-free,
+  and the consumer printed `Sequential consumer passed: final structure,
+  inference, axiom/exchange numbering, repeated-label tensor`;
+- public theorem audit: 1150 entries total: 852 standard-three, 25 axiom-free,
   132 `propext`-only, and 141 `propext`/`Quot.sound` boundaries;
 - generated API reference current; convergence check passed (no new module,
-  two new public theorems, 453 library lines, 15 prose lines);
+  seven new public theorems, 453 library lines, 12 prose lines);
 - `git diff --check` clean on the staged delta.
 
 Exact-head proof GitHub verification:
 
 - workflow: `Lean CI`;
 - event/ref: `push` / `main`;
-- run: [35523165628](https://github.com/fushanbobfan/proofnet-ir/actions/runs/35523165628);
-- build job: [106110657634][proof-job];
-- title/attempt: `feat: prove initialization totality through the carrier complexity bound` / 1;
-- exact head: `4fffc62e7ddd94b52ba4bba41f331f1a6f58c750`;
+- run: [35537842224](https://github.com/fushanbobfan/proofnet-ir/actions/runs/35537842224);
+- build job: [106149962486][proof-job];
+- title/attempt: `feat: prove sequential final structure and inference` / 1;
+- exact head: `43b0dd0f6e6b8f7e5f755b0f2e6cbff8d36c5753`;
 - result: 41 successful steps, 0 failures, and 1 expected
   release-ref-only skip;
-- run: `2026-09-20T16:34:58Z`-`2026-09-20T16:51:39Z` (16m41s);
-- build job: `2026-09-20T16:35:01Z`-`2026-09-20T16:51:38Z`
-  (16m37s).
+- run: `2026-09-20T21:10:00Z`-`2026-09-20T21:26:33Z` (16m33s);
+- build job: `2026-09-20T21:10:03Z`-`2026-09-20T21:26:33Z`
+  (16m30s).
 
-[proof-job]: https://github.com/fushanbobfan/proofnet-ir/actions/runs/35523165628/job/106110657634
+[proof-job]: https://github.com/fushanbobfan/proofnet-ir/actions/runs/35537842224/job/106149962486
 
 Exact-head finite-audit GitHub verification:
 
@@ -280,9 +287,10 @@ The project goal remains open. The principal outstanding gates, with exact
 target statements in the [goal ledger](goal-ledger.md), are:
 
 1. prove completeness of the sequential fast path (`sequentialFastCheck =
-   check`): the exchanged final component's derivation passes the verifier
-   (D1); then make it the public decision without the recursive fallback
-   (D2); both retargeted from the flat worklist on 2026-09-20;
+   check`): the par and tensor cases of the fresh-index correspondence and
+   proof-net equivalence of the desequentialized final derivation (D1); then
+   make it the public decision without the recursive fallback (D2); both
+   retargeted from the flat worklist on 2026-09-20;
 2. replace the prototype's eager starts and flat requeues with the sequential
    executable once D1 and D2 close (the remaining part of D5);
 3. prove a whole-program cost theorem over every implemented operation (D6);
