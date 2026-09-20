@@ -25,8 +25,9 @@ It checks all accepted starts after prioritizing one per distinct initial axiom
 region, and measures the exact mate-age classes that limit wait applicability.
 
 `--invariant-probe` runs both certificate sets and measures C1 at every nop,
-C6--C8 at nop and wait, C10 at every reachable state (a singleton active bucket
-holding a par premise has its mate marked at or above the active age), and
+C6--C8 and C11 at nop and wait, C12 at every reachable state (a par-premise
+head whose mate is unmarked or older leaves a non-conclusion in the rest of the
+active bucket), and
 C2 at every wait, and C3--C5 separately at both rules, before the popped head
 receives its raw mark. C4 counts submitted pars with exactly one premise whose
 raw mark resolves to the active component, including marks created at older
@@ -113,7 +114,8 @@ private def probeLabels : Array String :=
   #["C1 rule=nop", "C2 rule=wait", "C3 rule=nop", "C3 rule=wait",
     "C4 rule=nop", "C4 rule=wait", "C5 rule=nop", "C5 rule=wait",
     "C6 rule=nop", "C6 rule=wait", "C7 rule=nop", "C7 rule=wait",
-    "C8raw2 rule=nop", "C8raw2 rule=wait", "C8nomark rule=nop", "C8nomark rule=wait"]
+    "C8raw2 rule=nop", "C8raw2 rule=wait", "C8nomark rule=nop", "C8nomark rule=wait",
+    "C11noConclInTail rule=nop", "C11noConclInTail rule=wait"]
 
 private structure Stats where
   cases : Nat := 0
@@ -133,7 +135,7 @@ private structure Stats where
   parMateNotOlder : Nat := 0
   parMateMissing : Nat := 0
   invariantProbe : Bool := false
-  probes : Array ProbeCount := Array.replicate 16 {}
+  probes : Array ProbeCount := Array.replicate 18 {}
   singletonStates : Nat := 0
   singletonParFails : Nat := 0
   deriving Repr
@@ -234,7 +236,8 @@ private def observeInvariants (certificate : Certificate) (state : ReservationSt
   let observations := [(offset, localCandidate), (2 + offset, !debt || payers.length ≥ 2),
     (4 + offset, payers.length ≥ singleMarkedPars), (6 + offset, p),
     (8 + offset, mateInBucket), (10 + offset, bucketParsCovered && p),
-    (12 + offset, rawCount ≥ 2), (14 + offset, markedCount == 0)]
+    (12 + offset, rawCount ≥ 2), (14 + offset, markedCount == 0),
+    (16 + offset, !bucket.any fun vertex ↦ certificate.conclusions.contains vertex)]
   let mut stats := stats
   for (index, holds) in observations do
     let prior := stats.probes[index]!
@@ -260,21 +263,22 @@ private def observeSingletonBucket (certificate : Certificate) (state : Reservat
     (context : String) (start step : Nat) (stats : Stats) : IO Stats := do
   if !stats.invariantProbe then
     return stats
-  -- C10: a singleton active bucket whose element is a par premise must have a
-  -- mate that is marked with the active raw age itself (so the next rule is
-  -- forward, never nop or wait). Any other mate status is a failure.
+  -- C12, at every reachable state: if the active bucket's head is a par
+  -- premise whose mate is not marked at or above the active age (the nop or
+  -- wait guard), then the rest of the bucket contains a non-conclusion.
   let holds := match state.stack.sigma.getLast?, state.stack.ready.getLast? with
-    | some age, some [vertex] =>
-        match certificate.connectiveBelow? vertex with
+    | some age, some (head :: rest) =>
+        match certificate.connectiveBelow? head with
         | some consumer =>
             consumer.kind != .par ||
               (match state.core.marks[consumer.mate]? with
                 | some (some mateAge) => mateAge ≥ age
-                | _ => false)
+                | _ => false) ||
+              rest.any fun vertex ↦ !certificate.conclusions.contains vertex
         | none => true
     | _, _ => true
   if !holds && stats.singletonParFails == 0 then
-    IO.println "invariant-probe-first-failure C10 singleton-par-mate-not-current"
+    IO.println "invariant-probe-first-failure C12 par-head-guard-tail-nonconclusion"
     IO.println s!"certificate={certificate.canonicalString}"
     IO.println (s!"{context} start={start} step={step} sigma={repr state.stack.sigma} " ++
       s!"ready={repr state.stack.ready}")
@@ -291,7 +295,7 @@ private def printProbe (setName : String) (stats : Stats) : IO Unit := do
         throw (IO.userError s!"invariant-probe-ERROR incomplete counts {probeLabels[index]!}")
       IO.println (s!"invariant-probe set={setName} {probeLabels[index]!} " ++
         s!"holds={count.holds} fails={count.fails}")
-    IO.println (s!"invariant-probe set={setName} C10 singleton-par-mate-current states={stats.singletonStates} " ++
+    IO.println (s!"invariant-probe set={setName} C12 par-head-guard-tail-nonconclusion states={stats.singletonStates} " ++
       s!"fails={stats.singletonParFails}")
 
 private def failViolation (certificate : Certificate) (context : String) (start step : Nat)
