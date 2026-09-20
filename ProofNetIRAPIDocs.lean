@@ -2817,6 +2817,13 @@ def sections : List Section := [
     ]
   },
   {
+    title := "Reachable enabledness and initialization"
+    declarations := [
+      `ProofNetIR.SequentialFigure7.figure7Enabledness_started_and_sequentialize,
+      `ProofNetIR.SequentialFigure7.priorityEnabled_not_allReachable
+    ]
+  },
+  {
     title := "Canonical raw-mark causal order"
     declarations := [
       `ProofNetIR.SequentialFigure7.CanonicalTagHistory.RawMarkedBefore,

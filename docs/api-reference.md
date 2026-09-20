@@ -25441,6 +25441,48 @@ ProofNetIR.SequentialFigure7.CanonicalTagHistory.dispatch_or_allMarked : ∀ {ce
       state.core.allMarked = true
 ```
 
+## Reachable enabledness and initialization
+
+### `ProofNetIR.SequentialFigure7.figure7Enabledness_started_and_sequentialize`
+
+Kind: theorem.
+
+Reachable `new` guards suffice; a reachable, not fully marked state has a
+priority branch exactly when started; the recursive sequentializer succeeds
+on every accepted certificate.
+
+```lean
+ProofNetIR.SequentialFigure7.figure7Enabledness_started_and_sequentialize : (∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+    ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher certificate state →
+      certificate.DeclarativelyCorrect →
+        ∀ (a : ProofNetIR.SequentialFigure7.NewGuard certificate state),
+          ProofNetIR.SequentialFigure7.NewEnabled certificate state) ∧
+  (∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+      (reachable : ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher certificate state)
+      (correct : certificate.DeclarativelyCorrect),
+      have invariant := ⋯;
+      state.core.allMarked ≠ true →
+        ((∃ kind, ProofNetIR.SequentialFigure7.PriorityEnabled certificate state invariant kind) ↔
+          0 < state.stack.nextAge)) ∧
+    ∀ (certificate : ProofNetIR.Certificate),
+      certificate.check = true → ∃ result, certificate.sequentialize = Except.ok result
+```
+
+### `ProofNetIR.SequentialFigure7.priorityEnabled_not_allReachable`
+
+Kind: theorem.
+
+The unrestricted enabledness conjunct is false: the reachable empty
+scheduler of one correct axiom is not fully marked and cannot dispatch.
+
+```lean
+ProofNetIR.SequentialFigure7.priorityEnabled_not_allReachable : ¬∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+    (reachable : ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher certificate state)
+    (correct : certificate.DeclarativelyCorrect),
+    have invariant := ⋯;
+    state.core.allMarked ≠ true → ∃ kind, ProofNetIR.SequentialFigure7.PriorityEnabled certificate state invariant kind
+```
+
 ## Canonical raw-mark causal order
 
 ### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.RawMarkedBefore`

@@ -9,6 +9,7 @@ defaultTargets = [
   "proofnet_ir_figure7_termination_tests",
   "proofnet_ir_figure7_tail_law_tests",
   "proofnet_ir_figure7_closure_tests",
+  "proofnet_ir_figure7_enabledness_tests",
   "proofnet_ir_figure7_unify_payload_invariant_tests",
   "proofnet_ir_tensor_adjacency_tests",
   "proofnet_ir_progress_invariant_tests",
@@ -148,6 +149,10 @@ root = "ProofNetIRFigure7TailLawTests"
 [[lean_exe]]
 name = "proofnet_ir_figure7_closure_tests"
 root = "ProofNetIRFigure7ClosureTests"
+
+[[lean_exe]]
+name = "proofnet_ir_figure7_enabledness_tests"
+root = "ProofNetIRFigure7EnablednessTests"
 
 [[lean_exe]]
 name = "proofnet_ir_figure7_unify_payload_invariant_tests"

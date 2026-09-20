@@ -7,6 +7,14 @@ and its proof layer on top of `v0.9.0`. Entries are one per mathematics
 checkpoint, newest first; wrapper-transport steps are folded into the family
 they served, and `git log` holds the per-commit record.
 
+- refuted D5's unrestricted nonterminal enabledness: the reachable empty
+  scheduler of one correct axiom is unmarked and cannot dispatch
+  (`priorityEnabled_not_allReachable`). Proved the corrected conjunction
+  `figure7Enabledness_started_and_sequentialize`: reachable shallow `new`
+  guards suffice, and a reachable nonterminal state has a priority branch
+  exactly when initialized; accepted certificates retain recursive API
+  completion. This does not prove completion of the Figures 7–8 replacement,
+  fast-path completeness, or a whole-program cost bound;
 - closed ledger item D3, Figure-7 progress:
   `CanonicalTagHistory.dispatch_or_allMarked` (and its reachable-state form
   `ReachableByImplementedDispatcher.dispatch_or_allMarked`) proves that a

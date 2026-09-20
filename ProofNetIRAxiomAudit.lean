@@ -1340,6 +1340,8 @@ end ProofNetIR.SequentialFigure7
 #print axioms SequentialFigure7.ReachableByImplementedDispatcher.allMarked_of_drained
 #print axioms SequentialFigure7.ReachableByImplementedDispatcher.dispatch_or_allMarked
 #print axioms SequentialFigure7.CanonicalTagHistory.dispatch_or_allMarked
+#print axioms SequentialFigure7.figure7Enabledness_started_and_sequentialize
+#print axioms SequentialFigure7.priorityEnabled_not_allReachable
 #print axioms SequentialFigure7.ConclStep.output_tags_eq
 #print axioms SequentialFigure7.NopStep.output_tags_eq
 #print axioms SequentialFigure7.WaitStep.output_tags_eq

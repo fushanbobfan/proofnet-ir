@@ -515,11 +515,12 @@ Exact target statements for the open items are in the
   every occurrence is marked.
 - [ ] Close the `forward`/`unifyPayload` created-head branches of
   `ActiveTopDebtTailLaw`; no longer required for D3.
-- [ ] Prove later-state `NEXTAXIOM` start selection with a route-local
-  freshness invariant, exhaustive nonterminal enabledness of the canonical
-  dispatcher, and later-state totality; then replace the prototype's eager
-  axiom starts and flat waiting requeues with the complete Figures 7–8
-  executable (D5).
+- [x] Prove reachable later-state `NEXTAXIOM` guard sufficiency and exact
+  nonterminal enabledness after initialization (corrected D5); retain the
+  kernel counterexample to enabledness before initialization.
+- [ ] Replace the prototype's eager axiom starts and flat waiting requeues
+  with the complete Figures 7–8 executable; recursive API completion in D5
+  does not establish this replacement.
 - [ ] Define `Certificate.sequentialFastCheck` (initialize at the first
   conclusion, run `dispatch?` to a stop, verify the final derivation) and
   prove `sequentialFastCheck = check` from D3, D4, and the single verifiable

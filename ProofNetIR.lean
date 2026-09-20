@@ -46,6 +46,7 @@ import ProofNetIR.SequentialFigure7Dispatcher
 import ProofNetIR.Figure7.Termination
 import ProofNetIR.Figure7.TailLaw
 import ProofNetIR.Figure7.Closure
+import ProofNetIR.Figure7.Enabledness
 import ProofNetIR.SequentialFigure7ProgressInvariant
 import ProofNetIR.SequentialFreshSourceLeftRun
 import ProofNetIR.SequentialFigure7NewInputCore
