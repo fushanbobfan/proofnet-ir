@@ -568,7 +568,9 @@ data exists and reported either way.
   corpora, with an independent brute-force cross-check.
 - [x] Run step 1 and answer H1 to H3: H1 and H2 supported, H3 not
   supported as registered (`experiments/redundancy-v0.1`).
-- [ ] Register, run, and report step 2, the equal-information matched search.
+- [x] Register step 2, the equal-information matched search: three arms in
+  one Lean process, a 640-task held-out corpus with certified negatives.
+- [ ] Run step 2 and answer H4 to H6.
 - [ ] Step 3, the skeleton-free model study, only after a positive step 2.
 
 ## Later research

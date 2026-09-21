@@ -1,0 +1,53 @@
+{
+ "arms": {
+  "focused": "the committed scripts/focused_search.py reproduced in Lean step for step (reproduction verified on 86 sequents: identical outcomes and counters)",
+  "focusedBalanced": "the same search with per-name atom-balance pruning of states and splits",
+  "nets": "axiom-linking enumeration in the committed generator's order, each complete linking decided by Certificate.unificationCheck, first acceptance ends the search"
+ },
+ "budget": {
+  "process": "one Lean process, arms run sequentially on the same machine; each arm also reports its own operation counts",
+  "wallClockMsPerArmPerTask": 5000
+ },
+ "corpus": {
+  "bases": "proofnet_ir_search_corpus, seeds 20000-20119, forty per depth at depths 2, 3, 4; labels collapsed to unique, two-label, and one-label; one connective-flip negative per positive when exhaustive net-space search refutes it within 20 seconds",
+  "path": "experiments/matched-search-v0.1/corpus.jsonl",
+  "sha256": "aa0e9363e7e95d2012f4ae1543e5b25f3a3c0c2b35ef3a644e8aeac126919d90",
+  "strata": {
+   "atoms-16:one-label:negative": 40,
+   "atoms-16:one-label:positive": 40,
+   "atoms-16:two-label:negative": 40,
+   "atoms-16:two-label:positive": 40,
+   "atoms-16:unique:negative": 40,
+   "atoms-16:unique:positive": 40,
+   "atoms-32:one-label:positive": 40,
+   "atoms-32:two-label:positive": 40,
+   "atoms-32:unique:negative": 40,
+   "atoms-32:unique:positive": 40,
+   "atoms-8:one-label:negative": 40,
+   "atoms-8:one-label:positive": 40,
+   "atoms-8:two-label:negative": 40,
+   "atoms-8:two-label:positive": 40,
+   "atoms-8:unique:negative": 40,
+   "atoms-8:unique:positive": 40
+  },
+  "taskCount": 640
+ },
+ "developmentChecksBeforeRegistration": "the six hand fixtures and the 80 development sequents of step 1 were run through all arms; no corpus task had been run",
+ "experiment": "matched-search-v0.1",
+ "hypotheses": {
+  "H4": "on unique-label tasks, nets finds or refutes at least as many tasks as focusedBalanced in every size stratum, and its median elapsed time on the 32-atom unique strata is lower",
+  "H5": "on one-label 32-atom positives, focusedBalanced finds more tasks within the budget than nets",
+  "H6": "focusedBalanced finds or refutes at least as many tasks as focused in every stratum"
+ },
+ "implementationSha256": {
+  "baseGenerator": "e51a7e98e7055e7136d0fdda11c09f657efd6b51db0316ff6523a5c22efb0fa1",
+  "runner": "d4dbd7c794b16f291067b1ca3d8748e5371aa2e23379e83decb01dd4684d8385",
+  "searchArms": "7e4eee7de0b0b58fc00a3b3c30321cfdb356a58b36981420a50b16934d2a8e2c"
+ },
+ "input": "every arm receives only the sequent; no skeleton, hint, or reference linking",
+ "outcomes": "found (a proof), refuted (search exhausted without a proof), timeout",
+ "question": "under equal information (the sequent alone) and one wall-clock budget, does net-space search find or refute more MLL sequents than focused sequent search, and where does label repetition reverse the answer",
+ "registeredLocalDate": "2026-09-21 America/Los_Angeles",
+ "report": "per stratum and arm: found, refuted, timeout counts, median and maximum elapsed milliseconds, median operation counts; the hypotheses answered as stated; no claim beyond MLL sequents and these two search families",
+ "resultsAbsentAtRegistration": true
+}
