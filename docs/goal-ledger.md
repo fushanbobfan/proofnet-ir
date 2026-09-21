@@ -1,6 +1,7 @@
 # Convergence goal ledger
 
-This ledger names the terminal results that justify further surface growth.
+This ledger records the program's completion conditions and the terminal
+results that justify further surface growth.
 The propositions below are target theorem shapes; `open` means no declaration
 with that statement exists. Every named declaration was checked by Lean.
 Core certificate/check declarations are in `ProofNetIR/Checker.lean`; scheduler
@@ -10,6 +11,31 @@ Figure-7 history, dispatch results, and reachability are in
 `PriorityEnabled` are in the matching `NewInputCore`, `NewEnabledCore`, and
 `PriorityEnabled` modules. The termination theorem is in
 `ProofNetIR/Figure7/Termination.lean`.
+
+## Program completion conditions
+
+The persistent objective set on 2026-07-22, when the project started, names
+six conditions that must all hold before the program is complete; no
+intermediate version substitutes for them. Audited against `v0.10.0` on
+2026-09-21:
+
+| Condition | Status | Evidence |
+| --- | --- | --- |
+| 1. Every local paper, textbook, and the project brief inventoried and read page by page, with a traceable reading matrix and no structural skim passed off as reading. | Met | [reading-ledger.md](reading-ledger.md): seven original sources plus the Guerrini primary source, each with a completed page matrix under `docs/source-pages/`; the 2026-09-21 rescan matched all eight PDF hashes and the brief hash. |
+| 2. Standard semantics of unit-free, cut-free MLL formalized; Boolean checker sound and complete; desequentialization of every derivation sound; every checker-accepted net sequentialized; kernel checked with no `sorry` or `admit`. | Met | `check_sound`, `check_complete`, `correct_iff_declarative`, `check_iff_structural_cuspAcyclic_allConnected` (`ProofNetIR/Checker.lean`, `Sequentialization.lean`); `CutFreeDerivation.desequentialize?_check`; `reconstructsDerivation_eq_check`; `sequentialize_complete`; the build uses `warningAsError`, so a `sorry` fails it, and the trust audit locks 1,191 declarations to the standard axioms. |
+| 3. Canonicalization invariant under vertex renumbering or an explicit equivalence; stable versioned serialization; parseable API with migration tests. | Met | `proofNetEquivalent_iff_intrinsicCanonicalKey_eq_of_check`; schemas v0.1 to v0.3 with the JSON contract, deterministic dataset, and reindex-invariant key audits in CI; [compatibility.md](compatibility.md). |
+| 4. Library readiness: modular public API, Lake consumer example, API documentation, error diagnostics, compatibility policy, property/fuzz/differential/performance tests, and at least one downstream example that depends on the library from a clean environment. | Met | [library-readiness-audit.md](library-readiness-audit.md); the generated API reference; parser and schema fuzzers, differential audits, and the benchmark in CI; six release-pinned consumers built from clean clones, the newest pinned to `v0.10.0`. |
+| 5. Reproducible experiments comparing focused sequent search, proof-net generation, and checker-guided repair on preregistered tasks with at least 1,000 instances, reporting accuracy, search volume, time, cost, and failure modes, claiming no advantage the evidence does not support. | Met | [experiment-protocol.md](experiment-protocol.md); the 1,000-task matched experiment and the 180-task model study under `experiments/`, artifact-hash gated in CI; both reports state that no general proof-net advantage is established. |
+| 6. Every release with local and GitHub main/tag CI green, the public release consistent with the documentation, and a final mathematical audit, architecture review, and readiness checklist. | Met | [v0.10-release-audit.md](v0.10-release-audit.md) with its CI, tag, and consumer receipts; [architecture.md](architecture.md); [library-readiness-audit.md](library-readiness-audit.md). |
+
+The objective also asks that a decision be requested rather than assumed when
+the empirical outcome leaves the research direction open. That is the current
+position: the preregistered experiments answer the founding question only for
+matched MLL tasks with a supplied skeleton, and the candidate continuations
+(a linear whole-program bound, a bridge to ordinary Lean goals through the
+LeanProp corpus, a public graph-structured proof dataset, or closing the
+program at `v0.10.0`) are research choices, not gates. The terminal theorems
+below remain the mathematical ledger of the sequential layer.
 
 ## Terminal theorems
 

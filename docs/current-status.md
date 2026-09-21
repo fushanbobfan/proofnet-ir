@@ -318,17 +318,19 @@ deployment.
 
 ## Open macro gates
 
-The project goal remains open. The principal outstanding gates, with exact
-target statements in the [goal ledger](goal-ledger.md), are:
+The program's six completion conditions are met at `v0.10.0`; the
+[goal ledger](goal-ledger.md) records each with its evidence. What remains is
+a research-direction decision, not a gate: the founding question is answered
+only for matched MLL tasks with a supplied skeleton, and the candidate
+continuations are:
 
-1. reach a linear whole-program bound for the public decision (D6-linear,
-   not planned for v0.10): constant-time stack access and bucket merge and a
-   single consumer-index construction, measured by the counters of
-   `ProofNetIR/Figure7/Cost.lean`; the ledger items D1 to D6 are closed;
-2. continue the traceable, page/chapter-level literature matrix without
-   treating file discovery or structural scans as completed reading;
-3. preserve public API, migration, downstream, experiment, and release gates
-   as the mathematical surface grows.
+1. a linear whole-program bound for the public decision (D6-linear):
+   constant-time stack access and bucket merge and a single consumer-index
+   construction, measured by the counters of `ProofNetIR/Figure7/Cost.lean`;
+2. a bridge from the MLL experiments to ordinary Lean goals through the
+   LeanProp corpus, or a public graph-structured proof dataset;
+3. closing the program at `v0.10.0`, preserving its API, migration,
+   downstream, experiment, and release gates.
 
 ## Navigation
 
