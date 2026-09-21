@@ -2,6 +2,7 @@ name = "proofnet-ir"
 version = "0.11.0-dev"
 defaultTargets = [
   "ProofNetIR",
+  "proofnet_ir_redundancy_count",
   "proofnet_ir_tail_law_search",
   "proofnet_ir_tests",
   "proofnet_ir_consumer_index_tests",
@@ -688,6 +689,10 @@ root = "ProofNetIRExperimentCorpus"
 [[lean_exe]]
 name = "proofnet_ir_experiment_verify"
 root = "ProofNetIRExperimentVerify"
+
+[[lean_exe]]
+name = "proofnet_ir_redundancy_count"
+root = "ProofNetIRRedundancyCount"
 
 [[lean_exe]]
 name = "proofnet_ir_model_experiment_corpus"

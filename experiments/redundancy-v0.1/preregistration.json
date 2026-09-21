@@ -1,0 +1,71 @@
+{
+ "budgets": {
+  "candidateLinkingsPerTask": 1000000,
+  "crossCheckMaxAtoms": 16,
+  "crossCheckMaxLinkings": 1000,
+  "memoizedStatesPerCountPerTask": 3000000
+ },
+ "corpora": {
+  "matched": {
+   "path": "experiments/matched-v0.1/corpus.jsonl",
+   "sha256": "fecc3bd31de256e5da91b61328eeb294a4e9049ff76262dfe0735290e41e3ee3"
+  },
+  "model": {
+   "path": "experiments/model-v0.2/corpus.jsonl",
+   "sha256": "0bb9a950ebb5f3706cd0f0629d668801ae7174e97c6fa9f4f175c7c299d36dc2"
+  }
+ },
+ "developmentChecksBeforeRegistration": "six hand-checked fixtures and 120 generated development sequents (seeds 5000-5039, depths 2-4, not corpus tasks) were counted; the Lean counter and the brute-force enumerator agree on the fixtures and on the development sequents with at most 16 atoms; no corpus count existed",
+ "exclusionPolicy": "a count over its state budget is reported as excluded with the partial value; a task over the linking budget has no nets count and no ratio; negatives must count zero everywhere and enter no ratio; nothing is dropped silently",
+ "experiment": "redundancy-v0.1",
+ "hypotheses": {
+  "H1": "on more than half of the ratio-bearing tasks, dFoc/nets > 1",
+  "H2": "over the matched strata, median(dAll/nets) more than doubles from 8 to 16 atoms and again from 16 to 32 atoms",
+  "H3": "on more than half of the ratio-bearing tasks, dFoc < dWeak"
+ },
+ "implementationSha256": {
+  "bruteForce": "5113ae304e978742c081ba54ed02d4d6f59808d9e3e2f64079024dca9731d4a6",
+  "leanCounter": "b65ae8640ddc36b4234096a50780eaf4ed85f288c023ea7fe645bf90ae4bc92b",
+  "runner": "ac0792a6a4fd9deec9d61fce126b249b19e2066165660a9828bfb4d39f389080"
+ },
+ "quantities": {
+  "dAll": "derivations in the plain calculus over the frozen occurrence forest, exchange absorbed, every occurrence distinct",
+  "dFoc": "derivations with the focus persisting through the positive subformulas of the chosen tensor and released at an atom or a par",
+  "dWeak": "derivations of scripts/focused_search.py: one deterministic par phase, then a tensor choice and every balanced context split",
+  "nets": "axiom linkings of the forest accepted by Certificate.unificationCheck, which equals Certificate.check by theorem",
+  "ratios": [
+   "dAll/nets",
+   "dWeak/nets",
+   "dFoc/nets",
+   "dFoc/dWeak"
+  ]
+ },
+ "question": "how many cut-free sequent derivations denote one proof net, for the plain calculus, the committed focused baseline, and the tensor-persistent focused calculus, on the committed MLL corpora",
+ "registeredLocalDate": "2026-09-21 America/Los_Angeles",
+ "report": "per stratum: task count, exclusions, median and quartiles of each ratio, fraction of tasks with each ratio equal to one; the hypotheses answered as stated; no advantage claim of any method",
+ "resultsAbsentAtRegistration": true,
+ "strata": {
+  "matched:atoms-16": 250,
+  "matched:atoms-32": 50,
+  "matched:atoms-8": 700,
+  "model:depth-2:one-label:negative": 10,
+  "model:depth-2:one-label:positive": 10,
+  "model:depth-2:two-label:negative": 10,
+  "model:depth-2:two-label:positive": 10,
+  "model:depth-2:unique:negative": 10,
+  "model:depth-2:unique:positive": 10,
+  "model:depth-3:one-label:negative": 10,
+  "model:depth-3:one-label:positive": 10,
+  "model:depth-3:two-label:negative": 10,
+  "model:depth-3:two-label:positive": 10,
+  "model:depth-3:unique:negative": 10,
+  "model:depth-3:unique:positive": 10,
+  "model:depth-4:one-label:negative": 10,
+  "model:depth-4:one-label:positive": 10,
+  "model:depth-4:two-label:negative": 10,
+  "model:depth-4:two-label:positive": 10,
+  "model:depth-4:unique:negative": 10,
+  "model:depth-4:unique:positive": 10
+ },
+ "taskCount": 1180
+}

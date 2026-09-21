@@ -557,6 +557,19 @@ Exact target statements for the open items are in the
   explicit `release_ref=v0.10.0` CI, and pin a clean consumer to the exact
   public tag.
 
+## v0.11 - Search redundancy
+
+The founding question, stated as measurements
+([v0.11-design.md](v0.11-design.md)); each step is preregistered before its
+data exists and reported either way.
+
+- [x] Register step 1: exact counts of derivations per proof net for the
+  plain, baseline-focused, and tensor-persistent calculi on the committed
+  corpora, with an independent brute-force cross-check.
+- [ ] Run step 1 and answer H1 to H3.
+- [ ] Register, run, and report step 2, the equal-information matched search.
+- [ ] Step 3, the skeleton-free model study, only after a positive step 2.
+
 ## Later research
 
 - indexed/streaming intrinsic encoding to reduce the current repeated-formula

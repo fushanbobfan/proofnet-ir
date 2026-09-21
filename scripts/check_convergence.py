@@ -31,6 +31,7 @@ CAPS = {
     "docs/library-readiness-audit.md": 500,
     "docs/source-coverage-audit.md": 200,
     "docs/v0.10-design.md": 400,
+    "docs/v0.11-design.md": 400,
     "docs/roadmap.md": 600,
     "docs/guerrini-unification-audit.md": 500,
     "docs/performance.md": 500,
