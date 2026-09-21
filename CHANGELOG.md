@@ -7,6 +7,15 @@ and its proof layer on top of `v0.9.0`. Entries are one per mathematics
 checkpoint, newest first; wrapper-transport steps are folded into the family
 they served, and `git log` holds the per-commit record.
 
+- bounded the dispatcher phase of the public decision (D6.3):
+  `dispatchPhase_le` proves that the instrumented run from an initial
+  reservation costs at most `72 * (formulas.size + 1) * (formulas.size +
+  links.length + 1)`, from the carrier bounds of the stack structures
+  (`sigma_length_le`, `queued_le`, `parents_size_le`), the per-call bound
+  `dispatchCost_le` (linear apart from payload activation), and the waiting
+  potential `waitingTotal_step` (a `wait` stores one occurrence, a
+  `unifyPayload` activates its whole cell, nothing else touches the table),
+  which pays each activated occurrence with the `wait` that stored it;
 - replaced the duplicate guards of `forward` and `unifyPayload` by the
   carrier-bounded linear check `nodupGuard` (`SequentialSchedulerState`;
   `nodupGuard_eq_true_iff` decides exactly `List.Nodup`, so the typed rule

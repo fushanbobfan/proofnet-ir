@@ -26180,6 +26180,215 @@ ProofNetIR.SequentialCost.runDispatcherWithStats_calls_le : ∀ (certificate : P
   (ProofNetIR.SequentialCost.runDispatcherWithStats certificate fuel state invariant).calls ≤ fuel
 ```
 
+### `ProofNetIR.SequentialCost.sigma_length_le`
+
+Kind: theorem.
+
+The sigma boundary list is bounded by the carrier: it is strictly
+increasing below the raw-age horizon, which is at most the waiting-table size.
+
+```lean
+ProofNetIR.SequentialCost.sigma_length_le : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate state →
+    state.stack.sigma.length ≤ certificate.formulas.size
+```
+
+### `ProofNetIR.SequentialCost.ready_length_le`
+
+Kind: theorem.
+
+The ready stack has one bucket per sigma boundary.
+
+```lean
+ProofNetIR.SequentialCost.ready_length_le : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate state →
+    state.stack.ready.length ≤ certificate.formulas.size
+```
+
+### `ProofNetIR.SequentialCost.parents_size_le`
+
+Kind: theorem.
+
+The parent array grows with the raw-age horizon, which is inside the carrier.
+
+```lean
+ProofNetIR.SequentialCost.parents_size_le : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate state →
+    state.core.parents.size ≤ certificate.formulas.size
+```
+
+### `ProofNetIR.SequentialCost.queued_le`
+
+Kind: theorem.
+
+Queued occurrences are duplicate-free and unmarked, hence inside the carrier.
+
+```lean
+ProofNetIR.SequentialCost.queued_le : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+    ProofNetIR.SequentialCost.queued state ≤ certificate.formulas.size
+```
+
+### `ProofNetIR.SequentialCost.conclusions_length_le`
+
+Kind: theorem.
+
+The conclusion list is duplicate-free inside the carrier.
+
+```lean
+ProofNetIR.SequentialCost.conclusions_length_le : ∀ {certificate : ProofNetIR.Certificate},
+  certificate.StructurallyWellFormed → certificate.conclusions.length ≤ certificate.formulas.size
+```
+
+### `ProofNetIR.SequentialCost.mergedPayloadLength_le`
+
+Kind: theorem.
+
+A merged payload is inside the carrier.
+
+```lean
+ProofNetIR.SequentialCost.mergedPayloadLength_le : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+    ProofNetIR.SequentialCost.mergedPayloadLength state ≤ certificate.formulas.size
+```
+
+### `ProofNetIR.SequentialCost.callBound`
+
+Kind: definition.
+
+Linear bound of one dispatcher call, apart from payload activation.
+
+```lean
+ProofNetIR.SequentialCost.callBound : ProofNetIR.Certificate → Nat
+```
+
+### `ProofNetIR.SequentialCost.activationCost`
+
+Kind: definition.
+
+Bound of one par queue, the unit of payload activation.
+
+```lean
+ProofNetIR.SequentialCost.activationCost : ProofNetIR.Certificate → Nat
+```
+
+### `ProofNetIR.SequentialCost.queueParCost_le`
+
+Kind: theorem.
+
+One par queue costs at most one activation.
+
+```lean
+ProofNetIR.SequentialCost.queueParCost_le : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate state →
+    ProofNetIR.SequentialCost.queueParCost certificate state ≤ ProofNetIR.SequentialCost.activationCost certificate
+```
+
+### `ProofNetIR.SequentialCost.activated`
+
+Kind: definition.
+
+Payload occurrences activated by a call: the merged payload of a
+`unifyPayload` success, or of the failed final attempt.
+
+```lean
+ProofNetIR.SequentialCost.activated : ProofNetIR.SequentialSchedulerBridge.ReservationState → Option ProofNetIR.SequentialFigure7.Figure7DispatchResult → Nat
+```
+
+### `ProofNetIR.SequentialCost.dispatchCost_le`
+
+Kind: theorem.
+
+One dispatcher call costs at most the linear call bound plus one
+activation per payload occurrence it activates.
+
+```lean
+ProofNetIR.SequentialCost.dispatchCost_le : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+    ∀ (result : Option ProofNetIR.SequentialFigure7.Figure7DispatchResult),
+      ProofNetIR.SequentialCost.dispatchCost certificate state result ≤
+        ProofNetIR.SequentialCost.callBound certificate +
+          ProofNetIR.SequentialCost.activated state result * ProofNetIR.SequentialCost.activationCost certificate
+```
+
+### `ProofNetIR.SequentialCost.waitingTotal`
+
+Kind: definition.
+
+Occurrences currently stored in waiting cells.
+
+```lean
+ProofNetIR.SequentialCost.waitingTotal : ProofNetIR.SequentialSchedulerBridge.ReservationState → Nat
+```
+
+### `ProofNetIR.SequentialCost.waitingTotal_step`
+
+Kind: theorem.
+
+One successful call: the payload it activates plus the occurrences still
+waiting afterwards are at most the occurrences waiting before plus one.
+
+```lean
+ProofNetIR.SequentialCost.waitingTotal_step : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (invariant : ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state)
+  {result : ProofNetIR.SequentialFigure7.Figure7DispatchResult},
+  ProofNetIR.SequentialFigure7.dispatch? certificate state invariant = some result →
+    ProofNetIR.SequentialCost.activated state (some result) + ProofNetIR.SequentialCost.waitingTotal result.after ≤
+      ProofNetIR.SequentialCost.waitingTotal state + 1
+```
+
+### `ProofNetIR.SequentialCost.runDispatcherWithStats_cost_le`
+
+Kind: theorem.
+
+The instrumented run: its operations, plus the occurrences still waiting
+at the end weighted by one activation, are bounded by the calls made, the
+occurrences waiting at the start, and one failed final attempt.
+
+```lean
+ProofNetIR.SequentialCost.runDispatcherWithStats_cost_le : ∀ {certificate : ProofNetIR.Certificate} (fuel : Nat) (state : ProofNetIR.SequentialSchedulerBridge.ReservationState)
+  (invariant : ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state),
+  (ProofNetIR.SequentialCost.runDispatcherWithStats certificate fuel state invariant).cost +
+      ProofNetIR.SequentialCost.waitingTotal
+          (ProofNetIR.SequentialCost.runDispatcherWithStats certificate fuel state invariant).state *
+        ProofNetIR.SequentialCost.activationCost certificate ≤
+    (ProofNetIR.SequentialCost.runDispatcherWithStats certificate fuel state invariant).calls *
+          (ProofNetIR.SequentialCost.callBound certificate + ProofNetIR.SequentialCost.activationCost certificate) +
+        ProofNetIR.SequentialCost.waitingTotal state * ProofNetIR.SequentialCost.activationCost certificate +
+      certificate.formulas.size * ProofNetIR.SequentialCost.activationCost certificate
+```
+
+### `ProofNetIR.SequentialCost.waitingTotal_initial`
+
+Kind: theorem.
+
+Initialization leaves every waiting cell undefined.
+
+```lean
+ProofNetIR.SequentialCost.waitingTotal_initial : ∀ {certificate : ProofNetIR.Certificate} {start : ProofNetIR.Vertex}
+  {state : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  ProofNetIR.SequentialSchedulerBridge.initializeReservation? certificate start = some state →
+    ProofNetIR.SequentialCost.waitingTotal state = 0
+```
+
+### `ProofNetIR.SequentialCost.dispatchPhase_le`
+
+Kind: theorem.
+
+The dispatcher phase of the public decision is quadratic: the run from the
+initial reservation makes at most `formulas.size + 1` calls, each linear
+apart from payload activation, and activates each waiting occurrence once.
+
+```lean
+ProofNetIR.SequentialCost.dispatchPhase_le : ∀ {certificate : ProofNetIR.Certificate} {start : ProofNetIR.Vertex}
+  {state : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  ProofNetIR.SequentialSchedulerBridge.initializeReservation? certificate start = some state →
+    ∀ (invariant : ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state),
+      (ProofNetIR.SequentialCost.runDispatcherWithStats certificate (certificate.formulas.size + 1) state
+            invariant).cost ≤
+        72 * (certificate.formulas.size + 1) * (certificate.formulas.size + certificate.links.length + 1)
+```
+
 ### `ProofNetIR.Certificate.SequentialDecisionRun`
 
 Kind: inductive type.

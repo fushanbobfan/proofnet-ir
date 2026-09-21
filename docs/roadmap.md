@@ -542,9 +542,9 @@ Exact target statements for the open items are in the
 - [x] Replace the quadratic duplicate guards of `forward` and `unifyPayload`
   by the carrier-bounded linear check `nodupGuard`, so that every dispatcher
   call is linear apart from payload activation (D6.2).
-- [ ] Bound the dispatcher phase: the sizes of the stack structures by the
+- [x] Bound the dispatcher phase: the sizes of the stack structures by the
   carrier, the waiting payloads activated over a run by the number of
-  `wait` steps, hence a quadratic total (D6.3).
+  `wait` steps, hence a quadratic total (`dispatchPhase_le`, D6.3).
 - [ ] Bound the structural, initialization, extraction, and verification
   phases quadratically (D6.4).
 - [ ] Assemble the whole-program bound (D6, retargeted from the flat

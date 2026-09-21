@@ -205,6 +205,31 @@ example : SequentialSchedulerState.nodupGuard 4 [3, 1, 0] = true := by decide
 example : SequentialSchedulerState.nodupGuard 4 [3, 1, 3] = false := by decide
 example : SequentialSchedulerState.nodupGuard 2 [7, 1, 7] = false := by decide
 
+-- The dispatcher phase is quadratic from any initial reservation (D6.3).
+example {cert : Certificate} {start : Vertex} {state : ReservationState}
+    (initEq : initializeReservation? cert start = some state)
+    (invariant : SchedulerInvariant cert state) :
+    (SequentialCost.runDispatcherWithStats cert (cert.formulas.size + 1) state invariant).cost ≤
+      72 * (cert.formulas.size + 1) * (cert.formulas.size + cert.links.length + 1) :=
+  SequentialCost.dispatchPhase_le initEq invariant
+
+example {cert : Certificate} {state : ReservationState} (invariant : SchedulerInvariant cert state)
+    (result : Option Figure7DispatchResult) :
+    SequentialCost.dispatchCost cert state result ≤
+      SequentialCost.callBound cert +
+        SequentialCost.activated state result * SequentialCost.activationCost cert :=
+  SequentialCost.dispatchCost_le invariant result
+
+example {cert : Certificate} {state : ReservationState} (invariant : SchedulerInvariant cert state)
+    {result : Figure7DispatchResult} (equation : dispatch? cert state invariant = some result) :
+    SequentialCost.activated state (some result) + SequentialCost.waitingTotal result.after ≤
+      SequentialCost.waitingTotal state + 1 :=
+  SequentialCost.waitingTotal_step invariant equation
+
+example : certificate.sequentialDecisionWithStats.stats.dispatch ≤
+    72 * (certificate.formulas.size + 1) * (certificate.formulas.size + certificate.links.length + 1) := by
+  native_decide
+
 end ProofNetIR.Figure7SequentialTests
 
 #print axioms ProofNetIR.SequentialFigure7.runDispatcher_spec
@@ -230,6 +255,8 @@ end ProofNetIR.Figure7SequentialTests
 #print axioms ProofNetIR.SequentialCost.runDispatcherWithStats_state
 #print axioms ProofNetIR.SequentialCost.runDispatcherWithStats_calls_le
 #print axioms ProofNetIR.Certificate.sequentialDecisionWithStats_accepted
+#print axioms ProofNetIR.SequentialCost.dispatchPhase_le
+#print axioms ProofNetIR.SequentialCost.waitingTotal_step
 
 def main : IO Unit := do
   let accepted := ProofNetIR.Figure7SequentialTests.certificate.sequentialFastCheck

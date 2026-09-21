@@ -69,10 +69,11 @@ per link, and one node check per occurrence (`nodeWellFormed`: one link
 filter for the source count, one `contains` over the conclusions, and one
 link filter for the parent-use count). -/
 def structuralCost (certificate : Certificate) : Nat :=
-  let n := certificate.formulas.size
-  let m := certificate.links.length
-  let k := certificate.conclusions.length
-  2 + k + k * k + m + n * (2 * m + k + 1)
+  2 + certificate.conclusions.length +
+    certificate.conclusions.length * certificate.conclusions.length +
+    certificate.links.length +
+    certificate.formulas.size *
+      (2 * certificate.links.length + certificate.conclusions.length + 1)
 
 /-- `ConsumerIndex.build` and `sourceIndex`: the carrier-sized table and one
 fold step per link. -/
@@ -141,9 +142,9 @@ carrier-fuelled `NEXTAXIOM` search, the trace tail read, the operational
 update (sigma and ready appends, one cell write), and the axiom
 reservation. -/
 def newCost (certificate : Certificate) (state : ReservationState) : Nat :=
-  let n := certificate.formulas.size
-  prepareCost state + consumerLookupCost certificate + indexCost certificate + (n + 1) +
-    (n + 1) + (2 * state.stack.sigma.length + 2 * queued state + 4) +
+  prepareCost state + consumerLookupCost certificate + indexCost certificate +
+    (certificate.formulas.size + 1) + (certificate.formulas.size + 1) +
+    (2 * state.stack.sigma.length + 2 * queued state + 4) +
     (state.stack.sigma.length + state.stack.ready.length + 1) + 3
 
 /-- `wait?`: the prepared prefix, the consumer lookup, the mate mark test,
@@ -195,17 +196,18 @@ the source index, the carrier-fuelled search, the trace tail read, the
 initial-enqueue guard (two carrier scans and constant tests) and update, and
 the axiom reservation. -/
 def initializationCost (certificate : Certificate) : Nat :=
-  let n := certificate.formulas.size
-  3 * n + indexCost certificate + (n + 1) + (n + 1) + (2 * n + 8) + 3
+  3 * certificate.formulas.size + indexCost certificate + (certificate.formulas.size + 1) +
+    (certificate.formulas.size + 1) + (2 * certificate.formulas.size + 8) + 3
 
 /-- `sequentialFinalTree?`: the live-component scan, and for a single live
 component the frontier length test, one `findIdx?` over the frontier per
 conclusion, and the duplicate scan of the order. -/
 def extractionCost (certificate : Certificate) (state : ReservationState) : Nat :=
-  let k := certificate.conclusions.length
   state.core.components.size +
     match state.core.liveComponents with
-    | [component] => 1 + k * component.frontier.length + k * k + 1
+    | [component] =>
+        1 + certificate.conclusions.length * component.frontier.length +
+          certificate.conclusions.length * certificate.conclusions.length + 1
     | _ => 0
 
 /-- Length of the sequent inferred below a subtree, zero when inference fails. -/
@@ -253,15 +255,14 @@ vertex, the relabel (the duplicate scan of the conclusion and link vertices,
 one `idxOf` per link vertex and conclusion, and the formula map), and the
 structural code (one token or unary character each). -/
 def canonicalCodeCost (certificate : Certificate) : Nat :=
-  let n := certificate.formulas.size
-  let m := certificate.links.length
-  let k := certificate.conclusions.length
-  let raw := certificate.intrinsicTraversalRaw.length
-  let traversal := certificate.intrinsicTraversalVertices.length
-  let relabelled := (certificate.conclusions ++ certificate.links.flatMap Link.vertices).length
-  raw * (m + 1) + raw * raw + traversal * (m + 1) +
-    relabelled * relabelled + (3 * m + k) * n + n +
-    (certificate.intrinsicCanonicalCode.foldl (fun acc token => acc + token.length + 1) 0)
+  certificate.intrinsicTraversalRaw.length * (certificate.links.length + 1) +
+    certificate.intrinsicTraversalRaw.length * certificate.intrinsicTraversalRaw.length +
+    certificate.intrinsicTraversalVertices.length * (certificate.links.length + 1) +
+    (certificate.conclusions ++ certificate.links.flatMap Link.vertices).length *
+      (certificate.conclusions ++ certificate.links.flatMap Link.vertices).length +
+    (3 * certificate.links.length + certificate.conclusions.length) * certificate.formulas.size +
+    certificate.formulas.size +
+    certificate.intrinsicCanonicalCode.foldl (fun acc token => acc + token.length + 1) 0
 
 /-- `verifyDerivation?`: the structural check, the conclusion labels, the
 inference, the desequentialization, both canonical codes, and their
@@ -331,6 +332,434 @@ theorem runDispatcherWithStats_calls_le (certificate : Certificate) (fuel : Nat)
       split
       · exact Nat.succ_le_succ (Nat.zero_le fuel)
       · exact Nat.succ_le_succ (ih _ _)
+
+open SequentialSchedulerState.SequentialStackState in
+section
+/-! ## Sizes of the scheduler state under the invariant -/
+
+private theorem length_le_of_nodup_subset {values ambient : List Nat} (nodup : values.Nodup)
+    (subset : ∀ value ∈ values, value ∈ ambient) : values.length ≤ ambient.length := by
+  induction values generalizing ambient with
+  | nil => simp
+  | cons head tail ih =>
+      have headMembership : head ∈ ambient := subset head (by simp)
+      have tailSubset : ∀ value ∈ tail, value ∈ ambient.erase head := by
+        intro value membership
+        have valueMembership : value ∈ ambient := subset value (by simp [membership])
+        have different : value ≠ head := by
+          intro same
+          subst value
+          exact (List.nodup_cons.mp nodup).1 membership
+        exact (List.mem_erase_of_ne different).2 valueMembership
+      have tailBound := ih (List.nodup_cons.mp nodup).2 tailSubset
+      rw [List.length_erase_of_mem headMembership] at tailBound
+      have positive : 0 < ambient.length := List.length_pos_of_mem headMembership
+      simp only [List.length_cons]
+      omega
+
+private theorem length_le_of_nodup_bounded {values : List Nat} {size : Nat}
+    (nodup : values.Nodup) (bounded : ∀ value ∈ values, value < size) :
+    values.length ≤ size := by
+  have := length_le_of_nodup_subset nodup (ambient := List.range size)
+    (fun value member ↦ List.mem_range.mpr (bounded value member))
+  simpa using this
+
+/-- The sigma boundary list is bounded by the carrier: it is strictly
+increasing below the raw-age horizon, which is at most the waiting-table size. -/
+theorem sigma_length_le {certificate : Certificate} {state : ReservationState}
+    (invariant : ReservationInvariant certificate state) :
+    state.stack.sigma.length ≤ certificate.formulas.size := by
+  have shaped := invariant.stack_wellShaped
+  have nodup : state.stack.sigma.Nodup :=
+    shaped.sigma_partition.strictIncreasing.imp fun lt ↦ Nat.ne_of_lt lt
+  have horizon : state.stack.nextAge ≤ certificate.formulas.size :=
+    shaped.waiting_size ▸ shaped.nextAge_le_waiting
+  exact Nat.le_trans (length_le_of_nodup_bounded nodup fun boundary member ↦
+    shaped.sigma_partition.boundary_lt boundary member) horizon
+
+/-- The ready stack has one bucket per sigma boundary. -/
+theorem ready_length_le {certificate : Certificate} {state : ReservationState}
+    (invariant : ReservationInvariant certificate state) :
+    state.stack.ready.length ≤ certificate.formulas.size :=
+  invariant.stack_wellShaped.ready_aligned ▸ sigma_length_le invariant
+
+/-- The parent array grows with the raw-age horizon, which is inside the carrier. -/
+theorem parents_size_le {certificate : Certificate} {state : ReservationState}
+    (invariant : ReservationInvariant certificate state) :
+    state.core.parents.size ≤ certificate.formulas.size := by
+  have shaped := invariant.stack_wellShaped
+  rw [invariant.realizesSigma.horizon_eq]
+  exact shaped.waiting_size ▸ shaped.nextAge_le_waiting
+
+/-- Queued occurrences are duplicate-free and unmarked, hence inside the carrier. -/
+theorem queued_le {certificate : Certificate} {state : ReservationState}
+    (invariant : SchedulerInvariant certificate state) :
+    queued state ≤ certificate.formulas.size := by
+  apply length_le_of_nodup_bounded invariant.queued_vertices_nodup
+  intro vertex member
+  have unmarked := invariant.queued_vertices_unmarked vertex member
+  have bound := (Array.getElem?_eq_some_iff.mp unmarked).1
+  rw [invariant.realizesSigma.marks_eq, invariant.stack_wellShaped.marks_size] at bound
+  exact bound
+
+/-- The conclusion list is duplicate-free inside the carrier. -/
+theorem conclusions_length_le {certificate : Certificate}
+    (structural : certificate.StructurallyWellFormed) :
+    certificate.conclusions.length ≤ certificate.formulas.size :=
+  length_le_of_nodup_bounded
+    (CutFreeDerivation.nodup_of_eraseDups_length_eq structural.2.2.2.1) structural.2.2.1
+
+/-- Every waiting payload is part of the queued occurrences. -/
+private theorem mergedPayloadLength_le_waiting (state : ReservationState) :
+    mergedPayloadLength state ≤ state.stack.waitingVertices.length := by
+  unfold mergedPayloadLength
+  split
+  · exact Nat.zero_le _
+  · rename_i boundary _
+    split
+    · rename_i payload lookup
+      have member : WaitingCell.initialized payload ∈ state.stack.waiting.toList :=
+        List.mem_iff_getElem?.mpr ⟨boundary, by simpa using lookup⟩
+      unfold SequentialStackState.waitingVertices
+      have sub : List.Sublist payload
+          (state.stack.waiting.toList.flatMap WaitingCell.vertices) := by
+        have := List.sublist_flatten_of_mem
+          (List.mem_map_of_mem (f := WaitingCell.vertices) member)
+        simpa [List.flatMap, WaitingCell.vertices] using this
+      exact sub.length_le
+    · exact Nat.zero_le _
+
+private theorem waiting_length_le_queued (state : ReservationState) :
+    state.stack.waitingVertices.length ≤ queued state := by
+  unfold queued SequentialStackState.queuedVertices
+  simp
+
+/-- A merged payload is inside the carrier. -/
+theorem mergedPayloadLength_le {certificate : Certificate} {state : ReservationState}
+    (invariant : SchedulerInvariant certificate state) :
+    mergedPayloadLength state ≤ certificate.formulas.size :=
+  Nat.le_trans (mergedPayloadLength_le_waiting state)
+    (Nat.le_trans (waiting_length_le_queued state) (queued_le invariant))
+
+/-! ## One dispatcher call -/
+
+/-- Linear bound of one dispatcher call, apart from payload activation. -/
+def callBound (certificate : Certificate) : Nat :=
+  62 * (certificate.formulas.size + certificate.links.length + 1)
+
+/-- Bound of one par queue, the unit of payload activation. -/
+def activationCost (certificate : Certificate) : Nat :=
+  5 * certificate.formulas.size + 3
+
+/-- One par queue costs at most one activation. -/
+theorem queueParCost_le {certificate : Certificate} {state : ReservationState}
+    (invariant : ReservationInvariant certificate state) :
+    queueParCost certificate state ≤ activationCost certificate := by
+  have := parents_size_le invariant
+  unfold queueParCost activationCost
+  omega
+
+/-- Payload occurrences activated by a call: the merged payload of a
+`unifyPayload` success, or of the failed final attempt. -/
+def activated (state : ReservationState) : Option Figure7DispatchResult → Nat
+  | some ⟨.unifyPayload, _⟩ => mergedPayloadLength state
+  | none => mergedPayloadLength state
+  | some _ => 0
+
+/-- One dispatcher call costs at most the linear call bound plus one
+activation per payload occurrence it activates. -/
+theorem dispatchCost_le {certificate : Certificate} {state : ReservationState}
+    (invariant : SchedulerInvariant certificate state)
+    (result : Option Figure7DispatchResult) :
+    dispatchCost certificate state result ≤
+      callBound certificate + activated state result * activationCost certificate := by
+  have sigma := sigma_length_le invariant.toReservationInvariant
+  have ready := ready_length_le invariant.toReservationInvariant
+  have parents := parents_size_le invariant.toReservationInvariant
+  have queuedBound := queued_le invariant
+  have conclusions := conclusions_length_le invariant.structural
+  have queuePar := queueParCost_le invariant.toReservationInvariant
+  have payloadTerm : mergedPayloadLength state * queueParCost certificate state ≤
+      mergedPayloadLength state * activationCost certificate :=
+    Nat.mul_le_mul_left _ queuePar
+  have activation : activationCost certificate = 5 * certificate.formulas.size + 3 := rfl
+  unfold dispatchCost conclCost nopCost newCost waitCost forwardCost unifyPayloadCost
+    prepareCost conclusionLookupCost consumerLookupCost uniqueConsumerCost indexCost
+    nodeCheckCost queueTensorCost callBound activated
+  rcases result with _ | ⟨kind, after⟩
+  · simp only
+    omega
+  · cases kind <;> simp only <;> omega
+
+/-! ## The waiting potential -/
+
+/-- Occurrences currently stored in waiting cells. -/
+def waitingTotal (state : ReservationState) : Nat :=
+  state.stack.waitingVertices.length
+
+private theorem sum_map_set {l : List WaitingCell} {index : Nat} (bound : index < l.length)
+    (cell : WaitingCell) :
+    ((l.set index cell).map fun c ↦ (WaitingCell.vertices c).length).sum +
+        (WaitingCell.vertices l[index]).length =
+      (l.map fun c ↦ (WaitingCell.vertices c).length).sum + (WaitingCell.vertices cell).length := by
+  induction l generalizing index with
+  | nil => simp at bound
+  | cons head tail ih =>
+      cases index with
+      | zero => simp [Nat.add_comm, Nat.add_left_comm]
+      | succ index =>
+          have := ih (Nat.lt_of_succ_lt_succ bound) (index := index)
+          simp only [List.set_cons_succ, List.map_cons, List.sum_cons, List.getElem_cons_succ]
+          omega
+
+/-- Replacing one waiting cell changes the stored total by the cell difference. -/
+private theorem waitingTotal_set (stack : SequentialStackState) {boundary : Nat} {old : WaitingCell}
+    (lookup : stack.waiting[boundary]? = some old) (cell : WaitingCell) :
+    ({ stack with waiting := stack.waiting.setIfInBounds boundary cell } :
+        SequentialStackState).waitingVertices.length + (WaitingCell.vertices old).length =
+      stack.waitingVertices.length + (WaitingCell.vertices cell).length := by
+  have bound : boundary < stack.waiting.size := (Array.getElem?_eq_some_iff.mp lookup).1
+  have oldEq : stack.waiting.toList[boundary] = old := by
+    have := List.getElem?_eq_getElem (l := stack.waiting.toList) (by simpa using bound)
+    rw [Array.getElem?_toList, lookup] at this
+    exact (Option.some.inj this).symm
+  unfold SequentialStackState.waitingVertices
+  simp only [Array.toList_setIfInBounds, List.length_flatMap]
+  have := sum_map_set (l := stack.waiting.toList) (by simpa using bound) cell
+  rw [oldEq] at this
+  exact this
+
+private theorem waitingTotal_eq_of_waiting_eq {left right : SequentialStackState}
+    (eq : left.waiting = right.waiting) :
+    left.waitingVertices.length = right.waitingVertices.length := by
+  unfold SequentialStackState.waitingVertices
+  rw [eq]
+
+/-- Replacing one waiting cell changes the stored total by the cell difference,
+for any state whose waiting table is the replaced one. -/
+private theorem waitingTotal_replace {stack after : SequentialStackState} {boundary : Nat}
+    {old : WaitingCell} (lookup : stack.waiting[boundary]? = some old) (cell : WaitingCell)
+    (afterEq : after.waiting = stack.waiting.setIfInBounds boundary cell) :
+    after.waitingVertices.length + (WaitingCell.vertices old).length =
+      stack.waitingVertices.length + (WaitingCell.vertices cell).length := by
+  rw [waitingTotal_eq_of_waiting_eq (right := { stack with
+    waiting := stack.waiting.setIfInBounds boundary cell }) afterEq]
+  exact waitingTotal_set stack lookup cell
+
+/-- The prepared prefix does not touch the waiting table. -/
+private theorem prepared_waiting_eq {before : ReservationState} (step : PreparedStep before) :
+    step.stackResult.after.waiting = before.stack.waiting :=
+  (SequentialStackState.popReadyMark?_exact step.stack_eq).2.2.2.2.2.2.2.1
+
+/-- The merged payload read by the cost model is the payload the merge consumes. -/
+private theorem mergedPayloadLength_eq {state : ReservationState} {sigmaPrefix : List RawTokenAge}
+    {previousBoundary activeBoundary : RawTokenAge} {payload : List Vertex}
+    (sigmaEq : state.stack.sigma = sigmaPrefix ++ [previousBoundary, activeBoundary])
+    (waitingEq : state.stack.waiting[previousBoundary]? = some (.initialized payload)) :
+    mergedPayloadLength state = payload.length := by
+  unfold mergedPayloadLength
+  have boundary : state.stack.sigma.dropLast.getLast? = some previousBoundary := by
+    rw [sigmaEq]
+    simp [List.dropLast_append_of_ne_nil]
+  rw [boundary]
+  simp [waitingEq]
+
+/-- One successful call: the payload it activates plus the occurrences still
+waiting afterwards are at most the occurrences waiting before plus one. -/
+theorem waitingTotal_step {certificate : Certificate} {state : ReservationState}
+    (invariant : SchedulerInvariant certificate state) {result : Figure7DispatchResult}
+    (equation : dispatch? certificate state invariant = some result) :
+    activated state (some result) + waitingTotal result.after ≤ waitingTotal state + 1 := by
+  obtain ⟨step⟩ := (dispatch?_some_iff invariant).mp equation
+  unfold waitingTotal
+  cases step with
+  | concl conclEq =>
+      obtain ⟨rule⟩ := (concl?_some_iff invariant.toReservationInvariant).mp conclEq
+      rw [rule.output_eq]
+      simp only [activated, PreparedStep.after, Nat.zero_add]
+      rw [waitingTotal_eq_of_waiting_eq (prepared_waiting_eq rule.prepared)]
+      exact Nat.le_succ _
+  | nop _ nopEq =>
+      obtain ⟨rule⟩ := (nop?_some_iff invariant.toReservationInvariant).mp nopEq
+      rw [rule.output_eq]
+      simp only [activated, PreparedStep.after, Nat.zero_add]
+      rw [waitingTotal_eq_of_waiting_eq (prepared_waiting_eq rule.prepared)]
+      exact Nat.le_succ _
+  | new _ _ newEq =>
+      obtain ⟨rule⟩ := (new?_some_iff invariant.toReservationInvariant).mp newEq
+      obtain ⟨enqueue⟩ :=
+        SequentialStackState.operationalNewEnqueue?_some_iff.mp rule.stack_enqueue_eq
+      rw [rule.output_eq]
+      simp only [activated, Nat.zero_add]
+      have popWaiting : rule.stackResult.after.waiting = state.stack.waiting :=
+        (SequentialStackState.popReadyMark?_exact rule.stack_eq).2.2.2.2.2.2.2.1
+      have undefinedAt : rule.stackResult.after.waiting[enqueue.active]? = some .undefined :=
+        enqueue.ready.2.2.2.2.2.2.2.2.2.2.1
+      have replaced := waitingTotal_replace undefinedAt (.initialized [])
+        (after := rule.stackAfter) (congrArg SequentialStackState.waiting enqueue.after_eq)
+      simp only [WaitingCell.vertices, List.length_nil, Nat.add_zero] at replaced
+      rw [replaced, waitingTotal_eq_of_waiting_eq popWaiting]
+      exact Nat.le_succ _
+  | wait _ _ _ waitEq =>
+      obtain ⟨rule⟩ := (wait?_some_iff invariant.toReservationInvariant).mp waitEq
+      obtain ⟨prepend⟩ :=
+        SequentialStackState.prependWaiting?_some_iff.mp rule.destination.stack_eq
+      rw [rule.destination.output_eq]
+      simp only [activated, Nat.zero_add]
+      have replaced := waitingTotal_replace prepend.initialized
+        (.initialized (rule.consumer.conclusion :: prepend.payload))
+        (after := rule.destination.stackAfter)
+        (congrArg SequentialStackState.waiting prepend.after_eq)
+      simp only [WaitingCell.vertices, List.length_cons] at replaced
+      have prefixEq : rule.prepared.after.stack.waitingVertices.length =
+          state.stack.waitingVertices.length :=
+        waitingTotal_eq_of_waiting_eq (prepared_waiting_eq rule.prepared)
+      omega
+  | forward _ _ _ _ forwardEq =>
+      obtain ⟨rule⟩ := (forward?_some_iff invariant.toReservationInvariant).mp forwardEq
+      rw [rule.output_eq]
+      simp only [activated, Nat.zero_add]
+      have keep : rule.stackAfter.waiting = rule.prepared.stackResult.after.waiting := by
+        have := congrArg SequentialStackState.waiting rule.prependStep.after_eq
+        exact this
+      rw [waitingTotal_eq_of_waiting_eq keep,
+        waitingTotal_eq_of_waiting_eq (prepared_waiting_eq rule.prepared)]
+      exact Nat.le_succ _
+  | unifyPayload _ _ _ _ _ unifyEq =>
+      obtain ⟨rule⟩ := (unifyPayload?_some_iff invariant.toReservationInvariant).mp unifyEq
+      rw [rule.output_eq]
+      simp only [activated]
+      have popSigma : rule.prepared.stackResult.after.sigma = state.stack.sigma :=
+        (SequentialStackState.popReadyMark?_exact rule.prepared.stack_eq).2.2.2.2.2.1
+      have popWaiting := prepared_waiting_eq rule.prepared
+      have merged := mergedPayloadLength_eq (state := state)
+        (popSigma ▸ rule.mergeStep.sigma_eq) (popWaiting ▸ rule.mergeStep.waiting_initialized)
+      have replaced := waitingTotal_replace rule.mergeStep.waiting_initialized .undefined
+        (after := rule.stackAfter) (congrArg SequentialStackState.waiting rule.mergeStep.after_eq)
+      simp only [WaitingCell.vertices, List.length_nil, Nat.add_zero] at replaced
+      have prefixEq : rule.prepared.stackResult.after.waitingVertices.length =
+          state.stack.waitingVertices.length :=
+        waitingTotal_eq_of_waiting_eq popWaiting
+      omega
+
+/-! ## The dispatcher phase -/
+
+/-- The instrumented run: its operations, plus the occurrences still waiting
+at the end weighted by one activation, are bounded by the calls made, the
+occurrences waiting at the start, and one failed final attempt. -/
+theorem runDispatcherWithStats_cost_le {certificate : Certificate} (fuel : Nat)
+    (state : ReservationState) (invariant : SchedulerInvariant certificate state) :
+    (runDispatcherWithStats certificate fuel state invariant).cost +
+        waitingTotal (runDispatcherWithStats certificate fuel state invariant).state *
+          activationCost certificate ≤
+      (runDispatcherWithStats certificate fuel state invariant).calls *
+          (callBound certificate + activationCost certificate) +
+        waitingTotal state * activationCost certificate +
+        certificate.formulas.size * activationCost certificate := by
+  induction fuel generalizing state invariant with
+  | zero =>
+      simp only [runDispatcherWithStats, Nat.zero_mul, Nat.zero_add]
+      exact Nat.le_add_right _ _
+  | succ fuel ih =>
+    unfold runDispatcherWithStats
+    split
+    · rename_i noneEq
+      simp only
+      have call := dispatchCost_le invariant none
+      have payload : mergedPayloadLength state * activationCost certificate ≤
+          certificate.formulas.size * activationCost certificate :=
+        Nat.mul_le_mul_right _ (mergedPayloadLength_le invariant)
+      simp only [activated] at call
+      omega
+    · rename_i result someEq
+      simp only
+      have rest := ih result.after (dispatch?_schedulerInvariant invariant someEq)
+      have call := dispatchCost_le invariant (some result)
+      have potential := Nat.mul_le_mul_right (activationCost certificate)
+        (waitingTotal_step invariant someEq)
+      rw [Nat.add_mul, Nat.add_mul, Nat.one_mul] at potential
+      have calls : ((runDispatcherWithStats certificate fuel result.after
+            (dispatch?_schedulerInvariant invariant someEq)).calls + 1) *
+          (callBound certificate + activationCost certificate) =
+          (runDispatcherWithStats certificate fuel result.after
+            (dispatch?_schedulerInvariant invariant someEq)).calls *
+            (callBound certificate + activationCost certificate) +
+          (callBound certificate + activationCost certificate) := by
+        rw [Nat.add_mul, Nat.one_mul]
+      rw [calls]
+      omega
+
+/-- Initialization leaves every waiting cell undefined. -/
+theorem waitingTotal_initial {certificate : Certificate} {start : Vertex}
+    {state : ReservationState} (equation : initializeReservation? certificate start = some state) :
+    waitingTotal state = 0 := by
+  obtain ⟨step⟩ := initializeReservation?_some_iff.mp equation
+  obtain ⟨ready, _⟩ := SequentialStackState.initEnqueue?_some_iff.mp step.stack_eq
+  have undefined := ready.2.2.2.2.1
+  unfold waitingTotal SequentialStackState.waitingVertices
+  rw [step.output_eq]
+  show (step.stackAfter.waiting.toList.flatMap WaitingCell.vertices).length = 0
+  have waitingEq : step.stackAfter.waiting = (ReservationState.empty certificate).stack.waiting :=
+    (SequentialStackState.initEnqueue?_exact step.stack_eq).2.2.2.2.1
+  rw [waitingEq]
+  simp only [List.length_eq_zero_iff, List.flatMap_eq_nil_iff]
+  intro cell member
+  obtain ⟨index, lookup⟩ := List.mem_iff_getElem?.mp member
+  rw [Array.getElem?_toList] at lookup
+  have bound := (Array.getElem?_eq_some_iff.mp lookup).1
+  have := undefined.lookup bound
+  rw [this] at lookup
+  cases lookup
+  rfl
+
+/-- The dispatcher phase of the public decision is quadratic: the run from the
+initial reservation makes at most `formulas.size + 1` calls, each linear
+apart from payload activation, and activates each waiting occurrence once. -/
+theorem dispatchPhase_le {certificate : Certificate} {start : Vertex} {state : ReservationState}
+    (equation : initializeReservation? certificate start = some state)
+    (invariant : SchedulerInvariant certificate state) :
+    (runDispatcherWithStats certificate (certificate.formulas.size + 1) state invariant).cost ≤
+      72 * (certificate.formulas.size + 1) *
+        (certificate.formulas.size + certificate.links.length + 1) := by
+  have run := runDispatcherWithStats_cost_le (certificate.formulas.size + 1) state invariant
+  have calls := runDispatcherWithStats_calls_le certificate (certificate.formulas.size + 1)
+    state invariant
+  rw [waitingTotal_initial equation, Nat.zero_mul, Nat.add_zero] at run
+  have callsBound : (runDispatcherWithStats certificate (certificate.formulas.size + 1) state
+        invariant).calls * (callBound certificate + activationCost certificate) ≤
+      (certificate.formulas.size + 1) * (callBound certificate + activationCost certificate) :=
+    Nat.mul_le_mul_right _ calls
+  have final : (certificate.formulas.size + 1) *
+        (callBound certificate + activationCost certificate) +
+        certificate.formulas.size * activationCost certificate ≤
+      72 * (certificate.formulas.size + 1) *
+        (certificate.formulas.size + certificate.links.length + 1) := by
+    unfold callBound activationCost
+    have inner : 62 * (certificate.formulas.size + certificate.links.length + 1) +
+          (5 * certificate.formulas.size + 3) + (5 * certificate.formulas.size + 3) ≤
+        72 * (certificate.formulas.size + certificate.links.length + 1) := by omega
+    calc (certificate.formulas.size + 1) *
+          (62 * (certificate.formulas.size + certificate.links.length + 1) +
+            (5 * certificate.formulas.size + 3)) +
+          certificate.formulas.size * (5 * certificate.formulas.size + 3)
+        ≤ (certificate.formulas.size + 1) *
+          (62 * (certificate.formulas.size + certificate.links.length + 1) +
+            (5 * certificate.formulas.size + 3)) +
+          (certificate.formulas.size + 1) * (5 * certificate.formulas.size + 3) :=
+          Nat.add_le_add_left (Nat.mul_le_mul_right _ (Nat.le_succ _)) _
+      _ = (certificate.formulas.size + 1) *
+          (62 * (certificate.formulas.size + certificate.links.length + 1) +
+            (5 * certificate.formulas.size + 3) + (5 * certificate.formulas.size + 3)) := by
+          simp only [Nat.mul_add]
+      _ ≤ (certificate.formulas.size + 1) *
+          (72 * (certificate.formulas.size + certificate.links.length + 1)) :=
+          Nat.mul_le_mul_left _ inner
+      _ = 72 * (certificate.formulas.size + 1) *
+          (certificate.formulas.size + certificate.links.length + 1) := by
+          rw [Nat.mul_left_comm, Nat.mul_assoc]
+  omega
+
+end
 
 end SequentialCost
 
