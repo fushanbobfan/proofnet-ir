@@ -15,7 +15,7 @@ result crosses the trusted boundary.
 | Track | Use it for | Read first |
 | --- | --- | --- |
 | Stable `v0.10.0` | Reproducible downstream use of the released MLL model | [Release audit](docs/v0.10-release-audit.md) |
-| Rolling `main` | Research after the release | [Current status](docs/current-status.md) |
+| Rolling `main` / `v0.11.0-dev` | Research after the release | [Current status](docs/current-status.md) |
 
 Pin the release when stability matters. Track `main` only when you need the
 latest research surface and are prepared for documented development changes.
@@ -23,8 +23,8 @@ latest research surface and are prepared for documented development changes.
 <!-- ROLLING_MAIN_SUMMARY_START -->
 ### Rolling-main summary
 
-`main` is at the v0.10.0 release. Nothing is proved on `main` beyond the
-stable guarantees below; this summary restarts with the first post-release
+`main` is `v0.11.0-dev`. Nothing is proved on `main` beyond the stable
+v0.10.0 guarantees below; this summary restarts with the first post-release
 mathematics checkpoint, and the open targets are stated in the
 [goal ledger](docs/goal-ledger.md): whole-program linearity (D6-linear), with
 the flat-worklist forms and the tail-law hypothesis retired there, unproved.
@@ -512,7 +512,7 @@ ProofNetIR*Tests.lean       runnable consumer-style tests
 consumer-smoke/                 current-source downstream consumer
 consumer-release-smoke/         legacy v0.5.0 compatibility consumer
 consumer-v09-candidate-smoke/   stable v0.9.0 tag consumer
-consumer-v10-candidate-smoke/   v0.10 release-candidate consumer
+consumer-v10-candidate-smoke/   stable v0.10.0 tag consumer
 docs/                       design, status, audits, API, and literature
 examples/                   checked inputs and search examples
 experiments/                frozen protocols, artifacts, and reports

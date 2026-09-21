@@ -23,6 +23,11 @@ git = "https://github.com/fushanbobfan/proofnet-ir"
 rev = "v0.10.0"
 ```
 
+On Windows, clone into a short path or set `git config --global
+core.longpaths true` before `lake build`: several module file names exceed
+100 characters, and a deep checkout directory pushes them past the default
+path limit.
+
 Then import the single public umbrella module:
 
 ```lean

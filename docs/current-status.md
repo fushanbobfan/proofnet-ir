@@ -16,8 +16,8 @@ Status date: 2026-09-20
 
 | Track | Revision | Status | Authority |
 | --- | --- | --- | --- |
-| Stable library | `v0.10.0`, release candidate at this revision (previous: `v0.9.0` / `9b7dc3d104af8f57ea9123aab2e61b42e05d2216`) | Release candidate | [v0.10.0 release audit](v0.10-release-audit.md) |
-| Rolling research | proof `33ebfd5`; audit `1e46573` | Frozen for the release | This page/commits |
+| Stable library | `v0.10.0` / `f0fd97f8592938165dbffd91656d226b6102adcc` | Released | [v0.10.0 release audit](v0.10-release-audit.md) |
+| Rolling research | `v0.11.0-dev`; proof `33ebfd5`; audit `1e46573` | Active | This page/commits |
 
 Documentation-only commits may descend from the proof checkpoint without
 changing its mathematical authority. The stable release and rolling branch
@@ -25,9 +25,10 @@ make different claims. A downstream consumer that needs reproducibility should
 pin the release. The `main` branch is the integration surface for ongoing Figure-7
 scheduler and completeness work.
 
-## Stable v0.9.0 result
+## Stable v0.10.0 result
 
-For the documented unit-free, cut-free MLL certificate model, v0.9.0 provides:
+For the documented unit-free, cut-free MLL certificate model, v0.10.0
+provides:
 
 - occurrence-aware graph semantics, including parallel stored-edge identity;
 - an executable Boolean checker proved equivalent to independent structural
@@ -36,13 +37,15 @@ For the documented unit-free, cut-free MLL certificate model, v0.9.0 provides:
 - complete checker-free sequentialization for every accepted certificate;
 - ordered-conclusion `ProofNetEquivalent` canonical identity and stable wire
   formats;
-- sound eager and worklist unification fast paths whose exact wrappers retain
-  the complete recursive sequentializer as fallback;
+- the sequential Figures 7–8 executable as the public decision, proved
+  equal to the reference checker with no fallback, terminating within
+  `formulas.size + 1` dispatcher calls, with a quadratic whole-program
+  operation bound; the eager and worklist candidates stay public and sound;
 - generated API documentation, checked consumers, compatibility contracts,
   property/fuzz/differential/performance gates, and release-pinned consumption.
 
 The exact release guarantees, receipts, and non-goals are frozen in the
-[v0.9.0 release audit](v0.9-release-audit.md).
+[v0.10.0 release audit](v0.10-release-audit.md).
 
 ## Rolling main result
 
@@ -264,7 +267,7 @@ Exact-head finite-audit GitHub verification:
 
 ## Current library-readiness position
 
-The stable v0.9.0 surface is independently consumable for its exact model.
+The stable v0.10.0 surface is independently consumable for its exact model.
 The rolling branch retains and continuously checks:
 
 - one public umbrella import, `import ProofNetIR`;

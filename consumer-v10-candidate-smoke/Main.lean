@@ -2,7 +2,7 @@ import ProofNetIR
 
 open ProofNetIR
 
-namespace ProofNetIRV10CandidateConsumerSmoke
+namespace ProofNetIRV10ReleaseConsumerSmoke
 
 def certificate : Certificate :=
   canonicalCertificate "remote-v10-p" "remote-v10-q"
@@ -73,12 +73,12 @@ def run : IO Unit := do
       decide (instrumented.stats.dispatchCalls ≤ certificate.formulas.size + 1) &&
       certificate.verifiesDerivation derivation &&
       certificate.intrinsicCanonicalKey = reordered.intrinsicCanonicalKey then
-    IO.println s!"ProofNetIR pinned-v0.10 candidate consumer smoke test passed: decision operations {instrumented.stats.total} of bound {bound}"
+    IO.println s!"ProofNetIR pinned-v0.10.0 consumer smoke test passed: decision operations {instrumented.stats.total} of bound {bound}"
   else
     throw <| IO.userError
-      "ProofNetIR pinned-v0.10 candidate consumer smoke test failed"
+      "ProofNetIR pinned-v0.10.0 consumer smoke test failed"
 
-end ProofNetIRV10CandidateConsumerSmoke
+end ProofNetIRV10ReleaseConsumerSmoke
 
 def main : IO Unit :=
-  ProofNetIRV10CandidateConsumerSmoke.run
+  ProofNetIRV10ReleaseConsumerSmoke.run

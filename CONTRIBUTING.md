@@ -300,7 +300,7 @@ ProofNetIRAxiomAudit.lean   Lean trust manifest
 consumer-smoke/             current-source dependency consumer
 consumer-release-smoke/     legacy v0.5.0 compatibility consumer
 consumer-v09-candidate-smoke/ stable v0.9.0 tag consumer
-consumer-v10-candidate-smoke/ v0.10 release-candidate consumer
+consumer-v10-candidate-smoke/ stable v0.10.0 tag consumer
 docs/                       design, audits, API, literature, and status
 examples/                   checked certificate and search examples
 experiments/                frozen protocols, artifacts, and reports

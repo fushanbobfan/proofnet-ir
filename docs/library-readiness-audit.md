@@ -1,8 +1,7 @@
 # Library-readiness audit
 
 Audit date: 2026-09-21
-Audited baseline: v0.10.0 release candidate plus its commit-pinned downstream
-consumer
+Audited baseline: published v0.10.0 plus its tag-pinned downstream consumer
 
 ## Verdict
 
@@ -414,8 +413,7 @@ matched algorithmic and model-backed experiments report their results whether
 positive or negative. Both controlled runs are now complete; the broader-
 logic/corpus, hard checking/sequentialization performance, adversarial
 large-key qualification, and broader Lean/tactic integration remain open. The
-v0.10 release-candidate consumer gate is closed; the exact-tag consumer gate
-follows publication.
+v0.10 release and exact-tag consumer gates are closed.
 No external adoption or independent research validation is currently verified;
 the v0.10 development branch therefore remains a qualified research library,
 not a mature broad proof-net library.

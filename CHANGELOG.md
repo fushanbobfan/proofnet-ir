@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- started `v0.11.0-dev`; the open target is a linear whole-program bound
+  for the public decision (D6-linear): constant-time stack access and bucket
+  merge and a single consumer-index construction, measured by the committed
+  operation counters;
+
 ## v0.10.0 - Sequential Figures 7–8 decision
 
 v0.10.0 builds the sequential Figures 7–8 scheduler and its proof layer on
