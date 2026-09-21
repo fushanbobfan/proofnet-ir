@@ -536,11 +536,19 @@ Exact target statements for the open items are in the
 - [x] Make `Certificate.unificationCheck` the sequential fast path alone,
   removing the recursive reconstruction fallback, with
   `unificationCheck = check` kept as a theorem (D2).
-- [ ] Define the operation counters of the public decision
+- [x] Define the operation counters of the public decision
   (`sequentialDecisionWithStats`, Boolean equal to `unificationCheck`) over
-  every phase of a run, and prove the quadratic bound the implementation has
-  (D6, retargeted from the flat worklist on 2026-09-20; the flat statement
-  stays open as D6-flat).
+  every phase of a run (D6.1).
+- [ ] Replace the quadratic duplicate guards of `forward` and `unifyPayload`
+  by carrier-bounded linear checks, so that every dispatcher call is linear
+  apart from payload activation (D6.2).
+- [ ] Bound the dispatcher phase: the sizes of the stack structures by the
+  carrier, the waiting payloads activated over a run by the number of
+  `wait` steps, hence a quadratic total (D6.3).
+- [ ] Bound the structural, initialization, extraction, and verification
+  phases quadratically (D6.4).
+- [ ] Assemble the whole-program bound (D6, retargeted from the flat
+  worklist on 2026-09-20; the flat statement stays open as D6-flat).
 - [ ] Reach a linear whole-program bound (D6-linear): constant-time stack
   access and bucket merge, and verification without canonical-code
   recomputation; not planned for v0.10.

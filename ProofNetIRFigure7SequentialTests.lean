@@ -1,4 +1,5 @@
 import ProofNetIR.Figure7.Sequential
+import ProofNetIR.Figure7.Cost
 
 namespace ProofNetIR.Figure7SequentialTests
 
@@ -176,6 +177,25 @@ example : certificate.unificationCheck = true := by native_decide
 
 example : rejected.unificationCheck = false := by native_decide
 
+-- The instrumented decision agrees with the public decision and its counters are explicit.
+example (cert : Certificate) :
+    cert.sequentialDecisionWithStats.accepted = cert.unificationCheck :=
+  cert.sequentialDecisionWithStats_accepted
+
+example {cert : Certificate} (fuel : Nat) (state : ReservationState)
+    (invariant : SchedulerInvariant cert state) :
+    (SequentialCost.runDispatcherWithStats cert fuel state invariant).state =
+        runDispatcher cert fuel state invariant ∧
+      (SequentialCost.runDispatcherWithStats cert fuel state invariant).calls ≤ fuel :=
+  ⟨SequentialCost.runDispatcherWithStats_state cert fuel state invariant,
+    SequentialCost.runDispatcherWithStats_calls_le cert fuel state invariant⟩
+
+example : certificate.sequentialDecisionWithStats.accepted = true := by native_decide
+
+example : certificate.sequentialDecisionWithStats.stats.dispatchCalls = 4 := by native_decide
+
+example : rejected.sequentialDecisionWithStats.stats.dispatchCalls = 0 := by native_decide
+
 end ProofNetIR.Figure7SequentialTests
 
 #print axioms ProofNetIR.SequentialFigure7.runDispatcher_spec
@@ -197,13 +217,19 @@ end ProofNetIR.Figure7SequentialTests
 #print axioms ProofNetIR.Certificate.sequentialFastCheck_eq_check
 #print axioms ProofNetIR.Certificate.unificationCheck_eq_sequentialFastCheck
 #print axioms ProofNetIR.Certificate.unificationCheck_eq_check
+#print axioms ProofNetIR.SequentialCost.runDispatcherWithStats_state
+#print axioms ProofNetIR.SequentialCost.runDispatcherWithStats_calls_le
+#print axioms ProofNetIR.Certificate.sequentialDecisionWithStats_accepted
 
 def main : IO Unit := do
   let accepted := ProofNetIR.Figure7SequentialTests.certificate.sequentialFastCheck
   let rejected := ProofNetIR.Figure7SequentialTests.rejected.sequentialFastCheck
   let repeated := ProofNetIR.Figure7SequentialTests.repeated.sequentialFastCheck
   let decision := ProofNetIR.Figure7SequentialTests.certificate.unificationCheck
-  unless accepted && !rejected && repeated && decision do
+  let run := ProofNetIR.Figure7SequentialTests.repeated.sequentialDecisionWithStats
+  unless accepted && !rejected && repeated && decision && run.accepted do
     throw (IO.userError "sequential fast path regression failed")
   IO.println ("Sequential consumer passed: final structure, inference, " ++
-    "par/tensor numbering, equivalence, completeness, public decision")
+    "par/tensor numbering, equivalence, completeness, public decision; " ++
+    s!"repeated-label tensor counters: calls {run.stats.dispatchCalls}, " ++
+    s!"total {run.stats.total}")

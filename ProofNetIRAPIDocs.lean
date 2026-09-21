@@ -2854,6 +2854,36 @@ def sections : List Section := [
     ]
   },
   {
+    title := "Operation counters of the public decision"
+    declarations := [
+      `ProofNetIR.SequentialCost.SequentialDecisionStats,
+      `ProofNetIR.SequentialCost.SequentialDecisionStats.total,
+      `ProofNetIR.SequentialCost.structuralCost,
+      `ProofNetIR.SequentialCost.indexCost,
+      `ProofNetIR.SequentialCost.prepareCost,
+      `ProofNetIR.SequentialCost.conclCost,
+      `ProofNetIR.SequentialCost.nopCost,
+      `ProofNetIR.SequentialCost.newCost,
+      `ProofNetIR.SequentialCost.waitCost,
+      `ProofNetIR.SequentialCost.forwardCost,
+      `ProofNetIR.SequentialCost.unifyPayloadCost,
+      `ProofNetIR.SequentialCost.dispatchCost,
+      `ProofNetIR.SequentialCost.initializationCost,
+      `ProofNetIR.SequentialCost.extractionCost,
+      `ProofNetIR.SequentialCost.inferCost,
+      `ProofNetIR.SequentialCost.buildCost,
+      `ProofNetIR.SequentialCost.canonicalCodeCost,
+      `ProofNetIR.SequentialCost.verificationCost,
+      `ProofNetIR.SequentialCost.DispatcherRun,
+      `ProofNetIR.SequentialCost.runDispatcherWithStats,
+      `ProofNetIR.SequentialCost.runDispatcherWithStats_state,
+      `ProofNetIR.SequentialCost.runDispatcherWithStats_calls_le,
+      `ProofNetIR.Certificate.SequentialDecisionRun,
+      `ProofNetIR.Certificate.sequentialDecisionWithStats,
+      `ProofNetIR.Certificate.sequentialDecisionWithStats_accepted
+    ]
+  },
+  {
     title := "Canonical raw-mark causal order"
     declarations := [
       `ProofNetIR.SequentialFigure7.CanonicalTagHistory.RawMarkedBefore,

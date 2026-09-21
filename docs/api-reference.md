@@ -25866,6 +25866,307 @@ ProofNetIR.Certificate.StructurallyWellFormed.initializeReservation?_isSome : �
         ∃ state, ProofNetIR.SequentialSchedulerBridge.initializeReservation? certificate start = some state
 ```
 
+## Operation counters of the public decision
+
+### `ProofNetIR.SequentialCost.SequentialDecisionStats`
+
+Kind: inductive type.
+
+Counters of one run of the public decision, one per phase.
+
+```lean
+ProofNetIR.SequentialCost.SequentialDecisionStats : Type
+```
+
+### `ProofNetIR.SequentialCost.SequentialDecisionStats.total`
+
+Kind: definition.
+
+All operations of the run.
+
+```lean
+ProofNetIR.SequentialCost.SequentialDecisionStats.total : ProofNetIR.SequentialCost.SequentialDecisionStats → Nat
+```
+
+### `ProofNetIR.SequentialCost.structuralCost`
+
+Kind: definition.
+
+`Certificate.wellFormed`: the size and length tests, the in-bounds scan
+of the conclusions, the duplicate scan of the conclusions, one local check
+per link, and one node check per occurrence (`nodeWellFormed`: one link
+filter for the source count, one `contains` over the conclusions, and one
+link filter for the parent-use count).
+
+```lean
+ProofNetIR.SequentialCost.structuralCost : ProofNetIR.Certificate → Nat
+```
+
+### `ProofNetIR.SequentialCost.indexCost`
+
+Kind: definition.
+
+`ConsumerIndex.build` and `sourceIndex`: the carrier-sized table and one
+fold step per link.
+
+```lean
+ProofNetIR.SequentialCost.indexCost : ProofNetIR.Certificate → Nat
+```
+
+### `ProofNetIR.SequentialCost.prepareCost`
+
+Kind: definition.
+
+`prepare?`: the ready and sigma tail reads, the mark test and write, the
+ready tail rewrite, and the core mark.
+
+```lean
+ProofNetIR.SequentialCost.prepareCost : ProofNetIR.SequentialSchedulerBridge.ReservationState → Nat
+```
+
+### `ProofNetIR.SequentialCost.conclCost`
+
+Kind: definition.
+
+`concl?`: the prepared prefix and the conclusion lookup.
+
+```lean
+ProofNetIR.SequentialCost.conclCost : ProofNetIR.Certificate → ProofNetIR.SequentialSchedulerBridge.ReservationState → Nat
+```
+
+### `ProofNetIR.SequentialCost.nopCost`
+
+Kind: definition.
+
+`nop?`: the prepared prefix, the consumer lookup, and the mate mark test.
+
+```lean
+ProofNetIR.SequentialCost.nopCost : ProofNetIR.Certificate → ProofNetIR.SequentialSchedulerBridge.ReservationState → Nat
+```
+
+### `ProofNetIR.SequentialCost.newCost`
+
+Kind: definition.
+
+`new?`: the prepared prefix, the tensor lookup, the source index, the
+carrier-fuelled `NEXTAXIOM` search, the trace tail read, the operational
+`new` guard (sigma tail, two queued-occurrence scans, four lookups) and
+update (sigma and ready appends, one cell write), and the axiom
+reservation.
+
+```lean
+ProofNetIR.SequentialCost.newCost : ProofNetIR.Certificate → ProofNetIR.SequentialSchedulerBridge.ReservationState → Nat
+```
+
+### `ProofNetIR.SequentialCost.waitCost`
+
+Kind: definition.
+
+`wait?`: the prepared prefix, the consumer lookup, the mate mark test,
+the sigma boundary scan, and the waiting-cell read and write.
+
+```lean
+ProofNetIR.SequentialCost.waitCost : ProofNetIR.Certificate → ProofNetIR.SequentialSchedulerBridge.ReservationState → Nat
+```
+
+### `ProofNetIR.SequentialCost.forwardCost`
+
+Kind: definition.
+
+`forward?`: the prepared prefix, the consumer lookup, the mate mark
+test, the duplicate guard on the rebuilt active bucket, the par queue, and
+the ready-top prepend (ready tail read and rewrite).
+
+```lean
+ProofNetIR.SequentialCost.forwardCost : ProofNetIR.Certificate → ProofNetIR.SequentialSchedulerBridge.ReservationState → Nat
+```
+
+### `ProofNetIR.SequentialCost.unifyPayloadCost`
+
+Kind: definition.
+
+`unifyPayload?`: the prepared prefix, the tensor lookup, the mate mark
+test, the previous-boundary read, the waiting-cell read, the tensor queue,
+one par queue per payload occurrence, the two-level merge (two sigma and two
+ready tail reads, the bucket rebuild, and the cell write), the merged-bucket
+read, and the duplicate guard on the merged bucket.
+
+```lean
+ProofNetIR.SequentialCost.unifyPayloadCost : ProofNetIR.Certificate → ProofNetIR.SequentialSchedulerBridge.ReservationState → Nat
+```
+
+### `ProofNetIR.SequentialCost.dispatchCost`
+
+Kind: definition.
+
+One `dispatch?` call: the rule attempts made in precedence order, up to
+and including the successful one, or all six when none succeeds.
+
+```lean
+ProofNetIR.SequentialCost.dispatchCost : ProofNetIR.Certificate →
+  ProofNetIR.SequentialSchedulerBridge.ReservationState →
+    Option ProofNetIR.SequentialFigure7.Figure7DispatchResult → Nat
+```
+
+### `ProofNetIR.SequentialCost.initializationCost`
+
+Kind: definition.
+
+`initializeReservation?`: the empty state (three carrier-sized arrays),
+the source index, the carrier-fuelled search, the trace tail read, the
+initial-enqueue guard (two carrier scans and constant tests) and update, and
+the axiom reservation.
+
+```lean
+ProofNetIR.SequentialCost.initializationCost : ProofNetIR.Certificate → Nat
+```
+
+### `ProofNetIR.SequentialCost.extractionCost`
+
+Kind: definition.
+
+`sequentialFinalTree?`: the live-component scan, and for a single live
+component the frontier length test, one `findIdx?` over the frontier per
+conclusion, and the duplicate scan of the order.
+
+```lean
+ProofNetIR.SequentialCost.extractionCost : ProofNetIR.Certificate → ProofNetIR.SequentialSchedulerBridge.ReservationState → Nat
+```
+
+### `ProofNetIR.SequentialCost.inferCost`
+
+Kind: definition.
+
+`infer?`: one step per axiom, two premise picks and one append per
+tensor, two picks and one append per par, and the reorder (one indexed read
+per position and the duplicate scan) per exchange.
+
+```lean
+ProofNetIR.SequentialCost.inferCost : ProofNetIR.CutFreeDerivation → Nat
+```
+
+### `ProofNetIR.SequentialCost.buildCost`
+
+Kind: definition.
+
+`build?`: the axiom fragment; per tensor the two entry picks, the formula
+array append, the shifted link map and append, and the entry append; per par
+the two picks, the push, the link append, and the entry append; per exchange
+the reorder. Entry lists are bounded by the fragment carriers.
+
+```lean
+ProofNetIR.SequentialCost.buildCost : ProofNetIR.CutFreeDerivation → Nat
+```
+
+### `ProofNetIR.SequentialCost.canonicalCodeCost`
+
+Kind: definition.
+
+`intrinsicCanonicalCode`: the occurrence walks from the conclusions (one
+producer filter over the links and one append per visited occurrence), the
+duplicate scan of the raw traversal, one owned-link filter per traversal
+vertex, the relabel (the duplicate scan of the conclusion and link vertices,
+one `idxOf` per link vertex and conclusion, and the formula map), and the
+structural code (one token or unary character each).
+
+```lean
+ProofNetIR.SequentialCost.canonicalCodeCost : ProofNetIR.Certificate → Nat
+```
+
+### `ProofNetIR.SequentialCost.verificationCost`
+
+Kind: definition.
+
+`verifyDerivation?`: the structural check, the conclusion labels, the
+inference, the desequentialization, both canonical codes, and their
+comparison (charged as the input code length).
+
+```lean
+ProofNetIR.SequentialCost.verificationCost : ProofNetIR.Certificate → ProofNetIR.CutFreeDerivation → Nat
+```
+
+### `ProofNetIR.SequentialCost.DispatcherRun`
+
+Kind: inductive type.
+
+Result of the instrumented bounded dispatcher run.
+
+```lean
+ProofNetIR.SequentialCost.DispatcherRun : ProofNetIR.Certificate → Type
+```
+
+### `ProofNetIR.SequentialCost.runDispatcherWithStats`
+
+Kind: definition.
+
+`runDispatcher` with its call and operation counters.
+
+```lean
+ProofNetIR.SequentialCost.runDispatcherWithStats : (certificate : ProofNetIR.Certificate) →
+  Nat →
+    (state : ProofNetIR.SequentialSchedulerBridge.ReservationState) →
+      ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+        ProofNetIR.SequentialCost.DispatcherRun certificate
+```
+
+### `ProofNetIR.SequentialCost.runDispatcherWithStats_state`
+
+Kind: theorem.
+
+The instrumented run visits exactly the states of `runDispatcher`.
+
+```lean
+ProofNetIR.SequentialCost.runDispatcherWithStats_state : ∀ (certificate : ProofNetIR.Certificate) (fuel : Nat) (state : ProofNetIR.SequentialSchedulerBridge.ReservationState)
+  (invariant : ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state),
+  (ProofNetIR.SequentialCost.runDispatcherWithStats certificate fuel state invariant).state =
+    ProofNetIR.SequentialFigure7.runDispatcher certificate fuel state invariant
+```
+
+### `ProofNetIR.SequentialCost.runDispatcherWithStats_calls_le`
+
+Kind: theorem.
+
+The bounded run makes at most `fuel` calls.
+
+```lean
+ProofNetIR.SequentialCost.runDispatcherWithStats_calls_le : ∀ (certificate : ProofNetIR.Certificate) (fuel : Nat) (state : ProofNetIR.SequentialSchedulerBridge.ReservationState)
+  (invariant : ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state),
+  (ProofNetIR.SequentialCost.runDispatcherWithStats certificate fuel state invariant).calls ≤ fuel
+```
+
+### `ProofNetIR.Certificate.SequentialDecisionRun`
+
+Kind: inductive type.
+
+Outcome of the instrumented public decision.
+
+```lean
+ProofNetIR.Certificate.SequentialDecisionRun : Type
+```
+
+### `ProofNetIR.Certificate.sequentialDecisionWithStats`
+
+Kind: definition.
+
+The public decision with its operation counters: the structural check,
+initialization at the first conclusion, the bounded dispatcher run, the
+final extraction, and the verification of the final derivation.
+
+```lean
+ProofNetIR.Certificate.sequentialDecisionWithStats : ProofNetIR.Certificate → ProofNetIR.Certificate.SequentialDecisionRun
+```
+
+### `ProofNetIR.Certificate.sequentialDecisionWithStats_accepted`
+
+Kind: theorem.
+
+The instrumented decision accepts exactly what the public decision accepts.
+
+```lean
+ProofNetIR.Certificate.sequentialDecisionWithStats_accepted : ∀ (certificate : ProofNetIR.Certificate),
+  certificate.sequentialDecisionWithStats.accepted = certificate.unificationCheck
+```
+
 ## Canonical raw-mark causal order
 
 ### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.RawMarkedBefore`

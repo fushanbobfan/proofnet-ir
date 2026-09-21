@@ -7,6 +7,16 @@ and its proof layer on top of `v0.9.0`. Entries are one per mathematics
 checkpoint, newest first; wrapper-transport steps are folded into the family
 they served, and `git log` holds the per-commit record.
 
+- added the operation counters of the public decision
+  (`ProofNetIR/Figure7/Cost.lean`, D6.1): `sequentialDecisionWithStats` runs
+  the decision and records explicit cost models of every phase (structural
+  check, initialization, each dispatcher call by its rule attempts, final
+  extraction, verification), each term naming the implemented traversal it
+  charges; `sequentialDecisionWithStats_accepted` proves the Boolean equal to
+  `unificationCheck`, and `runDispatcherWithStats_state` and
+  `runDispatcherWithStats_calls_le` relate the instrumented run to
+  `runDispatcher`. No bound is proved yet; the model charges the duplicate
+  guards quadratically, which the next step removes;
 - closed D2: `Certificate.unificationCheck`, the exact public decision, is now
   `sequentialFastCheck` alone (`ProofNetIR/Figure7/Sequential.lean`), with no
   eager scan, worklist tier, or recursive reconstruction fallback;
