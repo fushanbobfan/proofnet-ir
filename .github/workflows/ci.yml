@@ -299,6 +299,8 @@ jobs:
         run: python scripts/focused_search.py examples/focused-sequent-v0.2.json --require-found
       - name: Validate committed matched-experiment artifacts
         run: python scripts/run_matched_experiment.py --check-committed
+      - name: Check the committed search-redundancy counts
+        run: python scripts/run_redundancy_experiment.py --check-committed
       - name: Validate model-experiment preregistration
         run: |
           if test -f scripts/validate_model_publication_redaction.py; then

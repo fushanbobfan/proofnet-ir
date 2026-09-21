@@ -2,10 +2,18 @@
 
 ## Unreleased
 
-- started `v0.11.0-dev`; the open target is a linear whole-program bound
-  for the public decision (D6-linear): constant-time stack access and bucket
-  merge and a single consumer-index construction, measured by the committed
-  operation counters;
+- ran step 1 of the v0.11 search-redundancy program
+  (`experiments/redundancy-v0.1`, preregistered in `621d642`): exact counts of
+  cut-free derivations per proof net for the plain calculus, the committed
+  focused baseline, and the tensor-persistent focused calculus on the 1,180
+  committed MLL tasks, by `proofnet_ir_redundancy_count` with a brute-force
+  cross-check on 1,060 tasks and no disagreement. Median plain derivations per
+  net on the matched corpus: 2, 36, and 170,734 at 8, 16, and 32 atoms; the
+  strictly focused calculus keeps more than one derivation per net on 81.8% of
+  tasks; it is smaller than the baseline on 27.8% of tasks, so H3 fails as
+  registered. Twenty repeated-label tasks exceed the linking budget;
+- started `v0.11.0-dev` with the search-redundancy program
+  ([v0.11-design.md](docs/v0.11-design.md)); D6-linear stays optional;
 
 ## v0.10.0 - Sequential Figures 7–8 decision
 

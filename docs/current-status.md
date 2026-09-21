@@ -319,18 +319,18 @@ deployment.
 ## Open macro gates
 
 The program's six completion conditions are met at `v0.10.0`; the
-[goal ledger](goal-ledger.md) records each with its evidence. What remains is
-a research-direction decision, not a gate: the founding question is answered
-only for matched MLL tasks with a supplied skeleton, and the candidate
-continuations are:
+[goal ledger](goal-ledger.md) records each with its evidence. The v0.11
+program ([v0.11-design.md](v0.11-design.md)) answers the founding question by
+measurement. Step 1 is done: on the committed corpora the median number of
+plain sequent derivations per proof net is 2, 36, and 170,734 at 8, 16, and
+32 atoms, and the strictly focused calculus still has more than one
+derivation per net on 81.8% of tasks (`experiments/redundancy-v0.1`). Next:
 
-1. a linear whole-program bound for the public decision (D6-linear):
-   constant-time stack access and bucket merge and a single consumer-index
-   construction, measured by the counters of `ProofNetIR/Figure7/Cost.lean`;
-2. a bridge from the MLL experiments to ordinary Lean goals through the
-   LeanProp corpus, or a public graph-structured proof dataset;
-3. closing the program at `v0.10.0`, preserving its API, migration,
-   downstream, experiment, and release gates.
+1. step 2, an equal-information matched search with a shared budget unit,
+   preregistered before it is implemented; step 3 only on a positive step 2;
+2. beyond MLL, a different representation for Lean-scale goals, designed as
+   an experiment after step 2;
+3. a linear whole-program bound (D6-linear) stays optional.
 
 ## Navigation
 

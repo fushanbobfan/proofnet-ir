@@ -1,0 +1,11 @@
+{
+ "amendment": "redundancy-v0.1-amendment-1",
+ "date": "2026-09-21 America/Los_Angeles",
+ "scope": "checking only; the counting implementations, the corpora, the budgets, the strata, and the hypotheses are unchanged",
+ "change": "after the run, the runner's --check-committed mode was changed to recompute the Lean counts only for tasks whose committed recursion stayed within 100,000 memoized states and to verify the brute-force cross-check and the budget-bound tasks by hash; the original mode reran the brute-force enumerator, which took about three hours",
+ "runnerSha256AtRegistration": "ac0792a6a4fd9deec9d61fce126b249b19e2066165660a9828bfb4d39f389080",
+ "runnerSha256AfterAmendment": "51fc7ff793cea7ae9b09878a8a0db9204b48da6e9af12d1b50027486be255419",
+ "leanCounterSha256": "b65ae8640ddc36b4234096a50780eaf4ed85f288c023ea7fe645bf90ae4bc92b",
+ "bruteForceSha256": "5113ae304e978742c081ba54ed02d4d6f59808d9e3e2f64079024dca9731d4a6",
+ "runWallClock": "195 minutes on Windows, of which the Lean counter took about 11 minutes and the brute-force cross-check the rest"
+}

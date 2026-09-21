@@ -566,7 +566,8 @@ data exists and reported either way.
 - [x] Register step 1: exact counts of derivations per proof net for the
   plain, baseline-focused, and tensor-persistent calculi on the committed
   corpora, with an independent brute-force cross-check.
-- [ ] Run step 1 and answer H1 to H3.
+- [x] Run step 1 and answer H1 to H3: H1 and H2 supported, H3 not
+  supported as registered (`experiments/redundancy-v0.1`).
 - [ ] Register, run, and report step 2, the equal-information matched search.
 - [ ] Step 3, the skeleton-free model study, only after a positive step 2.
 

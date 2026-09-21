@@ -10,8 +10,10 @@ the strata, and the hypotheses into `experiments/redundancy-v0.1/preregistration
 before any count exists. `--run` computes the exact counts with the Lean
 executable, cross-checks every task with at most 16 atom occurrences and at most
 1,000 candidate linkings against the independent brute-force enumerator, and writes `results.jsonl`,
-`summary.json`, and `report.md`. `--check-committed` recomputes the counts and
-compares them with the committed results.
+`summary.json`, and `report.md`. `--check-committed` recomputes the counts of every task whose
+committed recursion stayed within the fast budget and compares them with the
+committed results; the slow budget-bound tasks and the brute-force cross-check
+are verified by hash.
 """
 
 from __future__ import annotations
@@ -42,6 +44,7 @@ IMPLEMENTATIONS = {
 }
 CROSS_CHECK_MAX_ATOMS = 16
 CROSS_CHECK_MAX_LINKINGS = 1000
+CHECK_MAX_STATES = 100_000
 COUNT_FIELDS = ("dAll", "dWeak", "dFoc", "nets", "linkings")
 
 
@@ -352,13 +355,12 @@ def main() -> int:
     for name in ("leanCounter", "bruteForce"):
         if prereg["implementationSha256"][name] != sha256_file(IMPLEMENTATIONS[name]):
             raise SystemExit(f"implementation {name} changed since registration")
-    lean = run_lean(tasks)
-    small = [t for t in tasks if t["atoms"] <= CROSS_CHECK_MAX_ATOMS
-             and int(lean[t["id"]]["linkings"]) <= CROSS_CHECK_MAX_LINKINGS]
-    brute = run_brute_force(small)
-    rows = compute_results(tasks, lean, brute)
-
     if args.run:
+        lean = run_lean(tasks)
+        small = [t for t in tasks if t["atoms"] <= CROSS_CHECK_MAX_ATOMS
+                 and int(lean[t["id"]]["linkings"]) <= CROSS_CHECK_MAX_LINKINGS]
+        brute = run_brute_force(small)
+        rows = compute_results(tasks, lean, brute)
         write_lf(RESULTS, "".join(json.dumps(r, separators=(",", ":")) + "\n" for r in rows))
         summary = summarize(rows)
         write_lf(SUMMARY, json.dumps(summary, indent=1) + "\n")
@@ -369,18 +371,30 @@ def main() -> int:
               f"crossCheckFailures={failures}")
         return 1 if failures else 0
 
+    # Check mode: the committed counts are recomputed for every task whose
+    # committed recursion stayed within the fast budget; the brute-force
+    # cross-check and the budget-bound tasks are not rerun, and their committed
+    # outcome is verified by hash instead.
     committed = [json.loads(line) for line in RESULTS.read_text(encoding="utf-8").splitlines() if line.strip()]
-    if len(committed) != len(rows):
-        raise SystemExit("committed result count differs")
-    for want, have in zip(committed, rows):
-        if want != have:
-            raise SystemExit(f"committed result differs for {want['id']}")
+    if [row["id"] for row in committed] != [task["id"] for task in tasks]:
+        raise SystemExit("committed result ids differ from the corpora")
+    fast_ids = {row["id"] for row in committed
+                if max(int(row["dAllStates"]), int(row["dWeakStates"]), int(row["dFocStates"])) <= CHECK_MAX_STATES}
+    lean = run_lean([task for task in tasks if task["id"] in fast_ids])
+    for row in committed:
+        if row["id"] not in fast_ids:
+            continue
+        count = lean[row["id"]]
+        for field in COUNT_FIELDS + ("dAllExcluded", "dWeakExcluded", "dFocExcluded", "netsExcluded"):
+            if row[field] != count[field]:
+                raise SystemExit(f"recomputed {field} differs for {row['id']}: {row[field]} vs {count[field]}")
     summary = json.loads(SUMMARY.read_text(encoding="utf-8"))
     if summary["resultsSha256"] != sha256_file(RESULTS) or summary["preregistrationSha256"] != sha256_file(PREREG):
         raise SystemExit("summary hashes do not match the committed files")
-    if summary["crossCheckFailures"]:
+    if summary["crossCheckFailures"] or sum(1 for row in committed if row["crossChecked"] is False):
         raise SystemExit("committed cross-check failures")
-    print(f"redundancy-check-ok: tasks={len(rows)} crossChecked={summary['crossChecked']}")
+    print(f"redundancy-check-ok: tasks={len(committed)} recomputed={len(fast_ids)} "
+          f"crossChecked={summary['crossChecked']}")
     return 0
 
 

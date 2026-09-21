@@ -1,0 +1,604 @@
+{
+ "experiment": "redundancy-v0.1",
+ "preregistrationSha256": "33d600e35c9bcf0a80328212875a57ca8d1f2a4b301fdd553a2ec6bf9e47c58f",
+ "tasks": 1180,
+ "complete": 1160,
+ "excluded": 20,
+ "crossChecked": 1060,
+ "crossCheckFailures": 0,
+ "strata": {
+  "matched:atoms-16": {
+   "tasks": 250,
+   "complete": 250,
+   "ratioBearing": 250,
+   "crossChecked": 250,
+   "crossCheckFailures": 0,
+   "ratioAll": {
+    "min": 1.0,
+    "q1": 13.0,
+    "median": 36.0,
+    "q3": 156.25,
+    "max": 12864.0,
+    "count": 250
+   },
+   "ratioWeak": {
+    "min": 1.0,
+    "q1": 6.0,
+    "median": 10.0,
+    "q3": 30.0,
+    "max": 159.0,
+    "count": 250
+   },
+   "ratioFoc": {
+    "min": 1.0,
+    "q1": 4.0,
+    "median": 7.0,
+    "q3": 14.0,
+    "max": 156.0,
+    "count": 250
+   },
+   "ratioFocWeak": {
+    "min": 0.2,
+    "q1": 0.5,
+    "median": 0.6666666666666666,
+    "q3": 0.71875,
+    "max": 1.0,
+    "count": 250
+   },
+   "fractionAllEqualsOne": 0.004,
+   "fractionFocEqualsOne": 0.032,
+   "negativesAllZero": true
+  },
+  "matched:atoms-32": {
+   "tasks": 50,
+   "complete": 50,
+   "ratioBearing": 50,
+   "crossChecked": 0,
+   "crossCheckFailures": 0,
+   "ratioAll": {
+    "min": 228.0,
+    "q1": 24967.5,
+    "median": 170733.5,
+    "q3": 2748885.75,
+    "max": 572024241.5,
+    "count": 50
+   },
+   "ratioWeak": {
+    "min": 60.0,
+    "q1": 682.375,
+    "median": 3263.75,
+    "q3": 12432.916666666666,
+    "max": 456737.3333333333,
+    "count": 50
+   },
+   "ratioFoc": {
+    "min": 10.0,
+    "q1": 93.41666666666667,
+    "median": 362.0,
+    "q3": 2150.4166666666665,
+    "max": 22229.0,
+    "count": 50
+   },
+   "ratioFocWeak": {
+    "min": 0.029726735598227475,
+    "q1": 0.07807424075343486,
+    "median": 0.15468141292451082,
+    "q3": 0.22558321825834712,
+    "max": 0.8771521451218044,
+    "count": 50
+   },
+   "fractionAllEqualsOne": 0.0,
+   "fractionFocEqualsOne": 0.0,
+   "negativesAllZero": true
+  },
+  "matched:atoms-8": {
+   "tasks": 700,
+   "complete": 700,
+   "ratioBearing": 700,
+   "crossChecked": 700,
+   "crossCheckFailures": 0,
+   "ratioAll": {
+    "min": 1.0,
+    "q1": 2.0,
+    "median": 2.0,
+    "q3": 3.0,
+    "max": 19.0,
+    "count": 700
+   },
+   "ratioWeak": {
+    "min": 1.0,
+    "q1": 1.0,
+    "median": 2.0,
+    "q3": 2.0,
+    "max": 5.0,
+    "count": 700
+   },
+   "ratioFoc": {
+    "min": 1.0,
+    "q1": 1.0,
+    "median": 2.0,
+    "q3": 2.0,
+    "max": 5.0,
+    "count": 700
+   },
+   "ratioFocWeak": {
+    "min": 1.0,
+    "q1": 1.0,
+    "median": 1.0,
+    "q3": 1.0,
+    "max": 1.0,
+    "count": 700
+   },
+   "fractionAllEqualsOne": 0.16428571428571428,
+   "fractionFocEqualsOne": 0.2557142857142857,
+   "negativesAllZero": true
+  },
+  "model:depth-2:one-label:negative": {
+   "tasks": 10,
+   "complete": 10,
+   "ratioBearing": 0,
+   "crossChecked": 10,
+   "crossCheckFailures": 0,
+   "ratioAll": null,
+   "ratioWeak": null,
+   "ratioFoc": null,
+   "ratioFocWeak": null,
+   "fractionAllEqualsOne": null,
+   "fractionFocEqualsOne": null,
+   "negativesAllZero": true
+  },
+  "model:depth-2:one-label:positive": {
+   "tasks": 10,
+   "complete": 10,
+   "ratioBearing": 10,
+   "crossChecked": 10,
+   "crossCheckFailures": 0,
+   "ratioAll": {
+    "min": 1.0,
+    "q1": 1.3333333333333333,
+    "median": 2.333333333333333,
+    "q3": 4.833333333333333,
+    "max": 7.666666666666667,
+    "count": 10
+   },
+   "ratioWeak": {
+    "min": 1.0,
+    "q1": 1.0,
+    "median": 2.166666666666667,
+    "q3": 2.6666666666666665,
+    "max": 2.6666666666666665,
+    "count": 10
+   },
+   "ratioFoc": {
+    "min": 1.0,
+    "q1": 1.0,
+    "median": 2.0,
+    "q3": 2.0833333333333335,
+    "max": 2.3333333333333335,
+    "count": 10
+   },
+   "ratioFocWeak": {
+    "min": 0.75,
+    "q1": 0.75,
+    "median": 1.0,
+    "q3": 1.0,
+    "max": 1.0,
+    "count": 10
+   },
+   "fractionAllEqualsOne": 0.1,
+   "fractionFocEqualsOne": 0.3,
+   "negativesAllZero": true
+  },
+  "model:depth-2:two-label:negative": {
+   "tasks": 10,
+   "complete": 10,
+   "ratioBearing": 0,
+   "crossChecked": 10,
+   "crossCheckFailures": 0,
+   "ratioAll": null,
+   "ratioWeak": null,
+   "ratioFoc": null,
+   "ratioFocWeak": null,
+   "fractionAllEqualsOne": null,
+   "fractionFocEqualsOne": null,
+   "negativesAllZero": true
+  },
+  "model:depth-2:two-label:positive": {
+   "tasks": 10,
+   "complete": 10,
+   "ratioBearing": 10,
+   "crossChecked": 10,
+   "crossCheckFailures": 0,
+   "ratioAll": {
+    "min": 1.0,
+    "q1": 2.0,
+    "median": 3.0,
+    "q3": 6.625,
+    "max": 15.666666666666666,
+    "count": 10
+   },
+   "ratioWeak": {
+    "min": 1.0,
+    "q1": 2.0,
+    "median": 2.25,
+    "q3": 3.125,
+    "max": 5.0,
+    "count": 10
+   },
+   "ratioFoc": {
+    "min": 1.0,
+    "q1": 2.0,
+    "median": 2.25,
+    "q3": 3.125,
+    "max": 5.0,
+    "count": 10
+   },
+   "ratioFocWeak": {
+    "min": 1.0,
+    "q1": 1.0,
+    "median": 1.0,
+    "q3": 1.0,
+    "max": 1.0,
+    "count": 10
+   },
+   "fractionAllEqualsOne": 0.1,
+   "fractionFocEqualsOne": 0.1,
+   "negativesAllZero": true
+  },
+  "model:depth-2:unique:negative": {
+   "tasks": 10,
+   "complete": 10,
+   "ratioBearing": 0,
+   "crossChecked": 10,
+   "crossCheckFailures": 0,
+   "ratioAll": null,
+   "ratioWeak": null,
+   "ratioFoc": null,
+   "ratioFocWeak": null,
+   "fractionAllEqualsOne": null,
+   "fractionFocEqualsOne": null,
+   "negativesAllZero": true
+  },
+  "model:depth-2:unique:positive": {
+   "tasks": 10,
+   "complete": 10,
+   "ratioBearing": 10,
+   "crossChecked": 10,
+   "crossCheckFailures": 0,
+   "ratioAll": {
+    "min": 1.0,
+    "q1": 1.0,
+    "median": 2.0,
+    "q3": 2.25,
+    "max": 19.0,
+    "count": 10
+   },
+   "ratioWeak": {
+    "min": 1.0,
+    "q1": 1.0,
+    "median": 2.0,
+    "q3": 2.0,
+    "max": 5.0,
+    "count": 10
+   },
+   "ratioFoc": {
+    "min": 1.0,
+    "q1": 1.0,
+    "median": 2.0,
+    "q3": 2.0,
+    "max": 5.0,
+    "count": 10
+   },
+   "ratioFocWeak": {
+    "min": 1.0,
+    "q1": 1.0,
+    "median": 1.0,
+    "q3": 1.0,
+    "max": 1.0,
+    "count": 10
+   },
+   "fractionAllEqualsOne": 0.4,
+   "fractionFocEqualsOne": 0.4,
+   "negativesAllZero": true
+  },
+  "model:depth-3:one-label:negative": {
+   "tasks": 10,
+   "complete": 10,
+   "ratioBearing": 0,
+   "crossChecked": 10,
+   "crossCheckFailures": 0,
+   "ratioAll": null,
+   "ratioWeak": null,
+   "ratioFoc": null,
+   "ratioFocWeak": null,
+   "fractionAllEqualsOne": null,
+   "fractionFocEqualsOne": null,
+   "negativesAllZero": true
+  },
+  "model:depth-3:one-label:positive": {
+   "tasks": 10,
+   "complete": 10,
+   "ratioBearing": 10,
+   "crossChecked": 0,
+   "crossCheckFailures": 0,
+   "ratioAll": {
+    "min": 5.904761904761905,
+    "q1": 27.714285714285715,
+    "median": 248.72936076604555,
+    "q3": 1087.4014285714284,
+    "max": 2507.6085714285714,
+    "count": 10
+   },
+   "ratioWeak": {
+    "min": 3.2857142857142856,
+    "q1": 12.573214285714284,
+    "median": 33.94164078674948,
+    "q3": 109.13857142857144,
+    "max": 125.16380952380952,
+    "count": 10
+   },
+   "ratioFoc": {
+    "min": 2.2857142857142856,
+    "q1": 6.5964285714285715,
+    "median": 19.552136269527573,
+    "q3": 48.20142857142857,
+    "max": 55.90095238095238,
+    "count": 10
+   },
+   "ratioFocWeak": {
+    "min": 0.33324926439680536,
+    "q1": 0.42759576939735666,
+    "median": 0.5263049290821123,
+    "q3": 0.6394475911735445,
+    "max": 0.6956521739130435,
+    "count": 10
+   },
+   "fractionAllEqualsOne": 0.0,
+   "fractionFocEqualsOne": 0.0,
+   "negativesAllZero": true
+  },
+  "model:depth-3:two-label:negative": {
+   "tasks": 10,
+   "complete": 10,
+   "ratioBearing": 0,
+   "crossChecked": 10,
+   "crossCheckFailures": 0,
+   "ratioAll": null,
+   "ratioWeak": null,
+   "ratioFoc": null,
+   "ratioFocWeak": null,
+   "fractionAllEqualsOne": null,
+   "fractionFocEqualsOne": null,
+   "negativesAllZero": true
+  },
+  "model:depth-3:two-label:positive": {
+   "tasks": 10,
+   "complete": 10,
+   "ratioBearing": 10,
+   "crossChecked": 10,
+   "crossCheckFailures": 0,
+   "ratioAll": {
+    "min": 4.5,
+    "q1": 26.1875,
+    "median": 54.214285714285715,
+    "q3": 217.17847222222224,
+    "max": 1031.6904761904761,
+    "count": 10
+   },
+   "ratioWeak": {
+    "min": 3.0,
+    "q1": 7.5,
+    "median": 17.76388888888889,
+    "q3": 26.1125,
+    "max": 65.57142857142857,
+    "count": 10
+   },
+   "ratioFoc": {
+    "min": 2.0,
+    "q1": 2.0,
+    "median": 9.640625,
+    "q3": 13.392857142857142,
+    "max": 22.15,
+    "count": 10
+   },
+   "ratioFocWeak": {
+    "min": 0.19680464778503995,
+    "q1": 0.2896319886765747,
+    "median": 0.5747029828662482,
+    "q3": 0.6666666666666666,
+    "max": 0.715670436187399,
+    "count": 10
+   },
+   "fractionAllEqualsOne": 0.0,
+   "fractionFocEqualsOne": 0.0,
+   "negativesAllZero": true
+  },
+  "model:depth-3:unique:negative": {
+   "tasks": 10,
+   "complete": 10,
+   "ratioBearing": 0,
+   "crossChecked": 10,
+   "crossCheckFailures": 0,
+   "ratioAll": null,
+   "ratioWeak": null,
+   "ratioFoc": null,
+   "ratioFocWeak": null,
+   "fractionAllEqualsOne": null,
+   "fractionFocEqualsOne": null,
+   "negativesAllZero": true
+  },
+  "model:depth-3:unique:positive": {
+   "tasks": 10,
+   "complete": 10,
+   "ratioBearing": 10,
+   "crossChecked": 10,
+   "crossCheckFailures": 0,
+   "ratioAll": {
+    "min": 3.0,
+    "q1": 6.5,
+    "median": 18.0,
+    "q3": 22.0,
+    "max": 114.0,
+    "count": 10
+   },
+   "ratioWeak": {
+    "min": 3.0,
+    "q1": 4.5,
+    "median": 8.0,
+    "q3": 10.5,
+    "max": 19.0,
+    "count": 10
+   },
+   "ratioFoc": {
+    "min": 2.0,
+    "q1": 2.0,
+    "median": 5.0,
+    "q3": 6.25,
+    "max": 14.0,
+    "count": 10
+   },
+   "ratioFocWeak": {
+    "min": 0.4,
+    "q1": 0.4791666666666667,
+    "median": 0.6666666666666666,
+    "q3": 0.8026315789473684,
+    "max": 1.0,
+    "count": 10
+   },
+   "fractionAllEqualsOne": 0.0,
+   "fractionFocEqualsOne": 0.0,
+   "negativesAllZero": true
+  },
+  "model:depth-4:one-label:negative": {
+   "tasks": 10,
+   "complete": 10,
+   "ratioBearing": 0,
+   "crossChecked": 0,
+   "crossCheckFailures": 0,
+   "ratioAll": null,
+   "ratioWeak": null,
+   "ratioFoc": null,
+   "ratioFocWeak": null,
+   "fractionAllEqualsOne": null,
+   "fractionFocEqualsOne": null,
+   "negativesAllZero": true
+  },
+  "model:depth-4:one-label:positive": {
+   "tasks": 10,
+   "complete": 0,
+   "ratioBearing": 0,
+   "crossChecked": 0,
+   "crossCheckFailures": 0,
+   "ratioAll": null,
+   "ratioWeak": null,
+   "ratioFoc": null,
+   "ratioFocWeak": null,
+   "fractionAllEqualsOne": null,
+   "fractionFocEqualsOne": null,
+   "negativesAllZero": true
+  },
+  "model:depth-4:two-label:negative": {
+   "tasks": 10,
+   "complete": 10,
+   "ratioBearing": 0,
+   "crossChecked": 0,
+   "crossCheckFailures": 0,
+   "ratioAll": null,
+   "ratioWeak": null,
+   "ratioFoc": null,
+   "ratioFocWeak": null,
+   "fractionAllEqualsOne": null,
+   "fractionFocEqualsOne": null,
+   "negativesAllZero": true
+  },
+  "model:depth-4:two-label:positive": {
+   "tasks": 10,
+   "complete": 0,
+   "ratioBearing": 0,
+   "crossChecked": 0,
+   "crossCheckFailures": 0,
+   "ratioAll": null,
+   "ratioWeak": null,
+   "ratioFoc": null,
+   "ratioFocWeak": null,
+   "fractionAllEqualsOne": null,
+   "fractionFocEqualsOne": null,
+   "negativesAllZero": true
+  },
+  "model:depth-4:unique:negative": {
+   "tasks": 10,
+   "complete": 10,
+   "ratioBearing": 0,
+   "crossChecked": 0,
+   "crossCheckFailures": 0,
+   "ratioAll": null,
+   "ratioWeak": null,
+   "ratioFoc": null,
+   "ratioFocWeak": null,
+   "fractionAllEqualsOne": null,
+   "fractionFocEqualsOne": null,
+   "negativesAllZero": true
+  },
+  "model:depth-4:unique:positive": {
+   "tasks": 10,
+   "complete": 10,
+   "ratioBearing": 10,
+   "crossChecked": 0,
+   "crossCheckFailures": 0,
+   "ratioAll": {
+    "min": 9180.5,
+    "q1": 448459.875,
+    "median": 3416275.5,
+    "q3": 7583770.9375,
+    "max": 12183877.5,
+    "count": 10
+   },
+   "ratioWeak": {
+    "min": 247.0,
+    "q1": 2667.9375,
+    "median": 14634.25,
+    "q3": 62343.05,
+    "max": 196948.83333333334,
+    "count": 10
+   },
+   "ratioFoc": {
+    "min": 97.25,
+    "q1": 377.1875,
+    "median": 1315.0,
+    "q3": 6966.075,
+    "max": 24249.25,
+    "count": 10
+   },
+   "ratioFocWeak": {
+    "min": 0.026137922455324692,
+    "q1": 0.07373496147468757,
+    "median": 0.13492330833154859,
+    "q3": 0.24388381891100874,
+    "max": 0.3937246963562753,
+    "count": 10
+   },
+   "fractionAllEqualsOne": 0.0,
+   "fractionFocEqualsOne": 0.0,
+   "negativesAllZero": true
+  }
+ },
+ "hypotheses": {
+  "H1": {
+   "fractionFocAboveOne": 0.8177570093457944,
+   "supported": true
+  },
+  "H2": {
+   "matchedMediansAllOverNets": {
+    "8": 2.0,
+    "16": 36.0,
+    "32": 170733.5
+   },
+   "supported": true
+  },
+  "H3": {
+   "fractionFocBelowWeak": 0.2775700934579439,
+   "supported": false
+  }
+ },
+ "resultsSha256": "9cb3ab29219a11865dc12f6d2e6489c5ec33b79e822fbb0e198259a58fa409df"
+}
