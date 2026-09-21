@@ -532,6 +532,7 @@ ProofNetIR*Tests.lean       runnable consumer-style tests
 consumer-smoke/                 current-source downstream consumer
 consumer-release-smoke/         legacy v0.5.0 compatibility consumer
 consumer-v09-candidate-smoke/   stable v0.9.0 tag consumer
+consumer-v10-candidate-smoke/   v0.10 release-candidate consumer
 docs/                       design, status, audits, API, and literature
 examples/                   checked inputs and search examples
 experiments/                frozen protocols, artifacts, and reports
