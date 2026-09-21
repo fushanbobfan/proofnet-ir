@@ -7,30 +7,18 @@ and its proof layer on top of `v0.9.0`. Entries are one per mathematics
 checkpoint, newest first; wrapper-transport steps are folded into the family
 they served, and `git log` holds the per-commit record.
 
-- bounded the dispatcher phase of the public decision (D6.3):
-  `dispatchPhase_le` proves that the instrumented run from an initial
-  reservation costs at most `72 * (formulas.size + 1) * (formulas.size +
-  links.length + 1)`, from the carrier bounds of the stack structures
-  (`sigma_length_le`, `queued_le`, `parents_size_le`), the per-call bound
-  `dispatchCost_le` (linear apart from payload activation), and the waiting
-  potential `waitingTotal_step` (a `wait` stores one occurrence, a
-  `unifyPayload` activates its whole cell, nothing else touches the table),
-  which pays each activated occurrence with the `wait` that stored it;
-- replaced the duplicate guards of `forward` and `unifyPayload` by the
-  carrier-bounded linear check `nodupGuard` (`SequentialSchedulerState`;
-  `nodupGuard_eq_true_iff` decides exactly `List.Nodup`, so the typed rule
-  witnesses and their exact characterizations are unchanged); the cost model
-  now charges each guard `formulas.size + 2 * length` (D6.2);
-- added the operation counters of the public decision
-  (`ProofNetIR/Figure7/Cost.lean`, D6.1): `sequentialDecisionWithStats` runs
-  the decision and records explicit cost models of every phase (structural
-  check, initialization, each dispatcher call by its rule attempts, final
-  extraction, verification), each term naming the implemented traversal it
-  charges; `sequentialDecisionWithStats_accepted` proves the Boolean equal to
-  `unificationCheck`, and `runDispatcherWithStats_state` and
-  `runDispatcherWithStats_calls_le` relate the instrumented run to
-  `runDispatcher`. No bound is proved yet; the model charges the duplicate
-  guards quadratically, which the next step removes;
+- closed D6, the whole-program cost theorem of the public decision:
+  `ProofNetIR/Figure7/Cost.lean` runs the decision with operation counters
+  of every phase (`sequentialDecisionWithStats`, Boolean equal to
+  `unificationCheck`; list traversals by length, array accesses by one,
+  formulas by symbols), and `ProofNetIR/Figure7/CostBound.lean` proves
+  `decisionStats_total_le_of_structural`, `152 * (formulas + 1) * (formulas +
+  links + conclusions + 1)` for structurally well-formed inputs, and
+  `decisionStats_total_le`, `152 * inputSize²` for all inputs; linearity
+  (D6-linear) stays open. On the way, the `forward`/`unifyPayload` duplicate
+  guards became the linear `nodupGuard` (quadratic guards made a run cubic),
+  a waiting potential pays payload activation, live trees have no exchange
+  nodes, and `verifyDerivation?` compares canonicalizations, not cubic codes;
 - closed D2: `Certificate.unificationCheck`, the exact public decision, is now
   `sequentialFastCheck` alone (`ProofNetIR/Figure7/Sequential.lean`), with no
   eager scan, worklist tier, or recursive reconstruction fallback;

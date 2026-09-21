@@ -103,13 +103,13 @@ that guarantee: `sequentialize_complete` proves that the public finite search
 returns a proof-bearing result on every checker-accepted certificate.
 The v0.9 development path separates verification from the reference checker:
 `verifyDerivation?` checks a supplied tree through structural validation,
-independent inference/desequentialization, and the non-factorial intrinsic
-canonical code. `reconstructDerivation?` performs fuel-bounded terminal-rule
-search and calls that verifier, never `Certificate.check`. Kernel theorems
-prove every successful result accepted and prove the exact total decision
-equality `reconstructsDerivation = check`. The proof may use the reference
-semantics; the compiled search definition does not. No polynomial or linear
-runtime theorem is currently claimed.
+independent inference/desequentialization, and equality of the non-factorial
+intrinsic canonicalizations. `reconstructDerivation?` performs fuel-bounded
+terminal-rule search and calls that verifier, never `Certificate.check`.
+Kernel theorems prove every successful result accepted and prove the exact
+total decision equality `reconstructsDerivation = check`. The proof may use
+the reference semantics; the compiled search definition does not. No runtime
+theorem is claimed for this reconstruction path.
 
 `unificationReconstruct?` adds a deterministic Guerrini-style candidate
 producer. It manipulates ordinary runtime token/partition state and partial
@@ -120,11 +120,11 @@ accept an invalid certificate. `unificationCheck` is the exact public
 decision: it is the sequential Figures 7--8 fast path `sequentialFastCheck`
 alone, which accepts only a derivation that `verifyDerivation?` validates and
 has no recursive fallback. Lean proves `sequentialFastCheck = check`, hence
-`unificationCheck = check`. Rejection by the eager or worklist candidates
-alone is inconclusive, and no linearity claim is made: a Guerrini-style claim
-requires the complete Figures 7--8 `NEXTAXIOM`, token-age,
-ready/waiting-stack, and special union-find invariants together with a
-whole-program cost theorem.
+`unificationCheck = check`, and a whole-program cost theorem counts every
+operation of a run and bounds the count quadratically (D6). Rejection by the
+eager or worklist candidates alone is inconclusive, and no linearity claim is
+made: the implemented stack, bucket, and consumer-index structures are not
+constant-time, and linearity is recorded as the later goal D6-linear.
 
 The separate `SequentialUnification.lean` checkpoint narrows, but does not
 close, that requirement. Lean proves exact submitted-link origin for every

@@ -545,13 +545,15 @@ Exact target statements for the open items are in the
 - [x] Bound the dispatcher phase: the sizes of the stack structures by the
   carrier, the waiting payloads activated over a run by the number of
   `wait` steps, hence a quadratic total (`dispatchPhase_le`, D6.3).
-- [ ] Bound the structural, initialization, extraction, and verification
-  phases quadratically (D6.4).
-- [ ] Assemble the whole-program bound (D6, retargeted from the flat
-  worklist on 2026-09-20; the flat statement stays open as D6-flat).
+- [x] Bound the structural, initialization, extraction, and verification
+  phases quadratically (D6.4); the verifier now compares intrinsic
+  canonicalizations instead of their unary-framed codes.
+- [x] Assemble the whole-program bound (`decisionStats_total_le`, D6,
+  retargeted from the flat worklist on 2026-09-20; the flat statement stays
+  open as D6-flat).
 - [ ] Reach a linear whole-program bound (D6-linear): constant-time stack
-  access and bucket merge, and verification without canonical-code
-  recomputation; not planned for v0.10.
+  access and bucket merge and a single consumer-index construction; not
+  planned for v0.10.
 
 ## Later research
 

@@ -49,6 +49,7 @@ import ProofNetIR.Figure7.Closure
 import ProofNetIR.Figure7.Enabledness
 import ProofNetIR.Figure7.Sequential
 import ProofNetIR.Figure7.Cost
+import ProofNetIR.Figure7.CostBound
 import ProofNetIR.SequentialFigure7ProgressInvariant
 import ProofNetIR.SequentialFreshSourceLeftRun
 import ProofNetIR.SequentialFigure7NewInputCore

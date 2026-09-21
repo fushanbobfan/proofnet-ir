@@ -170,7 +170,8 @@ link-list visits. That result characterizes the current scan schedule only.
 `Certificate.unificationCheck` is the sequential fast path alone (ledger
 items D1 and D2, closed); general checker-accepted sequentialization remains
 complete through the recursive sequentializer, which is a separate public
-API, and whole-program linearity is an open gate (D6).
+API, the decision's operation count is proved quadratic (D6), and
+whole-program linearity is a later goal (D6-linear).
 
 ## Sequential Figure-7 layer
 
@@ -256,11 +257,20 @@ open theorems are stated in the [goal ledger](goal-ledger.md).
     `--invariant-probe` evaluates candidate state invariants at every reachable
     state. All modes fail closed on budget exhaustion and are evidence, not
     proof.
+11. **Closure, enabledness, and the decision.** `Figure7/Closure` proves the
+    order-free region closure and progress (D3), `Figure7/Enabledness` the
+    corrected `NEXTAXIOM` and priority-witness conjunction (D5), and
+    `Figure7/Sequential` the fast path, its completeness (D1), and the public
+    decision (D2).
+12. **Cost.** `Figure7/Cost` counts the operations of every phase of the
+    public decision, and `Figure7/CostBound` proves the count quadratic in
+    the carrier, links, and conclusions of a well-formed certificate and in
+    the submitted text of any certificate (D6).
 
-Not established by this layer: C12 at every reachable state, the tail law,
-Figure-7 progress (D3), exhaustive dispatcher enabledness or later-state
-totality, later-state `NEXTAXIOM` start selection (D5), pure-worklist
-completeness (D1), fallback removal (D2), and a whole-program cost bound (D6).
+Not established by this layer: the tail law at the created-head obligations
+of `forward` and `unifyPayload` (H-tail, no longer needed for progress), the
+legacy flat-worklist forms (D1-flat, D6-flat), and a linear whole-program
+bound (D6-linear).
 
 ## Persistent LeanProp bridge
 
@@ -361,7 +371,7 @@ formula-occurrence fuel induction.
 `DerivationVerifier.lean` and `ReconstructionChecker.lean` provide the
 v0.9 alternative path. The verifier turns a proposed tree into a dependent
 proof-bearing result using only structural validation, inference,
-desequentialization, and intrinsic canonical-code equality. The reconstruction
+desequentialization, and intrinsic canonicalization equality. The reconstruction
 layer has two executable tiers. A structure-guided fast path recursively
 combines raw terminal-par and splitting-tensor candidates, uses
 vertex-number-free boundary formula-tree/axiom profiles to align repeated

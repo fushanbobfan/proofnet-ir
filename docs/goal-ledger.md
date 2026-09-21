@@ -20,7 +20,8 @@ Figure-7 history, dispatch results, and reachability are in
 | D3 | **Closed:** Figure-7 progress. | `CanonicalTagHistory.dispatch_or_allMarked` in `ProofNetIR/Figure7/Closure.lean` has exactly the statement below. It combines `ReachableByImplementedDispatcher.dispatch_or_activeTopDrained` (`ProofNetIR/SequentialFigure7ActiveTopResidual.lean`) with `ReachableByImplementedDispatcher.allMarked_of_drained`: a drained active region has no switching boundary edge, so by connectedness its class is the whole net. The tail-law route through `ActiveTopMarkedNonconclusionDebt` is not used. |
 | D4 | **Closed:** bounded termination of repeated dispatcher execution. | `dispatch_stops` in `ProofNetIR/Figure7/Termination.lean` has exactly the statement below. |
 | D5 | **Refuted as stated; corrected mathematical conjunction closed:** later-state `NEXTAXIOM` guards suffice; nonterminal priority enabledness requires initialization. The Figures 7–8 replacement of the eager prototype is realized by D2: the public decision is the sequential executable. | `priorityEnabled_not_allReachable` in `ProofNetIR/Figure7/Enabledness.lean` refutes conjunct 2 using the reachable empty scheduler of one correct axiom. `figure7Enabledness_started_and_sequentialize` proves conjuncts 1 and 3 unchanged and the exact initialization equivalence below; the replacement itself is D2's redefinition of the public decision. |
-| D6 | **Open (retargeted 2026-09-20 to the sequential decision):** a whole-program cost theorem for the public decision `unificationCheck`: an explicit operation count over every phase of one run (structural check, initialization search, each dispatcher call, final extraction, verification), bounded by a constant multiple of `(formulas.size + 1) * (formulas.size + links.length + 1)`. | No counters exist yet for the sequential layer. The bound is the one the implementation has: the stack is list-based with tail access, buckets are rebuilt by append, the consumer index is recomputed per rule attempt, and verification recomputes canonical codes; a linear bound therefore needs new data structures and is recorded separately as D6-linear. The former flat-worklist statement stays below as D6-flat, open and off the critical path (`UnificationWorklistCandidateResult.linkAttemptsWithinBudget` in `ProofNetIR/Unification.lean` covers link attempts only). |
+| D6 | **Closed (retargeted 2026-09-20 to the sequential decision):** a whole-program cost theorem for the public decision `unificationCheck`: an explicit operation count over every phase of one run (structural check, initialization search, each dispatcher call, final extraction, verification), quadratic in the carrier, links, and conclusions of a structurally well-formed certificate, and quadratic in the submitted text of any certificate. | `SequentialCost.decisionStats_total_le_of_structural` and `SequentialCost.decisionStats_total_le` in `ProofNetIR/Figure7/CostBound.lean` have exactly the statements below, for the counters `sequentialDecisionWithStats` of `ProofNetIR/Figure7/Cost.lean` (Boolean equal to `unificationCheck` by `sequentialDecisionWithStats_accepted`). The model charges every list traversal by its length, every array access by one, formulas in symbols with an atom name as one symbol, and the duplicate guards at their carrier-bounded cost; the verifier now compares intrinsic canonicalizations instead of their string codes, whose unary length framing made the code size cubic. The bound is quadratic, not linear: the stack is list-based with tail access, buckets are rebuilt by append, and the consumer index is recomputed per rule attempt; linearity is D6-linear. The former flat-worklist statement stays below as D6-flat, open and off the critical path (`UnificationWorklistCandidateResult.linkAttemptsWithinBudget` in `ProofNetIR/Unification.lean` covers link attempts only). |
+| D6-linear | **Open (later goal, recorded 2026-09-20):** a linear whole-program bound for the public decision on structurally well-formed certificates, `constant * SequentialCost.submittedSize`. | Needs constant-time stack access and bucket merge and a single consumer-index construction; not planned for v0.10. Proposition below. |
 
 ### Target propositions
 
@@ -97,23 +98,27 @@ conjunct 2 with the following exact, proved equivalence:
       0 < state.stack.nextAge)
 ```
 
-D6 (`sequentialDecisionWithStats` is to run the public decision and record,
-for every phase, the operations it performs, charging each list traversal by
-its length and each array access by one; its Boolean must be proved equal to
-`unificationCheck`):
+D6 (closed; `SequentialCost.submittedSize` is `formulas.size + links.length +
+conclusions.length + 1` and `SequentialCost.inputSize` adds the symbols of
+every stored formula, because a malformed input can carry formulas larger
+than its carrier and the structural check compares them):
 ```lean
-∃ constant : Nat, ∀ certificate : Certificate,
+∀ certificate : Certificate, certificate.StructurallyWellFormed →
   certificate.sequentialDecisionWithStats.stats.total ≤
-    constant * (certificate.formulas.size + 1) *
-      (certificate.formulas.size + certificate.links.length + 1)
+    152 * (certificate.formulas.size + 1) * SequentialCost.submittedSize certificate
+```
+```lean
+∀ certificate : Certificate,
+  certificate.sequentialDecisionWithStats.stats.total ≤
+    152 * SequentialCost.inputSize certificate * SequentialCost.inputSize certificate
 ```
 
 D6-linear (later goal, open; needs constant-time stack access and bucket
-merge, and a verification pass without canonical-code recomputation):
+merge and a single consumer-index construction):
 ```lean
-∃ constant : Nat, ∀ certificate : Certificate,
+∃ constant : Nat, ∀ certificate : Certificate, certificate.StructurallyWellFormed →
   certificate.sequentialDecisionWithStats.stats.total ≤
-    constant * (certificate.formulas.size + certificate.links.length + 1)
+    constant * SequentialCost.submittedSize certificate
 ```
 
 D6-flat (legacy form, still open, not on the critical path):

@@ -56,7 +56,8 @@ so the counter is not a linearity theorem. The public decision
 it to accept every input and records `sequential_decision_ms` (nanosecond
 accumulation, as `check_ms` now is). First recorded Windows run, 291 inputs:
 sequential decision 68 ms, worklist candidate 44 ms, eager candidate 47 ms,
-reference all-switchings check 513 ms. No bound is proved for it (D6).
+reference all-switchings check 513 ms. Its operation count is proved
+quadratic (D6).
 
 The statistics-bearing candidate and verification APIs expose `passes`,
 `linkVisits`, and `successfulFirings`. Their result type carries proofs of

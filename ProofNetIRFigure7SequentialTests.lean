@@ -1,5 +1,6 @@
 import ProofNetIR.Figure7.Sequential
 import ProofNetIR.Figure7.Cost
+import ProofNetIR.Figure7.CostBound
 
 namespace ProofNetIR.Figure7SequentialTests
 
@@ -230,6 +231,65 @@ example : certificate.sequentialDecisionWithStats.stats.dispatch ≤
     72 * (certificate.formulas.size + 1) * (certificate.formulas.size + certificate.links.length + 1) := by
   native_decide
 
+-- Raw walks and both deduplicated traversals stay inside the formula carrier.
+example {cert : Certificate} (structural : cert.StructurallyWellFormed) :
+    cert.intrinsicTraversalRaw.Nodup := structural.intrinsicTraversalRaw_nodup
+
+example {cert : Certificate} (structural : cert.StructurallyWellFormed) :
+    cert.intrinsicTraversalRaw.length ≤ cert.formulas.size := structural.raw_length_le
+
+example {cert : Certificate} (structural : cert.StructurallyWellFormed) :
+    cert.intrinsicTraversalVertices.length ≤ cert.formulas.size ∧
+      cert.traversalVertices.length ≤ cert.formulas.size :=
+  ⟨Nat.le_of_eq structural.intrinsicTraversalComplete.length_eq,
+    Nat.le_of_eq (cert.traversalComplete_of_structurallyWellFormed structural).length_eq⟩
+
+example {cert : Certificate} (structural : cert.StructurallyWellFormed) :
+    SequentialCost.canonicalizeCost cert ≤
+      8 * (cert.formulas.size + 1) * (cert.formulas.size + cert.links.length + 1) :=
+  structural.canonicalizeCost_le
+
+-- The whole public decision is quadratic (D6).
+example {cert : Certificate} (structural : cert.StructurallyWellFormed) :
+    cert.sequentialDecisionWithStats.stats.total ≤
+      152 * (cert.formulas.size + 1) * SequentialCost.submittedSize cert :=
+  SequentialCost.decisionStats_total_le_of_structural structural
+
+example (cert : Certificate) :
+    cert.sequentialDecisionWithStats.stats.total ≤
+      152 * SequentialCost.inputSize cert * SequentialCost.inputSize cert :=
+  SequentialCost.decisionStats_total_le cert
+
+example {cert : Certificate} {state : ReservationState} (history : ExecutedHistory cert state) :
+    SequentialCost.LiveTreesExchangeFree state.core :=
+  SequentialCost.ExecutedHistory.liveTreesExchangeFree history
+
+example {cert : Certificate} (structural : cert.StructurallyWellFormed) :
+    SequentialCost.structuralCost cert ≤
+      9 * (cert.formulas.size + 1) * SequentialCost.submittedSize cert :=
+  SequentialCost.structuralCost_le_of_structural structural
+
+example (cert : Certificate) :
+    SequentialCost.structuralCost cert ≤
+      8 * SequentialCost.inputSize cert * SequentialCost.inputSize cert :=
+  SequentialCost.structuralCost_le_inputSize cert
+
+example {cert : Certificate} {state : ReservationState} (invariant : SchedulerInvariant cert state)
+    (reachable : ReachableByImplementedDispatcher cert state) {tree : CutFreeDerivation}
+    (extracted : cert.sequentialFinalTree? state = some tree) :
+    SequentialCost.verificationCost cert tree ≤
+      54 * (cert.formulas.size + 1) * SequentialCost.submittedSize cert :=
+  SequentialCost.verificationCost_le invariant reachable extracted
+
+example {cert : Certificate} {state : ReservationState} (invariant : SchedulerInvariant cert state) :
+    SequentialCost.extractionCost cert state ≤
+      3 * (cert.formulas.size + 1) * SequentialCost.submittedSize cert :=
+  SequentialCost.extractionCost_le invariant
+
+example : certificate.sequentialDecisionWithStats.stats.total ≤
+    152 * (certificate.formulas.size + 1) * SequentialCost.submittedSize certificate := by
+  native_decide
+
 end ProofNetIR.Figure7SequentialTests
 
 #print axioms ProofNetIR.SequentialFigure7.runDispatcher_spec
@@ -257,6 +317,13 @@ end ProofNetIR.Figure7SequentialTests
 #print axioms ProofNetIR.Certificate.sequentialDecisionWithStats_accepted
 #print axioms ProofNetIR.SequentialCost.dispatchPhase_le
 #print axioms ProofNetIR.SequentialCost.waitingTotal_step
+#print axioms ProofNetIR.Certificate.StructurallyWellFormed.intrinsicTraversalRaw_nodup
+#print axioms ProofNetIR.Certificate.StructurallyWellFormed.raw_length_le
+#print axioms ProofNetIR.Certificate.StructurallyWellFormed.canonicalizeCost_le
+#print axioms ProofNetIR.SequentialCost.decisionStats_total_le_of_structural
+#print axioms ProofNetIR.SequentialCost.decisionStats_total_le
+#print axioms ProofNetIR.SequentialCost.verificationCost_le
+#print axioms ProofNetIR.SequentialCost.ExecutedHistory.liveTreesExchangeFree
 
 def main : IO Unit := do
   let accepted := ProofNetIR.Figure7SequentialTests.certificate.sequentialFastCheck

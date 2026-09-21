@@ -3211,8 +3211,8 @@ certificate.
 
 Unlike `Certificate.check`, this verifier does not enumerate switching graphs.
 It validates the submitted certificate structurally, independently infers and
-desequentializes the derivation, and compares the two proof nets through the
-proved non-factorial intrinsic canonical code.
+desequentializes the derivation, and compares the two proof nets through their
+proved non-factorial intrinsic canonicalizations.
 
 ```lean
 ProofNetIR.DerivationVerificationResult : ProofNetIR.Certificate → Type
@@ -3226,7 +3226,8 @@ Verify a proposed derivation without evaluating the exponential
 all-switchings checker on the input.
 
 The only Boolean gate on the input is `wellFormed`; proof-net identity is
-decided by the polynomial intrinsic canonical code.  The acceptance proof for
+decided by comparing the intrinsic canonicalizations of the output and the
+input, without serializing them to codes.  The acceptance proof for
 the derivation-produced output is supplied by
 `CutFreeDerivation.desequentialize?_check` and is erased at runtime.
 
@@ -26073,7 +26074,8 @@ Kind: definition.
 
 `sequentialFinalTree?`: the live-component scan, and for a single live
 component the frontier length test, one `findIdx?` over the frontier per
-conclusion, and the duplicate scan of the order.
+conclusion, and the duplicate scan of the order (positions below the
+frontier length).
 
 ```lean
 ProofNetIR.SequentialCost.extractionCost : ProofNetIR.Certificate → ProofNetIR.SequentialSchedulerBridge.ReservationState → Nat
@@ -26084,8 +26086,7 @@ ProofNetIR.SequentialCost.extractionCost : ProofNetIR.Certificate → ProofNetIR
 Kind: definition.
 
 `infer?`: one step per axiom, two premise picks and one append per
-tensor, two picks and one append per par, and the reorder (one indexed read
-per position and the duplicate scan) per exchange.
+tensor, two picks and one append per par, and the reorder per exchange.
 
 ```lean
 ProofNetIR.SequentialCost.inferCost : ProofNetIR.CutFreeDerivation → Nat
@@ -26098,25 +26099,351 @@ Kind: definition.
 `build?`: the axiom fragment; per tensor the two entry picks, the formula
 array append, the shifted link map and append, and the entry append; per par
 the two picks, the push, the link append, and the entry append; per exchange
-the reorder. Entry lists are bounded by the fragment carriers.
+the reorder of the entries.
 
 ```lean
 ProofNetIR.SequentialCost.buildCost : ProofNetIR.CutFreeDerivation → Nat
 ```
 
-### `ProofNetIR.SequentialCost.canonicalCodeCost`
+### `ProofNetIR.SequentialCost.formulaText`
 
 Kind: definition.
 
-`intrinsicCanonicalCode`: the occurrence walks from the conclusions (one
-producer filter over the links and one append per visited occurrence), the
-duplicate scan of the raw traversal, one owned-link filter per traversal
-vertex, the relabel (the duplicate scan of the conclusion and link vertices,
-one `idxOf` per link vertex and conclusion, and the formula map), and the
-structural code (one token or unary character each).
+Symbols of the formula stored at an occurrence, one for a missing one.
 
 ```lean
-ProofNetIR.SequentialCost.canonicalCodeCost : ProofNetIR.Certificate → Nat
+ProofNetIR.SequentialCost.formulaText : ProofNetIR.Certificate → ProofNetIR.Vertex → Nat
+```
+
+### `ProofNetIR.SequentialCost.formulaTextTotal`
+
+Kind: definition.
+
+Symbols of every stored formula.
+
+```lean
+ProofNetIR.SequentialCost.formulaTextTotal : ProofNetIR.Certificate → Nat
+```
+
+### `ProofNetIR.SequentialCost.linkCheckCost`
+
+Kind: definition.
+
+`linkLocallyWellFormed` at one link: the constant tests, the lookups,
+and the dual construction and formula comparison at its vertices.
+
+```lean
+ProofNetIR.SequentialCost.linkCheckCost : ProofNetIR.Certificate → ProofNetIR.Link → Nat
+```
+
+### `ProofNetIR.SequentialCost.canonicalizeCost`
+
+Kind: definition.
+
+`intrinsicCanonicalize`: the occurrence walks from the conclusions (one
+producer filter over the links and one append per visited occurrence), the
+duplicate scan of the raw traversal (carrier vertices), one owned-link filter
+per traversal vertex, and the relabel (the duplicate scan of the conclusion
+and link vertices, one `idxOf` over the traversal per link vertex and
+conclusion, and the formula map).
+
+```lean
+ProofNetIR.SequentialCost.canonicalizeCost : ProofNetIR.Certificate → Nat
+```
+
+### `ProofNetIR.SequentialCost.compareCost`
+
+Kind: definition.
+
+Comparing a certificate with another: its formula symbols, links, and
+conclusions, charged for both sides.
+
+```lean
+ProofNetIR.SequentialCost.compareCost : ProofNetIR.Certificate → Nat
+```
+
+### `ProofNetIR.Certificate.StructurallyWellFormed.intrinsicTraversalRaw_nodup`
+
+Kind: theorem.
+
+The raw preorder walks from the conclusions visit no occurrence twice.
+
+```lean
+ProofNetIR.Certificate.StructurallyWellFormed.intrinsicTraversalRaw_nodup : ∀ {certificate : ProofNetIR.Certificate}, certificate.StructurallyWellFormed → certificate.intrinsicTraversalRaw.Nodup
+```
+
+### `ProofNetIR.Certificate.StructurallyWellFormed.raw_length_le`
+
+Kind: theorem.
+
+The raw canonical traversal length is bounded by the formula carrier.
+
+```lean
+ProofNetIR.Certificate.StructurallyWellFormed.raw_length_le : ∀ {certificate : ProofNetIR.Certificate},
+  certificate.StructurallyWellFormed → certificate.intrinsicTraversalRaw.length ≤ certificate.formulas.size
+```
+
+### `ProofNetIR.Certificate.StructurallyWellFormed.canonicalizeCost_le`
+
+Kind: theorem.
+
+Canonicalization of a well-formed certificate is quadratic.
+
+```lean
+ProofNetIR.Certificate.StructurallyWellFormed.canonicalizeCost_le : ∀ {certificate : ProofNetIR.Certificate},
+  certificate.StructurallyWellFormed →
+    ProofNetIR.SequentialCost.canonicalizeCost certificate ≤
+      8 * (certificate.formulas.size + 1) * (certificate.formulas.size + certificate.links.length + 1)
+```
+
+### `ProofNetIR.SequentialCost.ExchangeFree`
+
+Kind: definition.
+
+A derivation built from axiom, tensor, and par nodes only.
+
+```lean
+ProofNetIR.SequentialCost.ExchangeFree : ProofNetIR.CutFreeDerivation → Prop
+```
+
+### `ProofNetIR.SequentialCost.LiveTreesExchangeFree`
+
+Kind: definition.
+
+Every live component of the production state has an exchange-free tree.
+
+```lean
+ProofNetIR.SequentialCost.LiveTreesExchangeFree : ProofNetIR.UnificationState → Prop
+```
+
+### `ProofNetIR.SequentialCost.submittedSize`
+
+Kind: definition.
+
+Size of a certificate as submitted: occurrences, links, and conclusions.
+
+```lean
+ProofNetIR.SequentialCost.submittedSize : ProofNetIR.Certificate → Nat
+```
+
+### `ProofNetIR.SequentialCost.inputSize`
+
+Kind: definition.
+
+Size of a certificate as submitted: occurrences, links, conclusions, and
+formula symbols.
+
+```lean
+ProofNetIR.SequentialCost.inputSize : ProofNetIR.Certificate → Nat
+```
+
+### `ProofNetIR.SequentialCost.outputCost`
+
+Kind: definition.
+
+Canonicalization and comparison of the desequentialized output, when it exists.
+
+```lean
+ProofNetIR.SequentialCost.outputCost : ProofNetIR.CutFreeDerivation → Nat
+```
+
+### `ProofNetIR.SequentialCost.ExecutedHistory.liveTreesExchangeFree`
+
+Kind: theorem.
+
+Every dispatcher-reachable state has exchange-free live trees.
+
+```lean
+ProofNetIR.SequentialCost.ExecutedHistory.liveTreesExchangeFree : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state),
+  ProofNetIR.SequentialCost.LiveTreesExchangeFree state.core
+```
+
+### `ProofNetIR.SequentialCost.sequentLength_le`
+
+Kind: theorem.
+
+The sequent inferred below a witnessed tree has the frontier's length.
+
+```lean
+ProofNetIR.SequentialCost.sequentLength_le : ∀ {certificate : ProofNetIR.Certificate},
+  certificate.StructurallyWellFormed →
+    ∀ {tree : ProofNetIR.CutFreeDerivation} {frontier used owned : List Nat},
+      certificate.OccurrenceDerivation tree frontier used owned →
+        owned.Nodup → ProofNetIR.SequentialCost.sequentLength tree ≤ certificate.formulas.size
+```
+
+### `ProofNetIR.SequentialCost.inferCost_le`
+
+Kind: theorem.
+
+Inference of an exchange-free witnessed tree costs a linear amount per used link.
+
+```lean
+ProofNetIR.SequentialCost.inferCost_le : ∀ {certificate : ProofNetIR.Certificate},
+  certificate.StructurallyWellFormed →
+    ∀ {tree : ProofNetIR.CutFreeDerivation} {frontier used owned : List Nat},
+      certificate.OccurrenceDerivation tree frontier used owned →
+        owned.Nodup →
+          ProofNetIR.SequentialCost.ExchangeFree tree →
+            ProofNetIR.SequentialCost.inferCost tree ≤ used.length * (4 * certificate.formulas.size + 1)
+```
+
+### `ProofNetIR.SequentialCost.buildCost_le`
+
+Kind: theorem.
+
+Desequentialization of an exchange-free witnessed tree costs a linear
+amount per used link.
+
+```lean
+ProofNetIR.SequentialCost.buildCost_le : ∀ {certificate : ProofNetIR.Certificate},
+  certificate.StructurallyWellFormed →
+    ∀ {tree : ProofNetIR.CutFreeDerivation} {frontier used owned : List Nat},
+      certificate.OccurrenceDerivation tree frontier used owned →
+        owned.Nodup →
+          used.Nodup →
+            ProofNetIR.SequentialCost.ExchangeFree tree →
+              ProofNetIR.SequentialCost.buildCost tree ≤
+                used.length * (6 * certificate.formulas.size + 3 * certificate.links.length + 2)
+```
+
+### `ProofNetIR.SequentialCost.initializationCost_le`
+
+Kind: theorem.
+
+Initialization is linear in the submitted size.
+
+```lean
+ProofNetIR.SequentialCost.initializationCost_le : ∀ (certificate : ProofNetIR.Certificate),
+  ProofNetIR.SequentialCost.initializationCost certificate ≤
+    13 * (certificate.formulas.size + 1) * ProofNetIR.SequentialCost.submittedSize certificate
+```
+
+### `ProofNetIR.SequentialCost.runDispatcherWithStats_reachable`
+
+Kind: theorem.
+
+The bounded run visits reachable states.
+
+```lean
+ProofNetIR.SequentialCost.runDispatcherWithStats_reachable : ∀ {certificate : ProofNetIR.Certificate} (fuel : Nat) (state : ProofNetIR.SequentialSchedulerBridge.ReservationState)
+  (invariant : ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state),
+  ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher certificate state →
+    ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher certificate
+      (ProofNetIR.SequentialCost.runDispatcherWithStats certificate fuel state invariant).state
+```
+
+### `ProofNetIR.SequentialCost.extractionCost_le`
+
+Kind: theorem.
+
+Final extraction is quadratic in the submitted size at every invariant state.
+
+```lean
+ProofNetIR.SequentialCost.extractionCost_le : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+    ProofNetIR.SequentialCost.extractionCost certificate state ≤
+      3 * (certificate.formulas.size + 1) * ProofNetIR.SequentialCost.submittedSize certificate
+```
+
+### `ProofNetIR.SequentialCost.formulaTextTotal_le`
+
+Kind: theorem.
+
+The symbols of all stored formulas of a well-formed certificate are quadratic
+in the carrier.
+
+```lean
+ProofNetIR.SequentialCost.formulaTextTotal_le : ∀ {certificate : ProofNetIR.Certificate},
+  certificate.StructurallyWellFormed →
+    ProofNetIR.SequentialCost.formulaTextTotal certificate ≤
+      certificate.formulas.size * (2 * certificate.formulas.size + 1)
+```
+
+### `ProofNetIR.SequentialCost.structuralCost_le_of_structural`
+
+Kind: theorem.
+
+The structural check of a well-formed certificate is quadratic.
+
+```lean
+ProofNetIR.SequentialCost.structuralCost_le_of_structural : ∀ {certificate : ProofNetIR.Certificate},
+  certificate.StructurallyWellFormed →
+    ProofNetIR.SequentialCost.structuralCost certificate ≤
+      9 * (certificate.formulas.size + 1) * ProofNetIR.SequentialCost.submittedSize certificate
+```
+
+### `ProofNetIR.SequentialCost.structuralCost_le_inputSize`
+
+Kind: theorem.
+
+The structural check of any certificate is quadratic in the submitted text.
+
+```lean
+ProofNetIR.SequentialCost.structuralCost_le_inputSize : ∀ (certificate : ProofNetIR.Certificate),
+  ProofNetIR.SequentialCost.structuralCost certificate ≤
+    8 * ProofNetIR.SequentialCost.inputSize certificate * ProofNetIR.SequentialCost.inputSize certificate
+```
+
+### `ProofNetIR.SequentialCost.compareCost_le`
+
+Kind: theorem.
+
+The comparison of a well-formed certificate is quadratic.
+
+```lean
+ProofNetIR.SequentialCost.compareCost_le : ∀ {certificate : ProofNetIR.Certificate},
+  certificate.StructurallyWellFormed →
+    ProofNetIR.SequentialCost.compareCost certificate ≤
+      3 * (certificate.formulas.size + 1) * ProofNetIR.SequentialCost.submittedSize certificate
+```
+
+### `ProofNetIR.SequentialCost.verificationCost_le`
+
+Kind: theorem.
+
+Verification of the extracted derivation at a reachable invariant state is
+quadratic: the tree has one node per used link plus the root exchange, the
+fragments stay inside the carrier, and both canonicalizations and the
+comparison are quadratic.
+
+```lean
+ProofNetIR.SequentialCost.verificationCost_le : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+    ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher certificate state →
+      ∀ {tree : ProofNetIR.CutFreeDerivation},
+        certificate.sequentialFinalTree? state = some tree →
+          ProofNetIR.SequentialCost.verificationCost certificate tree ≤
+            54 * (certificate.formulas.size + 1) * ProofNetIR.SequentialCost.submittedSize certificate
+```
+
+### `ProofNetIR.SequentialCost.decisionStats_total_le_of_structural`
+
+Kind: theorem.
+
+Every phase of the public decision on a structurally well-formed certificate
+is quadratic in the carrier, the links, and the conclusions.
+
+```lean
+ProofNetIR.SequentialCost.decisionStats_total_le_of_structural : ∀ {certificate : ProofNetIR.Certificate},
+  certificate.StructurallyWellFormed →
+    certificate.sequentialDecisionWithStats.stats.total ≤
+      152 * (certificate.formulas.size + 1) * ProofNetIR.SequentialCost.submittedSize certificate
+```
+
+### `ProofNetIR.SequentialCost.decisionStats_total_le`
+
+Kind: theorem.
+
+The public decision on any certificate is quadratic in the submitted text:
+a structurally well-formed input runs every phase within the quadratic bound
+above, and any other input stops after the structural check.
+
+```lean
+ProofNetIR.SequentialCost.decisionStats_total_le : ∀ (certificate : ProofNetIR.Certificate),
+  certificate.sequentialDecisionWithStats.stats.total ≤
+    152 * ProofNetIR.SequentialCost.inputSize certificate * ProofNetIR.SequentialCost.inputSize certificate
 ```
 
 ### `ProofNetIR.SequentialCost.verificationCost`
@@ -26124,8 +26451,8 @@ ProofNetIR.SequentialCost.canonicalCodeCost : ProofNetIR.Certificate → Nat
 Kind: definition.
 
 `verifyDerivation?`: the structural check, the conclusion labels, the
-inference, the desequentialization, both canonical codes, and their
-comparison (charged as the input code length).
+inference, the desequentialization, both canonicalizations, and the
+comparison of the canonicalized certificates.
 
 ```lean
 ProofNetIR.SequentialCost.verificationCost : ProofNetIR.Certificate → ProofNetIR.CutFreeDerivation → Nat

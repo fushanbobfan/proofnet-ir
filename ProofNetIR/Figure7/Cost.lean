@@ -12,7 +12,10 @@ traversal it charges. Conventions:
 - a list traversal (`getLast?`, `dropLast`, `++`, `flatten`, `flatMap`,
   `all`, `any`, `filter`, `filterMap`, `mapM`, `contains`, `idxOf`, `pick?`)
   is charged the length of the list it traverses;
-- a duplicate scan by `eraseDups` is charged the square of its list length;
+- a duplicate scan by `eraseDups` is charged its list length times its
+  accumulator of distinct elements plus one: the carrier size when the
+  elements are carrier vertices, the list length when they are positions;
+  a permutation decision is charged the square of its list length;
   the scheduler's duplicate guard `nodupGuard` is charged its bounds scan,
   its carrier-sized table, and its marking pass, `formulas.size + 2 *
   length`, which is its cost at every state the run visits because the
@@ -23,6 +26,9 @@ traversal it charges. Conventions:
   `links.length`;
 - a bounded search is charged its fuel plus one, and a representative walk
   is charged the parent-array size;
+- a formula is measured in symbols, two per connective and one per atom,
+  with an atom name counted as one symbol; building a dual or comparing two
+  formulas is charged the symbols involved;
 - a scan that may stop early and a rule attempt that may fail early are
   charged as if they ran to the end, so every counter is an upper bound of
   the operations actually performed by that phase.
@@ -63,6 +69,19 @@ def early (structural initialization : Nat) : SequentialDecisionStats :=
 
 end SequentialDecisionStats
 
+/-- Symbols of the formula stored at an occurrence, one for a missing one. -/
+def formulaText (certificate : Certificate) (vertex : Vertex) : Nat :=
+  2 * certificate.formulaComplexityAt vertex + 1
+
+/-- Symbols of every stored formula. -/
+def formulaTextTotal (certificate : Certificate) : Nat :=
+  ((List.range certificate.formulas.size).map (formulaText certificate)).sum
+
+/-- `linkLocallyWellFormed` at one link: the constant tests, the lookups,
+and the dual construction and formula comparison at its vertices. -/
+def linkCheckCost (certificate : Certificate) (link : Link) : Nat :=
+  1 + (link.vertices.map (formulaText certificate)).sum
+
 /-- `Certificate.wellFormed`: the size and length tests, the in-bounds scan
 of the conclusions, the duplicate scan of the conclusions, one local check
 per link, and one node check per occurrence (`nodeWellFormed`: one link
@@ -70,8 +89,8 @@ filter for the source count, one `contains` over the conclusions, and one
 link filter for the parent-use count). -/
 def structuralCost (certificate : Certificate) : Nat :=
   2 + certificate.conclusions.length +
-    certificate.conclusions.length * certificate.conclusions.length +
-    certificate.links.length +
+    certificate.conclusions.length * (certificate.formulas.size + 1) +
+    (certificate.links.map (linkCheckCost certificate)).sum +
     certificate.formulas.size *
       (2 * certificate.links.length + certificate.conclusions.length + 1)
 
@@ -201,30 +220,36 @@ def initializationCost (certificate : Certificate) : Nat :=
 
 /-- `sequentialFinalTree?`: the live-component scan, and for a single live
 component the frontier length test, one `findIdx?` over the frontier per
-conclusion, and the duplicate scan of the order. -/
+conclusion, and the duplicate scan of the order (positions below the
+frontier length). -/
 def extractionCost (certificate : Certificate) (state : ReservationState) : Nat :=
   state.core.components.size +
     match state.core.liveComponents with
     | [component] =>
         1 + certificate.conclusions.length * component.frontier.length +
-          certificate.conclusions.length * certificate.conclusions.length + 1
+          certificate.conclusions.length * (certificate.conclusions.length + 1) + 1
     | _ => 0
 
 /-- Length of the sequent inferred below a subtree, zero when inference fails. -/
 def sequentLength (tree : CutFreeDerivation) : Nat :=
   (tree.infer?.map List.length).getD 0
 
+/-- `reorder?` of a list of the given length by an order: the length test,
+the duplicate scan of the order (positions), the bounds scan, one indexed
+read per position, and the permutation decision. -/
+def reorderCost (length : Nat) (order : List Nat) : Nat :=
+  1 + order.length * (order.length + 1) + order.length + order.length * length +
+    length * length
+
 /-- `infer?`: one step per axiom, two premise picks and one append per
-tensor, two picks and one append per par, and the reorder (one indexed read
-per position and the duplicate scan) per exchange. -/
+tensor, two picks and one append per par, and the reorder per exchange. -/
 def inferCost : CutFreeDerivation → Nat
   | .axiom _ _ => 1
   | .tensor _ _ leftTree rightTree =>
       inferCost leftTree + inferCost rightTree + 2 * sequentLength leftTree +
         2 * sequentLength rightTree + 1
   | .par _ _ premise => inferCost premise + 3 * sequentLength premise + 1
-  | .exchange order premise =>
-      inferCost premise + order.length * sequentLength premise + order.length * order.length + 1
+  | .exchange order premise => inferCost premise + reorderCost (sequentLength premise) order
 
 /-- Carrier size of the fragment built below a subtree, zero when the build fails. -/
 def fragmentSize (tree : CutFreeDerivation) : Nat :=
@@ -234,45 +259,58 @@ def fragmentSize (tree : CutFreeDerivation) : Nat :=
 def fragmentLinks (tree : CutFreeDerivation) : Nat :=
   (tree.build?.map fun fragment => fragment.links.length).getD 0
 
+/-- Boundary entry count of the fragment built below a subtree, zero when the build fails. -/
+def fragmentEntries (tree : CutFreeDerivation) : Nat :=
+  (tree.build?.map fun fragment => fragment.entries.length).getD 0
+
 /-- `build?`: the axiom fragment; per tensor the two entry picks, the formula
 array append, the shifted link map and append, and the entry append; per par
 the two picks, the push, the link append, and the entry append; per exchange
-the reorder. Entry lists are bounded by the fragment carriers. -/
+the reorder of the entries. -/
 def buildCost : CutFreeDerivation → Nat
   | .axiom _ _ => 2
   | .tensor _ _ leftTree rightTree =>
-      buildCost leftTree + buildCost rightTree + 3 * fragmentSize leftTree +
-        3 * fragmentSize rightTree + fragmentLinks leftTree + 2 * fragmentLinks rightTree + 2
+      buildCost leftTree + buildCost rightTree + 2 * fragmentEntries leftTree +
+        2 * fragmentEntries rightTree + fragmentSize leftTree + fragmentSize rightTree +
+        fragmentLinks leftTree + 2 * fragmentLinks rightTree + 2
   | .par _ _ premise =>
-      buildCost premise + 3 * fragmentSize premise + fragmentLinks premise + 2
-  | .exchange order premise =>
-      buildCost premise + order.length * fragmentSize premise + order.length * order.length + 1
+      buildCost premise + 3 * fragmentEntries premise + fragmentLinks premise + 2
+  | .exchange order premise => buildCost premise + reorderCost (fragmentEntries premise) order
 
-/-- `intrinsicCanonicalCode`: the occurrence walks from the conclusions (one
+/-- `intrinsicCanonicalize`: the occurrence walks from the conclusions (one
 producer filter over the links and one append per visited occurrence), the
-duplicate scan of the raw traversal, one owned-link filter per traversal
-vertex, the relabel (the duplicate scan of the conclusion and link vertices,
-one `idxOf` per link vertex and conclusion, and the formula map), and the
-structural code (one token or unary character each). -/
-def canonicalCodeCost (certificate : Certificate) : Nat :=
+duplicate scan of the raw traversal (carrier vertices), one owned-link filter
+per traversal vertex, and the relabel (the duplicate scan of the conclusion
+and link vertices, one `idxOf` over the traversal per link vertex and
+conclusion, and the formula map). -/
+def canonicalizeCost (certificate : Certificate) : Nat :=
   certificate.intrinsicTraversalRaw.length * (certificate.links.length + 1) +
     certificate.intrinsicTraversalRaw.length * certificate.intrinsicTraversalRaw.length +
+    certificate.intrinsicTraversalRaw.length * (certificate.formulas.size + 1) +
     certificate.intrinsicTraversalVertices.length * (certificate.links.length + 1) +
     (certificate.conclusions ++ certificate.links.flatMap Link.vertices).length *
-      (certificate.conclusions ++ certificate.links.flatMap Link.vertices).length +
-    (3 * certificate.links.length + certificate.conclusions.length) * certificate.formulas.size +
-    certificate.formulas.size +
-    certificate.intrinsicCanonicalCode.foldl (fun acc token => acc + token.length + 1) 0
+      (certificate.formulas.size + 1) +
+    (3 * certificate.links.length + certificate.conclusions.length) *
+      certificate.traversalVertices.length +
+    certificate.traversalVertices.length
+
+/-- Comparing a certificate with another: its formula symbols, links, and
+conclusions, charged for both sides. -/
+def compareCost (certificate : Certificate) : Nat :=
+  formulaTextTotal certificate + certificate.links.length + certificate.conclusions.length
+
+/-- Canonicalization and comparison of the desequentialized output, when it exists. -/
+def outputCost (tree : CutFreeDerivation) : Nat :=
+  match tree.desequentialize? with
+  | some output => canonicalizeCost output + compareCost output
+  | none => 0
 
 /-- `verifyDerivation?`: the structural check, the conclusion labels, the
-inference, the desequentialization, both canonical codes, and their
-comparison (charged as the input code length). -/
+inference, the desequentialization, both canonicalizations, and the
+comparison of the canonicalized certificates. -/
 def verificationCost (certificate : Certificate) (tree : CutFreeDerivation) : Nat :=
   structuralCost certificate + certificate.conclusions.length + inferCost tree + buildCost tree +
-    (match tree.desequentialize? with
-      | some output => canonicalCodeCost output
-      | none => 0) +
-    canonicalCodeCost certificate + certificate.intrinsicCanonicalCode.length + 1
+    outputCost tree + canonicalizeCost certificate + compareCost certificate + 1
 
 /-- Result of the instrumented bounded dispatcher run. -/
 structure DispatcherRun (certificate : Certificate) where

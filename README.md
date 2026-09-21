@@ -48,10 +48,14 @@ Proved on `main` beyond `v0.9.0`:
 - the public decision `Certificate.unificationCheck` is now that fast path
   alone: the eager scan, the flat worklist, and the recursive fallback are
   no longer part of the exact decision (`unificationCheck = check` remains a
-  theorem).
+  theorem);
+- a whole-program cost theorem for that decision: every phase of a run is
+  counted, and the count is quadratic in the carrier, links, and conclusions
+  of a well-formed certificate, and in the submitted text of any certificate.
 
 Open, with exact target statements in the [goal ledger](docs/goal-ledger.md):
-a whole-program cost bound (D6).
+whole-program linearity (D6-linear); the legacy flat-worklist forms and the
+tail-law hypothesis stay recorded there, off the critical path.
 [Current status](docs/current-status.md) holds the exact revision,
 verification receipts, and gates.
 <!-- ROLLING_MAIN_SUMMARY_END -->
@@ -297,13 +301,11 @@ supported model.
 
 ### 4. Qualified fast paths
 
-The eager and event-driven worklist unification candidates are independently
-verified. Every successful fast-path result is sound.
-
-The exact public wrappers are proved equal to the reference checker because
-they retain complete recursive reconstruction after a fast-path miss. The pure
-fast path is not yet proved complete, and the fallback prevents a
-whole-program linear claim.
+The public decision is the sequential fast path alone, proved equal to the
+reference checker with no fallback, and its operation count is proved
+quadratic. The eager and event-driven worklist candidates remain
+independently verified; every successful fast-path result is sound.
+Whole-program linearity is not claimed.
 
 For exact release wording and receipts, use the
 [v0.9.0 release audit](docs/v0.9-release-audit.md).

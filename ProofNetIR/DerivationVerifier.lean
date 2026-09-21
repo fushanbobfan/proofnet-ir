@@ -8,8 +8,8 @@ certificate.
 
 Unlike `Certificate.check`, this verifier does not enumerate switching graphs.
 It validates the submitted certificate structurally, independently infers and
-desequentializes the derivation, and compares the two proof nets through the
-proved non-factorial intrinsic canonical code. -/
+desequentializes the derivation, and compares the two proof nets through their
+proved non-factorial intrinsic canonicalizations. -/
 structure DerivationVerificationResult (input : Certificate) where
   tree : CutFreeDerivation
   sequent : List Formula
@@ -66,7 +66,8 @@ namespace Certificate
 all-switchings checker on the input.
 
 The only Boolean gate on the input is `wellFormed`; proof-net identity is
-decided by the polynomial intrinsic canonical code.  The acceptance proof for
+decided by comparing the intrinsic canonicalizations of the output and the
+input, without serializing them to codes.  The acceptance proof for
 the derivation-produced output is supplied by
 `CutFreeDerivation.desequentialize?_check` and is erased at runtime. -/
 def verifyDerivation? (input : Certificate) (tree : CutFreeDerivation) :
@@ -83,9 +84,9 @@ def verifyDerivation? (input : Certificate) (tree : CutFreeDerivation) :
             | some output =>
                 if desequentialized :
                     tree.desequentialize? = some output then
-                  if sameCode :
-                      output.intrinsicCanonicalCode =
-                        input.intrinsicCanonicalCode then
+                  if sameCanonical :
+                      output.intrinsicCanonicalize =
+                        input.intrinsicCanonicalize then
                     let inputStructural :
                         input.StructurallyWellFormed :=
                       input.wellFormed_iff_structurallyWellFormed.mp
@@ -97,8 +98,8 @@ def verifyDerivation? (input : Certificate) (tree : CutFreeDerivation) :
                         output.StructurallyWellFormed :=
                       (output.check_sound_declarative outputAccepted).1
                     let equivalent : output.ProofNetEquivalent input :=
-                      (proofNetEquivalent_iff_intrinsicCanonicalCode_eq
-                        outputStructural inputStructural).mpr sameCode
+                      (proofNetEquivalent_iff_intrinsicCanonicalize_eq
+                        outputStructural inputStructural).mpr sameCanonical
                     some {
                       tree
                       sequent
@@ -150,11 +151,11 @@ theorem verifyDerivation?_complete
       input.verifyDerivation? tree = some result := by
   have inputWellFormed : input.wellFormed = true :=
     input.wellFormed_iff_structurallyWellFormed.mpr inputStructural
-  have sameCode :
-      output.intrinsicCanonicalCode = input.intrinsicCanonicalCode :=
-    equivalent.intrinsicCanonicalCode_eq
+  have sameCanonical :
+      output.intrinsicCanonicalize = input.intrinsicCanonicalize :=
+    equivalent.intrinsicCanonicalize_eq
   simp [verifyDerivation?, inputWellFormed, inputLabels, inferred,
-    desequentialized, sameCode]
+    desequentialized, sameCanonical]
 
 /-- Boolean convenience wrapper for callers that only need acceptance. -/
 def verifiesDerivation (input : Certificate)
