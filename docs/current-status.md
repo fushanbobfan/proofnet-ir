@@ -146,9 +146,10 @@ This checkpoint does not establish any of the following:
   `core.allMarked = true`, semantic completion, or terminality;
 - exhaustive enabledness beyond `dispatch_or_allMarked`: a reachable state
   that is not fully marked dispatches, but which rule fires is not classified;
-- a Guerrini-style whole-program cost bound for the sequential decision
-  (D6); the benchmark measures it (`sequential_decision_ms`) but nothing is
-  proved about its cost beyond the D4 step count.
+- a whole-program cost bound for the sequential decision (D6, quadratic
+  target) or Guerrini-style linearity (D6-linear); the benchmark measures the
+  decision (`sequential_decision_ms`) but nothing is proved about its cost
+  beyond the D4 step count.
 
 These are research gates, not undocumented assumptions. Their exact target
 statements are in the [goal ledger](goal-ledger.md); the proof plan is in
@@ -291,9 +292,10 @@ deployment.
 The project goal remains open. The principal outstanding gates, with exact
 target statements in the [goal ledger](goal-ledger.md), are:
 
-1. prove a whole-program cost theorem over every implemented operation
-   (D6); its ledger statement still counts the flat worklist and needs
-   retargeting to the sequential decision, which is now the public path;
+1. prove the whole-program cost theorem for the public decision (D6,
+   retargeted to the sequential path on 2026-09-20): operation counters over
+   every phase of a run and the quadratic bound the implementation has; the
+   linear form is recorded separately as D6-linear;
 2. continue the traceable, page/chapter-level literature matrix without
    treating file discovery or structural scans as completed reading;
 3. preserve public API, migration, downstream, experiment, and release gates

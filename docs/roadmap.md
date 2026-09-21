@@ -536,9 +536,14 @@ Exact target statements for the open items are in the
 - [x] Make `Certificate.unificationCheck` the sequential fast path alone,
   removing the recursive reconstruction fallback, with
   `unificationCheck = check` kept as a theorem (D2).
-- [ ] State a whole-program cost theorem over every implemented operation,
-  covering frontier search, representative lookup, verification, and fallback
-  (D6).
+- [ ] Define the operation counters of the public decision
+  (`sequentialDecisionWithStats`, Boolean equal to `unificationCheck`) over
+  every phase of a run, and prove the quadratic bound the implementation has
+  (D6, retargeted from the flat worklist on 2026-09-20; the flat statement
+  stays open as D6-flat).
+- [ ] Reach a linear whole-program bound (D6-linear): constant-time stack
+  access and bucket merge, and verification without canonical-code
+  recomputation; not planned for v0.10.
 
 ## Later research
 
