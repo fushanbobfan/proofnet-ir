@@ -16569,6 +16569,52 @@ history invariants.
 ProofNetIR.SequentialSchedulerState.SequentialStackState.queuedVertices : ProofNetIR.SequentialSchedulerState.SequentialStackState → List ProofNetIR.Vertex
 ```
 
+### `ProofNetIR.SequentialSchedulerState.linearNodup`
+
+Kind: definition.
+
+Linear duplicate check: mark each vertex in the table and fail on a
+repeat or on a vertex outside the table.
+
+```lean
+ProofNetIR.SequentialSchedulerState.linearNodup : List ProofNetIR.Vertex → Array Bool → Bool
+```
+
+### `ProofNetIR.SequentialSchedulerState.linearNodup_eq_true_iff`
+
+Kind: theorem.
+
+The linear check succeeds exactly on duplicate-free lists whose vertices
+are all unmarked in the table.
+
+```lean
+ProofNetIR.SequentialSchedulerState.linearNodup_eq_true_iff : ∀ (vertices : List ProofNetIR.Vertex) (seen : Array Bool),
+  ProofNetIR.SequentialSchedulerState.linearNodup vertices seen = true ↔
+    vertices.Nodup ∧ ∀ (vertex : ProofNetIR.Vertex), vertex ∈ vertices → seen[vertex]? = some false
+```
+
+### `ProofNetIR.SequentialSchedulerState.nodupGuard`
+
+Kind: definition.
+
+The scheduler's duplicate guard: linear on lists inside the carrier,
+the standard quadratic decision otherwise.
+
+```lean
+ProofNetIR.SequentialSchedulerState.nodupGuard : Nat → List ProofNetIR.Vertex → Bool
+```
+
+### `ProofNetIR.SequentialSchedulerState.nodupGuard_eq_true_iff`
+
+Kind: theorem.
+
+The guard decides exactly duplicate freedom.
+
+```lean
+ProofNetIR.SequentialSchedulerState.nodupGuard_eq_true_iff : ∀ (size : Nat) (vertices : List ProofNetIR.Vertex),
+  ProofNetIR.SequentialSchedulerState.nodupGuard size vertices = true ↔ vertices.Nodup
+```
+
 ### `ProofNetIR.SequentialSchedulerState.SequentialStackState.prependWaiting?`
 
 Kind: definition.

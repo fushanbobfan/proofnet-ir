@@ -1494,6 +1494,8 @@ end ProofNetIR.SequentialFigure7
 #print axioms Certificate.unificationCheck_eq_check
 #print axioms Certificate.unificationCheck_eq_true_iff_check
 #print axioms Certificate.unificationCheck_eq_true_iff_declarativelyCorrect
+#print axioms SequentialSchedulerState.linearNodup_eq_true_iff
+#print axioms SequentialSchedulerState.nodupGuard_eq_true_iff
 #print axioms SequentialCost.runDispatcherWithStats_state
 #print axioms SequentialCost.runDispatcherWithStats_calls_le
 #print axioms Certificate.sequentialDecisionWithStats_accepted

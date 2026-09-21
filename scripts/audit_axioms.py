@@ -1322,6 +1322,8 @@ EXPECTED_PROPEXT_ONLY_THEOREMS = {
     "ProofNetIR.LeanProp.Schema.Raw.CheckedDerivation.sound",
 }
 EXPECTED_PROPEXT_QUOT_THEOREMS = {
+    "ProofNetIR.SequentialSchedulerState.linearNodup_eq_true_iff",
+    "ProofNetIR.SequentialSchedulerState.nodupGuard_eq_true_iff",
     "ProofNetIR.SequentialFigure7.ActiveCarrierExternalEndpointCrossing.reentry",
     "ProofNetIR.SequentialFigure7."
     "MarkedConclusionRawReturnCompleteCancellationTraversal.endpointJunctions",

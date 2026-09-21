@@ -7,6 +7,11 @@ and its proof layer on top of `v0.9.0`. Entries are one per mathematics
 checkpoint, newest first; wrapper-transport steps are folded into the family
 they served, and `git log` holds the per-commit record.
 
+- replaced the duplicate guards of `forward` and `unifyPayload` by the
+  carrier-bounded linear check `nodupGuard` (`SequentialSchedulerState`;
+  `nodupGuard_eq_true_iff` decides exactly `List.Nodup`, so the typed rule
+  witnesses and their exact characterizations are unchanged); the cost model
+  now charges each guard `formulas.size + 2 * length` (D6.2);
 - added the operation counters of the public decision
   (`ProofNetIR/Figure7/Cost.lean`, D6.1): `sequentialDecisionWithStats` runs
   the decision and records explicit cost models of every phase (structural

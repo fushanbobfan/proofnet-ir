@@ -145,7 +145,9 @@ def unifyPayload? (certificate : Certificate)
                                       match stackAfter.ready.getLast? with
                                       | none => none
                                       | some merged =>
-                                          if _readyNodup : merged.Nodup then
+                                          if _readyNodup :
+                                              nodupGuard certificate.formulas.size merged =
+                                                true then
                                             some {
                                               stack := stackAfter
                                               core := coreAfter
@@ -458,7 +460,8 @@ theorem unifyPayload?_some_iff
                                                       mergedEquation] at equation
                                                 | some merged =>
                                                     by_cases readyNodupEquation :
-                                                        merged.Nodup
+                                                        nodupGuard certificate.formulas.size
+                                                          merged = true
                                                     · simp [prepareEquation,
                                                           consumerEquation,
                                                           mateEquation,
@@ -547,7 +550,9 @@ theorem unifyPayload?_some_iff
                                                         activation_fold_eq := activationEquation
                                                         stack_merge_eq := stackEquation
                                                         merged_eq := mergedEquation
-                                                        ready_nodup := readyNodupEquation
+                                                        ready_nodup :=
+                                                          (nodupGuard_eq_true_iff _ _).mp
+                                                            readyNodupEquation
                                                         tokens_eq_adjacent := tokenOrientation
                                                         output_eq := rfl }⟩
                                                     · simp [prepareEquation,
@@ -585,10 +590,12 @@ theorem unifyPayload?_some_iff
           some previousBoundary := by
       rw [mergeStep.sigma_eq]
       simp
+    have guardEquation := (nodupGuard_eq_true_iff certificate.formulas.size _).mpr
+      readyNodupEquation
     simp [unifyPayload?, prepareEquation, consumerEquation,
       mateEquation, previousEquation, lowerEquation, upperEquation,
       waitingEquation, tensorQueueEquation, activationEquation,
-      stackEquation, mergedEquation, readyNodupEquation]
+      stackEquation, mergedEquation, guardEquation]
 
 /-- Every conclusion activated by a typed fold is in the certificate formula
 carrier because its exact submitted par producer is locally well formed. -/

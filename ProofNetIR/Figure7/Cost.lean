@@ -12,8 +12,11 @@ traversal it charges. Conventions:
 - a list traversal (`getLast?`, `dropLast`, `++`, `flatten`, `flatMap`,
   `all`, `any`, `filter`, `filterMap`, `mapM`, `contains`, `idxOf`, `pick?`)
   is charged the length of the list it traverses;
-- a duplicate scan (`eraseDups`, the decidable `Nodup` guard) is charged the
-  square of its list length;
+- a duplicate scan by `eraseDups` is charged the square of its list length;
+  the scheduler's duplicate guard `nodupGuard` is charged its bounds scan,
+  its carrier-sized table, and its marking pass, `formulas.size + 2 *
+  length`, which is its cost at every state the run visits because the
+  invariant keeps every queued occurrence inside the carrier;
 - an array read or write and a constant-work primitive are charged one;
 - the consumer and source indices, rebuilt on every use, are charged
   `formulas.size + links.length`; a bucket scan of an index is charged
@@ -153,7 +156,7 @@ test, the duplicate guard on the rebuilt active bucket, the par queue, and
 the ready-top prepend (ready tail read and rewrite). -/
 def forwardCost (certificate : Certificate) (state : ReservationState) : Nat :=
   prepareCost state + consumerLookupCost certificate + 1 +
-    (queued state + 1) * (queued state + 1) + queueParCost certificate state +
+    (certificate.formulas.size + 2 * (queued state + 1)) + queueParCost certificate state +
     2 * state.stack.ready.length
 
 /-- `unifyPayload?`: the prepared prefix, the tensor lookup, the mate mark
@@ -166,7 +169,7 @@ def unifyPayloadCost (certificate : Certificate) (state : ReservationState) : Na
     queueTensorCost certificate state +
     mergedPayloadLength state * queueParCost certificate state +
     (2 * state.stack.sigma.length + 2 * state.stack.ready.length + queued state + 1) +
-    state.stack.ready.length + (queued state + 1) * (queued state + 1)
+    state.stack.ready.length + (certificate.formulas.size + 2 * (queued state + 1))
 
 /-- One `dispatch?` call: the rule attempts made in precedence order, up to
 and including the successful one, or all six when none succeeds. -/

@@ -1762,8 +1762,9 @@ def forward? (certificate : Certificate)
                 if _notOlder :
                     prepared.stackResult.rawAge ≤ mateRawAge then
                   if _readyNodup :
-                      (consumer.conclusion ::
-                        prepared.stackResult.remainingTop).Nodup then
+                      nodupGuard certificate.formulas.size
+                        (consumer.conclusion ::
+                          prepared.stackResult.remainingTop) = true then
                     match
                         Certificate.queuePar? prepared.coreMarked
                           consumer.storedLeft consumer.storedRight
@@ -2183,8 +2184,9 @@ theorem forward?_some_iff
                       by_cases notOlderEquation :
                           prepared.stackResult.rawAge ≤ mateRawAge
                       · by_cases readyNodupEquation :
-                            (consumer.conclusion ::
-                              prepared.stackResult.remainingTop).Nodup
+                            nodupGuard certificate.formulas.size
+                              (consumer.conclusion ::
+                                prepared.stackResult.remainingTop) = true
                         · cases coreEquation :
                               Certificate.queuePar? prepared.coreMarked
                                 consumer.storedLeft consumer.storedRight
@@ -2233,7 +2235,8 @@ theorem forward?_some_iff
                                     par_eq := parEquation
                                     mate_marked := mateEquation
                                     not_older := notOlderEquation
-                                    ready_nodup := readyNodupEquation
+                                    ready_nodup :=
+                                      (nodupGuard_eq_true_iff _ _).mp readyNodupEquation
                                     core_queue_eq := coreEquation
                                     stack_prepend_eq := stackEquation
                                     output_token_eq_active :=
@@ -2255,8 +2258,10 @@ theorem forward?_some_iff
         notOlderEquation, readyNodupEquation, coreEquation,
         stackEquation, outputTokenEquation, outputEquation⟩
     subst after
+    have guardEquation := (nodupGuard_eq_true_iff certificate.formulas.size _).mpr
+      readyNodupEquation
     simp [forward?, prepareEquation, consumerEquation, parEquation,
-      mateEquation, notOlderEquation, readyNodupEquation,
+      mateEquation, notOlderEquation, guardEquation,
       coreEquation, stackEquation]
 
 namespace ForwardStep

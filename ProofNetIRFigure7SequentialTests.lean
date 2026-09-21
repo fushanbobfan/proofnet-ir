@@ -196,6 +196,15 @@ example : certificate.sequentialDecisionWithStats.stats.dispatchCalls = 4 := by 
 
 example : rejected.sequentialDecisionWithStats.stats.dispatchCalls = 0 := by native_decide
 
+-- The linear duplicate guard of `forward` and `unifyPayload` decides exactly duplicate freedom.
+example (size : Nat) (vertices : List Vertex) :
+    SequentialSchedulerState.nodupGuard size vertices = true ↔ vertices.Nodup :=
+  SequentialSchedulerState.nodupGuard_eq_true_iff size vertices
+
+example : SequentialSchedulerState.nodupGuard 4 [3, 1, 0] = true := by decide
+example : SequentialSchedulerState.nodupGuard 4 [3, 1, 3] = false := by decide
+example : SequentialSchedulerState.nodupGuard 2 [7, 1, 7] = false := by decide
+
 end ProofNetIR.Figure7SequentialTests
 
 #print axioms ProofNetIR.SequentialFigure7.runDispatcher_spec
@@ -217,6 +226,7 @@ end ProofNetIR.Figure7SequentialTests
 #print axioms ProofNetIR.Certificate.sequentialFastCheck_eq_check
 #print axioms ProofNetIR.Certificate.unificationCheck_eq_sequentialFastCheck
 #print axioms ProofNetIR.Certificate.unificationCheck_eq_check
+#print axioms ProofNetIR.SequentialSchedulerState.nodupGuard_eq_true_iff
 #print axioms ProofNetIR.SequentialCost.runDispatcherWithStats_state
 #print axioms ProofNetIR.SequentialCost.runDispatcherWithStats_calls_le
 #print axioms ProofNetIR.Certificate.sequentialDecisionWithStats_accepted

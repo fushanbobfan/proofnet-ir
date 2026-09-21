@@ -491,6 +491,71 @@ structure SequentialStackState where
   waiting : Array WaitingCell
   deriving Repr, DecidableEq
 
+/-- Linear duplicate check: mark each vertex in the table and fail on a
+repeat or on a vertex outside the table. -/
+def linearNodup : List Vertex → Array Bool → Bool
+  | [], _ => true
+  | vertex :: rest, seen =>
+      match seen[vertex]? with
+      | some false => linearNodup rest (seen.setIfInBounds vertex true)
+      | _ => false
+
+/-- The linear check succeeds exactly on duplicate-free lists whose vertices
+are all unmarked in the table. -/
+theorem linearNodup_eq_true_iff (vertices : List Vertex) (seen : Array Bool) :
+    linearNodup vertices seen = true ↔
+      vertices.Nodup ∧ ∀ vertex ∈ vertices, seen[vertex]? = some false := by
+  induction vertices generalizing seen with
+  | nil => simp [linearNodup]
+  | cons vertex rest ih =>
+      cases lookup : seen[vertex]? with
+      | none => simp [linearNodup, lookup]
+      | some marked =>
+          cases marked with
+          | true => simp [linearNodup, lookup]
+          | false =>
+              have bound : vertex < seen.size := (Array.getElem?_eq_some_iff.mp lookup).1
+              simp only [linearNodup, lookup, ih, List.nodup_cons, List.mem_cons, forall_eq_or_imp,
+                true_and]
+              constructor
+              · rintro ⟨nodup, table⟩
+                refine ⟨⟨fun member ↦ ?_, nodup⟩, fun other member ↦ ?_⟩
+                · have := table vertex member
+                  simp [Array.getElem?_setIfInBounds_self_of_lt bound] at this
+                · have := table other member
+                  by_cases eq : vertex = other
+                  · subst eq
+                    simp [Array.getElem?_setIfInBounds_self_of_lt bound] at this
+                  · rwa [Array.getElem?_setIfInBounds_ne eq] at this
+              · rintro ⟨⟨notMember, nodup⟩, table⟩
+                refine ⟨nodup, fun other member ↦ ?_⟩
+                have ne : vertex ≠ other := fun eq ↦ notMember (eq ▸ member)
+                rw [Array.getElem?_setIfInBounds_ne ne]
+                exact table other member
+
+/-- The scheduler's duplicate guard: linear on lists inside the carrier,
+the standard quadratic decision otherwise. -/
+def nodupGuard (size : Nat) (vertices : List Vertex) : Bool :=
+  if vertices.all (· < size) then linearNodup vertices (Array.replicate size false)
+  else decide vertices.Nodup
+
+/-- The guard decides exactly duplicate freedom. -/
+theorem nodupGuard_eq_true_iff (size : Nat) (vertices : List Vertex) :
+    nodupGuard size vertices = true ↔ vertices.Nodup := by
+  unfold nodupGuard
+  by_cases bounded : vertices.all (· < size) = true
+  · rw [if_pos bounded, linearNodup_eq_true_iff]
+    constructor
+    · exact fun h ↦ h.1
+    · intro nodup
+      refine ⟨nodup, fun vertex member ↦ ?_⟩
+      have lt : vertex < size := by
+        have := List.all_eq_true.mp bounded vertex member
+        simpa using this
+      simp [lt]
+  · rw [if_neg bounded]
+    simp
+
 namespace SequentialStackState
 
 /-- The vertices currently stored in one waiting cell.  Paper-level
