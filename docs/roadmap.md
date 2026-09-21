@@ -570,7 +570,8 @@ data exists and reported either way.
   supported as registered (`experiments/redundancy-v0.1`).
 - [x] Register step 2, the equal-information matched search: three arms in
   one Lean process, a 640-task held-out corpus with certified negatives.
-- [ ] Run step 2 and answer H4 to H6.
+- [x] Run step 2 and answer H4 to H6: all three hold; net-space search wins
+  exactly where the linking is forced (`experiments/matched-search-v0.1`).
 - [ ] Step 3, the skeleton-free model study, only after a positive step 2.
 
 ## Later research

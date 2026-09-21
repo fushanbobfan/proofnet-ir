@@ -324,12 +324,17 @@ program ([v0.11-design.md](v0.11-design.md)) answers the founding question by
 measurement. Step 1 is done: on the committed corpora the median number of
 plain sequent derivations per proof net is 2, 36, and 170,734 at 8, 16, and
 32 atoms, and the strictly focused calculus still has more than one
-derivation per net on 81.8% of tasks (`experiments/redundancy-v0.1`). Next:
+derivation per net on 81.8% of tasks (`experiments/redundancy-v0.1`). Step 2
+is done: under equal information and one budget, net-space search decides
+every unique-label task where sequent search times out, and times out on
+every one-label 32-atom task that pruned sequent search proves in
+milliseconds (`experiments/matched-search-v0.1`); which family wins is
+decided by label repetition. Next:
 
-1. step 2, an equal-information matched search with a shared budget unit,
-   preregistered before it is implemented; step 3 only on a positive step 2;
+1. step 3, a model study comparing the two representations as proposal
+   targets at a fixed budget, preregistered before it runs;
 2. beyond MLL, a different representation for Lean-scale goals, designed as
-   an experiment after step 2;
+   an experiment;
 3. a linear whole-program bound (D6-linear) stays optional.
 
 ## Navigation

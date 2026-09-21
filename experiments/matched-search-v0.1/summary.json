@@ -1,0 +1,508 @@
+{
+ "experiment": "matched-search-v0.1",
+ "preregistrationSha256": "8ab0f64eca65dc302b9c1bb54b948eaa7a6d476b80b8d3078f37f444124c0e88",
+ "corpusSha256": "aa0e9363e7e95d2012f4ae1543e5b25f3a3c0c2b35ef3a644e8aeac126919d90",
+ "budgetMs": 5000,
+ "tasks": 640,
+ "wrongAnswers": {
+  "focused": 0,
+  "focusedBalanced": 0,
+  "nets": 0
+ },
+ "strata": {
+  "atoms-16:one-label:negative": {
+   "tasks": 40,
+   "focused": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "correct": 40,
+    "wrong": 0,
+    "medianElapsedMs": 52.77015,
+    "maxElapsedMs": 252.1
+   },
+   "focusedBalanced": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "correct": 40,
+    "wrong": 0,
+    "medianElapsedMs": 9.223749999999999,
+    "maxElapsedMs": 25.661
+   },
+   "nets": {
+    "found": 0,
+    "refuted": 39,
+    "timeout": 1,
+    "correct": 39,
+    "wrong": 0,
+    "medianElapsedMs": 2966.3457500000004,
+    "maxElapsedMs": 5003.0356
+   }
+  },
+  "atoms-16:one-label:positive": {
+   "tasks": 40,
+   "focused": {
+    "found": 40,
+    "refuted": 0,
+    "timeout": 0,
+    "correct": 40,
+    "wrong": 0,
+    "medianElapsedMs": 0.20825,
+    "maxElapsedMs": 13.455
+   },
+   "focusedBalanced": {
+    "found": 40,
+    "refuted": 0,
+    "timeout": 0,
+    "correct": 40,
+    "wrong": 0,
+    "medianElapsedMs": 0.08479999999999999,
+    "maxElapsedMs": 2.1825
+   },
+   "nets": {
+    "found": 40,
+    "refuted": 0,
+    "timeout": 0,
+    "correct": 40,
+    "wrong": 0,
+    "medianElapsedMs": 206.2982,
+    "maxElapsedMs": 1109.2135
+   }
+  },
+  "atoms-16:two-label:negative": {
+   "tasks": 40,
+   "focused": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "correct": 40,
+    "wrong": 0,
+    "medianElapsedMs": 107.08949999999999,
+    "maxElapsedMs": 806.8042
+   },
+   "focusedBalanced": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "correct": 40,
+    "wrong": 0,
+    "medianElapsedMs": 7.90395,
+    "maxElapsedMs": 36.7915
+   },
+   "nets": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "correct": 40,
+    "wrong": 0,
+    "medianElapsedMs": 46.54105,
+    "maxElapsedMs": 80.5475
+   }
+  },
+  "atoms-16:two-label:positive": {
+   "tasks": 40,
+   "focused": {
+    "found": 40,
+    "refuted": 0,
+    "timeout": 0,
+    "correct": 40,
+    "wrong": 0,
+    "medianElapsedMs": 0.85135,
+    "maxElapsedMs": 28.8401
+   },
+   "focusedBalanced": {
+    "found": 40,
+    "refuted": 0,
+    "timeout": 0,
+    "correct": 40,
+    "wrong": 0,
+    "medianElapsedMs": 0.20385,
+    "maxElapsedMs": 2.5584
+   },
+   "nets": {
+    "found": 40,
+    "refuted": 0,
+    "timeout": 0,
+    "correct": 40,
+    "wrong": 0,
+    "medianElapsedMs": 6.5137,
+    "maxElapsedMs": 45.5416
+   }
+  },
+  "atoms-16:unique:negative": {
+   "tasks": 40,
+   "focused": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "correct": 40,
+    "wrong": 0,
+    "medianElapsedMs": 216.84095,
+    "maxElapsedMs": 2634.1895
+   },
+   "focusedBalanced": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "correct": 40,
+    "wrong": 0,
+    "medianElapsedMs": 4.101,
+    "maxElapsedMs": 25.4129
+   },
+   "nets": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "correct": 40,
+    "wrong": 0,
+    "medianElapsedMs": 0.17204999999999998,
+    "maxElapsedMs": 0.2834
+   }
+  },
+  "atoms-16:unique:positive": {
+   "tasks": 40,
+   "focused": {
+    "found": 40,
+    "refuted": 0,
+    "timeout": 0,
+    "correct": 40,
+    "wrong": 0,
+    "medianElapsedMs": 13.49495,
+    "maxElapsedMs": 94.0895
+   },
+   "focusedBalanced": {
+    "found": 40,
+    "refuted": 0,
+    "timeout": 0,
+    "correct": 40,
+    "wrong": 0,
+    "medianElapsedMs": 0.18180000000000002,
+    "maxElapsedMs": 0.5804
+   },
+   "nets": {
+    "found": 40,
+    "refuted": 0,
+    "timeout": 0,
+    "correct": 40,
+    "wrong": 0,
+    "medianElapsedMs": 0.32420000000000004,
+    "maxElapsedMs": 1.9253
+   }
+  },
+  "atoms-32:one-label:positive": {
+   "tasks": 40,
+   "focused": {
+    "found": 39,
+    "refuted": 0,
+    "timeout": 1,
+    "correct": 39,
+    "wrong": 0,
+    "medianElapsedMs": 0.8591500000000001,
+    "maxElapsedMs": 5116.0116
+   },
+   "focusedBalanced": {
+    "found": 40,
+    "refuted": 0,
+    "timeout": 0,
+    "correct": 40,
+    "wrong": 0,
+    "medianElapsedMs": 0.2886,
+    "maxElapsedMs": 524.7625
+   },
+   "nets": {
+    "found": 0,
+    "refuted": 0,
+    "timeout": 40,
+    "correct": 0,
+    "wrong": 0,
+    "medianElapsedMs": 5001.2742,
+    "maxElapsedMs": 5008.0036
+   }
+  },
+  "atoms-32:two-label:positive": {
+   "tasks": 40,
+   "focused": {
+    "found": 31,
+    "refuted": 0,
+    "timeout": 9,
+    "correct": 31,
+    "wrong": 0,
+    "medianElapsedMs": 70.846,
+    "maxElapsedMs": 5153.7664
+   },
+   "focusedBalanced": {
+    "found": 40,
+    "refuted": 0,
+    "timeout": 0,
+    "correct": 40,
+    "wrong": 0,
+    "medianElapsedMs": 1.42285,
+    "maxElapsedMs": 2707.1868
+   },
+   "nets": {
+    "found": 2,
+    "refuted": 0,
+    "timeout": 38,
+    "correct": 2,
+    "wrong": 0,
+    "medianElapsedMs": 5001.183,
+    "maxElapsedMs": 5008.5448
+   }
+  },
+  "atoms-32:unique:negative": {
+   "tasks": 40,
+   "focused": {
+    "found": 0,
+    "refuted": 0,
+    "timeout": 40,
+    "correct": 0,
+    "wrong": 0,
+    "medianElapsedMs": 5010.74575,
+    "maxElapsedMs": 5088.1404
+   },
+   "focusedBalanced": {
+    "found": 0,
+    "refuted": 36,
+    "timeout": 4,
+    "correct": 36,
+    "wrong": 0,
+    "medianElapsedMs": 1893.80795,
+    "maxElapsedMs": 6081.5366
+   },
+   "nets": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "correct": 40,
+    "wrong": 0,
+    "medianElapsedMs": 9.79185,
+    "maxElapsedMs": 15.1579
+   }
+  },
+  "atoms-32:unique:positive": {
+   "tasks": 40,
+   "focused": {
+    "found": 3,
+    "refuted": 0,
+    "timeout": 37,
+    "correct": 3,
+    "wrong": 0,
+    "medianElapsedMs": 5007.8756,
+    "maxElapsedMs": 5098.2633
+   },
+   "focusedBalanced": {
+    "found": 40,
+    "refuted": 0,
+    "timeout": 0,
+    "correct": 40,
+    "wrong": 0,
+    "medianElapsedMs": 12.6213,
+    "maxElapsedMs": 649.3115
+   },
+   "nets": {
+    "found": 40,
+    "refuted": 0,
+    "timeout": 0,
+    "correct": 40,
+    "wrong": 0,
+    "medianElapsedMs": 1.94395,
+    "maxElapsedMs": 8.3107
+   }
+  },
+  "atoms-8:one-label:negative": {
+   "tasks": 40,
+   "focused": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "correct": 40,
+    "wrong": 0,
+    "medianElapsedMs": 0.2572,
+    "maxElapsedMs": 0.4217
+   },
+   "focusedBalanced": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "correct": 40,
+    "wrong": 0,
+    "medianElapsedMs": 0.11674999999999999,
+    "maxElapsedMs": 0.1798
+   },
+   "nets": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "correct": 40,
+    "wrong": 0,
+    "medianElapsedMs": 0.68235,
+    "maxElapsedMs": 1.377
+   }
+  },
+  "atoms-8:one-label:positive": {
+   "tasks": 40,
+   "focused": {
+    "found": 40,
+    "refuted": 0,
+    "timeout": 0,
+    "correct": 40,
+    "wrong": 0,
+    "medianElapsedMs": 0.02135,
+    "maxElapsedMs": 0.1242
+   },
+   "focusedBalanced": {
+    "found": 40,
+    "refuted": 0,
+    "timeout": 0,
+    "correct": 40,
+    "wrong": 0,
+    "medianElapsedMs": 0.0174,
+    "maxElapsedMs": 0.0475
+   },
+   "nets": {
+    "found": 40,
+    "refuted": 0,
+    "timeout": 0,
+    "correct": 40,
+    "wrong": 0,
+    "medianElapsedMs": 0.20995,
+    "maxElapsedMs": 0.6366
+   }
+  },
+  "atoms-8:two-label:negative": {
+   "tasks": 40,
+   "focused": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "correct": 40,
+    "wrong": 0,
+    "medianElapsedMs": 0.34435,
+    "maxElapsedMs": 0.6202
+   },
+   "focusedBalanced": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "correct": 40,
+    "wrong": 0,
+    "medianElapsedMs": 0.14900000000000002,
+    "maxElapsedMs": 0.2436
+   },
+   "nets": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "correct": 40,
+    "wrong": 0,
+    "medianElapsedMs": 0.12325,
+    "maxElapsedMs": 0.6514
+   }
+  },
+  "atoms-8:two-label:positive": {
+   "tasks": 40,
+   "focused": {
+    "found": 40,
+    "refuted": 0,
+    "timeout": 0,
+    "correct": 40,
+    "wrong": 0,
+    "medianElapsedMs": 0.030199999999999998,
+    "maxElapsedMs": 0.1587
+   },
+   "focusedBalanced": {
+    "found": 40,
+    "refuted": 0,
+    "timeout": 0,
+    "correct": 40,
+    "wrong": 0,
+    "medianElapsedMs": 0.0202,
+    "maxElapsedMs": 0.0453
+   },
+   "nets": {
+    "found": 40,
+    "refuted": 0,
+    "timeout": 0,
+    "correct": 40,
+    "wrong": 0,
+    "medianElapsedMs": 0.11245,
+    "maxElapsedMs": 0.3323
+   }
+  },
+  "atoms-8:unique:negative": {
+   "tasks": 40,
+   "focused": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "correct": 40,
+    "wrong": 0,
+    "medianElapsedMs": 0.41969999999999996,
+    "maxElapsedMs": 2.1785
+   },
+   "focusedBalanced": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "correct": 40,
+    "wrong": 0,
+    "medianElapsedMs": 0.13475,
+    "maxElapsedMs": 0.2201
+   },
+   "nets": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "correct": 40,
+    "wrong": 0,
+    "medianElapsedMs": 0.03865,
+    "maxElapsedMs": 0.1065
+   }
+  },
+  "atoms-8:unique:positive": {
+   "tasks": 40,
+   "focused": {
+    "found": 40,
+    "refuted": 0,
+    "timeout": 0,
+    "correct": 40,
+    "wrong": 0,
+    "medianElapsedMs": 0.03505,
+    "maxElapsedMs": 0.2928
+   },
+   "focusedBalanced": {
+    "found": 40,
+    "refuted": 0,
+    "timeout": 0,
+    "correct": 40,
+    "wrong": 0,
+    "medianElapsedMs": 0.02205,
+    "maxElapsedMs": 0.0577
+   },
+   "nets": {
+    "found": 40,
+    "refuted": 0,
+    "timeout": 0,
+    "correct": 40,
+    "wrong": 0,
+    "medianElapsedMs": 0.09659999999999999,
+    "maxElapsedMs": 0.2088
+   }
+  }
+ },
+ "hypotheses": {
+  "H4": {
+   "decidedAtLeastOnUnique": true,
+   "fasterMedianOn32Unique": true,
+   "supported": true
+  },
+  "H5": {
+   "supported": true
+  },
+  "H6": {
+   "supported": true
+  }
+ },
+ "resultsSha256": "8e999af605ae017536bf351cf2e7360fe0e5a4c48891bebaf1404fa0fa8abafe"
+}

@@ -301,6 +301,8 @@ jobs:
         run: python scripts/run_matched_experiment.py --check-committed
       - name: Check the committed search-redundancy counts
         run: python scripts/run_redundancy_experiment.py --check-committed
+      - name: Check the committed matched-search outcomes
+        run: python scripts/run_matched_search.py --check-committed
       - name: Validate model-experiment preregistration
         run: |
           if test -f scripts/validate_model_publication_redaction.py; then

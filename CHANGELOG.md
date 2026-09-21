@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- ran step 2 of the v0.11 program, the equal-information matched search
+  (`experiments/matched-search-v0.1`, preregistered in `b30f4bf`): three arms
+  in one Lean process under one five-second budget on 640 held-out tasks
+  with certified negatives. The committed focused search reproduced in Lean
+  (`proofnet_ir_matched_search`), the same with balance pruning, and
+  net-space search deciding each linking by `unificationCheck`. H4, H5, H6
+  hold: with unique labels net-space search decides every task (1.9 ms
+  median on 32-atom positives, where the unpruned baseline times out on 37
+  of 40); with one label it times out on all 32-atom positives while pruned
+  sequent search proves them in 0.3 ms. No arm ever answered wrongly;
 - ran step 1 of the v0.11 search-redundancy program
   (`experiments/redundancy-v0.1`, preregistered in `621d642`): exact counts of
   cut-free derivations per proof net for the plain calculus, the committed
