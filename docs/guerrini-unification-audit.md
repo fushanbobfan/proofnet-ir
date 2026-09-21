@@ -339,10 +339,10 @@ The following stronger claims are intentionally absent:
 - exact-state or structural-only confluence of the flat worklist: the first is
   refuted on a derivation-generated correct certificate and the second on a
   structurally well-formed certificate;
-- a polynomial, quasi-linear, or linear bound for the sequential
-  `unificationCheck`;
-- a polynomial bound for the complete candidate-plus-verifier execution; the
-  current proved quadratic statement counts eager link-list visits only;
+- a linear or quasi-linear bound for the sequential `unificationCheck`; its
+  proved whole-program bound is quadratic;
+- a polynomial bound for the eager candidate-plus-verifier execution; the
+  proved eager statement counts link-list visits only;
 - equivalence between this eager implementation and the full sequential
   `σ`/`R`/`W`, token-age, `NEXTAXIOM`, and special union-find algorithm
   in Figures 7--8;
@@ -354,18 +354,17 @@ The following stronger claims are intentionally absent:
   payload ownership through complete reachable transitions, lifting the richer
   init/new route/tag/slot commitments into the canonical certified history,
   unconditional full-rule reachability, the complete scheduler transition system,
-  scheduler
-  correctness, and scheduler-cost
-  theorems. Initial/local search totality, initial/later reservation invariant
+  and scheduler
+  correctness. Initial/local search totality, initial/later reservation invariant
   preservation, `OperationalWaitingDomain`, the exact invariant-bound local
   `new` pipeline, and exact tag history for genuine init/new executions are
   proved;
 - support for cuts, dummy links, units, Mix, additives, or exponentials.
 
 The eager repeated scan can take a quadratic number of link visits before
-independent derivation verification, and the sequential decision has no
-proved cost bound. Therefore citing Guerrini's Theorem 16 as a complexity
-theorem for the present executable would be incorrect.
+independent derivation verification, and the sequential decision's proved
+whole-program bound is quadratic. Therefore citing Guerrini's Theorem 16 as a
+linear complexity theorem for the present executable would be incorrect.
 
 ## Differential evidence
 

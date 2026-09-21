@@ -1,12 +1,12 @@
 # Library-readiness audit
 
-Audit date: 2026-08-04
-Audited baseline: published v0.9.0 plus its tag-pinned downstream consumer and
-the current v0.10.0-dev scheduler checkpoint
+Audit date: 2026-09-21
+Audited baseline: v0.10.0 release candidate plus its commit-pinned downstream
+consumer
 
 ## Verdict
 
-ProofNet-IR v0.9.0 is a usable, independently consumable Lean research library
+ProofNet-IR v0.10.0 is a usable, independently consumable Lean research library
 and reference checker for its documented unit-free, cut-free MLL certificate
 model. It is not a general Lean/mathlib proof assistant or a library for all
 proof-net logics. The exact checker and automatic sequentializer are sound and
@@ -207,8 +207,8 @@ part of the engineering and proof-identity gap.
    is now the complete sequential Figures 7–8 fast path alone, proved
    exactly equal to `check` (ledger items D1 and D2, closed). The clean
    consumer compiles and executes both APIs. The eager fast path is not
-   proved complete, and no cost bound is proved for the sequential decision,
-   so this is not yet a linear-time production contract. The
+   proved complete, and the sequential decision's proved cost bound is
+   quadratic, not linear, so this is not a linear-time production contract. The
    statistics-bearing API now gives callers proof-relevant scan receipts:
    at most `|links|` passes and `|links|²` link visits. The deliberately scoped
    theorem does not bound the complete verifier.
@@ -228,11 +228,11 @@ part of the engineering and proof-identity gap.
    reduction of Figure-7 progress (D3) to the history-tail law, whose
    `nop`/`wait` half is the state predicate C12. C12 is proved for every
    correct initialization, holds at all 2,289,024 finite-probe reachable
-   states, and is certified not to be state-only inductive. Exhaustive
-   dispatcher enabledness, later-state totality and `NEXTAXIOM` start
-   selection (D5), the tail law and D3, and a whole-program cost bound (D6)
-   remain open; the exact target statements are in the
-   [goal ledger](goal-ledger.md).
+   states, and is certified not to be state-only inductive. Progress (D3),
+   the corrected enabledness conjunction (D5), completeness of the sequential
+   decision (D1, D2), and its quadratic cost bound (D6) are closed; a linear
+   bound (D6-linear) is the open target, and the tail law is retired,
+   unproved, in the [goal ledger](goal-ledger.md).
 4. A semantic relation modulo reordered links now has a complete executable
    decision procedure on structurally well-formed certificates. It now also
    has a complete executable finite canonical family: Lean proves extensional
@@ -391,7 +391,8 @@ It should not yet be presented as:
 - a performance-qualified executable sequentializer beyond the documented
   unit-free, cut-free MLL certificate model;
 - a pure-complete or Guerrini-linear flat worklist; the exact public
-  decision is the complete sequential fast path, without a proved cost bound;
+  decision is the complete sequential fast path, whose proved cost bound is
+  quadratic, not linear;
 - a confluence-checked scheduler: exact-state and structural-only formulations
   have counterexamples, while the marked-domain/thread-partition candidate has
   no committed reproducible audit or theorem;
@@ -413,7 +414,8 @@ matched algorithmic and model-backed experiments report their results whether
 positive or negative. Both controlled runs are now complete; the broader-
 logic/corpus, hard checking/sequentialization performance, adversarial
 large-key qualification, and broader Lean/tactic integration remain open. The
-v0.9 release and exact-tag consumer gates are closed.
+v0.10 release-candidate consumer gate is closed; the exact-tag consumer gate
+follows publication.
 No external adoption or independent research validation is currently verified;
 the v0.10 development branch therefore remains a qualified research library,
 not a mature broad proof-net library.

@@ -2,10 +2,12 @@
 
 ## Unreleased
 
-The rolling `v0.10.0-dev` branch builds the sequential Figures 7–8 scheduler
-and its proof layer on top of `v0.9.0`. Entries are one per mathematics
-checkpoint, newest first; wrapper-transport steps are folded into the family
-they served, and `git log` holds the per-commit record.
+## v0.10.0 - Sequential Figures 7–8 decision
+
+v0.10.0 builds the sequential Figures 7–8 scheduler and its proof layer on
+top of `v0.9.0` and makes it the public decision. Entries are one per
+mathematics checkpoint, newest first; wrapper-transport steps are folded into
+the family they served, and `git log` holds the per-commit record.
 
 - closed D6, the whole-program cost theorem of the public decision:
   `ProofNetIR/Figure7/Cost.lean` runs the decision with operation counters

@@ -16,13 +16,13 @@ Status date: 2026-09-20
 
 | Track | Revision | Status | Authority |
 | --- | --- | --- | --- |
-| Stable library | `v0.9.0` / `9b7dc3d104af8f57ea9123aab2e61b42e05d2216` | Released | [v0.9.0 release audit](v0.9-release-audit.md) |
-| Rolling research | `v0.10.0-dev`; proof `33ebfd5`; audit `1e46573` | Active | This page/commits |
+| Stable library | `v0.10.0`, release candidate at this revision (previous: `v0.9.0` / `9b7dc3d104af8f57ea9123aab2e61b42e05d2216`) | Release candidate | [v0.10.0 release audit](v0.10-release-audit.md) |
+| Rolling research | proof `33ebfd5`; audit `1e46573` | Frozen for the release | This page/commits |
 
 Documentation-only commits may descend from the proof checkpoint without
 changing its mathematical authority. The stable release and rolling branch
 make different claims. A downstream consumer that needs reproducibility should
-pin `v0.9.0`. The `main` branch is the integration surface for ongoing Figure-7
+pin the release. The `main` branch is the integration surface for ongoing Figure-7
 scheduler and completeness work.
 
 ## Stable v0.9.0 result

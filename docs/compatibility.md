@@ -9,7 +9,7 @@ change accepted-certificate semantics or wire output. Every release pins its
 Lean toolchain in `lean-toolchain`; consumers should use the same toolchain or
 test their own explicitly.
 
-The unreleased v0.10 scheduler checkpoint preserves the public
+The v0.10 scheduler checkpoint preserves the public
 `SequentialUnification.NextAxiomResult` record shape. Exact true-tag origin is
 proved by the successful `nextAxiomWithFuel?` or `nextAxiom?` execution
 equation rather than by adding a structure field, so existing manual record
@@ -17,7 +17,7 @@ constructors remain source compatible. The same checkpoint tightens the
 experimental operational-`new` guard: an endpoint already stored in either a
 ready bucket or a waiting payload is rejected.
 
-The later unreleased v0.10 priority migration is a real pre-1.0 Lean source
+The later v0.10 priority migration is a real pre-1.0 Lean source
 break. `PriorityEnabled.new` now stores `NewEnabled certificate before` rather
 than `NewExecutableEnabled certificate before invariant`, and the
 `new_disabled` fields of `PriorityEnabled.wait`, `.forward`, and
@@ -76,6 +76,17 @@ example {certificate : Certificate} {before : ReservationState}
         new_disabled
           (NewExecutableEnabled.iff_newEnabled.mp executable_new)
 ```
+
+In v0.10.0, `Certificate.unificationCheck` moved from
+`ProofNetIR/Unification.lean` to `ProofNetIR/Figure7/Sequential.lean` and is
+the sequential fast path alone. Its Boolean result is unchanged by theorem
+(`unificationCheck_eq_check` in both versions), and
+`unificationCheck_eq_true_iff_check` and
+`unificationCheck_eq_true_iff_declarativelyCorrect` keep their names and
+statements. Code that imported only `ProofNetIR.Unification` to name
+`unificationCheck` must import `ProofNetIR` or
+`ProofNetIR.Figure7.Sequential`; the eager, worklist, and reconstruction
+tiers stay public under their own names.
 
 ## Wire API
 

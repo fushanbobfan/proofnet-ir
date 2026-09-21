@@ -14,8 +14,8 @@ result crosses the trusted boundary.
 
 | Track | Use it for | Read first |
 | --- | --- | --- |
-| Stable `v0.9.0` | Reproducible downstream use of the released MLL model | [Release audit](docs/v0.9-release-audit.md) |
-| Rolling `main` / `v0.10.0-dev` | Ongoing Figure-7 scheduler and completeness research | [Current status](docs/current-status.md) |
+| Stable `v0.10.0` | Reproducible downstream use of the released MLL model | [Release audit](docs/v0.10-release-audit.md) |
+| Rolling `main` | Research after the release | [Current status](docs/current-status.md) |
 
 Pin the release when stability matters. Track `main` only when you need the
 latest research surface and are prepared for documented development changes.
@@ -23,41 +23,14 @@ latest research surface and are prepared for documented development changes.
 <!-- ROLLING_MAIN_SUMMARY_START -->
 ### Rolling-main summary
 
-`main` adds, on top of the released model, an executable sequential
-scheduler for the Figures 7–8 procedure of Guerrini's linear-time
-correctness algorithm: a stack of ready buckets, a canonical history of raw
-marks, a state invariant, and six dispatch rules (`concl`, `nop`, `new`,
-`wait`, `forward`, `unifyPayload`) run in that fixed order.
-
-Proved on `main` beyond `v0.9.0`:
-
-- every successful dispatch rule preserves the scheduler invariant
-  (`Figure7SuccessfulStep.schedulerInvariant`);
-- repeated dispatch stops within `formulas.size + 1` calls
-  (`dispatch_stops`);
-- Figure-7 progress: a started reachable state of a correct certificate
-  either dispatches or has every occurrence marked
-  (`CanonicalTagHistory.dispatch_or_allMarked`). The proof uses an order-free
-  region-closure invariant of the ready stack and switching connectedness:
-  a drained active region has no boundary edge, so it is the whole net;
-- a complete sequential fast path: `Certificate.sequentialFastCheck` runs
-  the dispatcher to a stop and accepts only an independently verified
-  derivation, and `sequentialFastCheck_eq_check` proves it decides exactly
-  the reference checker, with no switching enumeration and no recursive
-  reconstruction;
-- the public decision `Certificate.unificationCheck` is now that fast path
-  alone: the eager scan, the flat worklist, and the recursive fallback are
-  no longer part of the exact decision (`unificationCheck = check` remains a
-  theorem);
-- a whole-program cost theorem for that decision: every phase of a run is
-  counted, and the count is quadratic in the carrier, links, and conclusions
-  of a well-formed certificate, and in the submitted text of any certificate.
-
-Open, with exact target statements in the [goal ledger](docs/goal-ledger.md):
-whole-program linearity (D6-linear). The flat-worklist forms and the
-tail-law hypothesis are retired there, unproved and no longer targets.
+`main` is at the v0.10.0 release. Nothing is proved on `main` beyond the
+stable guarantees below; this summary restarts with the first post-release
+mathematics checkpoint, and the open targets are stated in the
+[goal ledger](docs/goal-ledger.md): whole-program linearity (D6-linear), with
+the flat-worklist forms and the tail-law hypothesis retired there, unproved.
 [Current status](docs/current-status.md) holds the exact revision,
 verification receipts, and gates.
+
 <!-- ROLLING_MAIN_SUMMARY_END -->
 
 ## Scope
@@ -138,7 +111,7 @@ For the stable release:
 [[require]]
 name = "proofnet-ir"
 git = "https://github.com/fushanbobfan/proofnet-ir"
-rev = "v0.9.0"
+rev = "v0.10.0"
 ```
 
 For a neighboring development checkout:
@@ -253,7 +226,7 @@ example : tree.elaborate?.isSome = true := by
 `desequentializeChecked?` releases a certificate only after checker acceptance.
 `elaborate?` connects successful inference to a kernel-typed derivation.
 
-## Stable v0.9.0 guarantees
+## Stable v0.10.0 guarantees
 
 Within the documented certificate model, the stable release establishes four
 principal boundaries.
@@ -299,19 +272,24 @@ The executable `sequentialize` API performs finite search and rechecks its
 output. Its completeness theorem covers all accepted certificates in the
 supported model.
 
-### 4. Qualified fast paths
+### 4. The sequential decision
 
-The eager and event-driven worklist unification candidates are independently
-verified. Every successful fast-path result is sound.
-
-The exact public wrappers are proved equal to the reference checker because
-they retain complete recursive reconstruction after a fast-path miss. The pure
-fast path is not proved complete in this release, and the fallback prevents a
-whole-program linear claim; the rolling-main summary above records what
-`main` has since proved.
+The public decision `Certificate.unificationCheck` is the sequential
+Figures 7–8 executable of Guerrini's algorithm: a stack of ready buckets, a
+canonical history of raw marks, a state invariant preserved by every rule,
+and six dispatch rules run in a fixed order. It is proved equal to the
+reference checker with no eager scan, worklist tier, or recursive fallback:
+repeated dispatch stops within `formulas.size + 1` calls, a started reachable
+state of a correct certificate either dispatches or has every occurrence
+marked, and the extracted derivation is verified and proof-net equivalent to
+the input. Every operation of a run is counted, and the count is proved
+quadratic in the carrier, links, and conclusions of a well-formed certificate
+and in the submitted text of any certificate. The eager and event-driven
+worklist candidates remain public and sound. Whole-program linearity is not
+claimed.
 
 For exact release wording and receipts, use the
-[v0.9.0 release audit](docs/v0.9-release-audit.md).
+[v0.10.0 release audit](docs/v0.10-release-audit.md).
 
 ## Canonical identity and wire formats
 
@@ -517,6 +495,8 @@ downstream execution.
 ### Releases and history
 
 - [Changelog](CHANGELOG.md)
+- [v0.10.0 release audit](docs/v0.10-release-audit.md)
+- [v0.10 design](docs/v0.10-design.md)
 - [v0.9.0 release audit](docs/v0.9-release-audit.md)
 - [v0.9 design](docs/v0.9-design.md)
 - [v0.8 release audit](docs/v0.8-release-audit.md)

@@ -553,6 +553,9 @@ Exact target statements for the open items are in the
 - [ ] Reach a linear whole-program bound (D6-linear): constant-time stack
   access and bucket merge and a single consumer-index construction; not
   planned for v0.10.
+- [ ] Publish `v0.10.0`, verify release-candidate, automatic tag-push, and
+  explicit `release_ref=v0.10.0` CI, and pin a clean consumer to the exact
+  public tag.
 
 ## Later research
 

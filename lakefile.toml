@@ -1,5 +1,5 @@
 name = "proofnet-ir"
-version = "0.10.0-dev"
+version = "0.10.0"
 defaultTargets = [
   "ProofNetIR",
   "proofnet_ir_tail_law_search",
