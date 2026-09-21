@@ -1,0 +1,59 @@
+{
+ "arms": {
+  "net": "axiom linking over the numbered atom occurrences, verified by Certificate.check",
+  "proof": "top-down sequent proof in the JSON shapes of the system prompt, verified by conversion to CutFreeDerivation and infer? equality"
+ },
+ "corpus": {
+  "path": "experiments/model-v0.2/corpus.jsonl",
+  "sha256": "0bb9a950ebb5f3706cd0f0629d668801ae7174e97c6fa9f4f175c7c299d36dc2",
+  "strata": {
+   "depth-2:one-label:negative": 10,
+   "depth-2:one-label:positive": 10,
+   "depth-2:two-label:negative": 10,
+   "depth-2:two-label:positive": 10,
+   "depth-2:unique:negative": 10,
+   "depth-2:unique:positive": 10,
+   "depth-3:one-label:negative": 10,
+   "depth-3:one-label:positive": 10,
+   "depth-3:two-label:negative": 10,
+   "depth-3:two-label:positive": 10,
+   "depth-3:unique:negative": 10,
+   "depth-3:unique:positive": 10,
+   "depth-4:one-label:negative": 10,
+   "depth-4:one-label:positive": 10,
+   "depth-4:two-label:negative": 10,
+   "depth-4:two-label:positive": 10,
+   "depth-4:unique:negative": 10,
+   "depth-4:unique:positive": 10
+  },
+  "taskCount": 180
+ },
+ "developmentChecksBeforeRegistration": "six hand fixtures verified both ways; a pilot on development sequents of step 1 (not corpus tasks) checked that both arms return parseable JSON",
+ "experiment": "representation-v0.1",
+ "hypotheses": {
+  "H7": "on positives, the net arm's Lean-verified rate exceeds the proof arm's",
+  "H8": "among Lean-verified positives, the net arm's median completion tokens are lower",
+  "H9": "on negatives, the two arms' correct rates differ by less than ten points"
+ },
+ "implementationSha256": {
+  "runner": "ce8b00936b575242ea613ed7cf82f4544ff7c12c03790219fe178b2bfab2ddde",
+  "verifier": "012eac819e6de8d1f37f855aa8c6eec6a029c7d0c8f62df9e5583774598b8bea"
+ },
+ "model": {
+  "endpoint": "http://127.0.0.1:8080/v1/chat/completions",
+  "id": "qwen3.6-35b-a3b-ud-q4_k_xl",
+  "maxTokens": 1024,
+  "seed": 20260921,
+  "temperature": 0,
+  "thinking": false
+ },
+ "promptSha256": {
+  "netSystem": "d2a56e381169047934d99ae5dad7ac1d35213f10b94f6f7684def485d6ce0ab1",
+  "proofSystem": "99e1c432e44f4be7dd2134ae5ff608f50088388982126cee9822204611dace72"
+ },
+ "question": "given the same sequent rendering and the same budget, does the same model produce valid proof-net linkings more often, and with fewer tokens, than valid sequent-calculus proofs",
+ "registeredLocalDate": "2026-09-21 America/Los_Angeles",
+ "rendering": "identical user message in both arms: the sequent with 0-based formula positions and bracketed atom-occurrence numbers in reading order",
+ "resultsAbsentAtRegistration": true,
+ "scoring": "positives: a proposal is correct only when Lean verifies it; negatives: correct only when the model answers unprovable; unparseable output is wrong; tokens are completion tokens"
+}

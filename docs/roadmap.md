@@ -572,7 +572,9 @@ data exists and reported either way.
   one Lean process, a 640-task held-out corpus with certified negatives.
 - [x] Run step 2 and answer H4 to H6: all three hold; net-space search wins
   exactly where the linking is forced (`experiments/matched-search-v0.1`).
-- [ ] Step 3, the skeleton-free model study, only after a positive step 2.
+- [x] Register step 3, the representation-as-target model study (sequent
+  proof versus proof net as the same model's output, Lean-verified).
+- [ ] Run step 3 and answer H7 to H9.
 
 ## Later research
 
