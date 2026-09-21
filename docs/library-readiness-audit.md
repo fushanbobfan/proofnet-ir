@@ -216,8 +216,8 @@ part of the engineering and proof-identity gap.
    retries only waiting par links after a tensor union. Its verified success
    is sound, its own wrapper `unificationWorklistCheck` is exactly equal to
    `check`, and every run is capped at `n(n+4)+1` link attempts.
-   Pure-worklist completeness (ledger item D1-flat) remains open and is no
-   longer on the critical path.
+   Pure-worklist completeness (ledger item D1-flat) is unproved and retired;
+   the worklist is no longer the decision.
    The rolling branch adds the sequential Figures 7–8 scheduler as a separate
    layer (see [architecture.md](architecture.md#sequential-figure-7-layer)):
    a canonical six-rule dispatcher whose successful steps preserve the

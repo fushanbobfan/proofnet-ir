@@ -54,8 +54,8 @@ Proved on `main` beyond `v0.9.0`:
   of a well-formed certificate, and in the submitted text of any certificate.
 
 Open, with exact target statements in the [goal ledger](docs/goal-ledger.md):
-whole-program linearity (D6-linear); the legacy flat-worklist forms and the
-tail-law hypothesis stay recorded there, off the critical path.
+whole-program linearity (D6-linear). The flat-worklist forms and the
+tail-law hypothesis are retired there, unproved and no longer targets.
 [Current status](docs/current-status.md) holds the exact revision,
 verification receipts, and gates.
 <!-- ROLLING_MAIN_SUMMARY_END -->

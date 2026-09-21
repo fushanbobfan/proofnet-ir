@@ -426,11 +426,11 @@
   - [x] Differentially qualify the worklist on the 1,500-case
     reference/mutation audit and the 7,200-case reordered positive search with
     no observed miss or false positive.
-  - [ ] Prove
+  - [ ] Retired 2026-09-21, unproved: prove
     `Certificate.unificationWorklistFastCheck = Certificate.check` for the
-    current event-driven worklist path (ledger item D1-flat; since
-    2026-09-20 the critical path for a complete fast path is the sequential
-    executable in the v0.10 section).
+    event-driven worklist path (ledger item D1-flat); the complete fast path
+    is the sequential executable of the v0.10 section, and the worklist is
+    no longer the decision.
     - [x] Prove that canonical initialization plus the complete production
       worklist run preserve abstraction, ordered parents, component/formula
       consistency, exact pending-premise frontier coverage, atomic
@@ -449,13 +449,11 @@
       counterexample: exact concrete-state confluence fails on a
       derivation-generated correct certificate, and structural-only confluence
       fails on a structurally well-formed certificate.
-    - [ ] Prove that the residual parsing witness survives every arbitrary
-      successful flat-worklist firing, or establish the required theorem
-      modulo the marked-domain/occurrence-thread quotient, and use it to
-      exclude the closing-par base. Closing-par exclusion remains open.
-    - [ ] Prove correct-quiescent-state progress.
-  - [ ] Remove the recursive reconstruction fallback only after a complete
-    fast path is kernel checked (D2; see the v0.10 section).
+    - [ ] Retired 2026-09-21, unproved: exclude the closing-par base
+      (H-closing-par) through a residual-witness or quotient-confluence
+      theorem, and prove correct-quiescent-state progress (H-quiescent).
+  - [x] Remove the recursive reconstruction fallback only after a complete
+    fast path is kernel checked (D2, closed through the sequential path).
 - [x] Publish `v0.9.0`, verify release-candidate, automatic tag-push, and
   explicit `release_ref=v0.9.0` CI, and pin a clean consumer to the exact
   public tag.
@@ -513,8 +511,9 @@ Exact target statements for the open items are in the
 - [x] Derive Figure-7 progress (D3) from region closure: a drained active
   region has no switching boundary edge, so its class is the whole net and
   every occurrence is marked.
-- [ ] Close the `forward`/`unifyPayload` created-head branches of
-  `ActiveTopDebtTailLaw`; no longer required for D3.
+- [ ] Retired 2026-09-21, unproved: the `forward`/`unifyPayload`
+  created-head branches of `ActiveTopDebtTailLaw` (H-tail); not required for
+  D3, which closed from region closure.
 - [x] Prove reachable later-state `NEXTAXIOM` guard sufficiency and exact
   nonterminal enabledness after initialization (corrected D5); retain the
   kernel counterexample to enabledness before initialization.
@@ -529,7 +528,7 @@ Exact target statements for the open items are in the
   (`StructurallyWellFormed.initializeReservation?_isSome`) through the carrier
   complexity bound.
 - [x] Prove `sequentialFastCheck = check` (D1, retargeted from the flat
-  worklist on 2026-09-20; the flat-worklist statement stays open as D1-flat):
+  worklist on 2026-09-20; the flat-worklist statement is retired as D1-flat):
   final structure, occurrence exchange, inference, the fresh-index
   correspondence of the desequentializer, and proof-net equivalence of the
   final derivation's output (`sequentialFastCheck_eq_check`).
@@ -549,8 +548,8 @@ Exact target statements for the open items are in the
   phases quadratically (D6.4); the verifier now compares intrinsic
   canonicalizations instead of their unary-framed codes.
 - [x] Assemble the whole-program bound (`decisionStats_total_le`, D6,
-  retargeted from the flat worklist on 2026-09-20; the flat statement stays
-  open as D6-flat).
+  retargeted from the flat worklist on 2026-09-20; the flat statement is
+  retired as D6-flat).
 - [ ] Reach a linear whole-program bound (D6-linear): constant-time stack
   access and bucket merge and a single consumer-index construction; not
   planned for v0.10.

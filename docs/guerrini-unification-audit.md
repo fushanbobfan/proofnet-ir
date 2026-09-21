@@ -278,8 +278,8 @@ excludes the same-thread tensor deadlock on declaratively correct inputs, and
 reduces the remaining waiting-par case to a nonempty closed dependency cycle
 of the reference graph normalized to a terminal forward retained-left par
 cusp (the closing-package layer of `ProofNetIR/Unification.lean`). Excluding
-that closing-par cusp in a correct quiescent state remains open (ledger
-hypothesis H-closing-par).
+that closing-par cusp in a correct quiescent state is unproved and retired
+(ledger item H-closing-par): the flat worklist is no longer the decision.
 
 This flat production prototype is not the sequential strategy of Figures
 7--8. It starts all axioms eagerly, uses a flat waiting set, and does not use
@@ -425,8 +425,8 @@ pure-worklist completeness, or linearity.
    unmarked internal region on the exact reference path between the remaining
    waiting par premises. The same-thread tensor deadlock is excluded, and the
    obstruction is normalized to the closing-par cusp package; the exclusion of
-   that package in a correct quiescent state is the open step (H-closing-par
-   in the [goal ledger](goal-ledger.md)).
+   that package in a correct quiescent state is unproved and retired
+   (H-closing-par in the [goal ledger](goal-ledger.md)).
 3. Do not assume contiguous token-age intervals or generic LIFO nesting for the
    current flat worklist: the fixed accepted regression above refutes that
    invariant, and ordinary laminarity permits the separated endpoint pairs as

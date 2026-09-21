@@ -267,10 +267,10 @@ open theorems are stated in the [goal ledger](goal-ledger.md).
     the carrier, links, and conclusions of a well-formed certificate and in
     the submitted text of any certificate (D6).
 
-Not established by this layer: the tail law at the created-head obligations
-of `forward` and `unifyPayload` (H-tail, no longer needed for progress), the
-legacy flat-worklist forms (D1-flat, D6-flat), and a linear whole-program
-bound (D6-linear).
+Not established by this layer: a linear whole-program bound (D6-linear).
+The tail law at the created-head obligations of `forward` and `unifyPayload`
+(H-tail) and the flat-worklist forms (D1-flat, D6-flat) are retired in the
+ledger, unproved and no longer targets.
 
 ## Persistent LeanProp bridge
 
