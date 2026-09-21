@@ -129,8 +129,22 @@ budget_ms=120000
 ```
 
 This widens the counterexample search substantially, but remains finite
-empirical evidence. Its executable name does not mean that universal
-fast-path completeness has been proved.
+empirical evidence for the eager and worklist candidates, whose completeness
+is not proved. The `--sequential` mode runs the public decision on the same
+7,200 cases and its instrumented twin `sequentialDecisionWithStats` on the
+1,200 original variants, checking the compiled code against the proved
+acceptance, dispatcher-call, and cost bounds and recording the largest share
+of the cost bound any run used. First recorded Windows run:
+
+```text
+sequential-decision-search-ok cases=7200 seeds=1200 depths=0..7
+variants_per_seed=6 max_formulas=447 max_links=319 instrumented=1200
+max_dispatch_calls=448 max_total=7086148 max_bound_permille=147
+checksum=1415497684 elapsed_ms=97424 budget_ms=240000
+```
+
+The largest run used 14.7% of its proved cost bound, and the largest call
+count, 448 for 447 occurrences, is exactly the D4 bound `formulas.size + 1`.
 
 `proofnet_ir_new_progress_audit` separately replays only actually initialized
 and canonically dispatched Figure-7 states and searches for a reconstructed
