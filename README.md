@@ -301,11 +301,14 @@ supported model.
 
 ### 4. Qualified fast paths
 
-The public decision is the sequential fast path alone, proved equal to the
-reference checker with no fallback, and its operation count is proved
-quadratic. The eager and event-driven worklist candidates remain
-independently verified; every successful fast-path result is sound.
-Whole-program linearity is not claimed.
+The eager and event-driven worklist unification candidates are independently
+verified. Every successful fast-path result is sound.
+
+The exact public wrappers are proved equal to the reference checker because
+they retain complete recursive reconstruction after a fast-path miss. The pure
+fast path is not proved complete in this release, and the fallback prevents a
+whole-program linear claim; the rolling-main summary above records what
+`main` has since proved.
 
 For exact release wording and receipts, use the
 [v0.9.0 release audit](docs/v0.9-release-audit.md).
