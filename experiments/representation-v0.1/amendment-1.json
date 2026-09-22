@@ -1,6 +1,6 @@
 {
  "amendment": "representation-v0.1-amendment-1",
- "date": "2026-09-22 America/Los_Angeles",
+ "date": "2026-09-21 America/Los_Angeles",
  "scope": "publication redaction only; no claim, proposal, verdict, token count, or hash of the preregistration changes",
  "change": "the local server reported the machine-absolute GGUF path in the `model` field of every response; the field was replaced by the registered model id in raw-responses.jsonl, and the runner now does so on collection",
  "responsesSha256Before": "517b6e4335afa96e67714af07004d20567b04bf9a367001b4b96fde7059c5a51",
