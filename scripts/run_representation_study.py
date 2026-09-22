@@ -144,6 +144,9 @@ def call_model(task: dict[str, Any], arm: str) -> dict[str, Any]:
     try:
         with urllib.request.urlopen(request, timeout=MODEL_TIMEOUT_SECONDS) as response:
             result = json.loads(response.read().decode("utf-8"))
+        if isinstance(result, dict) and "model" in result:
+            # The server reports the local artifact path; publish the stable id.
+            result["model"] = MODEL_ID
         error = None
     except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as exception:
         result, error = None, f"{type(exception).__name__}: {exception}"

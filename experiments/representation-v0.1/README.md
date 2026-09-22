@@ -17,7 +17,9 @@ sequent-calculus proofs?
   `unparseable`), the parsed proposal, the Lean verdict and its reason,
   correctness, and completion tokens;
 - `summary.json` and `report.md`: rates, the stratum table, and the
-  hypothesis decisions.
+  hypothesis decisions;
+- `amendment-1.json`: the post-run publication redaction of the server's
+  local model path in the responses; nothing else changed.
 
 Model: `Qwen3.6-35B-A3B-UD-Q4_K_XL` served locally, temperature 0, seed
 20260921, 1,024 completion tokens, thinking disabled, as in the v0.2 study.
