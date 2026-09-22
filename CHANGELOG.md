@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- ran step 3 of the v0.11 program, the representation-as-target model study
+  (`experiments/representation-v0.1`, preregistered in `b430379`): the same
+  local model, one rendering, two output targets, every proposal verified by
+  Lean (`proofnet_ir_representation_verify`: proofs through
+  `CutFreeDerivation` and `infer?`, nets through `check`). Proofs: none of
+  180 answers valid or correct, 55 unparseable, the rest failing position
+  bookkeeping; nets: 7 of 90 positives verified (depth 2 only, 22 tokens
+  median), and `unprovable` answered on 64 negatives but also on 53
+  positives. H7 holds, H8 is undecidable, H9 fails; no general advantage is
+  claimed;
 - ran step 2 of the v0.11 program, the equal-information matched search
   (`experiments/matched-search-v0.1`, preregistered in `b30f4bf`): three arms
   in one Lean process under one five-second budget on 640 held-out tasks

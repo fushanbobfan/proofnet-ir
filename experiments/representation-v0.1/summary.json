@@ -1,0 +1,392 @@
+{
+ "experiment": "representation-v0.1",
+ "preregistrationSha256": "ae738aa3219f8f93300363f8d828900e81444fef20bf1347270e1f3120154c86",
+ "tasks": 180,
+ "rates": {
+  "proof": {
+   "positiveValidRate": 0.0,
+   "negativeCorrectRate": 0.0,
+   "medianTokensValidPositives": null
+  },
+  "net": {
+   "positiveValidRate": 0.07777777777777778,
+   "negativeCorrectRate": 0.7111111111111111,
+   "medianTokensValidPositives": 22
+  }
+ },
+ "strata": {
+  "depth-2:one-label:negative": {
+   "proof": {
+    "tasks": 10,
+    "correct": 0,
+    "valid": 0,
+    "unprovableClaims": 0,
+    "unparseable": 0,
+    "medianTokens": 86.0,
+    "medianTokensValid": null
+   },
+   "net": {
+    "tasks": 10,
+    "correct": 10,
+    "valid": 0,
+    "unprovableClaims": 10,
+    "unparseable": 0,
+    "medianTokens": 8.0,
+    "medianTokensValid": null
+   }
+  },
+  "depth-2:one-label:positive": {
+   "proof": {
+    "tasks": 10,
+    "correct": 0,
+    "valid": 0,
+    "unprovableClaims": 0,
+    "unparseable": 0,
+    "medianTokens": 119.0,
+    "medianTokensValid": null
+   },
+   "net": {
+    "tasks": 10,
+    "correct": 0,
+    "valid": 0,
+    "unprovableClaims": 10,
+    "unparseable": 0,
+    "medianTokens": 8.0,
+    "medianTokensValid": null
+   }
+  },
+  "depth-2:two-label:negative": {
+   "proof": {
+    "tasks": 10,
+    "correct": 0,
+    "valid": 0,
+    "unprovableClaims": 0,
+    "unparseable": 0,
+    "medianTokens": 110.5,
+    "medianTokensValid": null
+   },
+   "net": {
+    "tasks": 10,
+    "correct": 10,
+    "valid": 0,
+    "unprovableClaims": 10,
+    "unparseable": 0,
+    "medianTokens": 8.0,
+    "medianTokensValid": null
+   }
+  },
+  "depth-2:two-label:positive": {
+   "proof": {
+    "tasks": 10,
+    "correct": 0,
+    "valid": 0,
+    "unprovableClaims": 0,
+    "unparseable": 0,
+    "medianTokens": 145.5,
+    "medianTokensValid": null
+   },
+   "net": {
+    "tasks": 10,
+    "correct": 1,
+    "valid": 1,
+    "unprovableClaims": 9,
+    "unparseable": 0,
+    "medianTokens": 8.0,
+    "medianTokensValid": 22
+   }
+  },
+  "depth-2:unique:negative": {
+   "proof": {
+    "tasks": 10,
+    "correct": 0,
+    "valid": 0,
+    "unprovableClaims": 0,
+    "unparseable": 0,
+    "medianTokens": 212.0,
+    "medianTokensValid": null
+   },
+   "net": {
+    "tasks": 10,
+    "correct": 9,
+    "valid": 0,
+    "unprovableClaims": 9,
+    "unparseable": 0,
+    "medianTokens": 8.0,
+    "medianTokensValid": null
+   }
+  },
+  "depth-2:unique:positive": {
+   "proof": {
+    "tasks": 10,
+    "correct": 0,
+    "valid": 0,
+    "unprovableClaims": 0,
+    "unparseable": 0,
+    "medianTokens": 207.0,
+    "medianTokensValid": null
+   },
+   "net": {
+    "tasks": 10,
+    "correct": 6,
+    "valid": 6,
+    "unprovableClaims": 1,
+    "unparseable": 0,
+    "medianTokens": 22.0,
+    "medianTokensValid": 22.0
+   }
+  },
+  "depth-3:one-label:negative": {
+   "proof": {
+    "tasks": 10,
+    "correct": 0,
+    "valid": 0,
+    "unprovableClaims": 0,
+    "unparseable": 1,
+    "medianTokens": 541.5,
+    "medianTokensValid": null
+   },
+   "net": {
+    "tasks": 10,
+    "correct": 10,
+    "valid": 0,
+    "unprovableClaims": 10,
+    "unparseable": 0,
+    "medianTokens": 8.0,
+    "medianTokensValid": null
+   }
+  },
+  "depth-3:one-label:positive": {
+   "proof": {
+    "tasks": 10,
+    "correct": 0,
+    "valid": 0,
+    "unprovableClaims": 0,
+    "unparseable": 1,
+    "medianTokens": 528.0,
+    "medianTokensValid": null
+   },
+   "net": {
+    "tasks": 10,
+    "correct": 0,
+    "valid": 0,
+    "unprovableClaims": 9,
+    "unparseable": 0,
+    "medianTokens": 8.0,
+    "medianTokensValid": null
+   }
+  },
+  "depth-3:two-label:negative": {
+   "proof": {
+    "tasks": 10,
+    "correct": 0,
+    "valid": 0,
+    "unprovableClaims": 0,
+    "unparseable": 1,
+    "medianTokens": 605.5,
+    "medianTokensValid": null
+   },
+   "net": {
+    "tasks": 10,
+    "correct": 8,
+    "valid": 0,
+    "unprovableClaims": 8,
+    "unparseable": 0,
+    "medianTokens": 8.0,
+    "medianTokensValid": null
+   }
+  },
+  "depth-3:two-label:positive": {
+   "proof": {
+    "tasks": 10,
+    "correct": 0,
+    "valid": 0,
+    "unprovableClaims": 0,
+    "unparseable": 2,
+    "medianTokens": 647.5,
+    "medianTokensValid": null
+   },
+   "net": {
+    "tasks": 10,
+    "correct": 0,
+    "valid": 0,
+    "unprovableClaims": 7,
+    "unparseable": 0,
+    "medianTokens": 8.0,
+    "medianTokensValid": null
+   }
+  },
+  "depth-3:unique:negative": {
+   "proof": {
+    "tasks": 10,
+    "correct": 0,
+    "valid": 0,
+    "unprovableClaims": 0,
+    "unparseable": 4,
+    "medianTokens": 862.5,
+    "medianTokensValid": null
+   },
+   "net": {
+    "tasks": 10,
+    "correct": 4,
+    "valid": 0,
+    "unprovableClaims": 4,
+    "unparseable": 0,
+    "medianTokens": 76.5,
+    "medianTokensValid": null
+   }
+  },
+  "depth-3:unique:positive": {
+   "proof": {
+    "tasks": 10,
+    "correct": 0,
+    "valid": 0,
+    "unprovableClaims": 0,
+    "unparseable": 2,
+    "medianTokens": 696.5,
+    "medianTokensValid": null
+   },
+   "net": {
+    "tasks": 10,
+    "correct": 0,
+    "valid": 0,
+    "unprovableClaims": 4,
+    "unparseable": 0,
+    "medianTokens": 44.0,
+    "medianTokensValid": null
+   }
+  },
+  "depth-4:one-label:negative": {
+   "proof": {
+    "tasks": 10,
+    "correct": 0,
+    "valid": 0,
+    "unprovableClaims": 0,
+    "unparseable": 8,
+    "medianTokens": 1024.0,
+    "medianTokensValid": null
+   },
+   "net": {
+    "tasks": 10,
+    "correct": 6,
+    "valid": 0,
+    "unprovableClaims": 6,
+    "unparseable": 0,
+    "medianTokens": 12.0,
+    "medianTokensValid": null
+   }
+  },
+  "depth-4:one-label:positive": {
+   "proof": {
+    "tasks": 10,
+    "correct": 0,
+    "valid": 0,
+    "unprovableClaims": 0,
+    "unparseable": 9,
+    "medianTokens": 1024.0,
+    "medianTokensValid": null
+   },
+   "net": {
+    "tasks": 10,
+    "correct": 0,
+    "valid": 0,
+    "unprovableClaims": 8,
+    "unparseable": 0,
+    "medianTokens": 11.0,
+    "medianTokensValid": null
+   }
+  },
+  "depth-4:two-label:negative": {
+   "proof": {
+    "tasks": 10,
+    "correct": 0,
+    "valid": 0,
+    "unprovableClaims": 0,
+    "unparseable": 7,
+    "medianTokens": 1024.0,
+    "medianTokensValid": null
+   },
+   "net": {
+    "tasks": 10,
+    "correct": 6,
+    "valid": 0,
+    "unprovableClaims": 6,
+    "unparseable": 0,
+    "medianTokens": 11.5,
+    "medianTokensValid": null
+   }
+  },
+  "depth-4:two-label:positive": {
+   "proof": {
+    "tasks": 10,
+    "correct": 0,
+    "valid": 0,
+    "unprovableClaims": 0,
+    "unparseable": 6,
+    "medianTokens": 1024.0,
+    "medianTokensValid": null
+   },
+   "net": {
+    "tasks": 10,
+    "correct": 0,
+    "valid": 0,
+    "unprovableClaims": 5,
+    "unparseable": 0,
+    "medianTokens": 87.5,
+    "medianTokensValid": null
+   }
+  },
+  "depth-4:unique:negative": {
+   "proof": {
+    "tasks": 10,
+    "correct": 0,
+    "valid": 0,
+    "unprovableClaims": 0,
+    "unparseable": 6,
+    "medianTokens": 1024.0,
+    "medianTokensValid": null
+   },
+   "net": {
+    "tasks": 10,
+    "correct": 1,
+    "valid": 0,
+    "unprovableClaims": 1,
+    "unparseable": 0,
+    "medianTokens": 170.5,
+    "medianTokensValid": null
+   }
+  },
+  "depth-4:unique:positive": {
+   "proof": {
+    "tasks": 10,
+    "correct": 0,
+    "valid": 0,
+    "unprovableClaims": 0,
+    "unparseable": 8,
+    "medianTokens": 1024.0,
+    "medianTokensValid": null
+   },
+   "net": {
+    "tasks": 10,
+    "correct": 0,
+    "valid": 0,
+    "unprovableClaims": 0,
+    "unparseable": 0,
+    "medianTokens": 161.5,
+    "medianTokensValid": null
+   }
+  }
+ },
+ "hypotheses": {
+  "H7": {
+   "supported": true
+  },
+  "H8": {
+   "supported": null
+  },
+  "H9": {
+   "supported": false
+  }
+ },
+ "responsesSha256": "517b6e4335afa96e67714af07004d20567b04bf9a367001b4b96fde7059c5a51",
+ "resultsSha256": "dfd74e6782ae945e566a0a6c8db85440147897a4665c4aebdb68d1ec0fc6c677"
+}

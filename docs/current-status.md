@@ -329,13 +329,15 @@ is done: under equal information and one budget, net-space search decides
 every unique-label task where sequent search times out, and times out on
 every one-label 32-atom task that pruned sequent search proves in
 milliseconds (`experiments/matched-search-v0.1`); which family wins is
-decided by label repetition. Next:
+decided by label repetition. Step 3 is done: the same local model, given one
+rendering and asked for either a sequent proof or a proof net, produced no
+Lean-verified proof in 180 answers and seven verified nets, all on the
+smallest unique-label tasks (`experiments/representation-v0.1`). The three
+preregistered steps of the program are complete. Next:
 
-1. step 3, a model study comparing the two representations as proposal
-   targets at a fixed budget, preregistered before it runs;
-2. beyond MLL, a different representation for Lean-scale goals, designed as
-   an experiment;
-3. a linear whole-program bound (D6-linear) stays optional.
+1. beyond MLL, a different representation for Lean-scale goals, designed as
+   an experiment, if the program continues;
+2. a linear whole-program bound (D6-linear) stays optional.
 
 ## Navigation
 

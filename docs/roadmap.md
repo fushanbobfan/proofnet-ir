@@ -574,7 +574,8 @@ data exists and reported either way.
   exactly where the linking is forced (`experiments/matched-search-v0.1`).
 - [x] Register step 3, the representation-as-target model study (sequent
   proof versus proof net as the same model's output, Lean-verified).
-- [ ] Run step 3 and answer H7 to H9.
+- [x] Run step 3 and answer H7 to H9: H7 holds (7 verified nets, no verified
+  proof), H8 undecidable, H9 fails (`experiments/representation-v0.1`).
 
 ## Later research
 
