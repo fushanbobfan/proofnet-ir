@@ -333,11 +333,11 @@ decided by label repetition. Step 3 is done: the same local model, given one
 rendering and asked for either a sequent proof or a proof net, produced no
 Lean-verified proof in 180 answers and seven verified nets, all on the
 smallest unique-label tasks (`experiments/representation-v0.1`). The three
-preregistered steps of the program are complete. Next:
-
-1. beyond MLL, a different representation for Lean-scale goals, designed as
-   an experiment, if the program continues;
-2. a linear whole-program bound (D6-linear) stays optional.
+preregistered steps of the program are complete. Beyond MLL, the question
+was taken to Lean's scale in [proof-graphs](https://github.com/fushanbobfan/proof-graphs): Lean's first-goal
+convention already absorbs rule-order redundancy, and searching over goals
+gains nothing at equal budget. A linear whole-program bound (D6-linear)
+stays optional.
 
 ## Navigation
 

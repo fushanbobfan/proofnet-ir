@@ -24,10 +24,14 @@ latest research surface and are prepared for documented development changes.
 ### Rolling-main summary
 
 `main` is `v0.11.0-dev`. Nothing is proved on `main` beyond the stable
-v0.10.0 guarantees below. The v0.11 program answers the founding question by
-measurement ([design](docs/v0.11-design.md)): first the exact number of
-sequent derivations per proof net on the committed corpora, then an
-equal-information matched search. The open theorem targets are stated in the
+v0.10.0 guarantees below. The v0.11 program answered the founding question by
+measurement ([design](docs/v0.11-design.md)): proof nets remove a rule-order
+redundancy that grows factorially (a median 170,734 sequent derivations per
+net at 32 atoms), net-space search wins exactly where atom labels force the
+linking, and a local model writes a few verifiable nets, on the smallest
+tasks, and no verifiable sequent proof. The Lean-scale continuation,
+[proof-graphs](https://github.com/fushanbobfan/proof-graphs), finds that Lean's first-goal convention already
+absorbs that redundancy. The open theorem targets are stated in the
 [goal ledger](docs/goal-ledger.md): whole-program linearity (D6-linear), with
 the flat-worklist forms and the tail-law hypothesis retired there, unproved.
 [Current status](docs/current-status.md) holds the exact revision,
@@ -417,12 +421,18 @@ It does not establish a general proof-net advantage.
 
 A separate preregistered 180-task model study, preserved through explicit
 runtime and publication amendments, reports method-specific successes and
-failure modes without converting them into a broad model claim.
+failure modes without converting them into a broad model claim. The v0.11
+program's three preregistered experiments address those qualifications:
+exact counts without any search, search under equal information, and one
+model asked for either representation.
 
 Use the frozen reports rather than restating results from memory:
 
 - [matched experiment report](experiments/matched-v0.1/README.md)
 - [model study report](experiments/model-v0.2/report.md)
+- v0.11: [redundancy counts](experiments/redundancy-v0.1/README.md),
+  [matched search](experiments/matched-search-v0.1/README.md),
+  [representation study](experiments/representation-v0.1/README.md)
 - [experiment protocol](docs/experiment-protocol.md)
 - [performance boundary](docs/performance.md)
 
