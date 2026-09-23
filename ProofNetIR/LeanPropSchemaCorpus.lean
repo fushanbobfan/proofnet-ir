@@ -89,8 +89,6 @@ def generated (count : Nat) : List PackedDerivation :=
       swappedLinearPair left right, linearModusPonens left right,
       projectLeft left right]
 
-example : (generated 100).length = 600 := by native_decide
-
 def rawPositive (count : Nat) : List (String × Raw.Derivation) :=
   (generated count).map fun packed =>
     (packed.name, Raw.Derivation.ofIndexed packed.derivation)
@@ -167,8 +165,5 @@ def rawNegative (count : Nat) : List RawNegativeCase :=
         expectedPath := [0]
       }
     ]
-
-example : (rawPositive 100).length = 600 := by native_decide
-example : (rawNegative 100).length = 1000 := by native_decide
 
 end ProofNetIR.LeanProp.Schema.Corpus

@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- added a compiled-declaration trust gate over every library source module,
+  including private helpers and declarations outside the usual namespace;
+  the exact curated theorem audit remains in force. Moved three native
+  corpus-size fixtures to the existing consumer and added rejection tests
+  for placeholders, custom/transitive axioms, and native proof evaluation.
+  CI now runs these tests and the existing convergence-checker tests;
 - ran step 3 of the v0.11 program, the representation-as-target model study
   (`experiments/representation-v0.1`, preregistered in `b430379`): the same
   local model, one rendering, two output targets, every proposal verified by

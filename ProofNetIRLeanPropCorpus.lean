@@ -2,6 +2,12 @@ import ProofNetIR.LeanPropSchemaCorpus
 
 open ProofNetIR.LeanProp.Schema.Corpus
 
+-- Closed corpus-size fixtures belong in the consumer, outside the library's
+-- standard-axiom boundary.
+example : (generated 100).length = 600 := by native_decide
+example : (rawPositive 100).length = 600 := by native_decide
+example : (rawNegative 100).length = 1000 := by native_decide
+
 def main : IO Unit := do
   let start ← IO.monoMsNow
   let budgetMs : Nat := 10_000

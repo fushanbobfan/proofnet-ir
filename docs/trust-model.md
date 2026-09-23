@@ -219,6 +219,11 @@ the same boundary. The trust-relevant facts are:
   standard-three (`propext`, `Classical.choice`, `Quot.sound`), axiom-free,
   `propext`-only, or `propext`/`Quot.sound`. Rolling totals and the exact
   checkpoint receipt live in [current status](current-status.md).
+- The same script imports every library source module and checks every safe
+  compiled declaration against the standard-three ceiling, including private
+  helpers and modules outside the facade. Selection uses defining modules,
+  not declaration namespaces. Placeholders, custom axioms, and native proof
+  evaluation fail this gate; unsafe runtime declarations are outside it.
 
 The eager and worklist candidates remain public.
 `unificationDerivationCandidateWithStats` and `unificationReconstructWithStats`

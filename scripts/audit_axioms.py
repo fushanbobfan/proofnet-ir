@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fail if the public theorem boundary silently gains trust dependencies."""
+"""Audit all library declarations and the curated exact theorem boundary."""
 
 from __future__ import annotations
 
@@ -11,6 +11,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 AUDIT_FILE = ROOT / "ProofNetIRAxiomAudit.lean"
+LIBRARY_AUDIT_FILE = ROOT / "ProofNetIRTrustAudit.lean"
 EXPECTED_CLASSICAL_THEOREMS = {
     "ProofNetIR.SequentialFigure7.InitialReservationStep.parHeadGuardTail",
     "ProofNetIR.SequentialFigure7.NopStep.tailNonconclusion_of_parHeadGuard",
@@ -1519,9 +1520,25 @@ def find_lake() -> str:
     raise FileNotFoundError("lake was not found on PATH or under ~/.elan/bin")
 
 
+def library_modules(root: Path = ROOT) -> list[str]:
+    """Include every library source, even one not imported by the facade."""
+    sources = sorted((root / "ProofNetIR").rglob("*.lean"))
+    if not sources or not (root / "ProofNetIR.lean").is_file():
+        raise AssertionError("library trust audit source inventory is empty or missing its facade")
+    return ["ProofNetIR"] + [
+        ".".join(path.relative_to(root).with_suffix("").parts) for path in sources
+    ]
+
+
 def main() -> None:
+    subprocess.run(
+        [find_lake(), "env", "lean", "--trust=0", "-DwarningAsError=true", "--run",
+         str(LIBRARY_AUDIT_FILE), *library_modules()],
+        cwd=ROOT,
+        check=True,
+    )
     completed = subprocess.run(
-        [find_lake(), "env", "lean", str(AUDIT_FILE)],
+        [find_lake(), "env", "lean", "--trust=0", "-DwarningAsError=true", str(AUDIT_FILE)],
         cwd=ROOT,
         check=True,
         capture_output=True,

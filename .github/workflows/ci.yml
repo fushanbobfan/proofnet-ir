@@ -232,7 +232,9 @@ jobs:
       - name: Fuzz malformed LeanProp schema inputs
         run: python scripts/fuzz_leanprop_parser.py
       - name: Audit theorem trust dependencies
-        run: python scripts/audit_axioms.py
+        run: |
+          python scripts/test_library_trust.py
+          python scripts/audit_axioms.py
       - name: Check convergence gates
         shell: bash
         env:
@@ -240,6 +242,7 @@ jobs:
           BASE_REF: ${{ github.base_ref }}
           BEFORE_SHA: ${{ github.event.before }}
         run: |
+          python scripts/test_check_convergence.py
           zero_sha=0000000000000000000000000000000000000000
           if [[ "$EVENT_NAME" == "pull_request" ]]; then
             python scripts/check_convergence.py --base "origin/${BASE_REF}" --head HEAD
