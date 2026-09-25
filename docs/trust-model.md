@@ -223,7 +223,8 @@ the same boundary. The trust-relevant facts are:
   compiled declaration against the standard-three ceiling, including private
   helpers and modules outside the facade. Selection uses defining modules,
   not declaration namespaces. Placeholders, custom axioms, and native proof
-  evaluation fail this gate; unsafe runtime declarations are outside it.
+  evaluation fail this gate; unsafe runtime declarations are outside it, and
+  so are `example`s, which leave no declaration.
 
 The eager and worklist candidates remain public.
 `unificationDerivationCandidateWithStats` and `unificationReconstructWithStats`

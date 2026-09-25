@@ -10,14 +10,14 @@ Historical checkpoints belong in [CHANGELOG.md](../CHANGELOG.md), proof design
 belongs in [v0.10-design.md](v0.10-design.md), and stable release guarantees
 belong in the corresponding release audit.
 
-Status date: 2026-09-20
+Status date: 2026-09-24
 
 ## Version tracks
 
 | Track | Revision | Status | Authority |
 | --- | --- | --- | --- |
 | Stable library | `v0.10.0` / `f0fd97f8592938165dbffd91656d226b6102adcc` | Released | [v0.10.0 release audit](v0.10-release-audit.md) |
-| Rolling research | `v0.11.0-dev`; proof `33ebfd5`; audit `1e46573` | Active | This page/commits |
+| Rolling research | `v0.11.0-dev`; proof `33ebfd5`; audit `1e46573`; trust gate `34cd793` | Active | This page/commits |
 
 Documentation-only commits may descend from the proof checkpoint without
 changing its mathematical authority. The stable release and rolling branch
@@ -238,6 +238,14 @@ Local verification of the committed checkpoint:
 - generated API reference current; convergence check passed (one new module,
   17 new public theorems, 1,371 library lines, 14 prose lines net growth);
 - `git diff --check` clean on the staged delta.
+
+Library trust gate: `34cd793` imports every library module at trust zero and
+checks every safe compiled declaration. At that head it passes 14,477
+declarations in 191 modules, all within `propext`, `Classical.choice`, and
+`Quot.sound` (run [35899598850](https://github.com/fushanbobfan/proofnet-ir/actions/runs/35899598850);
+rerun locally with its 11 rejection tests). The head before the gate,
+`5be735c`, passes the same gate unchanged: no declaration had depended on
+anything else.
 
 Exact-head proof GitHub verification:
 

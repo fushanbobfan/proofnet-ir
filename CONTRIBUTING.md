@@ -159,7 +159,8 @@ theorem belongs in the audit.
 zero and checks all safe declarations, including private helpers, for axiom
 dependencies outside the three above. This compiled-term gate rejects proof
 placeholders and native-evaluated proofs without relying on a name manifest
-or a text scan. Keep `native_decide` fixtures in test executables. Run
+or a text scan. Keep `native_decide` fixtures in test executables: an
+`example` leaves no declaration for the gate to check. Run
 `python scripts/test_library_trust.py` to exercise the gate's rejection cases.
 The repository must remain free of actual `sorry` and `admit`.
 
