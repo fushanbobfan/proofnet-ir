@@ -27,9 +27,9 @@ latest research surface and are prepared for documented development changes.
 v0.10.0 guarantees below. The v0.11 program answered the founding question by
 measurement ([design](docs/v0.11-design.md)): proof nets remove a rule-order
 redundancy that grows factorially (a median 170,734 sequent derivations per
-net at 32 atoms), net-space search wins exactly where atom labels force the
-linking, and a local model writes a few verifiable nets, on the smallest
-tasks, and no verifiable sequent proof. The Lean-scale continuation,
+net at 32 atoms), at 32 atoms net-space search wins where unique atom labels
+force the linking and loses where labels repeat, and a local model writes a
+few verifiable nets, on the smallest tasks, and no verifiable sequent proof. The Lean-scale continuation,
 [proof-graphs](https://github.com/fushanbobfan/proof-graphs), finds that Lean's first-goal convention already
 absorbs that redundancy. The open theorem targets are stated in the
 [goal ledger](docs/goal-ledger.md): whole-program linearity (D6-linear), with

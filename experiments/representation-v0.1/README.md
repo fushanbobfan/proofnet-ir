@@ -44,8 +44,8 @@ a local server, which is not deterministic across hardware or server builds.
   negatives it emitted a proof-shaped object that Lean rejected, and 55 of
   its 180 answers were unparseable, mostly truncated at the token budget
   (43 of the 60 depth-4 answers hit 1,024 tokens). The dominant rejection
-  is position bookkeeping: 51 proposals apply a tensor rule at a position
-  that does not hold a tensor.
+  is position bookkeeping: 100 of the 180 proposals (51 on positives) apply a
+  tensor rule at a position that does not hold a tensor.
 - Net arm: 7 valid nets on the 90 positives (6 of the 10 depth-2 unique
   tasks, 1 of the 10 depth-2 two-label tasks, none at depth 3 or 4), with a
   median of 22 tokens; 64 of 90 negatives answered `unprovable`. That
@@ -57,7 +57,7 @@ a local server, which is not deterministic across hardware or server builds.
 
 Interpretation: under this budget and without thinking, the net format is
 the only representation this model produces validly at all, and only on the
-smallest unique-label sequents; the sequent-proof format collapses on the
+smallest sequents, six of the seven with unique labels; the sequent-proof format collapses on the
 position bookkeeping that proof nets do not require. This is a statement
 about one quantized model and one prompt design on unit-free, cut-free MLL,
 and it claims no general model or proof-net advantage.

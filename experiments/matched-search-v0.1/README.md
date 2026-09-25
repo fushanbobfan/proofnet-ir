@@ -54,13 +54,15 @@ No arm ever gave a wrong answer. H4, H5, and H6 all hold as registered.
   32-atom positives after a median of 49,780 candidate linkings, and on the
   16-atom negatives already needs a median of 3.0 s; `focusedBalanced`
   proves every 32-atom positive in a median of 0.3 ms.
-- Balance pruning never loses to the committed baseline, and it is what makes
-  sequent search viable at 32 atoms.
+- Balance pruning never loses to the committed baseline; at 32 atoms it is
+  what lets sequent search decide the unique-label tasks (without it, 39 of
+  the 40 one-label and 31 of the 40 two-label positives are still proved).
 
 Read together with step 1: proof nets remove all rule-order redundancy,
 which grows to five orders of magnitude at 32 atoms, and replace it by
 linking redundancy, which is nil when labels are unique and factorial when
-they repeat. Which family wins is decided by label repetition, not by the
-size of the sequent. A search for a proof assistant would have to combine
+they repeat. At 32 atoms, which family wins is decided by label repetition;
+at 8 and 16 atoms all three searches decide nearly every task (`nets` misses
+one 16-atom one-label negative). A search for a proof assistant would have to combine
 both prunings. This is a statement about two search families on unit-free,
 cut-free MLL sequents; it claims nothing about Lean or Mathlib.

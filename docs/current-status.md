@@ -336,11 +336,11 @@ derivation per net on 81.8% of tasks (`experiments/redundancy-v0.1`). Step 2
 is done: under equal information and one budget, net-space search decides
 every unique-label task where sequent search times out, and times out on
 every one-label 32-atom task that pruned sequent search proves in
-milliseconds (`experiments/matched-search-v0.1`); which family wins is
-decided by label repetition. Step 3 is done: the same local model, given one
+milliseconds (`experiments/matched-search-v0.1`); at 32 atoms, which family
+wins is decided by label repetition. Step 3 is done: the same local model, given one
 rendering and asked for either a sequent proof or a proof net, produced no
 Lean-verified proof in 180 answers and seven verified nets, all on the
-smallest unique-label tasks (`experiments/representation-v0.1`). The three
+smallest tasks, six of them with unique labels (`experiments/representation-v0.1`). The three
 preregistered steps of the program are complete. Beyond MLL, the question
 was taken to Lean's scale in [proof-graphs](https://github.com/fushanbobfan/proof-graphs): Lean's first-goal
 convention already absorbs rule-order redundancy, and searching over goals
