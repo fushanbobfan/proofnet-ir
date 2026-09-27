@@ -1,0 +1,89 @@
+{
+ "arms": {
+  "focused": "matched-search-v0.1's arm, unchanged",
+  "focusedBalanced": "matched-search-v0.1's arm, unchanged",
+  "focusedStrict": "Andreoli-focused search: eager pars, a positive formula kept in focus through its tensors, a positive atom in focus closing only against exactly its dual, negative formulas released; every branch must be balanced per name and satisfy 2 * tensors + 2 = atoms, and the context splits of a tensor are enumerated as multisets under both",
+  "nets": "matched-search-v0.1's arm, unchanged",
+  "netsPruned": "axiom-linking search refuting unbalanced sequents and those with a tensor count other than atoms / 2 - 1 at once; Danos's contraction applied after every axiom, abandoning a partial net with a cycle in some switching; the unlinked atom with the fewest partners outside its node linked first; each complete linking decided by Certificate.unificationCheck"
+ },
+ "budget": {
+  "machine": "the run shares the machine with other experiments, among them proof-graphs' search-v0.8 (eight Lean REPL workers and a local language-model server); outcomes far from the budget do not depend on it, and timings are reported as measured",
+  "process": "proofnet_ir_matched_search runs the three v0.1 arms on every task, then proofnet_ir_pruned_search runs netsPruned and focusedStrict; each process runs its arms sequentially per task on one core",
+  "wallClockMsPerArmPerTask": 5000
+ },
+ "certificationNote": "focusedStrict certified the count-preserving negatives that have no countermodel, before this registration; its refutations of those negatives are therefore not an independent measurement, and no hypothesis rests on them",
+ "checks": {
+  "C15": "every connective-flip negative violates 2 * tensors + 2 = atoms, so it is refutable in linear time; netsPruned refutes each at its root check",
+  "C16": "every count-preserving negative is balanced, satisfies the count, and carries a countermodel that verifies or a focusedStrict refutation",
+  "C17": "no arm gives a wrong answer"
+ },
+ "corpus": {
+  "candidatesTimedOutDuringCertification": 0,
+  "countNegativeCertificates": {
+   "countermodel": 90,
+   "search": 253
+  },
+  "countNegativeFamilies": {
+   "shuffle": 69,
+   "swap": 274
+  },
+  "countNegatives": "for each positive, the first unprovable candidate among the exchanges of one tensor with one par (tensors, then pars, in preorder) and then up to 1000 shuffles of its atom occurrences seeded by 10 * seed + label mode index; unprovability certified by a countermodel in the Lukasiewicz chain {0..m}, m = 1..4, searched exhaustively over at most 65536 valuations, or else by focusedStrict refuting the candidate within 60000 ms",
+  "path": "experiments/matched-search-v0.2/corpus.jsonl",
+  "positivesAndFlips": "matched-search-v0.1's corpus, unchanged",
+  "sha256": "1af171e0c6272674e211ab50e7bcf494dd60b5ded13f2c74ebc4b70eaa4cc029",
+  "strata": {
+   "atoms-16:one-label:negative-count": 40,
+   "atoms-16:one-label:negative-flip": 40,
+   "atoms-16:one-label:positive": 40,
+   "atoms-16:two-label:negative-count": 40,
+   "atoms-16:two-label:negative-flip": 40,
+   "atoms-16:two-label:positive": 40,
+   "atoms-16:unique:negative-count": 40,
+   "atoms-16:unique:negative-flip": 40,
+   "atoms-16:unique:positive": 40,
+   "atoms-32:one-label:negative-count": 30,
+   "atoms-32:one-label:positive": 40,
+   "atoms-32:two-label:negative-count": 40,
+   "atoms-32:two-label:positive": 40,
+   "atoms-32:unique:negative-count": 40,
+   "atoms-32:unique:negative-flip": 40,
+   "atoms-32:unique:positive": 40,
+   "atoms-8:one-label:negative-count": 33,
+   "atoms-8:one-label:negative-flip": 40,
+   "atoms-8:one-label:positive": 40,
+   "atoms-8:two-label:negative-count": 40,
+   "atoms-8:two-label:negative-flip": 40,
+   "atoms-8:two-label:positive": 40,
+   "atoms-8:unique:negative-count": 40,
+   "atoms-8:unique:negative-flip": 40,
+   "atoms-8:unique:positive": 40
+  },
+  "taskCount": 983
+ },
+ "developmentChecksBeforeRegistration": [
+  "14 hand-made sequents through all five arms, every outcome correct",
+  "a development set of 24 generated bases (seeds 900000 onward, eight per depth) in three label modes: all five arms, twice (before and after Danos's contraction was added to netsPruned), no wrong answer",
+  "a forward-checking variant of netsPruned's partner choice, tried on the development positives and dropped (6 of 16 32-atom repeated-label positives without it, 5 with it)",
+  "yields of candidate families on the development positives: swaps, polarity exchanges, and shuffles, decided by focusedStrict at 20 s without a timeout",
+  "the final pipeline end to end on the development set: 213 tasks with 69 count-preserving negatives (3 one-label positives without one), no candidate timed out, no wrong answer"
+ ],
+ "experiment": "matched-search-v0.2",
+ "hypotheses": {
+  "H10": "netsPruned refutes fewer than half of the 32-atom one-label count-preserving negatives",
+  "H7": "netsPruned decides at least as many tasks as nets in every stratum, and finds more positives than nets in each of the 32-atom two-label and one-label strata",
+  "H8": "focusedStrict decides at least as many tasks as focusedBalanced in every stratum",
+  "H9": "in the 32-atom one-label positives, focusedStrict finds more tasks than netsPruned: label repetition still reverses the ranking when both searches are pruned"
+ },
+ "implementationSha256": {
+  "baseGenerator": "e51a7e98e7055e7136d0fdda11c09f657efd6b51db0316ff6523a5c22efb0fa1",
+  "prunedArms": "6ce0f5158bc601caab678f432bbd7a2bd837cbed3b447b2b46d344d3c81e6683",
+  "runner": "a85d44a895cfd188b2ff12add973381295975bfc282c302f0f304a83ee3681d7",
+  "v01Arms": "7e4eee7de0b0b58fc00a3b3c30321cfdb356a58b36981420a50b16934d2a8e2c"
+ },
+ "input": "every arm receives only the sequent",
+ "outcomes": "found, refuted (search exhausted without a proof), timeout",
+ "question": "when both search spaces get their standard pruning, does label repetition still reverse the ranking of net-space and sequent search, and how do the searches fare on negatives that pass the linear-time necessary conditions and are certified without the evaluated net searches",
+ "registeredLocalDate": "2026-09-27 America/Los_Angeles",
+ "resultsAbsentAtRegistration": true,
+ "tests": "exact sign tests on discordant tasks for H7 and H9 are reported with the counts; the hypotheses are decided by the counts as stated"
+}
