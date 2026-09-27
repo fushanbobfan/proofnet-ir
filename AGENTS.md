@@ -1,8 +1,10 @@
 # Agent notes
 
 Start with [docs/current-status.md](docs/current-status.md) (revision,
-verification receipts, open gates) and [docs/goal-ledger.md](docs/goal-ledger.md)
-(every claim with its evidence). Development commands and gates are in
+verification receipts, open gates), [docs/goal-ledger.md](docs/goal-ledger.md)
+(every claim with its evidence), and
+[docs/claims-manifest.md](docs/claims-manifest.md) (premises, theorems,
+executables, cost model, revision). Development commands and gates are in
 [CONTRIBUTING.md](CONTRIBUTING.md); `.github/workflows/ci.yml` is
 authoritative. The Lean-scale continuation, and the handoff notes of
 2026-09-22 covering both repositories, are in

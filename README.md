@@ -473,6 +473,7 @@ downstream execution.
 
 - [Tutorial](docs/tutorial.md): dependency setup and executable examples
 - [Current status](docs/current-status.md): one replaceable rolling checkpoint
+- [Claims manifest](docs/claims-manifest.md): what is proved, on which premises, at which revision
 - [API reference](docs/api-reference.md): generated public declarations
 - [Contributing](CONTRIBUTING.md): build, tests, audits, and change workflow
 
