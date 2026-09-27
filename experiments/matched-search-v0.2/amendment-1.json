@@ -1,0 +1,10 @@
+{
+ "amendment": 1,
+ "date": "2026-09-27 America/Los_Angeles",
+ "scope": "labels only: the hypotheses' statements, the corpus, the arms, the budget, the analysis, and the checks are unchanged",
+ "observation": "The program numbers its hypotheses once across proofnet-ir and proof-graphs: H1 to H9 are proofnet-ir's (representation-v0.1 holds H7 to H9) and H10 to H67 proof-graphs'. The registration labelled this experiment's hypotheses H7 to H10, which collide with representation-v0.1's H7 to H9 and proof-graphs' H10.",
+ "change": "The summary and report label the registered H7, H8, H9, and H10 as H68, H69, H70, and H71, and the runner gains a --summarize mode that rewrites the summary and report from the committed results. preregistration.json is unchanged and keeps the registered labels.",
+ "resultsSeenBeforeAmendment": "none: the run had started and its partial output file existed, but no result, summary, or progress line with an outcome had been read",
+ "implementationSha256BeforeAmendment": {"runner": "a85d44a895cfd188b2ff12add973381295975bfc282c302f0f304a83ee3681d7"},
+ "implementationSha256AfterAmendment": {"runner": "6b26c3c5d03820bb81e22115c431054c9d46a95122c5c066f11859e3024b4598"}
+}

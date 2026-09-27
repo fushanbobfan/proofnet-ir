@@ -411,12 +411,12 @@ def summarize(rows: list[dict[str, Any]], tasks: list[dict[str, Any]]) -> dict[s
                          for arm in ARMS},
         "strata": per_stratum,
         "hypotheses": {
-            "H7": {"decidedAtLeastEverywhere": h7_every, "morePositivesOnRepeated32": h7_more, "tests": h7_tests,
+            "H68": {"decidedAtLeastEverywhere": h7_every, "morePositivesOnRepeated32": h7_more, "tests": h7_tests,
                    "supported": bool(h7_every and h7_more)},
-            "H8": {"supported": h8_every, "test": paired(rows, "focusedStrict", "focusedBalanced", "found")
+            "H69": {"supported": h8_every, "test": paired(rows, "focusedStrict", "focusedBalanced", "found")
                    | {"refuted": paired(rows, "focusedStrict", "focusedBalanced", "refuted")}},
-            "H9": {"supported": h9["firstCount"] > h9["secondCount"], "test": h9},
-            "H10": {"negatives": len(count_one32), "refutedByNetsPruned": refuted_by_nets,
+            "H70": {"supported": h9["firstCount"] > h9["secondCount"], "test": h9},
+            "H71": {"negatives": len(count_one32), "refutedByNetsPruned": refuted_by_nets,
                     "supported": bool(count_one32) and 2 * refuted_by_nets < len(count_one32)},
         },
         "checks": {
@@ -581,15 +581,16 @@ def write_report(summary: dict[str, Any]) -> None:
         lines.append(f"| {name} | {entry['tasks']} | " + " | ".join(cells) + " |")
     h = summary["hypotheses"]
     lines += ["", "## Hypotheses", "",
-              f"- H7 (netsPruned decides at least as many as nets everywhere and finds more 32-atom repeated-label "
-              f"positives): supported: {h['H7']['supported']}; tests: "
-              + "; ".join(f"{t['firstCount']} vs {t['secondCount']} (one-sided p {t['oneSidedP']:.3g})" for t in h["H7"]["tests"]) + ".",
-              f"- H8 (focusedStrict decides at least as many as focusedBalanced everywhere): supported: {h['H8']['supported']}.",
-              f"- H9 (focusedStrict finds more 32-atom one-label positives than netsPruned): supported: "
-              f"{h['H9']['supported']}; {h['H9']['test']['firstCount']} vs {h['H9']['test']['secondCount']} "
-              f"(one-sided p {h['H9']['test']['oneSidedP']:.3g}).",
-              f"- H10 (netsPruned refutes fewer than half of the 32-atom one-label count-preserving negatives): "
-              f"supported: {h['H10']['supported']}; {h['H10']['refutedByNetsPruned']} of {h['H10']['negatives']}.",
+              "Registered as H7 to H10; relabeled H68 to H71 by `amendment-1.json`, statements unchanged.", "",
+              f"- H68 (netsPruned decides at least as many as nets everywhere and finds more 32-atom repeated-label "
+              f"positives): supported: {h['H68']['supported']}; tests: "
+              + "; ".join(f"{t['firstCount']} vs {t['secondCount']} (one-sided p {t['oneSidedP']:.3g})" for t in h["H68"]["tests"]) + ".",
+              f"- H69 (focusedStrict decides at least as many as focusedBalanced everywhere): supported: {h['H69']['supported']}.",
+              f"- H70 (focusedStrict finds more 32-atom one-label positives than netsPruned): supported: "
+              f"{h['H70']['supported']}; {h['H70']['test']['firstCount']} vs {h['H70']['test']['secondCount']} "
+              f"(one-sided p {h['H70']['test']['oneSidedP']:.3g}).",
+              f"- H71 (netsPruned refutes fewer than half of the 32-atom one-label count-preserving negatives): "
+              f"supported: {h['H71']['supported']}; {h['H71']['refutedByNetsPruned']} of {h['H71']['negatives']}.",
               "", "## Checks", "", f"- C15: {summary['checks']['C15']}", f"- C16: {summary['checks']['C16']}",
               f"- C17: {summary['checks']['C17']}", "", "## Interpretation boundary", "",
               "Unit-free, cut-free MLL sequents under one budget on one machine. focusedStrict certified the",
@@ -616,6 +617,7 @@ def main() -> int:
     mode.add_argument("--register", action="store_true")
     mode.add_argument("--run", action="store_true")
     mode.add_argument("--check-committed", action="store_true")
+    mode.add_argument("--summarize", action="store_true")
     args = parser.parse_args()
 
     if args.dev:
@@ -640,6 +642,13 @@ def main() -> int:
         print(f"registered {len(tasks)} tasks: {PREREG}")
         return 0
     verify_frozen()
+    if args.summarize:
+        rows = [json.loads(line) for line in RESULTS.read_text(encoding="utf-8").splitlines() if line.strip()]
+        summary = summarize(rows, tasks)
+        v1.write_lf(SUMMARY, json.dumps(summary, indent=1) + "\n")
+        write_report(summary)
+        print(json.dumps(summary["hypotheses"])[:2000])
+        return 0
     if args.run:
         rows = compute_results(tasks, run_all(tasks, EXPERIMENT))
         v1.write_lf(RESULTS, "".join(json.dumps(r, separators=(",", ":")) + "\n" for r in rows))
