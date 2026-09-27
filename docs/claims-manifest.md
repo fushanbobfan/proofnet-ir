@@ -76,11 +76,12 @@ for each rule attempt. A linear bound is the open goal D6-linear.
 ## Outside these claims
 
 - Finding a linking. No theorem concerns proof search. In the matched-search
-  executable `ProofNetIRMatchedSearch.lean`, the net arm decides each
-  enumerated linking with `unificationCheck`, while the sequent arms, which
-  reproduce `scripts/focused_search.py`, return a Boolean without building a
-  derivation. Answers are scored against labels fixed by the task generator
-  (positives) and by exhaustive net search (negatives).
+  executables `ProofNetIRMatchedSearch.lean` and `ProofNetIRPrunedSearch.lean`,
+  the net arms decide each complete linking with `unificationCheck`, while the
+  sequent arms return a Boolean without building a derivation. Answers are
+  scored against labels fixed by the task generator (positives), by exhaustive
+  net search (v0.1's negatives), and by a Lukasiewicz countermodel or the
+  focused search (v0.2's count-preserving negatives).
 - Quantifiers, cuts, additives, exponentials, units, and any proof-net
   representation of Lean or Mathlib goals.
 - Time and bytes, and any bound below quadratic.
