@@ -337,7 +337,11 @@ is done: under equal information and one budget, net-space search decides
 every unique-label task where sequent search times out, and times out on
 every one-label 32-atom task that pruned sequent search proves in
 milliseconds (`experiments/matched-search-v0.1`); at 32 atoms, which family
-wins is decided by label repetition. Step 3 is done: the same local model, given one
+wins is decided by label repetition. With both families pruned
+(`experiments/matched-search-v0.2`), strictly focused sequent search decides
+all 983 tasks, while net search with incremental contraction still misses
+about half of the repeated-label 32-atom positives and refutes none of their
+count-preserving negatives. Step 3 is done: the same local model, given one
 rendering and asked for either a sequent proof or a proof net, produced no
 Lean-verified proof in 180 answers and seven verified nets, all on the
 smallest tasks, six of them with unique labels (`experiments/representation-v0.1`). The three

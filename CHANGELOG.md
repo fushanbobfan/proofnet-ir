@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- ran the matched search again with both families pruned
+  (`experiments/matched-search-v0.2`, preregistered in `d23d365`): strictly
+  focused sequent search and linking search checked by Danos's contraction
+  (`proofnet_ir_pruned_search`), on v0.1's tasks plus 343 count-preserving
+  negatives certified without the net arms. H68 to H71 hold: strict focusing
+  decides all 983 tasks, the pruned net search proves 21 of 40 one-label
+  32-atom positives against v0.1's 0 and refutes none of their negatives;
+- added `docs/claims-manifest.md`: premises, theorems, executables, the cost
+  model, and the checked revision in one table;
 - added a compiled-declaration trust gate over every library source module,
   including private helpers and declarations outside the usual namespace;
   the exact curated theorem audit remains in force. Moved three native

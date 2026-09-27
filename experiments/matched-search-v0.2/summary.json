@@ -1,0 +1,1259 @@
+{
+ "experiment": "matched-search-v0.2",
+ "preregistrationSha256": "cf7609daf36d52da846e515fd6a9f945fe29acb164b1bc11559b6bf3615f0a47",
+ "corpusSha256": "1af171e0c6272674e211ab50e7bcf494dd60b5ded13f2c74ebc4b70eaa4cc029",
+ "budgetMs": 5000,
+ "tasks": 983,
+ "wrongAnswers": {
+  "focused": 0,
+  "focusedBalanced": 0,
+  "nets": 0,
+  "netsPruned": 0,
+  "focusedStrict": 0
+ },
+ "strata": {
+  "atoms-16:one-label:negative-count": {
+   "tasks": 40,
+   "families": {
+    "swap": 34,
+    "shuffle": 6
+   },
+   "certifiedBy": {
+    "countermodel": 14,
+    "search": 26
+   },
+   "focused": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 24.64415,
+    "maxElapsedMs": 115.9113
+   },
+   "focusedBalanced": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 3.0519499999999997,
+    "maxElapsedMs": 11.0185
+   },
+   "nets": {
+    "found": 0,
+    "refuted": 19,
+    "timeout": 21,
+    "wrong": 0,
+    "medianElapsedMs": 5000.2394,
+    "maxElapsedMs": 5003.3611
+   },
+   "netsPruned": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 288.84105,
+    "maxElapsedMs": 1484.5668
+   },
+   "focusedStrict": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 0.2844,
+    "maxElapsedMs": 0.7576
+   }
+  },
+  "atoms-16:one-label:negative-flip": {
+   "tasks": 40,
+   "focused": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 93.01915,
+    "maxElapsedMs": 323.5367
+   },
+   "focusedBalanced": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 15.5104,
+    "maxElapsedMs": 39.1449
+   },
+   "nets": {
+    "found": 0,
+    "refuted": 21,
+    "timeout": 19,
+    "wrong": 0,
+    "medianElapsedMs": 4727.086499999999,
+    "maxElapsedMs": 5005.4949
+   },
+   "netsPruned": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 0.0383,
+    "maxElapsedMs": 0.0434
+   },
+   "focusedStrict": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 0.01335,
+    "maxElapsedMs": 0.0167
+   }
+  },
+  "atoms-16:one-label:positive": {
+   "tasks": 40,
+   "focused": {
+    "found": 40,
+    "refuted": 0,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 0.34165,
+    "maxElapsedMs": 18.6383
+   },
+   "focusedBalanced": {
+    "found": 40,
+    "refuted": 0,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 0.14635,
+    "maxElapsedMs": 2.8772
+   },
+   "nets": {
+    "found": 40,
+    "refuted": 0,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 297.3839,
+    "maxElapsedMs": 1774.0931
+   },
+   "netsPruned": {
+    "found": 40,
+    "refuted": 0,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 0.8373999999999999,
+    "maxElapsedMs": 258.2983
+   },
+   "focusedStrict": {
+    "found": 40,
+    "refuted": 0,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 0.09570000000000001,
+    "maxElapsedMs": 0.5875
+   }
+  },
+  "atoms-16:two-label:negative-count": {
+   "tasks": 40,
+   "families": {
+    "swap": 38,
+    "shuffle": 2
+   },
+   "certifiedBy": {
+    "countermodel": 10,
+    "search": 30
+   },
+   "focused": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 38.24615,
+    "maxElapsedMs": 273.5607
+   },
+   "focusedBalanced": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 1.6795,
+    "maxElapsedMs": 9.3582
+   },
+   "nets": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 71.6931,
+    "maxElapsedMs": 113.3852
+   },
+   "netsPruned": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 4.3854500000000005,
+    "maxElapsedMs": 92.4335
+   },
+   "focusedStrict": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 0.16515,
+    "maxElapsedMs": 7.4953
+   }
+  },
+  "atoms-16:two-label:negative-flip": {
+   "tasks": 40,
+   "focused": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 192.324,
+    "maxElapsedMs": 1218.8627
+   },
+   "focusedBalanced": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 14.0452,
+    "maxElapsedMs": 59.4084
+   },
+   "nets": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 70.4893,
+    "maxElapsedMs": 141.444
+   },
+   "netsPruned": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 0.03615,
+    "maxElapsedMs": 0.053
+   },
+   "focusedStrict": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 0.0141,
+    "maxElapsedMs": 0.0183
+   }
+  },
+  "atoms-16:two-label:positive": {
+   "tasks": 40,
+   "focused": {
+    "found": 40,
+    "refuted": 0,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 1.65425,
+    "maxElapsedMs": 62.6409
+   },
+   "focusedBalanced": {
+    "found": 40,
+    "refuted": 0,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 0.28995,
+    "maxElapsedMs": 3.417
+   },
+   "nets": {
+    "found": 40,
+    "refuted": 0,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 9.91935,
+    "maxElapsedMs": 40.1447
+   },
+   "netsPruned": {
+    "found": 40,
+    "refuted": 0,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 0.6662,
+    "maxElapsedMs": 4.333
+   },
+   "focusedStrict": {
+    "found": 40,
+    "refuted": 0,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 0.10500000000000001,
+    "maxElapsedMs": 0.5827
+   }
+  },
+  "atoms-16:unique:negative-count": {
+   "tasks": 40,
+   "families": {
+    "swap": 40,
+    "shuffle": 0
+   },
+   "certifiedBy": {
+    "countermodel": 8,
+    "search": 32
+   },
+   "focused": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 271.51914999999997,
+    "maxElapsedMs": 2535.1537
+   },
+   "focusedBalanced": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 3.2683999999999997,
+    "maxElapsedMs": 19.4184
+   },
+   "nets": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 0.26675000000000004,
+    "maxElapsedMs": 0.634
+   },
+   "netsPruned": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 0.05985,
+    "maxElapsedMs": 0.1202
+   },
+   "focusedStrict": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 0.27690000000000003,
+    "maxElapsedMs": 0.756
+   }
+  },
+  "atoms-16:unique:negative-flip": {
+   "tasks": 40,
+   "focused": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 433.96635000000003,
+    "maxElapsedMs": 5068.9097
+   },
+   "focusedBalanced": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 7.64245,
+    "maxElapsedMs": 49.3447
+   },
+   "nets": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 0.27745,
+    "maxElapsedMs": 0.4795
+   },
+   "netsPruned": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 0.03185,
+    "maxElapsedMs": 0.0454
+   },
+   "focusedStrict": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 0.01675,
+    "maxElapsedMs": 0.0293
+   }
+  },
+  "atoms-16:unique:positive": {
+   "tasks": 40,
+   "focused": {
+    "found": 40,
+    "refuted": 0,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 21.14065,
+    "maxElapsedMs": 189.7012
+   },
+   "focusedBalanced": {
+    "found": 40,
+    "refuted": 0,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 0.3442,
+    "maxElapsedMs": 1.1732
+   },
+   "nets": {
+    "found": 40,
+    "refuted": 0,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 0.6003000000000001,
+    "maxElapsedMs": 1.314
+   },
+   "netsPruned": {
+    "found": 40,
+    "refuted": 0,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 0.47745000000000004,
+    "maxElapsedMs": 1.2433
+   },
+   "focusedStrict": {
+    "found": 40,
+    "refuted": 0,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 0.1267,
+    "maxElapsedMs": 0.3398
+   }
+  },
+  "atoms-32:one-label:negative-count": {
+   "tasks": 30,
+   "families": {
+    "swap": 13,
+    "shuffle": 17
+   },
+   "certifiedBy": {
+    "countermodel": 3,
+    "search": 27
+   },
+   "focused": {
+    "found": 0,
+    "refuted": 2,
+    "timeout": 28,
+    "wrong": 0,
+    "medianElapsedMs": 5095.2958,
+    "maxElapsedMs": 6060.1954
+   },
+   "focusedBalanced": {
+    "found": 0,
+    "refuted": 20,
+    "timeout": 10,
+    "wrong": 0,
+    "medianElapsedMs": 3236.0513499999997,
+    "maxElapsedMs": 5989.7393
+   },
+   "nets": {
+    "found": 0,
+    "refuted": 0,
+    "timeout": 30,
+    "wrong": 0,
+    "medianElapsedMs": 5003.0783,
+    "maxElapsedMs": 5010.6914
+   },
+   "netsPruned": {
+    "found": 0,
+    "refuted": 0,
+    "timeout": 30,
+    "wrong": 0,
+    "medianElapsedMs": 5002.89025,
+    "maxElapsedMs": 5010.4782
+   },
+   "focusedStrict": {
+    "found": 0,
+    "refuted": 30,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 15.593700000000002,
+    "maxElapsedMs": 90.892
+   }
+  },
+  "atoms-32:one-label:positive": {
+   "tasks": 40,
+   "focused": {
+    "found": 39,
+    "refuted": 0,
+    "timeout": 1,
+    "wrong": 0,
+    "medianElapsedMs": 1.30015,
+    "maxElapsedMs": 5041.9818
+   },
+   "focusedBalanced": {
+    "found": 40,
+    "refuted": 0,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 0.54855,
+    "maxElapsedMs": 929.6972
+   },
+   "nets": {
+    "found": 0,
+    "refuted": 0,
+    "timeout": 40,
+    "wrong": 0,
+    "medianElapsedMs": 5002.5224,
+    "maxElapsedMs": 5009.3873
+   },
+   "netsPruned": {
+    "found": 21,
+    "refuted": 0,
+    "timeout": 19,
+    "wrong": 0,
+    "medianElapsedMs": 2521.4263499999997,
+    "maxElapsedMs": 5012.0498
+   },
+   "focusedStrict": {
+    "found": 40,
+    "refuted": 0,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 0.35825,
+    "maxElapsedMs": 4.7227
+   }
+  },
+  "atoms-32:two-label:negative-count": {
+   "tasks": 40,
+   "families": {
+    "swap": 22,
+    "shuffle": 18
+   },
+   "certifiedBy": {
+    "countermodel": 0,
+    "search": 40
+   },
+   "focused": {
+    "found": 0,
+    "refuted": 0,
+    "timeout": 40,
+    "wrong": 0,
+    "medianElapsedMs": 5029.427250000001,
+    "maxElapsedMs": 5234.8127
+   },
+   "focusedBalanced": {
+    "found": 0,
+    "refuted": 21,
+    "timeout": 19,
+    "wrong": 0,
+    "medianElapsedMs": 3299.51755,
+    "maxElapsedMs": 5566.2762
+   },
+   "nets": {
+    "found": 0,
+    "refuted": 0,
+    "timeout": 40,
+    "wrong": 0,
+    "medianElapsedMs": 5001.4400000000005,
+    "maxElapsedMs": 5014.0221
+   },
+   "netsPruned": {
+    "found": 0,
+    "refuted": 0,
+    "timeout": 40,
+    "wrong": 0,
+    "medianElapsedMs": 5002.47825,
+    "maxElapsedMs": 5012.9455
+   },
+   "focusedStrict": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 26.06895,
+    "maxElapsedMs": 142.7295
+   }
+  },
+  "atoms-32:two-label:positive": {
+   "tasks": 40,
+   "focused": {
+    "found": 30,
+    "refuted": 0,
+    "timeout": 10,
+    "wrong": 0,
+    "medianElapsedMs": 136.8862,
+    "maxElapsedMs": 5137.1717
+   },
+   "focusedBalanced": {
+    "found": 40,
+    "refuted": 0,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 2.1664000000000003,
+    "maxElapsedMs": 4053.984
+   },
+   "nets": {
+    "found": 2,
+    "refuted": 0,
+    "timeout": 38,
+    "wrong": 0,
+    "medianElapsedMs": 5001.807049999999,
+    "maxElapsedMs": 5011.9708
+   },
+   "netsPruned": {
+    "found": 18,
+    "refuted": 0,
+    "timeout": 22,
+    "wrong": 0,
+    "medianElapsedMs": 5000.2071,
+    "maxElapsedMs": 5006.7287
+   },
+   "focusedStrict": {
+    "found": 40,
+    "refuted": 0,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 0.61815,
+    "maxElapsedMs": 11.3781
+   }
+  },
+  "atoms-32:unique:negative-count": {
+   "tasks": 40,
+   "families": {
+    "swap": 40,
+    "shuffle": 0
+   },
+   "certifiedBy": {
+    "countermodel": 1,
+    "search": 39
+   },
+   "focused": {
+    "found": 0,
+    "refuted": 0,
+    "timeout": 40,
+    "wrong": 0,
+    "medianElapsedMs": 5017.62135,
+    "maxElapsedMs": 5108.3753
+   },
+   "focusedBalanced": {
+    "found": 0,
+    "refuted": 36,
+    "timeout": 4,
+    "wrong": 0,
+    "medianElapsedMs": 1849.0677500000002,
+    "maxElapsedMs": 6031.6479
+   },
+   "nets": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 13.659949999999998,
+    "maxElapsedMs": 22.8574
+   },
+   "netsPruned": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 0.19105,
+    "maxElapsedMs": 8.9193
+   },
+   "focusedStrict": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 12.618200000000002,
+    "maxElapsedMs": 57.969
+   }
+  },
+  "atoms-32:unique:negative-flip": {
+   "tasks": 40,
+   "focused": {
+    "found": 0,
+    "refuted": 0,
+    "timeout": 40,
+    "wrong": 0,
+    "medianElapsedMs": 5012.0986,
+    "maxElapsedMs": 5229.5167
+   },
+   "focusedBalanced": {
+    "found": 0,
+    "refuted": 34,
+    "timeout": 6,
+    "wrong": 0,
+    "medianElapsedMs": 3355.4138000000003,
+    "maxElapsedMs": 6563.5497
+   },
+   "nets": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 17.62975,
+    "maxElapsedMs": 27.1908
+   },
+   "netsPruned": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 0.11185,
+    "maxElapsedMs": 0.1319
+   },
+   "focusedStrict": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 0.033049999999999996,
+    "maxElapsedMs": 0.0471
+   }
+  },
+  "atoms-32:unique:positive": {
+   "tasks": 40,
+   "focused": {
+    "found": 3,
+    "refuted": 0,
+    "timeout": 37,
+    "wrong": 0,
+    "medianElapsedMs": 5011.34465,
+    "maxElapsedMs": 5199.4857
+   },
+   "focusedBalanced": {
+    "found": 40,
+    "refuted": 0,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 25.67975,
+    "maxElapsedMs": 1112.7577
+   },
+   "nets": {
+    "found": 40,
+    "refuted": 0,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 3.0326000000000004,
+    "maxElapsedMs": 19.6033
+   },
+   "netsPruned": {
+    "found": 40,
+    "refuted": 0,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 2.4509,
+    "maxElapsedMs": 6.5854
+   },
+   "focusedStrict": {
+    "found": 40,
+    "refuted": 0,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 1.0552,
+    "maxElapsedMs": 16.3088
+   }
+  },
+  "atoms-8:one-label:negative-count": {
+   "tasks": 33,
+   "families": {
+    "swap": 18,
+    "shuffle": 15
+   },
+   "certifiedBy": {
+    "countermodel": 25,
+    "search": 8
+   },
+   "focused": {
+    "found": 0,
+    "refuted": 33,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 0.1529,
+    "maxElapsedMs": 0.4751
+   },
+   "focusedBalanced": {
+    "found": 0,
+    "refuted": 33,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 0.0554,
+    "maxElapsedMs": 0.124
+   },
+   "nets": {
+    "found": 0,
+    "refuted": 33,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 1.1787,
+    "maxElapsedMs": 1.7301
+   },
+   "netsPruned": {
+    "found": 0,
+    "refuted": 33,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 0.0635,
+    "maxElapsedMs": 0.6498
+   },
+   "focusedStrict": {
+    "found": 0,
+    "refuted": 33,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 0.0238,
+    "maxElapsedMs": 0.0424
+   }
+  },
+  "atoms-8:one-label:negative-flip": {
+   "tasks": 40,
+   "focused": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 0.5547,
+    "maxElapsedMs": 0.6679
+   },
+   "focusedBalanced": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 0.26125,
+    "maxElapsedMs": 0.3016
+   },
+   "nets": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 1.29415,
+    "maxElapsedMs": 2.5984
+   },
+   "netsPruned": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 0.0117,
+    "maxElapsedMs": 0.0285
+   },
+   "focusedStrict": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 0.0073,
+    "maxElapsedMs": 0.0078
+   }
+  },
+  "atoms-8:one-label:positive": {
+   "tasks": 40,
+   "focused": {
+    "found": 40,
+    "refuted": 0,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 0.046549999999999994,
+    "maxElapsedMs": 0.2825
+   },
+   "focusedBalanced": {
+    "found": 40,
+    "refuted": 0,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 0.0381,
+    "maxElapsedMs": 0.1058
+   },
+   "nets": {
+    "found": 40,
+    "refuted": 0,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 0.42874999999999996,
+    "maxElapsedMs": 1.4205
+   },
+   "netsPruned": {
+    "found": 40,
+    "refuted": 0,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 0.17275000000000001,
+    "maxElapsedMs": 0.3224
+   },
+   "focusedStrict": {
+    "found": 40,
+    "refuted": 0,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 0.025,
+    "maxElapsedMs": 0.0989
+   }
+  },
+  "atoms-8:two-label:negative-count": {
+   "tasks": 40,
+   "families": {
+    "swap": 29,
+    "shuffle": 11
+   },
+   "certifiedBy": {
+    "countermodel": 23,
+    "search": 17
+   },
+   "focused": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 0.24185,
+    "maxElapsedMs": 0.8769
+   },
+   "focusedBalanced": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 0.05875,
+    "maxElapsedMs": 0.201
+   },
+   "nets": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 0.2034,
+    "maxElapsedMs": 1.994
+   },
+   "netsPruned": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 0.03035,
+    "maxElapsedMs": 0.2366
+   },
+   "focusedStrict": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 0.02425,
+    "maxElapsedMs": 0.0722
+   }
+  },
+  "atoms-8:two-label:negative-flip": {
+   "tasks": 40,
+   "focused": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 0.77485,
+    "maxElapsedMs": 1.0937
+   },
+   "focusedBalanced": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 0.3124,
+    "maxElapsedMs": 0.3663
+   },
+   "nets": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 0.25980000000000003,
+    "maxElapsedMs": 0.6918
+   },
+   "netsPruned": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 0.01155,
+    "maxElapsedMs": 0.0133
+   },
+   "focusedStrict": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 0.0075,
+    "maxElapsedMs": 0.0083
+   }
+  },
+  "atoms-8:two-label:positive": {
+   "tasks": 40,
+   "focused": {
+    "found": 40,
+    "refuted": 0,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 0.07005,
+    "maxElapsedMs": 0.3243
+   },
+   "focusedBalanced": {
+    "found": 40,
+    "refuted": 0,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 0.04345,
+    "maxElapsedMs": 0.1028
+   },
+   "nets": {
+    "found": 40,
+    "refuted": 0,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 0.23695,
+    "maxElapsedMs": 0.3809
+   },
+   "netsPruned": {
+    "found": 40,
+    "refuted": 0,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 0.1662,
+    "maxElapsedMs": 0.3192
+   },
+   "focusedStrict": {
+    "found": 40,
+    "refuted": 0,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 0.02885,
+    "maxElapsedMs": 0.1023
+   }
+  },
+  "atoms-8:unique:negative-count": {
+   "tasks": 40,
+   "families": {
+    "swap": 40,
+    "shuffle": 0
+   },
+   "certifiedBy": {
+    "countermodel": 6,
+    "search": 34
+   },
+   "focused": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 0.6131500000000001,
+    "maxElapsedMs": 1.5139
+   },
+   "focusedBalanced": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 0.10105,
+    "maxElapsedMs": 0.3296
+   },
+   "nets": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 0.05395,
+    "maxElapsedMs": 0.1776
+   },
+   "netsPruned": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 0.019799999999999998,
+    "maxElapsedMs": 0.0294
+   },
+   "focusedStrict": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 0.0338,
+    "maxElapsedMs": 0.0622
+   }
+  },
+  "atoms-8:unique:negative-flip": {
+   "tasks": 40,
+   "focused": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 0.92245,
+    "maxElapsedMs": 1.0726
+   },
+   "focusedBalanced": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 0.29059999999999997,
+    "maxElapsedMs": 0.3274
+   },
+   "nets": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 0.07805000000000001,
+    "maxElapsedMs": 0.1907
+   },
+   "netsPruned": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 0.0108,
+    "maxElapsedMs": 0.0258
+   },
+   "focusedStrict": {
+    "found": 0,
+    "refuted": 40,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 0.0084,
+    "maxElapsedMs": 0.0198
+   }
+  },
+  "atoms-8:unique:positive": {
+   "tasks": 40,
+   "focused": {
+    "found": 40,
+    "refuted": 0,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 0.0829,
+    "maxElapsedMs": 0.338
+   },
+   "focusedBalanced": {
+    "found": 40,
+    "refuted": 0,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 0.0455,
+    "maxElapsedMs": 0.0786
+   },
+   "nets": {
+    "found": 40,
+    "refuted": 0,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 0.1993,
+    "maxElapsedMs": 0.3983
+   },
+   "netsPruned": {
+    "found": 40,
+    "refuted": 0,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 0.17304999999999998,
+    "maxElapsedMs": 0.422
+   },
+   "focusedStrict": {
+    "found": 40,
+    "refuted": 0,
+    "timeout": 0,
+    "wrong": 0,
+    "medianElapsedMs": 0.034,
+    "maxElapsedMs": 0.4156
+   }
+  }
+ },
+ "hypotheses": {
+  "H68": {
+   "decidedAtLeastEverywhere": true,
+   "morePositivesOnRepeated32": true,
+   "tests": [
+    {
+     "first": "netsPruned",
+     "second": "nets",
+     "outcome": "found",
+     "tasks": 40,
+     "firstCount": 18,
+     "secondCount": 2,
+     "firstOnly": 16,
+     "secondOnly": 0,
+     "oneSidedP": 1.52587890625e-05,
+     "twoSidedP": 3.0517578125e-05
+    },
+    {
+     "first": "netsPruned",
+     "second": "nets",
+     "outcome": "found",
+     "tasks": 40,
+     "firstCount": 21,
+     "secondCount": 0,
+     "firstOnly": 21,
+     "secondOnly": 0,
+     "oneSidedP": 4.76837158203125e-07,
+     "twoSidedP": 9.5367431640625e-07
+    }
+   ],
+   "supported": true
+  },
+  "H69": {
+   "supported": true,
+   "test": {
+    "first": "focusedStrict",
+    "second": "focusedBalanced",
+    "outcome": "found",
+    "tasks": 983,
+    "firstCount": 360,
+    "secondCount": 360,
+    "firstOnly": 0,
+    "secondOnly": 0,
+    "oneSidedP": 1.0,
+    "twoSidedP": 1.0,
+    "refuted": {
+     "first": "focusedStrict",
+     "second": "focusedBalanced",
+     "outcome": "refuted",
+     "tasks": 983,
+     "firstCount": 623,
+     "secondCount": 584,
+     "firstOnly": 39,
+     "secondOnly": 0,
+     "oneSidedP": 1.8189894035458565e-12,
+     "twoSidedP": 3.637978807091713e-12
+    }
+   }
+  },
+  "H70": {
+   "supported": true,
+   "test": {
+    "first": "focusedStrict",
+    "second": "netsPruned",
+    "outcome": "found",
+    "tasks": 40,
+    "firstCount": 40,
+    "secondCount": 21,
+    "firstOnly": 19,
+    "secondOnly": 0,
+    "oneSidedP": 1.9073486328125e-06,
+    "twoSidedP": 3.814697265625e-06
+   }
+  },
+  "H71": {
+   "negatives": 30,
+   "refutedByNetsPruned": 0,
+   "supported": true
+  }
+ },
+ "checks": {
+  "C15": {
+   "flipNegatives": 280,
+   "violatingCount": 280,
+   "refutedAtRootByNetsPruned": 280,
+   "holds": true
+  },
+  "C16": {
+   "countNegatives": 343,
+   "holds": true
+  },
+  "C17": {
+   "holds": true
+  }
+ },
+ "resultsSha256": "1c9e2a6761fcf4b60253dc4229aed1b30803d56d5ba586738ea60da6acb484bf"
+}

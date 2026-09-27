@@ -27,9 +27,11 @@ latest research surface and are prepared for documented development changes.
 v0.10.0 guarantees below. The v0.11 program answered the founding question by
 measurement ([design](docs/v0.11-design.md)): proof nets remove a rule-order
 redundancy that grows factorially (a median 170,734 sequent derivations per
-net at 32 atoms), at 32 atoms net-space search wins where unique atom labels
-force the linking and loses where labels repeat, and a local model writes a
-few verifiable nets, on the smallest tasks, and no verifiable sequent proof. The Lean-scale continuation,
+net at 32 atoms); at 32 atoms net-space search beats a balanced sequent search
+only where unique atom labels force the linking, and once both are pruned,
+strictly focused sequent search decides every task while net search still
+fails where labels repeat; and a local model writes a few verifiable nets, on
+the smallest tasks, and no verifiable sequent proof. The Lean-scale continuation,
 [proof-graphs](https://github.com/fushanbobfan/proof-graphs), finds that Lean's first-goal convention already
 absorbs that redundancy. The open theorem targets are stated in the
 [goal ledger](docs/goal-ledger.md): whole-program linearity (D6-linear), with
@@ -431,7 +433,8 @@ Use the frozen reports rather than restating results from memory:
 - [matched experiment report](experiments/matched-v0.1/README.md)
 - [model study report](experiments/model-v0.2/report.md)
 - v0.11: [redundancy counts](experiments/redundancy-v0.1/README.md),
-  [matched search](experiments/matched-search-v0.1/README.md),
+  [matched search](experiments/matched-search-v0.1/README.md) and its
+  [pruned rerun](experiments/matched-search-v0.2/README.md),
   [representation study](experiments/representation-v0.1/README.md)
 - [experiment protocol](docs/experiment-protocol.md)
 - [performance boundary](docs/performance.md)
