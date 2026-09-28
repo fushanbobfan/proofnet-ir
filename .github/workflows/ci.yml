@@ -310,6 +310,10 @@ jobs:
         run: python scripts/run_pruned_search.py --check-committed
       - name: Re-verify the committed representation-study proposals
         run: python scripts/run_representation_study.py --check-committed
+      - name: Re-verify the committed representation-v0.2 proposals
+        run: |
+          python scripts/run_representation_v2.py --self-test
+          python scripts/run_representation_v2.py --check-committed
       - name: Validate model-experiment preregistration
         run: |
           if test -f scripts/validate_model_publication_redaction.py; then

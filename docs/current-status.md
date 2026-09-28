@@ -344,7 +344,9 @@ about half of the repeated-label 32-atom positives and refutes none of their
 count-preserving negatives. Step 3 is done: the same local model, given one
 rendering and asked for either a sequent proof or a proof net, produced no
 Lean-verified proof in 180 answers and seven verified nets, all on the
-smallest tasks, six of them with unique labels (`experiments/representation-v0.1`). The three
+smallest tasks, six of them with unique labels (`experiments/representation-v0.1`). With every
+answer decoded under its format's grammar, eight times the budget, and derivations also written over
+stable labels (`experiments/representation-v0.2`), derivations still verified none and nets six. The three
 preregistered steps of the program are complete. Beyond MLL, the question
 was taken to Lean's scale in [proof-graphs](https://github.com/fushanbobfan/proof-graphs): Lean's first-goal
 convention already absorbs rule-order redundancy, and searching over goals

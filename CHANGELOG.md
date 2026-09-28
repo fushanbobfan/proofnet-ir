@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- ran the representation study again with each answer decoded under its
+  format's grammar, 8,192 completion tokens, and a third arm writing
+  derivations over stable subformula labels (`experiments/representation-v0.2`,
+  preregistered in `6a8eb3b`): no derivation verified in either format, and
+  six nets, all on depth-2 unique-label positives. H73 holds (nets over
+  labelled derivations, p = 0.016), H72 fails (0 against 0), and C18 fails:
+  34 answers ran to the budget;
 - ran the matched search again with both families pruned
   (`experiments/matched-search-v0.2`, preregistered in `d23d365`): strictly
   focused sequent search and linking search checked by Danos's contraction
