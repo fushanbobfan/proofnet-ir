@@ -1,0 +1,74 @@
+{
+ "arms": {
+  "net": "representation-v0.1's axiom linking, prompt and rendering unchanged",
+  "proof": "representation-v0.1's position-based derivation, prompt and rendering unchanged",
+  "proofIds": "the same derivations over stable subformula labels, rendered with every subformula labelled, converted to the position format before Lean verifies them"
+ },
+ "checks": {
+  "C18": "no answer stops at the 8,192-token budget",
+  "C19": "no request fails"
+ },
+ "corpus": {
+  "path": "experiments/model-v0.2/corpus.jsonl",
+  "sha256": "0bb9a950ebb5f3706cd0f0629d668801ae7174e97c6fa9f4f175c7c299d36dc2",
+  "strata": {
+   "depth-2:one-label:negative": 10,
+   "depth-2:one-label:positive": 10,
+   "depth-2:two-label:negative": 10,
+   "depth-2:two-label:positive": 10,
+   "depth-2:unique:negative": 10,
+   "depth-2:unique:positive": 10,
+   "depth-3:one-label:negative": 10,
+   "depth-3:one-label:positive": 10,
+   "depth-3:two-label:negative": 10,
+   "depth-3:two-label:positive": 10,
+   "depth-3:unique:negative": 10,
+   "depth-3:unique:positive": 10,
+   "depth-4:one-label:negative": 10,
+   "depth-4:one-label:positive": 10,
+   "depth-4:two-label:negative": 10,
+   "depth-4:two-label:positive": 10,
+   "depth-4:unique:negative": 10,
+   "depth-4:unique:positive": 10
+  },
+  "taskCount": 180
+ },
+ "developmentChecksBeforeRegistration": [
+  "--self-test: five hand-made labelled derivations, three verified by Lean and two rejected as expected",
+  "--pilot: development sequents outside the corpus (bases at seed 950000; 8 positives and 8 negatives), all three arms: no proposal in any arm verified; the proof and proofIds arms answered provable on all 16 and every derivation was rejected (a rule on a position or label that does not hold its connective, or that names formulas not in the sequent); the net arm answered unprovable on 12 and gave 4 linkings that Lean rejected; no answer reached 1,100 tokens and none failed"
+ ],
+ "experiment": "representation-v0.2",
+ "grammarSha256": {
+  "net": "780afcaccd61651ba3452417c2c3cf093e56955e5035c341bf69344f23330b6f",
+  "proof": "ec0ea05bfd63e552ff207aae7987aebec7d68654cc85928e8e80cd2c9c18ded3",
+  "proofIds": "4b5b65b0403707c2888b4d5f0fdf6f5e5f3f7f3614eeeee229c43e4652831f6b"
+ },
+ "hypotheses": {
+  "H72": "on positives, proofIds has more Lean-verified proposals than proof",
+  "H73": "on positives, net has more Lean-verified proposals than proofIds"
+ },
+ "implementationSha256": {
+  "runner": "8141edb1a5527fb9aed8fd91cc0699b9a34d12885badeb854aba0a7f8e0f8c4f",
+  "v01Runner": "6357ae0e22ecc783ed43c30d6ea44a4d44010afacf2a052f0253b678e822b8e8",
+  "verifier": "012eac819e6de8d1f37f855aa8c6eec6a029c7d0c8f62df9e5583774598b8bea"
+ },
+ "model": {
+  "endpoint": "http://127.0.0.1:8080/v1/chat/completions",
+  "grammar": "each arm's GBNF grammar",
+  "id": "qwen3.6-35b-a3b-ud-q4_k_xl",
+  "maxTokens": 8192,
+  "seed": 20260921,
+  "temperature": 0,
+  "thinking": false
+ },
+ "promptSha256": {
+  "netSystem": "d2a56e381169047934d99ae5dad7ac1d35213f10b94f6f7684def485d6ce0ab1",
+  "proofIdsSystem": "04cee77a2fdb417511d995f25e04dd718c5fdb469094d728663ddfaa3f9199e1",
+  "proofSystem": "99e1c432e44f4be7dd2134ae5ff608f50088388982126cee9822204611dace72"
+ },
+ "question": "does representation-v0.1's lead of nets over derivations survive when derivations use stable labels instead of shifting positions, every answer is decoded under its format's grammar, and the budget is 8,192 tokens",
+ "registeredLocalDate": "2026-09-28 America/Los_Angeles",
+ "report": "per arm: verified positives, unprovable answers on positives and on negatives, unparseable and truncated answers, conversion failures, the rejection reasons, median tokens, and verified positives within 64, 128, ..., 8,192 completion tokens; exact one-sided sign tests on the positives each arm alone verifies",
+ "resultsAbsentAtRegistration": true,
+ "scoring": "as representation-v0.1: a positive is correct only when Lean verifies the proposal, a negative only when the answer is unprovable; a labelled derivation whose rules do not apply to the sequent is invalid without reaching Lean"
+}
