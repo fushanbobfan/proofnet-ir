@@ -1,0 +1,465 @@
+{
+ "experiment": "representation-v0.2",
+ "preregistrationSha256": "395327191a6cf118d611bc49aea8f48d7abcc0d3bc1780f7a57291c15880ef17",
+ "tasks": 180,
+ "positives": 90,
+ "negatives": 90,
+ "arms": {
+  "proof": {
+   "validOnPositives": 0,
+   "unprovableOnPositives": 0,
+   "unprovableOnNegatives": 0,
+   "unparseable": 28,
+   "truncated": 28,
+   "conversionFailures": 0,
+   "errors": 0,
+   "medianTokensValid": null,
+   "medianTokensAll": 222.0,
+   "successByTokens": {
+    "64": 0,
+    "128": 0,
+    "256": 0,
+    "512": 0,
+    "1024": 0,
+    "2048": 0,
+    "4096": 0,
+    "8192": 0
+   },
+   "reasons": {
+    "": 28,
+    "axiom on a sequent that is not two dual atoms": 2,
+    "axiom on non-dual atoms": 7,
+    "left context position out of range": 2,
+    "par position does not hold a par": 3,
+    "tensor position does not hold a tensor": 138
+   }
+  },
+  "proofIds": {
+   "validOnPositives": 0,
+   "unprovableOnPositives": 2,
+   "unprovableOnNegatives": 4,
+   "unparseable": 6,
+   "truncated": 6,
+   "conversionFailures": 167,
+   "errors": 0,
+   "medianTokensValid": null,
+   "medianTokensAll": 158.5,
+   "successByTokens": {
+    "64": 0,
+    "128": 0,
+    "256": 0,
+    "512": 0,
+    "1024": 0,
+    "2048": 0,
+    "4096": 0,
+    "8192": 0
+   },
+   "reasons": {
+    "": 12,
+    "axiom on non-dual atoms": 1,
+    "par on c2, which is not a par": 2,
+    "tensor on 'c0', which is not in the sequent": 3,
+    "tensor on 'c1', which is not in the sequent": 3,
+    "tensor on 'c19', which is not in the sequent": 1,
+    "tensor on 'c2', which is not in the sequent": 4,
+    "tensor on 'c3', which is not in the sequent": 1,
+    "tensor on 'c5', which is not in the sequent": 1,
+    "tensor on 'c9', which is not in the sequent": 1,
+    "tensor on c0 lists formulas not in the sequent": 23,
+    "tensor on c0, which is not a tensor": 6,
+    "tensor on c1 lists formulas not in the sequent": 30,
+    "tensor on c1, which is not a tensor": 10,
+    "tensor on c10 lists formulas not in the sequent": 2,
+    "tensor on c10, which is not a tensor": 1,
+    "tensor on c11, which is not a tensor": 2,
+    "tensor on c15 lists formulas not in the sequent": 7,
+    "tensor on c15, which is not a tensor": 2,
+    "tensor on c17 lists formulas not in the sequent": 3,
+    "tensor on c2 lists formulas not in the sequent": 23,
+    "tensor on c2, which is not a tensor": 3,
+    "tensor on c21, which is not a tensor": 2,
+    "tensor on c3 lists formulas not in the sequent": 3,
+    "tensor on c3, which is not a tensor": 5,
+    "tensor on c4 lists formulas not in the sequent": 6,
+    "tensor on c4, which is not a tensor": 1,
+    "tensor on c5 lists formulas not in the sequent": 1,
+    "tensor on c5, which is not a tensor": 4,
+    "tensor on c6 lists formulas not in the sequent": 7,
+    "tensor on c6, which is not a tensor": 2,
+    "tensor on c7 lists formulas not in the sequent": 2,
+    "tensor on c7, which is not a tensor": 5,
+    "tensor on c9 lists formulas not in the sequent": 1
+   }
+  },
+  "net": {
+   "validOnPositives": 6,
+   "unprovableOnPositives": 59,
+   "unprovableOnNegatives": 69,
+   "unparseable": 0,
+   "truncated": 0,
+   "conversionFailures": 0,
+   "errors": 0,
+   "medianTokensValid": 22.0,
+   "medianTokensAll": 8.0,
+   "successByTokens": {
+    "64": 6,
+    "128": 6,
+    "256": 6,
+    "512": 6,
+    "1024": 6,
+    "2048": 6,
+    "4096": 6,
+    "8192": 6
+   },
+   "reasons": {
+    "": 180
+   }
+  }
+ },
+ "strata": {
+  "depth-2:one-label:negative": {
+   "proof": {
+    "tasks": 10,
+    "valid": 0,
+    "unprovable": 0
+   },
+   "proofIds": {
+    "tasks": 10,
+    "valid": 0,
+    "unprovable": 0
+   },
+   "net": {
+    "tasks": 10,
+    "valid": 0,
+    "unprovable": 10
+   }
+  },
+  "depth-2:one-label:positive": {
+   "proof": {
+    "tasks": 10,
+    "valid": 0,
+    "unprovable": 0
+   },
+   "proofIds": {
+    "tasks": 10,
+    "valid": 0,
+    "unprovable": 0
+   },
+   "net": {
+    "tasks": 10,
+    "valid": 0,
+    "unprovable": 10
+   }
+  },
+  "depth-2:two-label:negative": {
+   "proof": {
+    "tasks": 10,
+    "valid": 0,
+    "unprovable": 0
+   },
+   "proofIds": {
+    "tasks": 10,
+    "valid": 0,
+    "unprovable": 0
+   },
+   "net": {
+    "tasks": 10,
+    "valid": 0,
+    "unprovable": 10
+   }
+  },
+  "depth-2:two-label:positive": {
+   "proof": {
+    "tasks": 10,
+    "valid": 0,
+    "unprovable": 0
+   },
+   "proofIds": {
+    "tasks": 10,
+    "valid": 0,
+    "unprovable": 0
+   },
+   "net": {
+    "tasks": 10,
+    "valid": 0,
+    "unprovable": 10
+   }
+  },
+  "depth-2:unique:negative": {
+   "proof": {
+    "tasks": 10,
+    "valid": 0,
+    "unprovable": 0
+   },
+   "proofIds": {
+    "tasks": 10,
+    "valid": 0,
+    "unprovable": 0
+   },
+   "net": {
+    "tasks": 10,
+    "valid": 0,
+    "unprovable": 9
+   }
+  },
+  "depth-2:unique:positive": {
+   "proof": {
+    "tasks": 10,
+    "valid": 0,
+    "unprovable": 0
+   },
+   "proofIds": {
+    "tasks": 10,
+    "valid": 0,
+    "unprovable": 0
+   },
+   "net": {
+    "tasks": 10,
+    "valid": 6,
+    "unprovable": 0
+   }
+  },
+  "depth-3:one-label:negative": {
+   "proof": {
+    "tasks": 10,
+    "valid": 0,
+    "unprovable": 0
+   },
+   "proofIds": {
+    "tasks": 10,
+    "valid": 0,
+    "unprovable": 0
+   },
+   "net": {
+    "tasks": 10,
+    "valid": 0,
+    "unprovable": 10
+   }
+  },
+  "depth-3:one-label:positive": {
+   "proof": {
+    "tasks": 10,
+    "valid": 0,
+    "unprovable": 0
+   },
+   "proofIds": {
+    "tasks": 10,
+    "valid": 0,
+    "unprovable": 0
+   },
+   "net": {
+    "tasks": 10,
+    "valid": 0,
+    "unprovable": 7
+   }
+  },
+  "depth-3:two-label:negative": {
+   "proof": {
+    "tasks": 10,
+    "valid": 0,
+    "unprovable": 0
+   },
+   "proofIds": {
+    "tasks": 10,
+    "valid": 0,
+    "unprovable": 0
+   },
+   "net": {
+    "tasks": 10,
+    "valid": 0,
+    "unprovable": 5
+   }
+  },
+  "depth-3:two-label:positive": {
+   "proof": {
+    "tasks": 10,
+    "valid": 0,
+    "unprovable": 0
+   },
+   "proofIds": {
+    "tasks": 10,
+    "valid": 0,
+    "unprovable": 0
+   },
+   "net": {
+    "tasks": 10,
+    "valid": 0,
+    "unprovable": 8
+   }
+  },
+  "depth-3:unique:negative": {
+   "proof": {
+    "tasks": 10,
+    "valid": 0,
+    "unprovable": 0
+   },
+   "proofIds": {
+    "tasks": 10,
+    "valid": 0,
+    "unprovable": 0
+   },
+   "net": {
+    "tasks": 10,
+    "valid": 0,
+    "unprovable": 4
+   }
+  },
+  "depth-3:unique:positive": {
+   "proof": {
+    "tasks": 10,
+    "valid": 0,
+    "unprovable": 0
+   },
+   "proofIds": {
+    "tasks": 10,
+    "valid": 0,
+    "unprovable": 0
+   },
+   "net": {
+    "tasks": 10,
+    "valid": 0,
+    "unprovable": 4
+   }
+  },
+  "depth-4:one-label:negative": {
+   "proof": {
+    "tasks": 10,
+    "valid": 0,
+    "unprovable": 0
+   },
+   "proofIds": {
+    "tasks": 10,
+    "valid": 0,
+    "unprovable": 2
+   },
+   "net": {
+    "tasks": 10,
+    "valid": 0,
+    "unprovable": 10
+   }
+  },
+  "depth-4:one-label:positive": {
+   "proof": {
+    "tasks": 10,
+    "valid": 0,
+    "unprovable": 0
+   },
+   "proofIds": {
+    "tasks": 10,
+    "valid": 0,
+    "unprovable": 2
+   },
+   "net": {
+    "tasks": 10,
+    "valid": 0,
+    "unprovable": 10
+   }
+  },
+  "depth-4:two-label:negative": {
+   "proof": {
+    "tasks": 10,
+    "valid": 0,
+    "unprovable": 0
+   },
+   "proofIds": {
+    "tasks": 10,
+    "valid": 0,
+    "unprovable": 1
+   },
+   "net": {
+    "tasks": 10,
+    "valid": 0,
+    "unprovable": 8
+   }
+  },
+  "depth-4:two-label:positive": {
+   "proof": {
+    "tasks": 10,
+    "valid": 0,
+    "unprovable": 0
+   },
+   "proofIds": {
+    "tasks": 10,
+    "valid": 0,
+    "unprovable": 0
+   },
+   "net": {
+    "tasks": 10,
+    "valid": 0,
+    "unprovable": 7
+   }
+  },
+  "depth-4:unique:negative": {
+   "proof": {
+    "tasks": 10,
+    "valid": 0,
+    "unprovable": 0
+   },
+   "proofIds": {
+    "tasks": 10,
+    "valid": 0,
+    "unprovable": 1
+   },
+   "net": {
+    "tasks": 10,
+    "valid": 0,
+    "unprovable": 3
+   }
+  },
+  "depth-4:unique:positive": {
+   "proof": {
+    "tasks": 10,
+    "valid": 0,
+    "unprovable": 0
+   },
+   "proofIds": {
+    "tasks": 10,
+    "valid": 0,
+    "unprovable": 0
+   },
+   "net": {
+    "tasks": 10,
+    "valid": 0,
+    "unprovable": 3
+   }
+  }
+ },
+ "hypotheses": {
+  "H72": {
+   "test": {
+    "first": "proofIds",
+    "second": "proof",
+    "firstValid": 0,
+    "secondValid": 0,
+    "firstOnly": 0,
+    "secondOnly": 0,
+    "oneSidedP": 1.0
+   },
+   "supported": false
+  },
+  "H73": {
+   "test": {
+    "first": "net",
+    "second": "proofIds",
+    "firstValid": 6,
+    "secondValid": 0,
+    "firstOnly": 6,
+    "secondOnly": 0,
+    "oneSidedP": 0.015625
+   },
+   "supported": true
+  }
+ },
+ "checks": {
+  "C18": {
+   "truncated": 34,
+   "holds": false
+  },
+  "C19": {
+   "errors": 0,
+   "holds": true
+  }
+ },
+ "resultsSha256": "f6ad517e2f1fe78ba34c5c3cae7d76747b410b63f8d43fd4e2d4feb8a766d498",
+ "responsesSha256": "0000e8c92821aa879585ff018211c302d795077a466995e53ba7772dedbe1c34"
+}
