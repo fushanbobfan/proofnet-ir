@@ -1,0 +1,83 @@
+{
+ "analysis": "exact one-sided sign test on the tasks that exactly one side of the pair verifies; H74 to H77 are one family, decided by Holm's step-down procedure at family-wise alpha 0.05",
+ "arms": {
+  "net": "representation-v0.2's axiom-linking prompt and rendering",
+  "proof": "representation-v0.2's position-based derivation prompt and rendering",
+  "proofIds": "representation-v0.2's labelled derivation prompt and rendering, converted to positions before Lean verifies it"
+ },
+ "checks": {
+  "C20": "no request fails",
+  "C21": "fewer than 10% of the thinking answers stop at the token limit"
+ },
+ "conditions": {
+  "direct": "thinking off",
+  "thinking": "thinking on at reasoning effort xhigh, with the server's thinking budget of 6144 tokens"
+ },
+ "corpus": {
+  "path": "experiments/model-v0.2/corpus.jsonl",
+  "selection": "the positives",
+  "sha256": "0bb9a950ebb5f3706cd0f0629d668801ae7174e97c6fa9f4f175c7c299d36dc2",
+  "strata": {
+   "depth-2:one-label:positive": 10,
+   "depth-2:two-label:positive": 10,
+   "depth-2:unique:positive": 10,
+   "depth-3:one-label:positive": 10,
+   "depth-3:two-label:positive": 10,
+   "depth-3:unique:positive": 10,
+   "depth-4:one-label:positive": 10,
+   "depth-4:two-label:positive": 10,
+   "depth-4:unique:positive": 10
+  },
+  "taskCount": 90
+ },
+ "developmentChecksBeforeRegistration": [
+  "grammar probe (scratch script, two development positives, all arms, thinking on at xhigh with each arm's grammar): every answer's content was empty, because the server applied the grammar to the whole output and the model could not think; hence no grammar in this study",
+  "--pilot 4, with four concurrent requests: four development positives (bases at seed 950000; depth 2 and 3; unique and one-label names), all arms under both conditions. Without thinking no proposal verified. With thinking 10 of 12 verified (proof 3, proofIds 3 with one unparseable, net 4), with 1,765 to 6,269 completion tokens; the thinking budget ended the thinking of three answers, and none reached the 8,192-token limit"
+ ],
+ "experiment": "representation-v0.3",
+ "hypotheses": {
+  "H74": "with thinking, proofIds has more Lean-verified proposals than proofIds without thinking",
+  "H75": "with thinking, net has more Lean-verified proposals than proofIds",
+  "H76": "with thinking, proofIds has more Lean-verified proposals than net",
+  "H77": "with thinking, proofIds has more Lean-verified proposals than proof"
+ },
+ "implementationSha256": {
+  "runner": "f1403b9be5162e5952d1735dede65d84b765f1efd5a25e2295dac67e24b8a3d8",
+  "v01Runner": "6357ae0e22ecc783ed43c30d6ea44a4d44010afacf2a052f0253b678e822b8e8",
+  "v02Runner": "8141edb1a5527fb9aed8fd91cc0699b9a34d12885badeb854aba0a7f8e0f8c4f",
+  "verifier": "012eac819e6de8d1f37f855aa8c6eec6a029c7d0c8f62df9e5583774598b8bea"
+ },
+ "model": {
+  "concurrentRequests": 6,
+  "endpoint": "http://127.0.0.1:8080/v1/chat/completions",
+  "file": "Qwen3.8-27B-UD-Q4_K_XL.gguf",
+  "grammar": null,
+  "id": "qwen3.8-27b-ud-q4_k_xl",
+  "maxTokens": 8192,
+  "sampling": {
+   "temperature": 0.6,
+   "top_k": 20,
+   "top_p": 0.95
+  },
+  "seed": 20260921,
+  "server": {
+   "context": 122880,
+   "llamaCppBuild": 11193,
+   "parallel": 6,
+   "reasoning": "on",
+   "reasoningBudget": 6144
+  },
+  "sha256": "bee238bbeb3dc0a34bde4d0dedbaee1f98c009e8bb4226f03070054c12fb1372"
+ },
+ "promptSha256": {
+  "netSystem": "d2a56e381169047934d99ae5dad7ac1d35213f10b94f6f7684def485d6ce0ab1",
+  "proofIdsSystem": "04cee77a2fdb417511d995f25e04dd718c5fdb469094d728663ddfaa3f9199e1",
+  "proofSystem": "99e1c432e44f4be7dd2134ae5ff608f50088388982126cee9822204611dace72"
+ },
+ "question": "does a model that thinks before it answers write valid derivations, and does the lead of nets over labelled derivations survive thinking",
+ "registeredLocalDate": "2026-09-28 America/Los_Angeles",
+ "report": "per condition and arm: verified proposals, unprovable and unparseable answers, truncations, conversion failures, rejection reasons, median tokens, and verified proposals by stratum",
+ "reproducibility": "requests run six at a time on one server, so sampled outputs depend on the batch they shared as well as on the seed; the committed responses, not a rerun, are the result",
+ "resultsAbsentAtRegistration": true,
+ "scoring": "as representation-v0.2: a proposal counts when Lean verifies it; a labelled derivation whose rules do not apply to the sequent is invalid without reaching Lean"
+}
