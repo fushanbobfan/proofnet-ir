@@ -14,6 +14,11 @@ effort, with a thinking budget). Both conditions use the same sampling settings,
 No grammar constrains the answers: with thinking on, the server applies a grammar to the whole output, thinking
 included, which leaves no room to think (checked on development sequents before registration).
 
+Amendment 1 (`amendment-1.json`), made before any answer was verified: a response that ends at the token limit in a
+run of one repeated non-whitespace character at least 1,000 long is a server failure. It is set aside in
+`server-failures.jsonl` and its request sent again, at most three times in all. The summary gives the analysis with
+the reruns and, as registered, with each request's first failure in place.
+
 The model server is started with
   start-llama-server.ps1 -Profile qwen38dense -Reasoning on -ReasoningBudget 6144 -Parallel 6 -Ctx 122880
 """
@@ -43,6 +48,8 @@ RESPONSES = EXPERIMENT / "raw-responses.jsonl"
 RESULTS = EXPERIMENT / "results.jsonl"
 SUMMARY = EXPERIMENT / "summary.json"
 REPORT = EXPERIMENT / "report.md"
+AMENDMENT = EXPERIMENT / "amendment-1.json"
+FAILURES = EXPERIMENT / "server-failures.jsonl"
 IMPLEMENTATIONS = {
     "verifier": ROOT / "ProofNetIRRepresentationVerify.lean",
     "v01Runner": ROOT / "scripts" / "run_representation_study.py",
@@ -58,6 +65,8 @@ SAMPLING = {"temperature": 0.6, "top_p": 0.95, "top_k": 20}
 MAX_TOKENS = 8192
 WORKERS = 6
 TIMEOUT_SECONDS = 3600
+FAILURE_RUN = 1000
+ATTEMPTS = 3
 ARMS = v2.ARMS
 CONDITIONS = ("direct", "thinking")
 ALPHA = 0.05
@@ -92,13 +101,55 @@ def call_model(task: dict[str, Any], arm: str, condition: str) -> dict[str, Any]
             "elapsedMs": (time.perf_counter_ns() - started) / 1_000_000, "error": error, "response": result}
 
 
+def server_failure(row: dict[str, Any]) -> bool:
+    """Amendment 1: the output ends at the token limit in a run of one repeated non-whitespace character."""
+    try:
+        choice = row["response"]["choices"][0]
+        message = choice["message"]
+    except (KeyError, IndexError, TypeError):
+        return False
+    tail = ((message.get("reasoning_content") or "") + (message.get("content") or ""))[-FAILURE_RUN:]
+    return (choice.get("finish_reason") == "length" and len(tail) == FAILURE_RUN and len(set(tail)) == 1
+            and not tail.isspace())
+
+
+def load_rows(path: Path) -> list[dict[str, Any]]:
+    if not path.is_file():
+        return []
+    return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
+
+
+def dump_rows(path: Path, rows: list[dict[str, Any]]) -> None:
+    v1.write_lf(path, "".join(json.dumps(r, ensure_ascii=False, separators=(",", ":")) + "\n" for r in rows))
+
+
+def set_aside_failures(responses: dict[tuple[str, str, str], dict[str, Any]], path: Path) -> None:
+    """Amendment 1: move server failures to FAILURES so that their requests are sent again, at most ATTEMPTS times in
+    all. A failure recorded before an interruption left it in `path` as well is not recorded twice."""
+    failures = load_rows(FAILURES)
+    recorded = {json.dumps(r, sort_keys=True) for r in failures}
+    attempts: dict[tuple[str, str, str], int] = {}
+    for r in failures:
+        attempts[(r["id"], r["arm"], r["condition"])] = attempts.get((r["id"], r["arm"], r["condition"]), 0) + 1
+    moved = False
+    for key in sorted(responses):
+        if not server_failure(responses[key]):
+            continue
+        known = json.dumps(responses[key], sort_keys=True) in recorded
+        if attempts.get(key, 0) + (0 if known else 1) < ATTEMPTS:
+            if not known:
+                failures.append(responses[key])
+            del responses[key]
+            moved = True
+    if moved:
+        dump_rows(FAILURES, failures)
+        dump_rows(path, [responses[k] for k in sorted(responses)])
+
+
 def collect(tasks: list[dict[str, Any]], path: Path | None) -> dict[tuple[str, str, str], dict[str, Any]]:
-    responses: dict[tuple[str, str, str], dict[str, Any]] = {}
-    if path and path.is_file():
-        for line in path.read_text(encoding="utf-8").splitlines():
-            if line.strip():
-                row = json.loads(line)
-                responses[(row["id"], row["arm"], row["condition"])] = row
+    responses = {(r["id"], r["arm"], r["condition"]): r for r in (load_rows(path) if path else [])}
+    if path:
+        set_aside_failures(responses, path)
     todo = [(t, a, c) for c in CONDITIONS for t in tasks for a in ARMS
             if (t["id"], a, c) not in responses or responses[(t["id"], a, c)]["error"] is not None]
     lock = threading.Lock()
@@ -107,12 +158,11 @@ def collect(tasks: list[dict[str, Any]], path: Path | None) -> dict[tuple[str, s
         with lock:
             responses[(row["id"], row["arm"], row["condition"])] = row
             if path:
-                v1.write_lf(path, "".join(json.dumps(responses[k], ensure_ascii=False, separators=(",", ":"))
-                                          + "\n" for k in sorted(responses)))
+                dump_rows(path, [responses[k] for k in sorted(responses)])
             usage = (row["response"] or {}).get("usage", {})
             print(json.dumps({"id": row["id"], "arm": row["arm"], "condition": row["condition"],
                               "tokens": usage.get("completion_tokens"), "seconds": round(row["elapsedMs"] / 1000),
-                              "error": row["error"]}), flush=True)
+                              "error": row["error"], "serverFailure": server_failure(row)}), flush=True)
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=WORKERS) as pool:
         for future in concurrent.futures.as_completed([pool.submit(call_model, t, a, c) for t, a, c in todo]):
@@ -132,9 +182,41 @@ def evaluate(tasks: list[dict[str, Any]], responses: dict[tuple[str, str, str], 
     for condition in CONDITIONS:
         subset = {(i, a): r for (i, a, c), r in responses.items() if c == condition}
         for row in v2.evaluate(tasks, subset):
-            response = subset[(row["id"], row["arm"])]["response"]
-            rows.append({"condition": condition, **row, "reasoningChars": reasoning_chars(response)})
+            response = subset[(row["id"], row["arm"])]
+            rows.append({"condition": condition, **row, "reasoningChars": reasoning_chars(response["response"]),
+                         "serverFailure": server_failure(response)})
     return rows
+
+
+def as_registered(tasks: list[dict[str, Any]], responses: dict[tuple[str, str, str], dict[str, Any]],
+                  rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Amendment 1: the rows as registered, with each request's first server failure in place of its reruns."""
+    first: dict[tuple[str, str, str], dict[str, Any]] = {}
+    for r in load_rows(FAILURES):
+        first.setdefault((r["id"], r["arm"], r["condition"]), r)
+    if not first:
+        return rows
+    ids = {key[0] for key in first}
+    redone = evaluate([t for t in tasks if t["id"] in ids],
+                      {**{k: v for k, v in responses.items() if k[0] in ids}, **first})
+    by = {(r["id"], r["arm"], r["condition"]): r for r in redone}
+    return [by.get((r["id"], r["arm"], r["condition"]), r) for r in rows]
+
+
+def amend(summary: dict[str, Any], tasks: list[dict[str, Any]],
+          responses: dict[tuple[str, str, str], dict[str, Any]], rows: list[dict[str, Any]]) -> dict[str, Any]:
+    failures = load_rows(FAILURES)
+    registered = summarize(as_registered(tasks, responses, rows))
+    summary["serverFailures"] = {
+        "responses": len(failures),
+        "requests": len({(r["id"], r["arm"], r["condition"]) for r in failures}),
+        "byCondition": {c: sum(r["condition"] == c for r in failures) for c in CONDITIONS},
+        "byArm": {a: sum(r["arm"] == a for r in failures) for a in ARMS},
+        "sha256": v1.sha256_file(FAILURES) if FAILURES.exists() else None,
+    }
+    summary["asRegistered"] = {key: registered[key] for key in ("cells", "hypotheses", "checks")}
+    summary["amendmentSha256"] = v1.sha256_file(AMENDMENT) if AMENDMENT.exists() else None
+    return summary
 
 
 def summarize(rows: list[dict[str, Any]]) -> dict[str, Any]:
@@ -192,7 +274,9 @@ def summarize(rows: list[dict[str, Any]]) -> dict[str, Any]:
         "checks": {"C20": {"errors": sum(bool(r["error"]) for r in rows),
                            "holds": not any(r["error"] for r in rows)},
                    "C21": {"thinkingTruncated": truncated, "thinkingAnswers": len(thinking_rows),
-                           "holds": truncated < 0.1 * len(thinking_rows)}},
+                           "holds": truncated < 0.1 * len(thinking_rows)},
+                   "C22": {"serverFailures": sum(r["serverFailure"] for r in rows),
+                           "holds": not any(r["serverFailure"] for r in rows)}},
         "resultsSha256": v1.sha256_file(RESULTS) if RESULTS.exists() else None,
         "responsesSha256": v1.sha256_file(RESPONSES) if RESPONSES.exists() else None,
     }
@@ -271,7 +355,20 @@ def write_report(summary: dict[str, Any]) -> None:
         lines.append(f"- {name} ({t['first']} over {t['second']}): supported: {h['supported']}; {t['firstOnly']} "
                      f"against {t['secondOnly']} verified by one side alone (one-sided p {t['oneSidedP']:.3g}, Holm "
                      f"{h['holm']['adjusted']:.3g}).")
-    lines += ["", f"Checks: C20 {summary['checks']['C20']}; C21 {summary['checks']['C21']}.", ""]
+    checks = summary["checks"]
+    lines += ["", f"Checks: C20 {checks['C20']}; C21 {checks['C21']}; C22 (amendment 1) {checks['C22']}.", ""]
+    failures, registered = summary["serverFailures"], summary["asRegistered"]
+    if failures["responses"]:
+        lines += ["## Server failures (amendment 1)", "",
+                  f"{failures['responses']} responses to {failures['requests']} requests ended at the token limit in a "
+                  f"run of one repeated character (by condition {failures['byCondition']}, by arm "
+                  f"{failures['byArm']}); they are kept in `server-failures.jsonl` and their requests were sent again. "
+                  "As registered, with each request's first failure in place:", ""]
+        for name, h in registered["hypotheses"].items():
+            t = h["test"]
+            lines.append(f"- {name}: supported: {h['supported']}; {t['firstOnly']} against {t['secondOnly']} "
+                         f"(one-sided p {t['oneSidedP']:.3g}, Holm {h['holm']['adjusted']:.3g}).")
+        lines += ["", f"Checks as registered: C21 {registered['checks']['C21']}.", ""]
     v1.write_lf(REPORT, "\n".join(lines) + "\n")
 
 
@@ -301,27 +398,32 @@ def main() -> int:
         print(f"registered {len(tasks)} tasks: {PREREG}")
         return 0
     prereg = json.loads(PREREG.read_text(encoding="utf-8"))
+    amendment = json.loads(AMENDMENT.read_text(encoding="utf-8")) if AMENDMENT.exists() else {}
     for name, path in IMPLEMENTATIONS.items():
-        if prereg["implementationSha256"][name] != v1.sha256_file(path):
+        expected = prereg["implementationSha256"][name]
+        if name in amendment.get("implementationSha256AfterAmendment", {}):
+            if amendment["implementationSha256BeforeAmendment"][name] != expected:
+                raise SystemExit(f"amendment 1 does not start from the registered {name}")
+            expected = amendment["implementationSha256AfterAmendment"][name]
+        if expected != v1.sha256_file(path):
             raise SystemExit(f"implementation {name} changed since registration")
     if args.run:
         responses = collect(tasks, RESPONSES)
         rows = evaluate(tasks, responses)
-        v1.write_lf(RESULTS, "".join(json.dumps(r, ensure_ascii=False, separators=(",", ":")) + "\n" for r in rows))
-        summary = summarize(rows)
+        dump_rows(RESULTS, rows)
+        summary = amend(summarize(rows), tasks, responses, rows)
         v1.write_lf(SUMMARY, json.dumps(summary, indent=1) + "\n")
         write_report(summary)
         print(json.dumps({h: v["supported"] for h, v in summary["hypotheses"].items()}))
         return 0
-    responses = {(r["id"], r["arm"], r["condition"]): r
-                 for r in (json.loads(l) for l in RESPONSES.read_text(encoding="utf-8").splitlines() if l.strip())}
+    responses = {(r["id"], r["arm"], r["condition"]): r for r in load_rows(RESPONSES)}
     rows = evaluate(tasks, responses)
     committed = json.loads(SUMMARY.read_text(encoding="utf-8"))
-    recomputed = json.loads(json.dumps(summarize(rows)))
-    if recomputed["responsesSha256"] != committed["responsesSha256"] or \
-            recomputed["preregistrationSha256"] != committed["preregistrationSha256"]:
-        raise SystemExit("hashes do not match the committed files")
-    for key in ("cells", "hypotheses", "checks"):
+    recomputed = json.loads(json.dumps(amend(summarize(rows), tasks, responses, rows)))
+    for key in ("responsesSha256", "preregistrationSha256", "amendmentSha256"):
+        if recomputed[key] != committed[key]:
+            raise SystemExit(f"hashes do not match the committed files ({key})")
+    for key in ("cells", "hypotheses", "checks", "serverFailures", "asRegistered"):
         if recomputed[key] != committed[key]:
             raise SystemExit(f"the committed summary does not follow from the committed responses ({key})")
     print(f"representation-v0.3-check-ok: tasks={len(tasks)} rows={len(rows)}")

@@ -1,0 +1,12 @@
+{
+ "amendment": 1,
+ "date": "2026-09-28 America/Los_Angeles",
+ "scope": "handling of server failures only: the corpus, the prompts, the sampling settings, the thinking budget, the token limit, the scoring, the hypotheses, and the analysis are unchanged",
+ "observation": "One of the server's six slots (id 4 in the server log) turned partway through a direct answer, which ended at 15:02, to a run of '/' that continued to the token limit. From then on it answered every request it received with '/' from the first token to the limit: 14 more responses, 2 direct and 12 thinking, one every 37 minutes. The other five slots answered normally, and none of their responses contains a run of 200 or more of one non-whitespace character. The system event log records no hardware or driver error in that period; whether the cause is a numerical fault in the server or a memory error is not known.",
+ "rule": "A response is a server failure when it ends at the token limit (finish reason `length`) and the last 1,000 characters of its reasoning and answer, taken together, are one repeated non-whitespace character.",
+ "change": "The server is restarted. Before sending requests, the runner moves each server failure from raw-responses.jsonl to server-failures.jsonl and sends its request again under the registered settings, at most three times in all; a third failure stays in the responses and counts as unverified. The primary analysis uses the reruns. The summary and the report also give the analysis as registered, with each request's first failure in place of its reruns, and a new check, C22: no response in the primary analysis is a server failure.",
+ "failuresAtAmendment": {"responses": 15, "byCondition": {"direct": 3, "thinking": 12}, "byArm": {"proof": 3, "proofIds": 6, "net": 6}},
+ "resultsSeenBeforeAmendment": "none: 387 of the 540 responses had been collected, and no answer had been parsed or verified; the failures were found from finish reasons, token counts, the server log, and the characters of the responses",
+ "implementationSha256BeforeAmendment": {"runner": "f1403b9be5162e5952d1735dede65d84b765f1efd5a25e2295dac67e24b8a3d8"},
+ "implementationSha256AfterAmendment": {"runner": "243088a49ea27a404e1652400c481839e5b7cc68c9139d99a4f09cb067c3f153"}
+}
