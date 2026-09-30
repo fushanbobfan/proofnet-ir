@@ -435,8 +435,9 @@ Use the frozen reports rather than restating results from memory:
 - v0.11: [redundancy counts](experiments/redundancy-v0.1/README.md),
   [matched search](experiments/matched-search-v0.1/README.md) and its
   [pruned rerun](experiments/matched-search-v0.2/README.md),
-  [representation study](experiments/representation-v0.1/README.md) and its
-  [constrained rerun](experiments/representation-v0.2/README.md)
+  [representation study](experiments/representation-v0.1/README.md), its
+  [constrained rerun](experiments/representation-v0.2/README.md), and its
+  [rerun with a thinking model](experiments/representation-v0.3/README.md)
 - [experiment protocol](docs/experiment-protocol.md)
 - [performance boundary](docs/performance.md)
 

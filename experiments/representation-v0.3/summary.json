@@ -1,0 +1,589 @@
+{
+ "experiment": "representation-v0.3",
+ "preregistrationSha256": "a5a4baa159ceadfcd9977849ede1058cd36f8275f44e7faa7d59b1b4f9044b7a",
+ "tasks": 90,
+ "cells": {
+  "direct/proof": {
+   "valid": 0,
+   "unprovable": 48,
+   "unparseable": 16,
+   "truncated": 15,
+   "conversionFailures": 0,
+   "errors": 0,
+   "medianTokens": 8.0,
+   "medianTokensValid": null,
+   "validByStratum": {
+    "depth-2:one-label:positive": 0,
+    "depth-2:two-label:positive": 0,
+    "depth-2:unique:positive": 0,
+    "depth-3:one-label:positive": 0,
+    "depth-3:two-label:positive": 0,
+    "depth-3:unique:positive": 0,
+    "depth-4:one-label:positive": 0,
+    "depth-4:two-label:positive": 0,
+    "depth-4:unique:positive": 0
+   },
+   "reasons": {
+    "par position does not hold a par": 14,
+    "tensor position does not hold a tensor": 11,
+    "unprovable": 48,
+    "unparseable": 16,
+    "axiom on a sequent that is not two dual atoms": 1
+   }
+  },
+  "direct/proofIds": {
+   "valid": 0,
+   "unprovable": 27,
+   "unparseable": 18,
+   "truncated": 16,
+   "conversionFailures": 44,
+   "errors": 0,
+   "medianTokens": 256.0,
+   "medianTokensValid": null,
+   "validByStratum": {
+    "depth-2:one-label:positive": 0,
+    "depth-2:two-label:positive": 0,
+    "depth-2:unique:positive": 0,
+    "depth-3:one-label:positive": 0,
+    "depth-3:two-label:positive": 0,
+    "depth-3:unique:positive": 0,
+    "depth-4:one-label:positive": 0,
+    "depth-4:two-label:positive": 0,
+    "depth-4:unique:positive": 0
+   },
+   "reasons": {
+    "par on 'c2', which is not in the sequent": 3,
+    "tensor on c2, which is not a tensor": 2,
+    "tensor on c0 lists formulas not in the sequent": 3,
+    "unprovable": 27,
+    "par on c1, which is not a par": 2,
+    "par on 'c3', which is not in the sequent": 4,
+    "tensor on c2 lists formulas not in the sequent": 5,
+    "unprovable on None, which is not in the sequent": 3,
+    "tensor on c3 lists formulas not in the sequent": 2,
+    "par on 'c1', which is not in the sequent": 1,
+    "tensor on c1 lists formulas not in the sequent": 3,
+    "tensor on 'c0', which is not in the sequent": 3,
+    "tensor on 'c3', which is not in the sequent": 2,
+    "tensor on 'c5', which is not in the sequent": 1,
+    "par on c3, which is not a par": 2,
+    "tensor on 'c1', which is not in the sequent": 2,
+    "tensor on c4, which is not a tensor": 1,
+    "unparseable": 18,
+    "par on c7, which is not a par": 1,
+    "tensor on c6, which is not a tensor": 1,
+    "par on c4, which is not a par": 1,
+    "tensor on c1, which is not a tensor": 1,
+    "tensor on c14 lists formulas not in the sequent": 1,
+    "axiom on a sequent that is not two dual atoms": 1
+   }
+  },
+  "direct/net": {
+   "valid": 11,
+   "unprovable": 60,
+   "unparseable": 9,
+   "truncated": 5,
+   "conversionFailures": 0,
+   "errors": 0,
+   "medianTokens": 8.0,
+   "medianTokensValid": 22,
+   "validByStratum": {
+    "depth-2:one-label:positive": 0,
+    "depth-2:two-label:positive": 1,
+    "depth-2:unique:positive": 7,
+    "depth-3:one-label:positive": 0,
+    "depth-3:two-label:positive": 0,
+    "depth-3:unique:positive": 3,
+    "depth-4:one-label:positive": 0,
+    "depth-4:two-label:positive": 0,
+    "depth-4:unique:positive": 0
+   },
+   "reasons": {
+    "unprovable": 60,
+    "provable": 21,
+    "unparseable": 9
+   }
+  },
+  "thinking/proof": {
+   "valid": 30,
+   "unprovable": 1,
+   "unparseable": 29,
+   "truncated": 13,
+   "conversionFailures": 0,
+   "errors": 0,
+   "medianTokens": 6389.5,
+   "medianTokensValid": 5205.0,
+   "validByStratum": {
+    "depth-2:one-label:positive": 10,
+    "depth-2:two-label:positive": 8,
+    "depth-2:unique:positive": 9,
+    "depth-3:one-label:positive": 1,
+    "depth-3:two-label:positive": 0,
+    "depth-3:unique:positive": 2,
+    "depth-4:one-label:positive": 0,
+    "depth-4:two-label:positive": 0,
+    "depth-4:unique:positive": 0
+   },
+   "reasons": {
+    "provable": 30,
+    "unparseable": 29,
+    "tensor position does not hold a tensor": 17,
+    "axiom on non-dual atoms": 3,
+    "left context position out of range": 2,
+    "par position does not hold a par": 6,
+    "axiom on a sequent that is not two dual atoms": 2,
+    "unprovable": 1
+   }
+  },
+  "thinking/proofIds": {
+   "valid": 32,
+   "unprovable": 1,
+   "unparseable": 22,
+   "truncated": 2,
+   "conversionFailures": 30,
+   "errors": 0,
+   "medianTokens": 6395.0,
+   "medianTokensValid": 4331.0,
+   "validByStratum": {
+    "depth-2:one-label:positive": 9,
+    "depth-2:two-label:positive": 8,
+    "depth-2:unique:positive": 10,
+    "depth-3:one-label:positive": 1,
+    "depth-3:two-label:positive": 0,
+    "depth-3:unique:positive": 4,
+    "depth-4:one-label:positive": 0,
+    "depth-4:two-label:positive": 0,
+    "depth-4:unique:positive": 0
+   },
+   "reasons": {
+    "provable": 32,
+    "axiom on non-dual atoms": 4,
+    "tensor on 'c2', which is not in the sequent": 3,
+    "tensor on c7 lists formulas not in the sequent": 2,
+    "tensor on 'c1', which is not in the sequent": 1,
+    "tensor on c0 lists formulas not in the sequent": 2,
+    "unparseable": 22,
+    "tensor on 'c0', which is not in the sequent": 3,
+    "axiom on a sequent that is not two dual atoms": 1,
+    "tensor on 'c9', which is not in the sequent": 1,
+    "tensor on c3 lists formulas not in the sequent": 1,
+    "tensor on c9 lists formulas not in the sequent": 1,
+    "tensor on c1 lists formulas not in the sequent": 2,
+    "unprovable": 1,
+    "tensor on 'c4', which is not in the sequent": 1,
+    "tensor on c5, which is not a tensor": 1,
+    "tensor on c8, which is not a tensor": 2,
+    "a premise is not a proof object": 1,
+    "tensor on c2 lists formulas not in the sequent": 1,
+    "tensor on c6 lists formulas not in the sequent": 1,
+    "tensor on c10, which is not a tensor": 1,
+    "tensor on c12 lists formulas not in the sequent": 1,
+    "tensor on c1, which is not a tensor": 1,
+    "tensor on c17, which is not a tensor": 1,
+    "tensor on c19 lists formulas not in the sequent": 1,
+    "par on c6, which is not a par": 1,
+    "tensor on c15 lists formulas not in the sequent": 1
+   }
+  },
+  "thinking/net": {
+   "valid": 35,
+   "unprovable": 6,
+   "unparseable": 1,
+   "truncated": 0,
+   "conversionFailures": 0,
+   "errors": 0,
+   "medianTokens": 6190.0,
+   "medianTokensValid": 5835,
+   "validByStratum": {
+    "depth-2:one-label:positive": 9,
+    "depth-2:two-label:positive": 9,
+    "depth-2:unique:positive": 10,
+    "depth-3:one-label:positive": 0,
+    "depth-3:two-label:positive": 0,
+    "depth-3:unique:positive": 7,
+    "depth-4:one-label:positive": 0,
+    "depth-4:two-label:positive": 0,
+    "depth-4:unique:positive": 0
+   },
+   "reasons": {
+    "provable": 83,
+    "unprovable": 6,
+    "unparseable": 1
+   }
+  }
+ },
+ "hypotheses": {
+  "H74": {
+   "test": {
+    "first": "thinking/proofIds",
+    "second": "direct/proofIds",
+    "firstOnly": 32,
+    "secondOnly": 0,
+    "oneSidedP": 2.3283064365386963e-10
+   },
+   "holm": {
+    "adjusted": 9.313225746154785e-10,
+    "rejected": true
+   },
+   "supported": true
+  },
+  "H75": {
+   "test": {
+    "first": "thinking/net",
+    "second": "thinking/proofIds",
+    "firstOnly": 7,
+    "secondOnly": 4,
+    "oneSidedP": 0.2744140625
+   },
+   "holm": {
+    "adjusted": 0.8232421875,
+    "rejected": false
+   },
+   "supported": false
+  },
+  "H76": {
+   "test": {
+    "first": "thinking/proofIds",
+    "second": "thinking/net",
+    "firstOnly": 4,
+    "secondOnly": 7,
+    "oneSidedP": 0.88671875
+   },
+   "holm": {
+    "adjusted": 0.88671875,
+    "rejected": false
+   },
+   "supported": false
+  },
+  "H77": {
+   "test": {
+    "first": "thinking/proofIds",
+    "second": "thinking/proof",
+    "firstOnly": 5,
+    "secondOnly": 3,
+    "oneSidedP": 0.36328125
+   },
+   "holm": {
+    "adjusted": 0.8232421875,
+    "rejected": false
+   },
+   "supported": false
+  }
+ },
+ "checks": {
+  "C20": {
+   "errors": 0,
+   "holds": true
+  },
+  "C21": {
+   "thinkingTruncated": 15,
+   "thinkingAnswers": 270,
+   "holds": true
+  },
+  "C22": {
+   "serverFailures": 0,
+   "holds": true
+  }
+ },
+ "resultsSha256": "696d19f8ac90b8a500f97087d063d13496fe8c24decf9228e5db9948f0b23154",
+ "responsesSha256": "0b5aa8309d8b02a152c3081b5884b8f19dca13d7eb8e80041b476e35d7b8db2e",
+ "serverFailures": {
+  "responses": 19,
+  "requests": 17,
+  "byCondition": {
+   "direct": 3,
+   "thinking": 16
+  },
+  "byArm": {
+   "proof": 3,
+   "proofIds": 8,
+   "net": 8
+  },
+  "sha256": "c60c3028095a21366b153246b2ea76dcdc93abb1dc0d0d28d6fb6dd2ffdc6e1f"
+ },
+ "asRegistered": {
+  "cells": {
+   "direct/proof": {
+    "valid": 0,
+    "unprovable": 48,
+    "unparseable": 16,
+    "truncated": 15,
+    "conversionFailures": 0,
+    "errors": 0,
+    "medianTokens": 8.0,
+    "medianTokensValid": null,
+    "validByStratum": {
+     "depth-2:one-label:positive": 0,
+     "depth-2:two-label:positive": 0,
+     "depth-2:unique:positive": 0,
+     "depth-3:one-label:positive": 0,
+     "depth-3:two-label:positive": 0,
+     "depth-3:unique:positive": 0,
+     "depth-4:one-label:positive": 0,
+     "depth-4:two-label:positive": 0,
+     "depth-4:unique:positive": 0
+    },
+    "reasons": {
+     "par position does not hold a par": 14,
+     "tensor position does not hold a tensor": 11,
+     "unprovable": 48,
+     "unparseable": 16,
+     "axiom on a sequent that is not two dual atoms": 1
+    }
+   },
+   "direct/proofIds": {
+    "valid": 0,
+    "unprovable": 27,
+    "unparseable": 18,
+    "truncated": 16,
+    "conversionFailures": 44,
+    "errors": 0,
+    "medianTokens": 256.0,
+    "medianTokensValid": null,
+    "validByStratum": {
+     "depth-2:one-label:positive": 0,
+     "depth-2:two-label:positive": 0,
+     "depth-2:unique:positive": 0,
+     "depth-3:one-label:positive": 0,
+     "depth-3:two-label:positive": 0,
+     "depth-3:unique:positive": 0,
+     "depth-4:one-label:positive": 0,
+     "depth-4:two-label:positive": 0,
+     "depth-4:unique:positive": 0
+    },
+    "reasons": {
+     "par on 'c2', which is not in the sequent": 3,
+     "tensor on c2, which is not a tensor": 2,
+     "tensor on c0 lists formulas not in the sequent": 3,
+     "unprovable": 27,
+     "par on c1, which is not a par": 2,
+     "par on 'c3', which is not in the sequent": 4,
+     "tensor on c2 lists formulas not in the sequent": 5,
+     "unprovable on None, which is not in the sequent": 3,
+     "tensor on c3 lists formulas not in the sequent": 2,
+     "par on 'c1', which is not in the sequent": 1,
+     "tensor on c1 lists formulas not in the sequent": 3,
+     "tensor on 'c0', which is not in the sequent": 3,
+     "tensor on 'c3', which is not in the sequent": 2,
+     "tensor on 'c5', which is not in the sequent": 1,
+     "par on c3, which is not a par": 2,
+     "tensor on 'c1', which is not in the sequent": 2,
+     "tensor on c4, which is not a tensor": 1,
+     "unparseable": 18,
+     "par on c7, which is not a par": 1,
+     "tensor on c6, which is not a tensor": 1,
+     "par on c4, which is not a par": 1,
+     "tensor on c1, which is not a tensor": 1,
+     "tensor on c14 lists formulas not in the sequent": 1,
+     "axiom on a sequent that is not two dual atoms": 1
+    }
+   },
+   "direct/net": {
+    "valid": 11,
+    "unprovable": 60,
+    "unparseable": 9,
+    "truncated": 6,
+    "conversionFailures": 0,
+    "errors": 0,
+    "medianTokens": 8.0,
+    "medianTokensValid": 22,
+    "validByStratum": {
+     "depth-2:one-label:positive": 0,
+     "depth-2:two-label:positive": 1,
+     "depth-2:unique:positive": 7,
+     "depth-3:one-label:positive": 0,
+     "depth-3:two-label:positive": 0,
+     "depth-3:unique:positive": 3,
+     "depth-4:one-label:positive": 0,
+     "depth-4:two-label:positive": 0,
+     "depth-4:unique:positive": 0
+    },
+    "reasons": {
+     "unprovable": 60,
+     "provable": 21,
+     "unparseable": 9
+    }
+   },
+   "thinking/proof": {
+    "valid": 29,
+    "unprovable": 1,
+    "unparseable": 32,
+    "truncated": 16,
+    "conversionFailures": 0,
+    "errors": 0,
+    "medianTokens": 6392.0,
+    "medianTokensValid": 5167,
+    "validByStratum": {
+     "depth-2:one-label:positive": 10,
+     "depth-2:two-label:positive": 7,
+     "depth-2:unique:positive": 9,
+     "depth-3:one-label:positive": 1,
+     "depth-3:two-label:positive": 0,
+     "depth-3:unique:positive": 2,
+     "depth-4:one-label:positive": 0,
+     "depth-4:two-label:positive": 0,
+     "depth-4:unique:positive": 0
+    },
+    "reasons": {
+     "provable": 29,
+     "unparseable": 32,
+     "tensor position does not hold a tensor": 16,
+     "axiom on non-dual atoms": 3,
+     "left context position out of range": 1,
+     "par position does not hold a par": 6,
+     "axiom on a sequent that is not two dual atoms": 2,
+     "unprovable": 1
+    }
+   },
+   "thinking/proofIds": {
+    "valid": 28,
+    "unprovable": 1,
+    "unparseable": 28,
+    "truncated": 8,
+    "conversionFailures": 28,
+    "errors": 0,
+    "medianTokens": 6412.5,
+    "medianTokensValid": 4538.0,
+    "validByStratum": {
+     "depth-2:one-label:positive": 9,
+     "depth-2:two-label:positive": 6,
+     "depth-2:unique:positive": 8,
+     "depth-3:one-label:positive": 1,
+     "depth-3:two-label:positive": 0,
+     "depth-3:unique:positive": 4,
+     "depth-4:one-label:positive": 0,
+     "depth-4:two-label:positive": 0,
+     "depth-4:unique:positive": 0
+    },
+    "reasons": {
+     "provable": 28,
+     "axiom on non-dual atoms": 4,
+     "unparseable": 28,
+     "tensor on c7 lists formulas not in the sequent": 2,
+     "tensor on 'c1', which is not in the sequent": 1,
+     "tensor on c0 lists formulas not in the sequent": 2,
+     "tensor on 'c0', which is not in the sequent": 3,
+     "axiom on a sequent that is not two dual atoms": 1,
+     "tensor on 'c9', which is not in the sequent": 1,
+     "tensor on c3 lists formulas not in the sequent": 1,
+     "tensor on 'c2', which is not in the sequent": 2,
+     "tensor on c9 lists formulas not in the sequent": 1,
+     "tensor on c1 lists formulas not in the sequent": 2,
+     "unprovable": 1,
+     "tensor on 'c4', which is not in the sequent": 1,
+     "tensor on c5, which is not a tensor": 1,
+     "tensor on c8, which is not a tensor": 2,
+     "tensor on c2 lists formulas not in the sequent": 1,
+     "tensor on c6 lists formulas not in the sequent": 1,
+     "tensor on c10, which is not a tensor": 1,
+     "tensor on c12 lists formulas not in the sequent": 1,
+     "tensor on c1, which is not a tensor": 1,
+     "tensor on c17, which is not a tensor": 1,
+     "tensor on c19 lists formulas not in the sequent": 1,
+     "par on c6, which is not a par": 1,
+     "tensor on c15 lists formulas not in the sequent": 1
+    }
+   },
+   "thinking/net": {
+    "valid": 33,
+    "unprovable": 6,
+    "unparseable": 6,
+    "truncated": 5,
+    "conversionFailures": 0,
+    "errors": 0,
+    "medianTokens": 6190.0,
+    "medianTokensValid": 5835,
+    "validByStratum": {
+     "depth-2:one-label:positive": 8,
+     "depth-2:two-label:positive": 8,
+     "depth-2:unique:positive": 10,
+     "depth-3:one-label:positive": 0,
+     "depth-3:two-label:positive": 0,
+     "depth-3:unique:positive": 7,
+     "depth-4:one-label:positive": 0,
+     "depth-4:two-label:positive": 0,
+     "depth-4:unique:positive": 0
+    },
+    "reasons": {
+     "provable": 78,
+     "unparseable": 6,
+     "unprovable": 6
+    }
+   }
+  },
+  "hypotheses": {
+   "H74": {
+    "test": {
+     "first": "thinking/proofIds",
+     "second": "direct/proofIds",
+     "firstOnly": 28,
+     "secondOnly": 0,
+     "oneSidedP": 3.725290298461914e-09
+    },
+    "holm": {
+     "adjusted": 1.4901161193847656e-08,
+     "rejected": true
+    },
+    "supported": true
+   },
+   "H75": {
+    "test": {
+     "first": "thinking/net",
+     "second": "thinking/proofIds",
+     "firstOnly": 10,
+     "secondOnly": 5,
+     "oneSidedP": 0.15087890625
+    },
+    "holm": {
+     "adjusted": 0.45263671875,
+     "rejected": false
+    },
+    "supported": false
+   },
+   "H76": {
+    "test": {
+     "first": "thinking/proofIds",
+     "second": "thinking/net",
+     "firstOnly": 5,
+     "secondOnly": 10,
+     "oneSidedP": 0.940765380859375
+    },
+    "holm": {
+     "adjusted": 1.0,
+     "rejected": false
+    },
+    "supported": false
+   },
+   "H77": {
+    "test": {
+     "first": "thinking/proofIds",
+     "second": "thinking/proof",
+     "firstOnly": 6,
+     "secondOnly": 7,
+     "oneSidedP": 0.70947265625
+    },
+    "holm": {
+     "adjusted": 1.0,
+     "rejected": false
+    },
+    "supported": false
+   }
+  },
+  "checks": {
+   "C20": {
+    "errors": 0,
+    "holds": true
+   },
+   "C21": {
+    "thinkingTruncated": 29,
+    "thinkingAnswers": 270,
+    "holds": false
+   },
+   "C22": {
+    "serverFailures": 17,
+    "holds": false
+   }
+  }
+ },
+ "amendmentSha256": "15b0a509e005e537bd019840242aaf8fb47df1ad76de02d3e8325bbf2d970516"
+}

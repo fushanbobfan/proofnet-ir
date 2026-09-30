@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- ran the representation study with a model that thinks before answering,
+  Qwen3.8-27B with and without thinking (`experiments/representation-v0.3`,
+  preregistered in `d2dab38`, amended in `47940a1` to resend server
+  failures): with thinking, 32 labelled derivations, 30 positional ones, and
+  35 nets verified of 90, no difference significant after Holm (H75 to H77
+  fail); without thinking, none, none, and 11. H74 holds (32 against 0);
 - ran the representation study again with each answer decoded under its
   format's grammar, 8,192 completion tokens, and a third arm writing
   derivations over stable subformula labels (`experiments/representation-v0.2`,
