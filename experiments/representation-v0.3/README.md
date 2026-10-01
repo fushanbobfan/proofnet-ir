@@ -83,7 +83,8 @@ minutes a second server from an unrelated test shared the port; no request was s
 
 For this model, thinking decides whether derivations verify at all, and with thinking the three formats show
 no significant difference: each verifies about a third of the positives, all at depth 2 or 3. The nets' lead in
-v0.1 and v0.2, which this study reproduces without thinking, is therefore a property of answering without
-reasoning rather than a format advantage that survives it. The study covers one quantized model, one prompt
+v0.1 and v0.2, which this study reproduces without thinking, shrinks with thinking to 35 against 32 and 30, largest
+on depth-3 sequents with unique labels; much of it therefore comes from answering without reasoning, though a
+smaller format effect is not excluded. The study covers one quantized model, one prompt
 design per format, one thinking budget, and unit-free, cut-free MLL; a non-significant difference is not
 evidence that the formats are equal, and depth 4 is beyond every format at this budget.
