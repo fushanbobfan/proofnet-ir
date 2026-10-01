@@ -349,7 +349,7 @@ answer decoded under its format's grammar, eight times the budget, and derivatio
 stable labels (`experiments/representation-v0.2`), derivations still verified none and nets six. A model
 that thinks before answering (`experiments/representation-v0.3`) verified 32 labelled derivations, 30
 positional ones, and 35 nets of 90, no significant difference, against none, none, and 11 without thinking,
-so the nets' lead appears only when the model answers without reasoning. The three preregistered steps of the
+so with thinking the nets' lead shrinks to a difference that is not significant. The three preregistered steps of the
 program are complete. Beyond MLL, the question
 was taken to Lean's scale in [proof-graphs](https://github.com/fushanbobfan/proof-graphs): Lean's first-goal
 convention already absorbs rule-order redundancy, and searching over goals
