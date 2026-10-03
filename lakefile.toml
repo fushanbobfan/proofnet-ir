@@ -5,6 +5,7 @@ defaultTargets = [
   "proofnet_ir_redundancy_count",
   "proofnet_ir_matched_search",
   "proofnet_ir_pruned_search",
+  "proofnet_ir_focused_revisits",
   "proofnet_ir_representation_verify",
   "proofnet_ir_tail_law_search",
   "proofnet_ir_tests",
@@ -708,6 +709,10 @@ root = "ProofNetIRSearchCorpus"
 [[lean_exe]]
 name = "proofnet_ir_pruned_search"
 root = "ProofNetIRPrunedSearch"
+
+[[lean_exe]]
+name = "proofnet_ir_focused_revisits"
+root = "ProofNetIRFocusedRevisits"
 
 [[lean_exe]]
 name = "proofnet_ir_representation_verify"

@@ -1,0 +1,58 @@
+{
+ "arms": {
+  "strictMemo": "matched-search-v0.2's focusedStrict, copied unchanged into ProofNetIRFocusedRevisits.lean, with its memo tables for sequents and for a tensor in focus with its context; hits are counted for each table",
+  "strictNoMemo": "the same search with both tables neither consulted nor filled; a set of the queries met so far counts revisits and prunes nothing"
+ },
+ "budget": {
+  "process": "proofnet_ir_focused_revisits runs strictMemo then strictNoMemo on each task, sequentially, on one core",
+  "wallClockMsPerArmPerTask": 5000
+ },
+ "checks": {
+  "C26": "strictMemo reproduces matched-search-v0.2's focusedStrict on every task: the same outcome and the same six counters (proveCalls, focusCalls, cacheHits, decides, splits, infeasible)",
+  "C27": "no arm gives a wrong answer"
+ },
+ "comparedResults": {
+  "path": "experiments/matched-search-v0.2/results.jsonl",
+  "sha256": "1c9e2a6761fcf4b60253dc4229aed1b30803d56d5ba586738ea60da6acb484bf"
+ },
+ "corpus": {
+  "kinds": {
+   "negative-count": 343,
+   "negative-flip": 280,
+   "positive": 360
+  },
+  "path": "experiments/matched-search-v0.2/corpus.jsonl",
+  "sha256": "1af171e0c6272674e211ab50e7bcf494dd60b5ded13f2c74ebc4b70eaa4cc029",
+  "tasks": 983
+ },
+ "developmentChecksBeforeRegistration": [
+  "the hypotheses, measures, and checks above were written into this runner before any development run",
+  "ProofNetIRFocusedRevisits.lean is matched-search-v0.2's focusedStrict copied unchanged, with the memo switch and the hit and revisit counters added; it builds with proofnet-ir's toolchain",
+  "matched-search-v0.2's development set (24 generated bases, seeds 900000 onward, eight per depth, in three label modes, with their connective flips and count-preserving negatives: 213 tasks, none in the corpus) through both arms and through matched-search-v0.2's focusedStrict: strictMemo reproduced its outcome and its six counters on every task, no arm gave a wrong answer, and strictNoMemo timed out on 2 of the 15 32-atom repeated-label count-preserving negatives and on no other task; only decided, timeout, and median-time counts were printed, and no revisit share or other hypothesis quantity was looked at"
+ ],
+ "disclosure": "matched-search-v0.2 recorded focusedStrict's cacheHits, proveCalls, and focusCalls for every task; no revisit share or other quantity of this registration was computed from them before it, and the hypotheses were written before the development run below",
+ "experiment": "focused-revisits-v0.1",
+ "hypotheses": {
+  "H83": "over the count-preserving negatives, at least half of strictMemo's queries are revisits (pooled share of memo hits among all queries >= 0.5)",
+  "H84": "at 16 and at 32 atoms, the pooled revisit share of strictMemo is higher on the count-preserving negatives than on the positives",
+  "H85": "strictNoMemo decides fewer of the 32-atom count-preserving negatives than strictMemo",
+  "H86": "on the count-preserving negatives that both arms decide, the median ratio of strictNoMemo's explored queries to strictMemo's exceeds 2"
+ },
+ "implementationSha256": {
+  "arms": "b7c02433799bddc3b7edf06343db41c7b26fc561710e6239e3975f0fc57eb4be",
+  "runner": "a6ee5ebccfcc843e424dbb84a845215459951075411d10659ebd860401e5e9f2"
+ },
+ "input": "every arm receives only the sequent",
+ "measures": {
+  "decided": "found or refuted within the budget",
+  "explored": "proveCalls + focusCalls, the queries a search did not answer from a table",
+  "queries": "strictMemo: proveCalls + focusCalls + cacheHits (every call of prove, and of focus on a tensor goal); strictNoMemo: proveCalls + focusCalls",
+  "revisitShare": "strictMemo: cacheHits / queries, per task and pooled over a group of tasks (sums of hits over sums of queries); strictNoMemo: (proveRevisits + focusRevisits) / queries",
+  "workRatio": "strictNoMemo's explored queries over strictMemo's, on a task both arms decide"
+ },
+ "outcomes": "found, refuted (search exhausted without a proof), timeout",
+ "question": "how much of the rule-order redundancy that strict focusing leaves does matched-search-v0.2's strictly focused search meet, as queries it has already met along another sequence of foci and splits, and what does merging them in its memo tables buy within the same budget",
+ "registeredLocalDate": "2026-10-03 America/Los_Angeles",
+ "resultsAbsentAtRegistration": true,
+ "tests": "the hypotheses are decided by the rules as stated; H83's pooled share is reported with a percentile bootstrap interval over tasks (seed 20261003, 10000 resamples), which does not decide it"
+}
