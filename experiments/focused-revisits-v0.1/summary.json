@@ -1,0 +1,847 @@
+{
+ "experiment": "focused-revisits-v0.1",
+ "tasks": 983,
+ "wrongAnswers": {
+  "strictMemo": 0,
+  "strictNoMemo": 0
+ },
+ "kinds": {
+  "positive": {
+   "tasks": 360,
+   "strictMemo": {
+    "decided": 360,
+    "timeouts": 0,
+    "queries": 13045,
+    "revisits": 3433,
+    "pooledRevisitShare": 0.26316596397087005,
+    "medianElapsedMs": 0.06475
+   },
+   "strictNoMemo": {
+    "decided": 360,
+    "timeouts": 0,
+    "queries": 46826,
+    "revisits": 37214,
+    "pooledRevisitShare": 0.7947294238243711,
+    "medianElapsedMs": 0.0579
+   },
+   "bothDecided": 360,
+   "medianWorkRatio": 1.108187134502924
+  },
+  "negative-flip": {
+   "tasks": 280,
+   "strictMemo": {
+    "decided": 280,
+    "timeouts": 0,
+    "queries": 280,
+    "revisits": 0,
+    "pooledRevisitShare": 0.0,
+    "medianElapsedMs": 0.007050000000000001
+   },
+   "strictNoMemo": {
+    "decided": 280,
+    "timeouts": 0,
+    "queries": 280,
+    "revisits": 0,
+    "pooledRevisitShare": 0.0,
+    "medianElapsedMs": 0.0064
+   },
+   "bothDecided": 280,
+   "medianWorkRatio": 1.0
+  },
+  "negative-count": {
+   "tasks": 343,
+   "strictMemo": {
+    "decided": 343,
+    "timeouts": 0,
+    "queries": 221777,
+    "revisits": 156624,
+    "pooledRevisitShare": 0.7062229176154425,
+    "medianElapsedMs": 0.1084
+   },
+   "strictNoMemo": {
+    "decided": 340,
+    "timeouts": 3,
+    "queries": 15980819,
+    "revisits": 15916438,
+    "pooledRevisitShare": 0.9959713579135087,
+    "medianElapsedMs": 0.1188
+   },
+   "bothDecided": 340,
+   "medianWorkRatio": 1.2222222222222223
+  }
+ },
+ "strata": {
+  "atoms-16:one-label:negative-count": {
+   "tasks": 40,
+   "strictMemo": {
+    "decided": 40,
+    "timeouts": 0,
+    "queries": 1679,
+    "revisits": 548,
+    "pooledRevisitShare": 0.32638475282906493,
+    "medianElapsedMs": 0.11515
+   },
+   "strictNoMemo": {
+    "decided": 40,
+    "timeouts": 0,
+    "queries": 3394,
+    "revisits": 2263,
+    "pooledRevisitShare": 0.6667648791985857,
+    "medianElapsedMs": 0.1325
+   },
+   "bothDecided": 40,
+   "medianWorkRatio": 1.8095238095238095
+  },
+  "atoms-16:one-label:negative-flip": {
+   "tasks": 40,
+   "strictMemo": {
+    "decided": 40,
+    "timeouts": 0,
+    "queries": 40,
+    "revisits": 0,
+    "pooledRevisitShare": 0.0,
+    "medianElapsedMs": 0.0074
+   },
+   "strictNoMemo": {
+    "decided": 40,
+    "timeouts": 0,
+    "queries": 40,
+    "revisits": 0,
+    "pooledRevisitShare": 0.0,
+    "medianElapsedMs": 0.00665
+   },
+   "bothDecided": 40,
+   "medianWorkRatio": 1.0
+  },
+  "atoms-16:one-label:positive": {
+   "tasks": 40,
+   "strictMemo": {
+    "decided": 40,
+    "timeouts": 0,
+    "queries": 814,
+    "revisits": 167,
+    "pooledRevisitShare": 0.20515970515970516,
+    "medianElapsedMs": 0.0448
+   },
+   "strictNoMemo": {
+    "decided": 40,
+    "timeouts": 0,
+    "queries": 1039,
+    "revisits": 392,
+    "pooledRevisitShare": 0.37728585178055823,
+    "medianElapsedMs": 0.045700000000000005
+   },
+   "bothDecided": 40,
+   "medianWorkRatio": 1.1764705882352942
+  },
+  "atoms-16:two-label:negative-count": {
+   "tasks": 40,
+   "strictMemo": {
+    "decided": 40,
+    "timeouts": 0,
+    "queries": 1103,
+    "revisits": 201,
+    "pooledRevisitShare": 0.18223028105167724,
+    "medianElapsedMs": 0.0842
+   },
+   "strictNoMemo": {
+    "decided": 40,
+    "timeouts": 0,
+    "queries": 1537,
+    "revisits": 635,
+    "pooledRevisitShare": 0.41314248536109305,
+    "medianElapsedMs": 0.08625
+   },
+   "bothDecided": 40,
+   "medianWorkRatio": 1.2554347826086958
+  },
+  "atoms-16:two-label:negative-flip": {
+   "tasks": 40,
+   "strictMemo": {
+    "decided": 40,
+    "timeouts": 0,
+    "queries": 40,
+    "revisits": 0,
+    "pooledRevisitShare": 0.0,
+    "medianElapsedMs": 0.0075
+   },
+   "strictNoMemo": {
+    "decided": 40,
+    "timeouts": 0,
+    "queries": 40,
+    "revisits": 0,
+    "pooledRevisitShare": 0.0,
+    "medianElapsedMs": 0.0067
+   },
+   "bothDecided": 40,
+   "medianWorkRatio": 1.0
+  },
+  "atoms-16:two-label:positive": {
+   "tasks": 40,
+   "strictMemo": {
+    "decided": 40,
+    "timeouts": 0,
+    "queries": 985,
+    "revisits": 145,
+    "pooledRevisitShare": 0.14720812182741116,
+    "medianElapsedMs": 0.05815
+   },
+   "strictNoMemo": {
+    "decided": 40,
+    "timeouts": 0,
+    "queries": 1138,
+    "revisits": 298,
+    "pooledRevisitShare": 0.2618629173989455,
+    "medianElapsedMs": 0.05355
+   },
+   "bothDecided": 40,
+   "medianWorkRatio": 1.1785714285714286
+  },
+  "atoms-16:unique:negative-count": {
+   "tasks": 40,
+   "strictMemo": {
+    "decided": 40,
+    "timeouts": 0,
+    "queries": 931,
+    "revisits": 60,
+    "pooledRevisitShare": 0.0644468313641246,
+    "medianElapsedMs": 0.15475
+   },
+   "strictNoMemo": {
+    "decided": 40,
+    "timeouts": 0,
+    "queries": 1083,
+    "revisits": 212,
+    "pooledRevisitShare": 0.19575253924284394,
+    "medianElapsedMs": 0.1642
+   },
+   "bothDecided": 40,
+   "medianWorkRatio": 1.0185185185185186
+  },
+  "atoms-16:unique:negative-flip": {
+   "tasks": 40,
+   "strictMemo": {
+    "decided": 40,
+    "timeouts": 0,
+    "queries": 40,
+    "revisits": 0,
+    "pooledRevisitShare": 0.0,
+    "medianElapsedMs": 0.00925
+   },
+   "strictNoMemo": {
+    "decided": 40,
+    "timeouts": 0,
+    "queries": 40,
+    "revisits": 0,
+    "pooledRevisitShare": 0.0,
+    "medianElapsedMs": 0.0078
+   },
+   "bothDecided": 40,
+   "medianWorkRatio": 1.0
+  },
+  "atoms-16:unique:positive": {
+   "tasks": 40,
+   "strictMemo": {
+    "decided": 40,
+    "timeouts": 0,
+    "queries": 721,
+    "revisits": 1,
+    "pooledRevisitShare": 0.0013869625520110957,
+    "medianElapsedMs": 0.0817
+   },
+   "strictNoMemo": {
+    "decided": 40,
+    "timeouts": 0,
+    "queries": 726,
+    "revisits": 6,
+    "pooledRevisitShare": 0.008264462809917356,
+    "medianElapsedMs": 0.0727
+   },
+   "bothDecided": 40,
+   "medianWorkRatio": 1.0
+  },
+  "atoms-32:one-label:negative-count": {
+   "tasks": 30,
+   "strictMemo": {
+    "decided": 30,
+    "timeouts": 0,
+    "queries": 81725,
+    "revisits": 64596,
+    "pooledRevisitShare": 0.790406852248394,
+    "medianElapsedMs": 15.106200000000001
+   },
+   "strictNoMemo": {
+    "decided": 29,
+    "timeouts": 1,
+    "queries": 7804334,
+    "revisits": 7787358,
+    "pooledRevisitShare": 0.9978247983748517,
+    "medianElapsedMs": 456.30055
+   },
+   "bothDecided": 29,
+   "medianWorkRatio": 152.13097345132743
+  },
+  "atoms-32:one-label:positive": {
+   "tasks": 40,
+   "strictMemo": {
+    "decided": 40,
+    "timeouts": 0,
+    "queries": 2285,
+    "revisits": 826,
+    "pooledRevisitShare": 0.3614879649890591,
+    "medianElapsedMs": 0.15899999999999997
+   },
+   "strictNoMemo": {
+    "decided": 40,
+    "timeouts": 0,
+    "queries": 17181,
+    "revisits": 15722,
+    "pooledRevisitShare": 0.9150806123042896,
+    "medianElapsedMs": 0.15975
+   },
+   "bothDecided": 40,
+   "medianWorkRatio": 1.2697505197505197
+  },
+  "atoms-32:two-label:negative-count": {
+   "tasks": 40,
+   "strictMemo": {
+    "decided": 40,
+    "timeouts": 0,
+    "queries": 124583,
+    "revisits": 88155,
+    "pooledRevisitShare": 0.7076005554529912,
+    "medianElapsedMs": 22.932299999999998
+   },
+   "strictNoMemo": {
+    "decided": 38,
+    "timeouts": 2,
+    "queries": 8121176,
+    "revisits": 8085367,
+    "pooledRevisitShare": 0.9955906632241439,
+    "medianElapsedMs": 350.8499
+   },
+   "bothDecided": 38,
+   "medianWorkRatio": 57.00683144846422
+  },
+  "atoms-32:two-label:positive": {
+   "tasks": 40,
+   "strictMemo": {
+    "decided": 40,
+    "timeouts": 0,
+    "queries": 5251,
+    "revisits": 2123,
+    "pooledRevisitShare": 0.40430394210626547,
+    "medianElapsedMs": 0.3325
+   },
+   "strictNoMemo": {
+    "decided": 40,
+    "timeouts": 0,
+    "queries": 23403,
+    "revisits": 20275,
+    "pooledRevisitShare": 0.866341921975815,
+    "medianElapsedMs": 0.32384999999999997
+   },
+   "bothDecided": 40,
+   "medianWorkRatio": 1.3717948717948718
+  },
+  "atoms-32:unique:negative-count": {
+   "tasks": 40,
+   "strictMemo": {
+    "decided": 40,
+    "timeouts": 0,
+    "queries": 11161,
+    "revisits": 3055,
+    "pooledRevisitShare": 0.27372099274258577,
+    "medianElapsedMs": 8.79755
+   },
+   "strictNoMemo": {
+    "decided": 40,
+    "timeouts": 0,
+    "queries": 48691,
+    "revisits": 40585,
+    "pooledRevisitShare": 0.8335215953667002,
+    "medianElapsedMs": 14.552399999999999
+   },
+   "bothDecided": 40,
+   "medianWorkRatio": 3.931103481899809
+  },
+  "atoms-32:unique:negative-flip": {
+   "tasks": 40,
+   "strictMemo": {
+    "decided": 40,
+    "timeouts": 0,
+    "queries": 40,
+    "revisits": 0,
+    "pooledRevisitShare": 0.0,
+    "medianElapsedMs": 0.0179
+   },
+   "strictNoMemo": {
+    "decided": 40,
+    "timeouts": 0,
+    "queries": 40,
+    "revisits": 0,
+    "pooledRevisitShare": 0.0,
+    "medianElapsedMs": 0.01575
+   },
+   "bothDecided": 40,
+   "medianWorkRatio": 1.0
+  },
+  "atoms-32:unique:positive": {
+   "tasks": 40,
+   "strictMemo": {
+    "decided": 40,
+    "timeouts": 0,
+    "queries": 1964,
+    "revisits": 112,
+    "pooledRevisitShare": 0.05702647657841141,
+    "medianElapsedMs": 0.6721
+   },
+   "strictNoMemo": {
+    "decided": 40,
+    "timeouts": 0,
+    "queries": 2294,
+    "revisits": 442,
+    "pooledRevisitShare": 0.1926765475152572,
+    "medianElapsedMs": 0.5944499999999999
+   },
+   "bothDecided": 40,
+   "medianWorkRatio": 1.0568733153638814
+  },
+  "atoms-8:one-label:negative-count": {
+   "tasks": 33,
+   "strictMemo": {
+    "decided": 33,
+    "timeouts": 0,
+    "queries": 152,
+    "revisits": 1,
+    "pooledRevisitShare": 0.006578947368421052,
+    "medianElapsedMs": 0.0116
+   },
+   "strictNoMemo": {
+    "decided": 33,
+    "timeouts": 0,
+    "queries": 153,
+    "revisits": 2,
+    "pooledRevisitShare": 0.013071895424836602,
+    "medianElapsedMs": 0.0104
+   },
+   "bothDecided": 33,
+   "medianWorkRatio": 1.0
+  },
+  "atoms-8:one-label:negative-flip": {
+   "tasks": 40,
+   "strictMemo": {
+    "decided": 40,
+    "timeouts": 0,
+    "queries": 40,
+    "revisits": 0,
+    "pooledRevisitShare": 0.0,
+    "medianElapsedMs": 0.00415
+   },
+   "strictNoMemo": {
+    "decided": 40,
+    "timeouts": 0,
+    "queries": 40,
+    "revisits": 0,
+    "pooledRevisitShare": 0.0,
+    "medianElapsedMs": 0.00385
+   },
+   "bothDecided": 40,
+   "medianWorkRatio": 1.0
+  },
+  "atoms-8:one-label:positive": {
+   "tasks": 40,
+   "strictMemo": {
+    "decided": 40,
+    "timeouts": 0,
+    "queries": 340,
+    "revisits": 46,
+    "pooledRevisitShare": 0.13529411764705881,
+    "medianElapsedMs": 0.01435
+   },
+   "strictNoMemo": {
+    "decided": 40,
+    "timeouts": 0,
+    "queries": 357,
+    "revisits": 63,
+    "pooledRevisitShare": 0.17647058823529413,
+    "medianElapsedMs": 0.0142
+   },
+   "bothDecided": 40,
+   "medianWorkRatio": 1.125
+  },
+  "atoms-8:two-label:negative-count": {
+   "tasks": 40,
+   "strictMemo": {
+    "decided": 40,
+    "timeouts": 0,
+    "queries": 220,
+    "revisits": 8,
+    "pooledRevisitShare": 0.03636363636363636,
+    "medianElapsedMs": 0.0133
+   },
+   "strictNoMemo": {
+    "decided": 40,
+    "timeouts": 0,
+    "queries": 228,
+    "revisits": 16,
+    "pooledRevisitShare": 0.07017543859649122,
+    "medianElapsedMs": 0.011550000000000001
+   },
+   "bothDecided": 40,
+   "medianWorkRatio": 1.0
+  },
+  "atoms-8:two-label:negative-flip": {
+   "tasks": 40,
+   "strictMemo": {
+    "decided": 40,
+    "timeouts": 0,
+    "queries": 40,
+    "revisits": 0,
+    "pooledRevisitShare": 0.0,
+    "medianElapsedMs": 0.00435
+   },
+   "strictNoMemo": {
+    "decided": 40,
+    "timeouts": 0,
+    "queries": 40,
+    "revisits": 0,
+    "pooledRevisitShare": 0.0,
+    "medianElapsedMs": 0.00395
+   },
+   "bothDecided": 40,
+   "medianWorkRatio": 1.0
+  },
+  "atoms-8:two-label:positive": {
+   "tasks": 40,
+   "strictMemo": {
+    "decided": 40,
+    "timeouts": 0,
+    "queries": 357,
+    "revisits": 13,
+    "pooledRevisitShare": 0.036414565826330535,
+    "medianElapsedMs": 0.017599999999999998
+   },
+   "strictNoMemo": {
+    "decided": 40,
+    "timeouts": 0,
+    "queries": 360,
+    "revisits": 16,
+    "pooledRevisitShare": 0.044444444444444446,
+    "medianElapsedMs": 0.016849999999999997
+   },
+   "bothDecided": 40,
+   "medianWorkRatio": 1.0
+  },
+  "atoms-8:unique:negative-count": {
+   "tasks": 40,
+   "strictMemo": {
+    "decided": 40,
+    "timeouts": 0,
+    "queries": 223,
+    "revisits": 0,
+    "pooledRevisitShare": 0.0,
+    "medianElapsedMs": 0.016300000000000002
+   },
+   "strictNoMemo": {
+    "decided": 40,
+    "timeouts": 0,
+    "queries": 223,
+    "revisits": 0,
+    "pooledRevisitShare": 0.0,
+    "medianElapsedMs": 0.01565
+   },
+   "bothDecided": 40,
+   "medianWorkRatio": 1.0
+  },
+  "atoms-8:unique:negative-flip": {
+   "tasks": 40,
+   "strictMemo": {
+    "decided": 40,
+    "timeouts": 0,
+    "queries": 40,
+    "revisits": 0,
+    "pooledRevisitShare": 0.0,
+    "medianElapsedMs": 0.0046
+   },
+   "strictNoMemo": {
+    "decided": 40,
+    "timeouts": 0,
+    "queries": 40,
+    "revisits": 0,
+    "pooledRevisitShare": 0.0,
+    "medianElapsedMs": 0.0042
+   },
+   "bothDecided": 40,
+   "medianWorkRatio": 1.0
+  },
+  "atoms-8:unique:positive": {
+   "tasks": 40,
+   "strictMemo": {
+    "decided": 40,
+    "timeouts": 0,
+    "queries": 328,
+    "revisits": 0,
+    "pooledRevisitShare": 0.0,
+    "medianElapsedMs": 0.019950000000000002
+   },
+   "strictNoMemo": {
+    "decided": 40,
+    "timeouts": 0,
+    "queries": 328,
+    "revisits": 0,
+    "pooledRevisitShare": 0.0,
+    "medianElapsedMs": 0.01805
+   },
+   "bothDecided": 40,
+   "medianWorkRatio": 1.0
+  }
+ },
+ "bySize": {
+  "atoms-8": {
+   "positive": {
+    "tasks": 120,
+    "strictMemo": {
+     "decided": 120,
+     "timeouts": 0,
+     "queries": 1025,
+     "revisits": 59,
+     "pooledRevisitShare": 0.0575609756097561,
+     "medianElapsedMs": 0.017
+    },
+    "strictNoMemo": {
+     "decided": 120,
+     "timeouts": 0,
+     "queries": 1045,
+     "revisits": 79,
+     "pooledRevisitShare": 0.07559808612440191,
+     "medianElapsedMs": 0.0162
+    },
+    "bothDecided": 120,
+    "medianWorkRatio": 1.0
+   },
+   "negative-flip": {
+    "tasks": 120,
+    "strictMemo": {
+     "decided": 120,
+     "timeouts": 0,
+     "queries": 120,
+     "revisits": 0,
+     "pooledRevisitShare": 0.0,
+     "medianElapsedMs": 0.0045
+    },
+    "strictNoMemo": {
+     "decided": 120,
+     "timeouts": 0,
+     "queries": 120,
+     "revisits": 0,
+     "pooledRevisitShare": 0.0,
+     "medianElapsedMs": 0.004
+    },
+    "bothDecided": 120,
+    "medianWorkRatio": 1.0
+   },
+   "negative-count": {
+    "tasks": 113,
+    "strictMemo": {
+     "decided": 113,
+     "timeouts": 0,
+     "queries": 595,
+     "revisits": 9,
+     "pooledRevisitShare": 0.015126050420168067,
+     "medianElapsedMs": 0.0127
+    },
+    "strictNoMemo": {
+     "decided": 113,
+     "timeouts": 0,
+     "queries": 604,
+     "revisits": 18,
+     "pooledRevisitShare": 0.029801324503311258,
+     "medianElapsedMs": 0.0114
+    },
+    "bothDecided": 113,
+    "medianWorkRatio": 1.0
+   }
+  },
+  "atoms-16": {
+   "positive": {
+    "tasks": 120,
+    "strictMemo": {
+     "decided": 120,
+     "timeouts": 0,
+     "queries": 2520,
+     "revisits": 313,
+     "pooledRevisitShare": 0.12420634920634921,
+     "medianElapsedMs": 0.06425
+    },
+    "strictNoMemo": {
+     "decided": 120,
+     "timeouts": 0,
+     "queries": 2903,
+     "revisits": 696,
+     "pooledRevisitShare": 0.23975198070961073,
+     "medianElapsedMs": 0.0579
+    },
+    "bothDecided": 120,
+    "medianWorkRatio": 1.087121212121212
+   },
+   "negative-flip": {
+    "tasks": 120,
+    "strictMemo": {
+     "decided": 120,
+     "timeouts": 0,
+     "queries": 120,
+     "revisits": 0,
+     "pooledRevisitShare": 0.0,
+     "medianElapsedMs": 0.0082
+    },
+    "strictNoMemo": {
+     "decided": 120,
+     "timeouts": 0,
+     "queries": 120,
+     "revisits": 0,
+     "pooledRevisitShare": 0.0,
+     "medianElapsedMs": 0.0071
+    },
+    "bothDecided": 120,
+    "medianWorkRatio": 1.0
+   },
+   "negative-count": {
+    "tasks": 120,
+    "strictMemo": {
+     "decided": 120,
+     "timeouts": 0,
+     "queries": 3713,
+     "revisits": 809,
+     "pooledRevisitShare": 0.21788311338540264,
+     "medianElapsedMs": 0.11185
+    },
+    "strictNoMemo": {
+     "decided": 120,
+     "timeouts": 0,
+     "queries": 6014,
+     "revisits": 3110,
+     "pooledRevisitShare": 0.5171267043565015,
+     "medianElapsedMs": 0.1325
+    },
+    "bothDecided": 120,
+    "medianWorkRatio": 1.3038461538461539
+   }
+  },
+  "atoms-32": {
+   "positive": {
+    "tasks": 120,
+    "strictMemo": {
+     "decided": 120,
+     "timeouts": 0,
+     "queries": 9500,
+     "revisits": 3061,
+     "pooledRevisitShare": 0.32221052631578945,
+     "medianElapsedMs": 0.33735
+    },
+    "strictNoMemo": {
+     "decided": 120,
+     "timeouts": 0,
+     "queries": 42878,
+     "revisits": 36439,
+     "pooledRevisitShare": 0.8498297495218994,
+     "medianElapsedMs": 0.3079
+    },
+    "bothDecided": 120,
+    "medianWorkRatio": 1.25
+   },
+   "negative-flip": {
+    "tasks": 40,
+    "strictMemo": {
+     "decided": 40,
+     "timeouts": 0,
+     "queries": 40,
+     "revisits": 0,
+     "pooledRevisitShare": 0.0,
+     "medianElapsedMs": 0.0179
+    },
+    "strictNoMemo": {
+     "decided": 40,
+     "timeouts": 0,
+     "queries": 40,
+     "revisits": 0,
+     "pooledRevisitShare": 0.0,
+     "medianElapsedMs": 0.01575
+    },
+    "bothDecided": 40,
+    "medianWorkRatio": 1.0
+   },
+   "negative-count": {
+    "tasks": 110,
+    "strictMemo": {
+     "decided": 110,
+     "timeouts": 0,
+     "queries": 217469,
+     "revisits": 155806,
+     "pooledRevisitShare": 0.7164515402195255,
+     "medianElapsedMs": 12.824
+    },
+    "strictNoMemo": {
+     "decided": 107,
+     "timeouts": 3,
+     "queries": 15974201,
+     "revisits": 15913310,
+     "pooledRevisitShare": 0.9961881661561665,
+     "medianElapsedMs": 59.98585
+    },
+    "bothDecided": 107,
+    "medianWorkRatio": 17.820580474934037
+   }
+  }
+ },
+ "hypotheses": {
+  "H83": {
+   "pooledRevisitShare": 0.7062229176154425,
+   "interval": [
+    0.6733204601187021,
+    0.7310750988142293
+   ],
+   "tasks": 343,
+   "holds": true
+  },
+  "H84": {
+   "atoms-16": {
+    "countNegatives": 0.21788311338540264,
+    "positives": 0.12420634920634921
+   },
+   "atoms-32": {
+    "countNegatives": 0.7164515402195255,
+    "positives": 0.32221052631578945
+   },
+   "holds": true
+  },
+  "H85": {
+   "tasks": 110,
+   "decided": {
+    "strictMemo": 110,
+    "strictNoMemo": 107
+   },
+   "holds": true
+  },
+  "H86": {
+   "bothDecided": 340,
+   "medianWorkRatio": 1.2222222222222223,
+   "holds": false
+  }
+ },
+ "checks": {
+  "C26": {
+   "compared": 983,
+   "mismatches": [],
+   "mismatchCount": 0,
+   "holds": true
+  },
+  "C27": {
+   "wrongAnswers": {
+    "strictMemo": 0,
+    "strictNoMemo": 0
+   },
+   "holds": true
+  }
+ }
+}

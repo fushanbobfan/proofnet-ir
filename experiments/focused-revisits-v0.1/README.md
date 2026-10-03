@@ -41,8 +41,39 @@ matched-search-v0.2 recorded `focusedStrict`'s memo hits for every task; no quan
 computed from them before it. The development run on matched-search-v0.2's development set, recorded in the
 registration, checked the copy (C26 held there) and printed only decided, timeout, and median-time counts.
 
+## Artifacts
+
+- `results.jsonl`: per task and arm the outcome, correctness, elapsed time, and counters (`proveCalls`,
+  `focusCalls`, `decides`, `splits`, `infeasible`; `cacheHits`, `proveHits`, `focusHits` for `strictMemo`;
+  `proveRevisits`, `focusRevisits` for `strictNoMemo`);
+- `summary.json`, `report.md`: groups by kind, size, and stratum, and the decisions.
+
 ## Reproduction
 
 ```text
 python scripts/run_focused_revisits.py --check-committed
 ```
+
+verifies the hashes, ids, checks, and summary and reruns the 941 tasks on which both arms finished within 200 ms; CI
+runs it. `--run` repeats the whole run in about fifteen minutes.
+
+## Outcome
+
+Both checks hold: `strictMemo` reproduces matched-search-v0.2's outcome and six counters on all 983 tasks, and no arm
+answers wrongly. Three of the four hypotheses hold.
+
+- **H83** holds: over the 343 count-preserving negatives, 70.6% of `strictMemo`'s queries are revisits (bootstrap
+  interval 67.3 to 73.1%). The share grows with size, from 1.5% at 8 atoms and 21.8% at 16 to 71.6% at 32, and is
+  27.4% even on the 32-atom negatives with unique labels, where no two formulas are alike and every revisit is a
+  query reached along another sequence of foci and splits.
+- **H84** holds: the positives meet fewer revisits, 12.4% against 21.8% at 16 atoms and 32.2% against 71.6% at 32;
+  a proof ends the search, a refutation must exhaust it.
+- **H85** holds: without the tables the search decides 107 of the 110 32-atom count-preserving negatives, against
+  110 with them.
+- **H86** fails: on the 340 count-preserving negatives both arms decide, the median ratio of explored queries is
+  1.2, because most are small; at 32 atoms it is 17.8 (stratum medians: 3.9 with unique labels, 57 with two, 152
+  with one).
+
+The strictly focused search therefore meets the rule-order redundancy that strict focusing leaves, mostly when it
+must refute large sequents, and its memo tables merge it; without them the same search re-explores those queries,
+at a cost concentrated where labels repeat.

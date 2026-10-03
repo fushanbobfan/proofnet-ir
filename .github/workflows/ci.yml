@@ -308,6 +308,8 @@ jobs:
         run: python scripts/run_matched_search.py --check-committed
       - name: Check the committed pruned matched search
         run: python scripts/run_pruned_search.py --check-committed
+      - name: Check the committed focused-revisits experiment
+        run: python scripts/run_focused_revisits.py --check-committed
       - name: Re-verify the committed representation-study proposals
         run: python scripts/run_representation_study.py --check-committed
       - name: Re-verify the committed representation-v0.2 proposals
