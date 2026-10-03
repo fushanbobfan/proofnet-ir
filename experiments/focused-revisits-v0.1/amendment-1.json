@@ -1,0 +1,10 @@
+{
+ "amendment": 1,
+ "date": "2026-10-02 America/Los_Angeles",
+ "scope": "metadata only: the corpus, the arms, the budget, the measures, the hypotheses, the checks, and the implementations are unchanged",
+ "observation": "preregistration.json gives registeredLocalDate as 2026-10-03, but the registration was committed on 2026-10-02 at 21:39 Pacific time (proofnet-ir 957d1f9), ten minutes before the results (614628a); the date was mistyped",
+ "change": "none to a registered file: preregistration.json keeps the mistyped date, and this record corrects it",
+ "resultsSeenBeforeAmendment": "all: the results, summary, and report had been committed and read",
+ "registrationCommit": "957d1f9",
+ "resultsCommit": "614628a"
+}

@@ -43,6 +43,9 @@ registration, checked the copy (C26 held there) and printed only decided, timeou
 
 ## Artifacts
 
+- `amendment-1.json`: `preregistration.json` gives its date as 2026-10-03, but the registration was committed on
+  2026-10-02 at 21:39 Pacific time (`957d1f9`), ten minutes before the results (`614628a`); the record corrects the
+  date and changes no registered file;
 - `results.jsonl`: per task and arm the outcome, correctness, elapsed time, and counters (`proveCalls`,
   `focusCalls`, `decides`, `splits`, `infeasible`; `cacheHits`, `proveHits`, `focusHits` for `strictMemo`;
   `proveRevisits`, `focusRevisits` for `strictNoMemo`);
