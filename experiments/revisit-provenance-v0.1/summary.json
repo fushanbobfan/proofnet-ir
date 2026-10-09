@@ -1,0 +1,1423 @@
+{
+ "experiment": "revisit-provenance-v0.1",
+ "tasks": 983,
+ "wrongAnswers": 0,
+ "kinds": {
+  "positive": {
+   "tasks": 360,
+   "decided": 360,
+   "timeouts": 0,
+   "queries": 13045,
+   "revisits": 3433,
+   "classes": {
+    "permutation": 185,
+    "splits": 938,
+    "tensors": 2310
+   },
+   "classShares": {
+    "permutation": 0.053888727060879694,
+    "splits": 0.27323041071948734,
+    "tensors": 0.672880862219633
+   },
+   "byTable": {
+    "prove": {
+     "revisits": 2335,
+     "classShares": {
+      "permutation": 0.07451820128479657,
+      "splits": 0.3100642398286938,
+      "tensors": 0.6154175588865096
+     }
+    },
+    "focus": {
+     "revisits": 1098,
+     "classShares": {
+      "permutation": 0.010018214936247723,
+      "splits": 0.19489981785063754,
+      "tensors": 0.7950819672131147
+     }
+    }
+   },
+   "permutationShareOfQueries": 0.014181678804139517,
+   "medianElapsedMs": 0.039650000000000005
+  },
+  "negative-flip": {
+   "tasks": 280,
+   "decided": 280,
+   "timeouts": 0,
+   "queries": 280,
+   "revisits": 0,
+   "classes": {
+    "permutation": 0,
+    "splits": 0,
+    "tensors": 0
+   },
+   "classShares": {
+    "permutation": null,
+    "splits": null,
+    "tensors": null
+   },
+   "byTable": {
+    "prove": {
+     "revisits": 0,
+     "classShares": {
+      "permutation": null,
+      "splits": null,
+      "tensors": null
+     }
+    },
+    "focus": {
+     "revisits": 0,
+     "classShares": {
+      "permutation": null,
+      "splits": null,
+      "tensors": null
+     }
+    }
+   },
+   "permutationShareOfQueries": 0.0,
+   "medianElapsedMs": 0.0037
+  },
+  "negative-count": {
+   "tasks": 343,
+   "decided": 343,
+   "timeouts": 0,
+   "queries": 221777,
+   "revisits": 156624,
+   "classes": {
+    "permutation": 12147,
+    "splits": 52228,
+    "tensors": 92249
+   },
+   "classShares": {
+    "permutation": 0.07755516395954642,
+    "splits": 0.33346102768413527,
+    "tensors": 0.5889838083563184
+   },
+   "byTable": {
+    "prove": {
+     "revisits": 94693,
+     "classShares": {
+      "permutation": 0.12470826777058494,
+      "splits": 0.3894374452177035,
+      "tensors": 0.4858542870117115
+     }
+    },
+    "focus": {
+     "revisits": 61931,
+     "classShares": {
+      "permutation": 0.005457686780449209,
+      "splits": 0.24787263244578644,
+      "tensors": 0.7466696807737644
+     }
+    }
+   },
+   "permutationShareOfQueries": 0.0547712341676549,
+   "medianElapsedMs": 0.0658
+  }
+ },
+ "strata": {
+  "atoms-16:one-label:negative-count": {
+   "tasks": 40,
+   "decided": 40,
+   "timeouts": 0,
+   "queries": 1679,
+   "revisits": 548,
+   "classes": {
+    "permutation": 100,
+    "splits": 135,
+    "tensors": 313
+   },
+   "classShares": {
+    "permutation": 0.18248175182481752,
+    "splits": 0.24635036496350365,
+    "tensors": 0.5711678832116789
+   },
+   "byTable": {
+    "prove": {
+     "revisits": 428,
+     "classShares": {
+      "permutation": 0.22429906542056074,
+      "splits": 0.3014018691588785,
+      "tensors": 0.4742990654205608
+     }
+    },
+    "focus": {
+     "revisits": 120,
+     "classShares": {
+      "permutation": 0.03333333333333333,
+      "splits": 0.05,
+      "tensors": 0.9166666666666666
+     }
+    }
+   },
+   "permutationShareOfQueries": 0.05955926146515783,
+   "medianElapsedMs": 0.06369999999999999
+  },
+  "atoms-16:one-label:negative-flip": {
+   "tasks": 40,
+   "decided": 40,
+   "timeouts": 0,
+   "queries": 40,
+   "revisits": 0,
+   "classes": {
+    "permutation": 0,
+    "splits": 0,
+    "tensors": 0
+   },
+   "classShares": {
+    "permutation": null,
+    "splits": null,
+    "tensors": null
+   },
+   "byTable": {
+    "prove": {
+     "revisits": 0,
+     "classShares": {
+      "permutation": null,
+      "splits": null,
+      "tensors": null
+     }
+    },
+    "focus": {
+     "revisits": 0,
+     "classShares": {
+      "permutation": null,
+      "splits": null,
+      "tensors": null
+     }
+    }
+   },
+   "permutationShareOfQueries": 0.0,
+   "medianElapsedMs": 0.0032
+  },
+  "atoms-16:one-label:positive": {
+   "tasks": 40,
+   "decided": 40,
+   "timeouts": 0,
+   "queries": 814,
+   "revisits": 167,
+   "classes": {
+    "permutation": 14,
+    "splits": 52,
+    "tensors": 101
+   },
+   "classShares": {
+    "permutation": 0.08383233532934131,
+    "splits": 0.31137724550898205,
+    "tensors": 0.6047904191616766
+   },
+   "byTable": {
+    "prove": {
+     "revisits": 153,
+     "classShares": {
+      "permutation": 0.0915032679738562,
+      "splits": 0.32679738562091504,
+      "tensors": 0.5816993464052288
+     }
+    },
+    "focus": {
+     "revisits": 14,
+     "classShares": {
+      "permutation": 0.0,
+      "splits": 0.14285714285714285,
+      "tensors": 0.8571428571428571
+     }
+    }
+   },
+   "permutationShareOfQueries": 0.0171990171990172,
+   "medianElapsedMs": 0.029150000000000002
+  },
+  "atoms-16:two-label:negative-count": {
+   "tasks": 40,
+   "decided": 40,
+   "timeouts": 0,
+   "queries": 1103,
+   "revisits": 201,
+   "classes": {
+    "permutation": 35,
+    "splits": 38,
+    "tensors": 128
+   },
+   "classShares": {
+    "permutation": 0.17412935323383086,
+    "splits": 0.1890547263681592,
+    "tensors": 0.6368159203980099
+   },
+   "byTable": {
+    "prove": {
+     "revisits": 161,
+     "classShares": {
+      "permutation": 0.21739130434782608,
+      "splits": 0.2111801242236025,
+      "tensors": 0.5714285714285714
+     }
+    },
+    "focus": {
+     "revisits": 40,
+     "classShares": {
+      "permutation": 0.0,
+      "splits": 0.1,
+      "tensors": 0.9
+     }
+    }
+   },
+   "permutationShareOfQueries": 0.03173164097914778,
+   "medianElapsedMs": 0.043149999999999994
+  },
+  "atoms-16:two-label:negative-flip": {
+   "tasks": 40,
+   "decided": 40,
+   "timeouts": 0,
+   "queries": 40,
+   "revisits": 0,
+   "classes": {
+    "permutation": 0,
+    "splits": 0,
+    "tensors": 0
+   },
+   "classShares": {
+    "permutation": null,
+    "splits": null,
+    "tensors": null
+   },
+   "byTable": {
+    "prove": {
+     "revisits": 0,
+     "classShares": {
+      "permutation": null,
+      "splits": null,
+      "tensors": null
+     }
+    },
+    "focus": {
+     "revisits": 0,
+     "classShares": {
+      "permutation": null,
+      "splits": null,
+      "tensors": null
+     }
+    }
+   },
+   "permutationShareOfQueries": 0.0,
+   "medianElapsedMs": 0.0035
+  },
+  "atoms-16:two-label:positive": {
+   "tasks": 40,
+   "decided": 40,
+   "timeouts": 0,
+   "queries": 985,
+   "revisits": 145,
+   "classes": {
+    "permutation": 16,
+    "splits": 24,
+    "tensors": 105
+   },
+   "classShares": {
+    "permutation": 0.1103448275862069,
+    "splits": 0.16551724137931034,
+    "tensors": 0.7241379310344828
+   },
+   "byTable": {
+    "prove": {
+     "revisits": 124,
+     "classShares": {
+      "permutation": 0.12903225806451613,
+      "splits": 0.11290322580645161,
+      "tensors": 0.7580645161290323
+     }
+    },
+    "focus": {
+     "revisits": 21,
+     "classShares": {
+      "permutation": 0.0,
+      "splits": 0.47619047619047616,
+      "tensors": 0.5238095238095238
+     }
+    }
+   },
+   "permutationShareOfQueries": 0.016243654822335026,
+   "medianElapsedMs": 0.0451
+  },
+  "atoms-16:unique:negative-count": {
+   "tasks": 40,
+   "decided": 40,
+   "timeouts": 0,
+   "queries": 931,
+   "revisits": 60,
+   "classes": {
+    "permutation": 17,
+    "splits": 17,
+    "tensors": 26
+   },
+   "classShares": {
+    "permutation": 0.2833333333333333,
+    "splits": 0.2833333333333333,
+    "tensors": 0.43333333333333335
+   },
+   "byTable": {
+    "prove": {
+     "revisits": 51,
+     "classShares": {
+      "permutation": 0.3333333333333333,
+      "splits": 0.3137254901960784,
+      "tensors": 0.35294117647058826
+     }
+    },
+    "focus": {
+     "revisits": 9,
+     "classShares": {
+      "permutation": 0.0,
+      "splits": 0.1111111111111111,
+      "tensors": 0.8888888888888888
+     }
+    }
+   },
+   "permutationShareOfQueries": 0.018259935553168637,
+   "medianElapsedMs": 0.08375
+  },
+  "atoms-16:unique:negative-flip": {
+   "tasks": 40,
+   "decided": 40,
+   "timeouts": 0,
+   "queries": 40,
+   "revisits": 0,
+   "classes": {
+    "permutation": 0,
+    "splits": 0,
+    "tensors": 0
+   },
+   "classShares": {
+    "permutation": null,
+    "splits": null,
+    "tensors": null
+   },
+   "byTable": {
+    "prove": {
+     "revisits": 0,
+     "classShares": {
+      "permutation": null,
+      "splits": null,
+      "tensors": null
+     }
+    },
+    "focus": {
+     "revisits": 0,
+     "classShares": {
+      "permutation": null,
+      "splits": null,
+      "tensors": null
+     }
+    }
+   },
+   "permutationShareOfQueries": 0.0,
+   "medianElapsedMs": 0.00455
+  },
+  "atoms-16:unique:positive": {
+   "tasks": 40,
+   "decided": 40,
+   "timeouts": 0,
+   "queries": 721,
+   "revisits": 1,
+   "classes": {
+    "permutation": 0,
+    "splits": 0,
+    "tensors": 1
+   },
+   "classShares": {
+    "permutation": 0.0,
+    "splits": 0.0,
+    "tensors": 1.0
+   },
+   "byTable": {
+    "prove": {
+     "revisits": 1,
+     "classShares": {
+      "permutation": 0.0,
+      "splits": 0.0,
+      "tensors": 1.0
+     }
+    },
+    "focus": {
+     "revisits": 0,
+     "classShares": {
+      "permutation": null,
+      "splits": null,
+      "tensors": null
+     }
+    }
+   },
+   "permutationShareOfQueries": 0.0,
+   "medianElapsedMs": 0.0443
+  },
+  "atoms-32:one-label:negative-count": {
+   "tasks": 30,
+   "decided": 30,
+   "timeouts": 0,
+   "queries": 81725,
+   "revisits": 64596,
+   "classes": {
+    "permutation": 4562,
+    "splits": 19420,
+    "tensors": 40614
+   },
+   "classShares": {
+    "permutation": 0.07062356802278778,
+    "splits": 0.3006378103907363,
+    "tensors": 0.628738621586476
+   },
+   "byTable": {
+    "prove": {
+     "revisits": 37111,
+     "classShares": {
+      "permutation": 0.11584166419659939,
+      "splits": 0.40368084934386034,
+      "tensors": 0.4804774864595403
+     }
+    },
+    "focus": {
+     "revisits": 27485,
+     "classShares": {
+      "permutation": 0.009568855739494269,
+      "splits": 0.16150627615062763,
+      "tensors": 0.8289248681098781
+     }
+    }
+   },
+   "permutationShareOfQueries": 0.055821352095442034,
+   "medianElapsedMs": 6.7841000000000005
+  },
+  "atoms-32:one-label:positive": {
+   "tasks": 40,
+   "decided": 40,
+   "timeouts": 0,
+   "queries": 2285,
+   "revisits": 826,
+   "classes": {
+    "permutation": 49,
+    "splits": 241,
+    "tensors": 536
+   },
+   "classShares": {
+    "permutation": 0.059322033898305086,
+    "splits": 0.2917675544794189,
+    "tensors": 0.648910411622276
+   },
+   "byTable": {
+    "prove": {
+     "revisits": 582,
+     "classShares": {
+      "permutation": 0.06701030927835051,
+      "splits": 0.38316151202749144,
+      "tensors": 0.5498281786941581
+     }
+    },
+    "focus": {
+     "revisits": 244,
+     "classShares": {
+      "permutation": 0.040983606557377046,
+      "splits": 0.07377049180327869,
+      "tensors": 0.8852459016393442
+     }
+    }
+   },
+   "permutationShareOfQueries": 0.021444201312910284,
+   "medianElapsedMs": 0.0815
+  },
+  "atoms-32:two-label:negative-count": {
+   "tasks": 40,
+   "decided": 40,
+   "timeouts": 0,
+   "queries": 124583,
+   "revisits": 88155,
+   "classes": {
+    "permutation": 6721,
+    "splits": 32139,
+    "tensors": 49295
+   },
+   "classShares": {
+    "permutation": 0.07624071238160059,
+    "splits": 0.36457376212353243,
+    "tensors": 0.559185525494867
+   },
+   "byTable": {
+    "prove": {
+     "revisits": 54848,
+     "classShares": {
+      "permutation": 0.12124416569428238,
+      "splits": 0.3898957117852975,
+      "tensors": 0.48886012252042005
+     }
+    },
+    "focus": {
+     "revisits": 33307,
+     "classShares": {
+      "permutation": 0.0021316840303840035,
+      "splits": 0.32287507130633203,
+      "tensors": 0.674993244663284
+     }
+    }
+   },
+   "permutationShareOfQueries": 0.05394797042935232,
+   "medianElapsedMs": 9.59225
+  },
+  "atoms-32:two-label:positive": {
+   "tasks": 40,
+   "decided": 40,
+   "timeouts": 0,
+   "queries": 5251,
+   "revisits": 2123,
+   "classes": {
+    "permutation": 103,
+    "splits": 589,
+    "tensors": 1431
+   },
+   "classShares": {
+    "permutation": 0.04851625058878945,
+    "splits": 0.27743758831841736,
+    "tensors": 0.6740461610927933
+   },
+   "byTable": {
+    "prove": {
+     "revisits": 1324,
+     "classShares": {
+      "permutation": 0.0770392749244713,
+      "splits": 0.30891238670694865,
+      "tensors": 0.6140483383685801
+     }
+    },
+    "focus": {
+     "revisits": 799,
+     "classShares": {
+      "permutation": 0.0012515644555694619,
+      "splits": 0.22528160200250313,
+      "tensors": 0.7734668335419274
+     }
+    }
+   },
+   "permutationShareOfQueries": 0.019615311369263,
+   "medianElapsedMs": 0.15715
+  },
+  "atoms-32:unique:negative-count": {
+   "tasks": 40,
+   "decided": 40,
+   "timeouts": 0,
+   "queries": 11161,
+   "revisits": 3055,
+   "classes": {
+    "permutation": 712,
+    "splits": 475,
+    "tensors": 1868
+   },
+   "classShares": {
+    "permutation": 0.23306055646481177,
+    "splits": 0.15548281505728315,
+    "tensors": 0.611456628477905
+   },
+   "byTable": {
+    "prove": {
+     "revisits": 2086,
+     "classShares": {
+      "permutation": 0.34132310642377756,
+      "splits": 0.15723873441994246,
+      "tensors": 0.50143815915628
+     }
+    },
+    "focus": {
+     "revisits": 969,
+     "classShares": {
+      "permutation": 0.0,
+      "splits": 0.15170278637770898,
+      "tensors": 0.848297213622291
+     }
+    }
+   },
+   "permutationShareOfQueries": 0.06379356688468775,
+   "medianElapsedMs": 3.84845
+  },
+  "atoms-32:unique:negative-flip": {
+   "tasks": 40,
+   "decided": 40,
+   "timeouts": 0,
+   "queries": 40,
+   "revisits": 0,
+   "classes": {
+    "permutation": 0,
+    "splits": 0,
+    "tensors": 0
+   },
+   "classShares": {
+    "permutation": null,
+    "splits": null,
+    "tensors": null
+   },
+   "byTable": {
+    "prove": {
+     "revisits": 0,
+     "classShares": {
+      "permutation": null,
+      "splits": null,
+      "tensors": null
+     }
+    },
+    "focus": {
+     "revisits": 0,
+     "classShares": {
+      "permutation": null,
+      "splits": null,
+      "tensors": null
+     }
+    }
+   },
+   "permutationShareOfQueries": 0.0,
+   "medianElapsedMs": 0.00805
+  },
+  "atoms-32:unique:positive": {
+   "tasks": 40,
+   "decided": 40,
+   "timeouts": 0,
+   "queries": 1964,
+   "revisits": 112,
+   "classes": {
+    "permutation": 3,
+    "splits": 13,
+    "tensors": 96
+   },
+   "classShares": {
+    "permutation": 0.026785714285714284,
+    "splits": 0.11607142857142858,
+    "tensors": 0.8571428571428571
+   },
+   "byTable": {
+    "prove": {
+     "revisits": 92,
+     "classShares": {
+      "permutation": 0.03260869565217391,
+      "splits": 0.09782608695652174,
+      "tensors": 0.8695652173913043
+     }
+    },
+    "focus": {
+     "revisits": 20,
+     "classShares": {
+      "permutation": 0.0,
+      "splits": 0.2,
+      "tensors": 0.8
+     }
+    }
+   },
+   "permutationShareOfQueries": 0.0015274949083503055,
+   "medianElapsedMs": 0.2828
+  },
+  "atoms-8:one-label:negative-count": {
+   "tasks": 33,
+   "decided": 33,
+   "timeouts": 0,
+   "queries": 152,
+   "revisits": 1,
+   "classes": {
+    "permutation": 0,
+    "splits": 1,
+    "tensors": 0
+   },
+   "classShares": {
+    "permutation": 0.0,
+    "splits": 1.0,
+    "tensors": 0.0
+   },
+   "byTable": {
+    "prove": {
+     "revisits": 1,
+     "classShares": {
+      "permutation": 0.0,
+      "splits": 1.0,
+      "tensors": 0.0
+     }
+    },
+    "focus": {
+     "revisits": 0,
+     "classShares": {
+      "permutation": null,
+      "splits": null,
+      "tensors": null
+     }
+    }
+   },
+   "permutationShareOfQueries": 0.0,
+   "medianElapsedMs": 0.0051
+  },
+  "atoms-8:one-label:negative-flip": {
+   "tasks": 40,
+   "decided": 40,
+   "timeouts": 0,
+   "queries": 40,
+   "revisits": 0,
+   "classes": {
+    "permutation": 0,
+    "splits": 0,
+    "tensors": 0
+   },
+   "classShares": {
+    "permutation": null,
+    "splits": null,
+    "tensors": null
+   },
+   "byTable": {
+    "prove": {
+     "revisits": 0,
+     "classShares": {
+      "permutation": null,
+      "splits": null,
+      "tensors": null
+     }
+    },
+    "focus": {
+     "revisits": 0,
+     "classShares": {
+      "permutation": null,
+      "splits": null,
+      "tensors": null
+     }
+    }
+   },
+   "permutationShareOfQueries": 0.0,
+   "medianElapsedMs": 0.00265
+  },
+  "atoms-8:one-label:positive": {
+   "tasks": 40,
+   "decided": 40,
+   "timeouts": 0,
+   "queries": 340,
+   "revisits": 46,
+   "classes": {
+    "permutation": 0,
+    "splits": 18,
+    "tensors": 28
+   },
+   "classShares": {
+    "permutation": 0.0,
+    "splits": 0.391304347826087,
+    "tensors": 0.6086956521739131
+   },
+   "byTable": {
+    "prove": {
+     "revisits": 46,
+     "classShares": {
+      "permutation": 0.0,
+      "splits": 0.391304347826087,
+      "tensors": 0.6086956521739131
+     }
+    },
+    "focus": {
+     "revisits": 0,
+     "classShares": {
+      "permutation": null,
+      "splits": null,
+      "tensors": null
+     }
+    }
+   },
+   "permutationShareOfQueries": 0.0,
+   "medianElapsedMs": 0.0125
+  },
+  "atoms-8:two-label:negative-count": {
+   "tasks": 40,
+   "decided": 40,
+   "timeouts": 0,
+   "queries": 220,
+   "revisits": 8,
+   "classes": {
+    "permutation": 0,
+    "splits": 3,
+    "tensors": 5
+   },
+   "classShares": {
+    "permutation": 0.0,
+    "splits": 0.375,
+    "tensors": 0.625
+   },
+   "byTable": {
+    "prove": {
+     "revisits": 7,
+     "classShares": {
+      "permutation": 0.0,
+      "splits": 0.42857142857142855,
+      "tensors": 0.5714285714285714
+     }
+    },
+    "focus": {
+     "revisits": 1,
+     "classShares": {
+      "permutation": 0.0,
+      "splits": 0.0,
+      "tensors": 1.0
+     }
+    }
+   },
+   "permutationShareOfQueries": 0.0,
+   "medianElapsedMs": 0.0060999999999999995
+  },
+  "atoms-8:two-label:negative-flip": {
+   "tasks": 40,
+   "decided": 40,
+   "timeouts": 0,
+   "queries": 40,
+   "revisits": 0,
+   "classes": {
+    "permutation": 0,
+    "splits": 0,
+    "tensors": 0
+   },
+   "classShares": {
+    "permutation": null,
+    "splits": null,
+    "tensors": null
+   },
+   "byTable": {
+    "prove": {
+     "revisits": 0,
+     "classShares": {
+      "permutation": null,
+      "splits": null,
+      "tensors": null
+     }
+    },
+    "focus": {
+     "revisits": 0,
+     "classShares": {
+      "permutation": null,
+      "splits": null,
+      "tensors": null
+     }
+    }
+   },
+   "permutationShareOfQueries": 0.0,
+   "medianElapsedMs": 0.0028
+  },
+  "atoms-8:two-label:positive": {
+   "tasks": 40,
+   "decided": 40,
+   "timeouts": 0,
+   "queries": 357,
+   "revisits": 13,
+   "classes": {
+    "permutation": 0,
+    "splits": 1,
+    "tensors": 12
+   },
+   "classShares": {
+    "permutation": 0.0,
+    "splits": 0.07692307692307693,
+    "tensors": 0.9230769230769231
+   },
+   "byTable": {
+    "prove": {
+     "revisits": 13,
+     "classShares": {
+      "permutation": 0.0,
+      "splits": 0.07692307692307693,
+      "tensors": 0.9230769230769231
+     }
+    },
+    "focus": {
+     "revisits": 0,
+     "classShares": {
+      "permutation": null,
+      "splits": null,
+      "tensors": null
+     }
+    }
+   },
+   "permutationShareOfQueries": 0.0,
+   "medianElapsedMs": 0.0142
+  },
+  "atoms-8:unique:negative-count": {
+   "tasks": 40,
+   "decided": 40,
+   "timeouts": 0,
+   "queries": 223,
+   "revisits": 0,
+   "classes": {
+    "permutation": 0,
+    "splits": 0,
+    "tensors": 0
+   },
+   "classShares": {
+    "permutation": null,
+    "splits": null,
+    "tensors": null
+   },
+   "byTable": {
+    "prove": {
+     "revisits": 0,
+     "classShares": {
+      "permutation": null,
+      "splits": null,
+      "tensors": null
+     }
+    },
+    "focus": {
+     "revisits": 0,
+     "classShares": {
+      "permutation": null,
+      "splits": null,
+      "tensors": null
+     }
+    }
+   },
+   "permutationShareOfQueries": 0.0,
+   "medianElapsedMs": 0.0077
+  },
+  "atoms-8:unique:negative-flip": {
+   "tasks": 40,
+   "decided": 40,
+   "timeouts": 0,
+   "queries": 40,
+   "revisits": 0,
+   "classes": {
+    "permutation": 0,
+    "splits": 0,
+    "tensors": 0
+   },
+   "classShares": {
+    "permutation": null,
+    "splits": null,
+    "tensors": null
+   },
+   "byTable": {
+    "prove": {
+     "revisits": 0,
+     "classShares": {
+      "permutation": null,
+      "splits": null,
+      "tensors": null
+     }
+    },
+    "focus": {
+     "revisits": 0,
+     "classShares": {
+      "permutation": null,
+      "splits": null,
+      "tensors": null
+     }
+    }
+   },
+   "permutationShareOfQueries": 0.0,
+   "medianElapsedMs": 0.0032500000000000003
+  },
+  "atoms-8:unique:positive": {
+   "tasks": 40,
+   "decided": 40,
+   "timeouts": 0,
+   "queries": 328,
+   "revisits": 0,
+   "classes": {
+    "permutation": 0,
+    "splits": 0,
+    "tensors": 0
+   },
+   "classShares": {
+    "permutation": null,
+    "splits": null,
+    "tensors": null
+   },
+   "byTable": {
+    "prove": {
+     "revisits": 0,
+     "classShares": {
+      "permutation": null,
+      "splits": null,
+      "tensors": null
+     }
+    },
+    "focus": {
+     "revisits": 0,
+     "classShares": {
+      "permutation": null,
+      "splits": null,
+      "tensors": null
+     }
+    }
+   },
+   "permutationShareOfQueries": 0.0,
+   "medianElapsedMs": 0.01645
+  }
+ },
+ "bySize": {
+  "atoms-8": {
+   "positive": {
+    "tasks": 120,
+    "decided": 120,
+    "timeouts": 0,
+    "queries": 1025,
+    "revisits": 59,
+    "classes": {
+     "permutation": 0,
+     "splits": 19,
+     "tensors": 40
+    },
+    "classShares": {
+     "permutation": 0.0,
+     "splits": 0.3220338983050847,
+     "tensors": 0.6779661016949152
+    },
+    "byTable": {
+     "prove": {
+      "revisits": 59,
+      "classShares": {
+       "permutation": 0.0,
+       "splits": 0.3220338983050847,
+       "tensors": 0.6779661016949152
+      }
+     },
+     "focus": {
+      "revisits": 0,
+      "classShares": {
+       "permutation": null,
+       "splits": null,
+       "tensors": null
+      }
+     }
+    },
+    "permutationShareOfQueries": 0.0,
+    "medianElapsedMs": 0.01415
+   },
+   "negative-flip": {
+    "tasks": 120,
+    "decided": 120,
+    "timeouts": 0,
+    "queries": 120,
+    "revisits": 0,
+    "classes": {
+     "permutation": 0,
+     "splits": 0,
+     "tensors": 0
+    },
+    "classShares": {
+     "permutation": null,
+     "splits": null,
+     "tensors": null
+    },
+    "byTable": {
+     "prove": {
+      "revisits": 0,
+      "classShares": {
+       "permutation": null,
+       "splits": null,
+       "tensors": null
+      }
+     },
+     "focus": {
+      "revisits": 0,
+      "classShares": {
+       "permutation": null,
+       "splits": null,
+       "tensors": null
+      }
+     }
+    },
+    "permutationShareOfQueries": 0.0,
+    "medianElapsedMs": 0.0028
+   },
+   "negative-count": {
+    "tasks": 113,
+    "decided": 113,
+    "timeouts": 0,
+    "queries": 595,
+    "revisits": 9,
+    "classes": {
+     "permutation": 0,
+     "splits": 4,
+     "tensors": 5
+    },
+    "classShares": {
+     "permutation": 0.0,
+     "splits": 0.4444444444444444,
+     "tensors": 0.5555555555555556
+    },
+    "byTable": {
+     "prove": {
+      "revisits": 8,
+      "classShares": {
+       "permutation": 0.0,
+       "splits": 0.5,
+       "tensors": 0.5
+      }
+     },
+     "focus": {
+      "revisits": 1,
+      "classShares": {
+       "permutation": 0.0,
+       "splits": 0.0,
+       "tensors": 1.0
+      }
+     }
+    },
+    "permutationShareOfQueries": 0.0,
+    "medianElapsedMs": 0.006
+   }
+  },
+  "atoms-16": {
+   "positive": {
+    "tasks": 120,
+    "decided": 120,
+    "timeouts": 0,
+    "queries": 2520,
+    "revisits": 313,
+    "classes": {
+     "permutation": 30,
+     "splits": 76,
+     "tensors": 207
+    },
+    "classShares": {
+     "permutation": 0.09584664536741214,
+     "splits": 0.24281150159744408,
+     "tensors": 0.6613418530351438
+    },
+    "byTable": {
+     "prove": {
+      "revisits": 278,
+      "classShares": {
+       "permutation": 0.1079136690647482,
+       "splits": 0.2302158273381295,
+       "tensors": 0.6618705035971223
+      }
+     },
+     "focus": {
+      "revisits": 35,
+      "classShares": {
+       "permutation": 0.0,
+       "splits": 0.34285714285714286,
+       "tensors": 0.6571428571428571
+      }
+     }
+    },
+    "permutationShareOfQueries": 0.011904761904761904,
+    "medianElapsedMs": 0.0383
+   },
+   "negative-flip": {
+    "tasks": 120,
+    "decided": 120,
+    "timeouts": 0,
+    "queries": 120,
+    "revisits": 0,
+    "classes": {
+     "permutation": 0,
+     "splits": 0,
+     "tensors": 0
+    },
+    "classShares": {
+     "permutation": null,
+     "splits": null,
+     "tensors": null
+    },
+    "byTable": {
+     "prove": {
+      "revisits": 0,
+      "classShares": {
+       "permutation": null,
+       "splits": null,
+       "tensors": null
+      }
+     },
+     "focus": {
+      "revisits": 0,
+      "classShares": {
+       "permutation": null,
+       "splits": null,
+       "tensors": null
+      }
+     }
+    },
+    "permutationShareOfQueries": 0.0,
+    "medianElapsedMs": 0.00405
+   },
+   "negative-count": {
+    "tasks": 120,
+    "decided": 120,
+    "timeouts": 0,
+    "queries": 3713,
+    "revisits": 809,
+    "classes": {
+     "permutation": 152,
+     "splits": 190,
+     "tensors": 467
+    },
+    "classShares": {
+     "permutation": 0.18788627935723115,
+     "splits": 0.23485784919653893,
+     "tensors": 0.5772558714462299
+    },
+    "byTable": {
+     "prove": {
+      "revisits": 640,
+      "classShares": {
+       "permutation": 0.23125,
+       "splits": 0.2796875,
+       "tensors": 0.4890625
+      }
+     },
+     "focus": {
+      "revisits": 169,
+      "classShares": {
+       "permutation": 0.023668639053254437,
+       "splits": 0.0650887573964497,
+       "tensors": 0.9112426035502958
+      }
+     }
+    },
+    "permutationShareOfQueries": 0.04093724750875303,
+    "medianElapsedMs": 0.07089999999999999
+   }
+  },
+  "atoms-32": {
+   "positive": {
+    "tasks": 120,
+    "decided": 120,
+    "timeouts": 0,
+    "queries": 9500,
+    "revisits": 3061,
+    "classes": {
+     "permutation": 155,
+     "splits": 843,
+     "tensors": 2063
+    },
+    "classShares": {
+     "permutation": 0.050637046716759226,
+     "splits": 0.2754001960143744,
+     "tensors": 0.6739627572688663
+    },
+    "byTable": {
+     "prove": {
+      "revisits": 1998,
+      "classShares": {
+       "permutation": 0.07207207207207207,
+       "splits": 0.3208208208208208,
+       "tensors": 0.6071071071071071
+      }
+     },
+     "focus": {
+      "revisits": 1063,
+      "classShares": {
+       "permutation": 0.010348071495766699,
+       "splits": 0.19002822201317027,
+       "tensors": 0.7996237064910631
+      }
+     }
+    },
+    "permutationShareOfQueries": 0.01631578947368421,
+    "medianElapsedMs": 0.15165
+   },
+   "negative-flip": {
+    "tasks": 40,
+    "decided": 40,
+    "timeouts": 0,
+    "queries": 40,
+    "revisits": 0,
+    "classes": {
+     "permutation": 0,
+     "splits": 0,
+     "tensors": 0
+    },
+    "classShares": {
+     "permutation": null,
+     "splits": null,
+     "tensors": null
+    },
+    "byTable": {
+     "prove": {
+      "revisits": 0,
+      "classShares": {
+       "permutation": null,
+       "splits": null,
+       "tensors": null
+      }
+     },
+     "focus": {
+      "revisits": 0,
+      "classShares": {
+       "permutation": null,
+       "splits": null,
+       "tensors": null
+      }
+     }
+    },
+    "permutationShareOfQueries": 0.0,
+    "medianElapsedMs": 0.00805
+   },
+   "negative-count": {
+    "tasks": 110,
+    "decided": 110,
+    "timeouts": 0,
+    "queries": 217469,
+    "revisits": 155806,
+    "classes": {
+     "permutation": 11995,
+     "splits": 52034,
+     "tensors": 91777
+    },
+    "classShares": {
+     "permutation": 0.07698676559310938,
+     "splits": 0.33396659948910823,
+     "tensors": 0.5890466349177824
+    },
+    "byTable": {
+     "prove": {
+      "revisits": 94045,
+      "classShares": {
+       "permutation": 0.12399383273964591,
+       "splits": 0.3901749162634909,
+       "tensors": 0.4858312509968632
+      }
+     },
+     "focus": {
+      "revisits": 61761,
+      "classShares": {
+       "permutation": 0.005407943524230501,
+       "splits": 0.24837680737034698,
+       "tensors": 0.7462152491054225
+      }
+     }
+    },
+    "permutationShareOfQueries": 0.05515728678570279,
+    "medianElapsedMs": 5.628
+   }
+  }
+ },
+ "hypotheses": {
+  "H94": {
+   "permutationShare": 0.07755516395954642,
+   "interval": [
+    0.06934313618191065,
+    0.08717511297743732
+   ],
+   "tasks": 343,
+   "holds": false
+  },
+  "H95": {
+   "permutationShare": 0.23306055646481177,
+   "tasks": 40,
+   "holds": false
+  },
+  "H96": {
+   "oneLabel": 0.07062356802278778,
+   "uniqueLabels": 0.23306055646481177,
+   "tasks": {
+    "one-label": 30,
+    "unique": 40
+   },
+   "holds": true
+  }
+ },
+ "checks": {
+  "C35": {
+   "compared": 983,
+   "mismatches": [],
+   "mismatchCount": 0,
+   "holds": true
+  },
+  "C36": {
+   "unbalanced": [],
+   "holds": true
+  }
+ }
+}
