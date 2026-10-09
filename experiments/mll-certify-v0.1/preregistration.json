@@ -1,0 +1,36 @@
+{
+ "budget": {
+  "distinctSequentsPerTask": 50000000,
+  "process": "four worker processes on the CPU",
+  "secondsPerTask": 600
+ },
+ "checks": {
+  "C42": "the independent prover decides every task within 600 s"
+ },
+ "corpus": {
+  "countPreservingNegatives": {
+   "countermodel": 90,
+   "search": 253
+  },
+  "path": "experiments/matched-search-v0.2/corpus.jsonl",
+  "sha256": "1af171e0c6272674e211ab50e7bcf494dd60b5ded13f2c74ebc4b70eaa4cc029",
+  "tasks": 983
+ },
+ "developmentChecksBeforeRegistration": [
+  "the hypotheses and the check were written into this runner before the development run",
+  "matched-search-v0.2's development set (24 generated bases, seeds 900000 onward, with their flips and count-preserving negatives: 213 tasks, none in the corpus): the prover agreed with the expected status on all, decided each, the slowest in 3.9 s (32-atom count-preserving negatives, median 0.44 s); only correctness and time were printed"
+ ],
+ "experiment": "mll-certify-v0.1",
+ "hypotheses": {
+  "H107": "the independent prover refutes all 253 count-preserving negatives that the focused search certified",
+  "H108": "the independent prover's answer agrees with the expected status on all 983 tasks"
+ },
+ "implementationSha256": {
+  "prover": "3718626b1bb329b000e6b4f39c5970657b59caebc0eb989e4c467fb68a72b63c",
+  "runner": "fe17e6ecff3630188024ef6230bb71b9fbdec410ae43edfd59317a58a324ae2f"
+ },
+ "prover": "mll_independent_prover.py: the plain one-sided sequent calculus of unit-free MLL; pars decomposed first (par is invertible); every distinct tensor tried as the last rule with every multiset split of the rest whose premises keep per-name atom balance and 2t + 2 = a; sequents memoized as sorted multisets; no code shared with focusedStrict or the net searches",
+ "question": "does a prover written independently of the searches matched-search-v0.2 compares confirm the status of every task of its corpus, in particular the unprovability of the 253 count-preserving negatives that the focused search itself had certified",
+ "registeredLocalDate": "2026-10-09 America/Los_Angeles",
+ "resultsAbsentAtRegistration": true
+}
