@@ -1,0 +1,276 @@
+{
+ "experiment": "mll-certify-v0.1",
+ "preregistrationSha256": "5680914ec94d47df0d7c66708d50db2f5abfe4d9412391abc21fce0574a79ae4",
+ "tasks": 983,
+ "all": {
+  "tasks": 983,
+  "agree": 983,
+  "disagree": 0,
+  "undecided": 0,
+  "medianSeconds": 0.0,
+  "maxSeconds": 9.309
+ },
+ "kinds": {
+  "positive": {
+   "tasks": 360,
+   "agree": 360,
+   "disagree": 0,
+   "undecided": 0,
+   "medianSeconds": 0.0,
+   "maxSeconds": 0.441
+  },
+  "negative-flip": {
+   "tasks": 280,
+   "agree": 280,
+   "disagree": 0,
+   "undecided": 0,
+   "medianSeconds": 0.0,
+   "maxSeconds": 0.0
+  },
+  "negative-count": {
+   "tasks": 343,
+   "agree": 343,
+   "disagree": 0,
+   "undecided": 0,
+   "medianSeconds": 0.002,
+   "maxSeconds": 9.309
+  }
+ },
+ "strata": {
+  "atoms-8:one-label:negative-count": {
+   "tasks": 33,
+   "agree": 33,
+   "disagree": 0,
+   "undecided": 0,
+   "medianSeconds": 0.0,
+   "maxSeconds": 0.0
+  },
+  "atoms-8:one-label:negative-flip": {
+   "tasks": 40,
+   "agree": 40,
+   "disagree": 0,
+   "undecided": 0,
+   "medianSeconds": 0.0,
+   "maxSeconds": 0.0
+  },
+  "atoms-8:one-label:positive": {
+   "tasks": 40,
+   "agree": 40,
+   "disagree": 0,
+   "undecided": 0,
+   "medianSeconds": 0.0,
+   "maxSeconds": 0.0
+  },
+  "atoms-8:two-label:negative-count": {
+   "tasks": 40,
+   "agree": 40,
+   "disagree": 0,
+   "undecided": 0,
+   "medianSeconds": 0.0,
+   "maxSeconds": 0.001
+  },
+  "atoms-8:two-label:negative-flip": {
+   "tasks": 40,
+   "agree": 40,
+   "disagree": 0,
+   "undecided": 0,
+   "medianSeconds": 0.0,
+   "maxSeconds": 0.0
+  },
+  "atoms-8:two-label:positive": {
+   "tasks": 40,
+   "agree": 40,
+   "disagree": 0,
+   "undecided": 0,
+   "medianSeconds": 0.0,
+   "maxSeconds": 0.0
+  },
+  "atoms-8:unique:negative-count": {
+   "tasks": 40,
+   "agree": 40,
+   "disagree": 0,
+   "undecided": 0,
+   "medianSeconds": 0.0,
+   "maxSeconds": 0.001
+  },
+  "atoms-8:unique:negative-flip": {
+   "tasks": 40,
+   "agree": 40,
+   "disagree": 0,
+   "undecided": 0,
+   "medianSeconds": 0.0,
+   "maxSeconds": 0.0
+  },
+  "atoms-8:unique:positive": {
+   "tasks": 40,
+   "agree": 40,
+   "disagree": 0,
+   "undecided": 0,
+   "medianSeconds": 0.0,
+   "maxSeconds": 0.0
+  },
+  "atoms-16:one-label:negative-count": {
+   "tasks": 40,
+   "agree": 40,
+   "disagree": 0,
+   "undecided": 0,
+   "medianSeconds": 0.002,
+   "maxSeconds": 0.006
+  },
+  "atoms-16:one-label:negative-flip": {
+   "tasks": 40,
+   "agree": 40,
+   "disagree": 0,
+   "undecided": 0,
+   "medianSeconds": 0.0,
+   "maxSeconds": 0.0
+  },
+  "atoms-16:one-label:positive": {
+   "tasks": 40,
+   "agree": 40,
+   "disagree": 0,
+   "undecided": 0,
+   "medianSeconds": 0.0,
+   "maxSeconds": 0.002
+  },
+  "atoms-16:two-label:negative-count": {
+   "tasks": 40,
+   "agree": 40,
+   "disagree": 0,
+   "undecided": 0,
+   "medianSeconds": 0.001,
+   "maxSeconds": 0.005
+  },
+  "atoms-16:two-label:negative-flip": {
+   "tasks": 40,
+   "agree": 40,
+   "disagree": 0,
+   "undecided": 0,
+   "medianSeconds": 0.0,
+   "maxSeconds": 0.0
+  },
+  "atoms-16:two-label:positive": {
+   "tasks": 40,
+   "agree": 40,
+   "disagree": 0,
+   "undecided": 0,
+   "medianSeconds": 0.0,
+   "maxSeconds": 0.003
+  },
+  "atoms-16:unique:negative-count": {
+   "tasks": 40,
+   "agree": 40,
+   "disagree": 0,
+   "undecided": 0,
+   "medianSeconds": 0.004,
+   "maxSeconds": 0.019
+  },
+  "atoms-16:unique:negative-flip": {
+   "tasks": 40,
+   "agree": 40,
+   "disagree": 0,
+   "undecided": 0,
+   "medianSeconds": 0.0,
+   "maxSeconds": 0.0
+  },
+  "atoms-16:unique:positive": {
+   "tasks": 40,
+   "agree": 40,
+   "disagree": 0,
+   "undecided": 0,
+   "medianSeconds": 0.001,
+   "maxSeconds": 0.002
+  },
+  "atoms-32:one-label:negative-count": {
+   "tasks": 30,
+   "agree": 30,
+   "disagree": 0,
+   "undecided": 0,
+   "medianSeconds": 0.1385,
+   "maxSeconds": 0.719
+  },
+  "atoms-32:one-label:positive": {
+   "tasks": 40,
+   "agree": 40,
+   "disagree": 0,
+   "undecided": 0,
+   "medianSeconds": 0.001,
+   "maxSeconds": 0.045
+  },
+  "atoms-32:two-label:negative-count": {
+   "tasks": 40,
+   "agree": 40,
+   "disagree": 0,
+   "undecided": 0,
+   "medianSeconds": 0.4065,
+   "maxSeconds": 2.073
+  },
+  "atoms-32:two-label:positive": {
+   "tasks": 40,
+   "agree": 40,
+   "disagree": 0,
+   "undecided": 0,
+   "medianSeconds": 0.003,
+   "maxSeconds": 0.074
+  },
+  "atoms-32:unique:negative-count": {
+   "tasks": 40,
+   "agree": 40,
+   "disagree": 0,
+   "undecided": 0,
+   "medianSeconds": 0.8260000000000001,
+   "maxSeconds": 9.309
+  },
+  "atoms-32:unique:negative-flip": {
+   "tasks": 40,
+   "agree": 40,
+   "disagree": 0,
+   "undecided": 0,
+   "medianSeconds": 0.0,
+   "maxSeconds": 0.0
+  },
+  "atoms-32:unique:positive": {
+   "tasks": 40,
+   "agree": 40,
+   "disagree": 0,
+   "undecided": 0,
+   "medianSeconds": 0.018,
+   "maxSeconds": 0.441
+  }
+ },
+ "searchCertified": {
+  "tasks": 253,
+  "agree": 253,
+  "disagree": 0,
+  "undecided": 0,
+  "medianSeconds": 0.004,
+  "maxSeconds": 9.309
+ },
+ "countermodelCertified": {
+  "tasks": 90,
+  "agree": 90,
+  "disagree": 0,
+  "undecided": 0,
+  "medianSeconds": 0.0,
+  "maxSeconds": 0.719
+ },
+ "hypotheses": {
+  "H107": {
+   "tasks": 253,
+   "refuted": 253,
+   "holds": true
+  },
+  "H108": {
+   "agree": 983,
+   "tasks": 983,
+   "holds": true
+  }
+ },
+ "checks": {
+  "C42": {
+   "undecided": 0,
+   "holds": true
+  }
+ },
+ "resultsSha256": "c0761066b1ca48e42ef1afe6098eee7611d3899ab27f84f41138e01d765dc721"
+}
