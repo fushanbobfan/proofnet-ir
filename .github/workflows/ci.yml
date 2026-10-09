@@ -310,6 +310,8 @@ jobs:
         run: python scripts/run_pruned_search.py --check-committed
       - name: Check the committed focused-revisits experiment
         run: python scripts/run_focused_revisits.py --check-committed
+      - name: Check the committed revisit-provenance experiment
+        run: python scripts/run_revisit_provenance.py --check-committed
       - name: Re-verify the committed representation-study proposals
         run: python scripts/run_representation_study.py --check-committed
       - name: Re-verify the committed representation-v0.2 proposals

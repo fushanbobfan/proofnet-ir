@@ -1,0 +1,61 @@
+{
+ "budget": {
+  "process": "proofnet_ir_revisit_provenance runs the tasks sequentially, on one core",
+  "wallClockMsPerTask": 5000
+ },
+ "checks": {
+  "C35": "the search reproduces focused-revisits-v0.1's strictMemo on every task: the same outcome and the same eight counters (proveCalls, focusCalls, cacheHits, proveHits, focusHits, decides, splits, infeasible)",
+  "C36": "on every task the three classes add up to the hits of each table"
+ },
+ "comparedResults": {
+  "path": "experiments/focused-revisits-v0.1/results.jsonl",
+  "sha256": "eddb6aa662828e1085dc058761f3a5791d6672741901fcd18ab6f66062352448"
+ },
+ "corpus": {
+  "kinds": {
+   "negative-count": 343,
+   "negative-flip": 280,
+   "positive": 360
+  },
+  "path": "experiments/matched-search-v0.2/corpus.jsonl",
+  "sha256": "1af171e0c6272674e211ab50e7bcf494dd60b5ded13f2c74ebc4b70eaa4cc029",
+  "tasks": 983
+ },
+ "definitions": {
+  "branch": "the tensor rules applied between the input and a query, each recorded as the tensor, the premise the branch enters, and the multiset of formulas the rule sends to the other premise (a positive atom that closes against its dual sends that dual); pars, decided deterministically, are not recorded",
+  "identity": "branches are compared by two order-independent sums of 64-bit hashes (splitmix64-finalized) of their rules, and of their tensors; formulas are compared by their keys, as the memo tables compare them, so alike formulas are not told apart",
+  "permutation": "a revisit for which some earlier branch to the same query recorded the same multiset of rules",
+  "query": "as in focused-revisits-v0.1: a call of prove (a sequent after eager par decomposition, as a sorted multiset of formula keys) or of focus on a tensor goal (its context and goal)",
+  "splits": "a revisit that is not a permutation, for which some earlier branch decomposed the same multiset of tensors",
+  "tensors": "any other revisit: every earlier branch decomposed a different multiset of tensors"
+ },
+ "developmentChecksBeforeRegistration": [
+  "the definitions, hypotheses, measures, and checks above were written into this runner before any development run",
+  "ProofNetIRRevisitProvenance.lean is focused-revisits-v0.1's strictMemo with its control flow unchanged, the branch threaded through prove, focus, and the split search, and the classes counted at each memo hit; it builds with proofnet-ir's toolchain",
+  "matched-search-v0.2's development set (24 generated bases, seeds 900000 onward, eight per depth, in three label modes, with their connective flips and count-preserving negatives: 213 tasks, none in the corpus) through this search and through focused-revisits-v0.1's strictMemo: the outcomes and the eight counters agree on every task, the classes add up on every task, and no answer is wrong; only these checks and the decided counts were printed, and no class count or share was looked at"
+ ],
+ "disclosure": "focused-revisits-v0.1's results, with every task's hits per table, were committed and reported before this registration; no branch, class, or share of this registration was computed before it",
+ "experiment": "revisit-provenance-v0.1",
+ "hypotheses": {
+  "H94": "over the count-preserving negatives, at least half of the revisits are permutations (pooled share of permutation revisits among all revisits >= 0.5)",
+  "H95": "on the 32-atom count-preserving negatives with unique labels, where no two formulas are alike, at least half of the revisits are permutations",
+  "H96": "on the 32-atom count-preserving negatives, the pooled share of permutations among revisits is lower with one label than with unique labels"
+ },
+ "implementationSha256": {
+  "runner": "9851e9780018bdbed2736b191e582c73e367ce62f88d2c0016e1ba65063ce0c0",
+  "search": "b92e03a928fe70ed134dfe738d0b796ba148d14242ab5a86a3d8d7684c293b3d"
+ },
+ "input": "the search receives only the sequent",
+ "measures": {
+  "classShare": "a class's revisits over all revisits, pooled over a group of tasks (sums over sums), also by table",
+  "permutationShareOfQueries": "permutation revisits over all queries, pooled: the queries a search that identified commuting foci would not have met again",
+  "queries": "proveCalls + focusCalls + cacheHits",
+  "revisits": "cacheHits, the queries answered from a table (proveHits + focusHits)"
+ },
+ "outcomes": "found, refuted (search exhausted without a proof), timeout",
+ "question": "where the revisits of the strictly focused search come from: how many are permutations of an earlier branch, the same tensor rules with the same splits in another order, which is the redundancy of commuting foci that proof nets and maximal multi-focusing remove, and how many decompose the same tensors with other splits, or other tensors",
+ "registeredLocalDate": "2026-10-09 America/Los_Angeles",
+ "resultsAbsentAtRegistration": true,
+ "search": "focused-revisits-v0.1's strictMemo, copied into ProofNetIRRevisitProvenance.lean with its control flow unchanged; every query carries its branch, and every memo hit is classed against the branches that met the same query before",
+ "tests": "the hypotheses are decided by the rules as stated; H94's pooled share is reported with a percentile bootstrap interval over tasks (seed 20261009, 10000 resamples), which does not decide it"
+}
