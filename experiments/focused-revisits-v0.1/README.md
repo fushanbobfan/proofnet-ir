@@ -67,8 +67,8 @@ answers wrongly. Three of the four hypotheses hold.
 
 - **H83** holds: over the 343 count-preserving negatives, 70.6% of `strictMemo`'s queries are revisits (bootstrap
   interval 67.3 to 73.1%). The share grows with size, from 1.5% at 8 atoms and 21.8% at 16 to 71.6% at 32, and is
-  27.4% even on the 32-atom negatives with unique labels, where no two formulas are alike and every revisit is a
-  query reached along another sequence of foci and splits.
+  27.4% even on the 32-atom negatives with unique labels, where five of the bases' sixteen atom labels repeat
+  (revisit-witness-v0.1), and every revisit is a query reached along another sequence of foci and splits.
 - **H84** holds: the positives meet fewer revisits, 12.4% against 21.8% at 16 atoms and 32.2% against 71.6% at 32;
   a proof ends the search, a refutation must exhaust it.
 - **H85** holds: without the tables the search decides 107 of the 110 32-atom count-preserving negatives, against

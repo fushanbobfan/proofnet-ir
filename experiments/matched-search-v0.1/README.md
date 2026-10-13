@@ -45,7 +45,8 @@ budget are not.
 
 No arm ever gave a wrong answer. H4, H5, and H6 all hold as registered.
 
-- Unique labels, where the linking is forced: `nets` decides every task at
+- Unique labels, where the linking is nearly forced (at 32 atoms five of the
+  sixteen labels repeat, leaving 32 linkings; revisit-witness-v0.1): `nets` decides every task at
   every size, in a median of 1.9 ms on the 32-atom positives and 9.8 ms on
   the 32-atom negatives; `focusedBalanced` needs a median of 12.6 ms and
   1.9 s there and times out on 4 of the 40 negatives; the unpruned
@@ -60,8 +61,8 @@ No arm ever gave a wrong answer. H4, H5, and H6 all hold as registered.
 
 Read together with step 1: proof nets remove all rule-order redundancy,
 which grows to five orders of magnitude at 32 atoms, and replace it by
-linking redundancy, which is nil when labels are unique and factorial when
-they repeat. At 32 atoms, which family wins is decided by label repetition;
+linking redundancy, which is small when labels are unique (32 linkings at 32
+atoms) and factorial when they repeat. At 32 atoms, which family wins is decided by label repetition;
 at 8 and 16 atoms all three searches decide nearly every task (`nets` misses
 one 16-atom one-label negative). A search for a proof assistant would have to combine
 both prunings. This is a statement about two search families on unit-free,

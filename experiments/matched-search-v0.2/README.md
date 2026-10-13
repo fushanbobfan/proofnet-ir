@@ -1,7 +1,7 @@
 # Equal-information matched search v0.2
 
 matched-search-v0.1 left two questions open. Its net search enumerated linkings without pruning, while its
-sequent search pruned states, so the reversal it found (nets win where unique labels force the linking and
+sequent search pruned states, so the reversal it found (nets win where unique labels nearly force the linking and
 lose where labels repeat) could belong to those implementations. And its negatives were connective flips
 admitted only when the net arm refuted them within 20 seconds, so large repeated-label negatives, which the
 net arm could not refute, were missing. This experiment prunes both searches and adds negatives certified
@@ -69,7 +69,7 @@ No arm gave a wrong answer, and all four hypotheses hold.
 
 Every connective-flip negative violates the tensor count (C15), so both pruned arms refute all 280 at their
 root checks, in well under a millisecond: v0.1's negatives did not test search. Where labels are unique the
-linking is forced and the net search is the faster refuter (32-atom count-preserving negatives: 0.19 ms
+linking is nearly forced (32 linkings at 32 atoms) and the net search is the faster refuter (32-atom count-preserving negatives: 0.19 ms
 median against 12.6 ms), but not the faster prover (32-atom positives: 2.45 ms against 1.06 ms).
 
 `focusedStrict` certified 253 of the count-preserving negatives, so its refutations of those are not an

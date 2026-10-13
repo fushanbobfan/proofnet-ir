@@ -1,0 +1,330 @@
+{
+ "experiment": "revisit-witness-v0.1",
+ "tasks": 983,
+ "negatives": {
+  "tasks": 343,
+  "revisits": 156624,
+  "tensorsRevisits": 92249,
+  "sampled": 3643,
+  "sampledByWitness": {
+   "reorder": 25,
+   "exclusion": 0,
+   "alike": 3617,
+   "unresolved": 1
+  },
+  "witnessShares": {
+   "reorder": 0.000279817335243553,
+   "exclusion": 0.0,
+   "alike": 0.9997089899713467,
+   "unresolved": 1.119269340974212e-05
+  },
+  "ruleOrderInterval": [
+   0.0777199718393023,
+   0.6665389723158648
+  ]
+ },
+ "strata": {
+  "atoms-16:one-label:negative-count": {
+   "tasks": 40,
+   "revisits": 548,
+   "tensorsRevisits": 313,
+   "sampled": 7,
+   "sampledByWitness": {
+    "reorder": 0,
+    "exclusion": 0,
+    "alike": 7,
+    "unresolved": 0
+   },
+   "witnessShares": {
+    "reorder": 0.0,
+    "exclusion": 0.0,
+    "alike": 1.0,
+    "unresolved": 0.0
+   },
+   "ruleOrderInterval": [
+    0.18248175182481752,
+    0.7536496350364964
+   ]
+  },
+  "atoms-16:two-label:negative-count": {
+   "tasks": 40,
+   "revisits": 201,
+   "tensorsRevisits": 128,
+   "sampled": 1,
+   "sampledByWitness": {
+    "reorder": 0,
+    "exclusion": 0,
+    "alike": 1,
+    "unresolved": 0
+   },
+   "witnessShares": {
+    "reorder": 0.0,
+    "exclusion": 0.0,
+    "alike": 1.0,
+    "unresolved": 0.0
+   },
+   "ruleOrderInterval": [
+    0.17412935323383086,
+    0.8109452736318408
+   ]
+  },
+  "atoms-16:unique:negative-count": {
+   "tasks": 40,
+   "revisits": 60,
+   "tensorsRevisits": 26,
+   "sampled": 26,
+   "sampledByWitness": {
+    "reorder": 25,
+    "exclusion": 0,
+    "alike": 0,
+    "unresolved": 1
+   },
+   "witnessShares": {
+    "reorder": 0.9615384615384616,
+    "exclusion": 0.0,
+    "alike": 0.0,
+    "unresolved": 0.038461538461538464
+   },
+   "ruleOrderInterval": [
+    0.7,
+    0.7166666666666667
+   ]
+  },
+  "atoms-32:one-label:negative-count": {
+   "tasks": 30,
+   "revisits": 64596,
+   "tensorsRevisits": 40614,
+   "sampled": 784,
+   "sampledByWitness": {
+    "reorder": 0,
+    "exclusion": 0,
+    "alike": 784,
+    "unresolved": 0
+   },
+   "witnessShares": {
+    "reorder": 0.0,
+    "exclusion": 0.0,
+    "alike": 1.0,
+    "unresolved": 0.0
+   },
+   "ruleOrderInterval": [
+    0.07062356802278778,
+    0.6993621896092638
+   ]
+  },
+  "atoms-32:two-label:negative-count": {
+   "tasks": 40,
+   "revisits": 88155,
+   "tensorsRevisits": 49295,
+   "sampled": 956,
+   "sampledByWitness": {
+    "reorder": 0,
+    "exclusion": 0,
+    "alike": 956,
+    "unresolved": 0
+   },
+   "witnessShares": {
+    "reorder": 0.0,
+    "exclusion": 0.0,
+    "alike": 1.0,
+    "unresolved": 0.0
+   },
+   "ruleOrderInterval": [
+    0.07624071238160059,
+    0.6354262378764676
+   ]
+  },
+  "atoms-32:unique:negative-count": {
+   "tasks": 40,
+   "revisits": 3055,
+   "tensorsRevisits": 1868,
+   "sampled": 1868,
+   "sampledByWitness": {
+    "reorder": 0,
+    "exclusion": 0,
+    "alike": 1868,
+    "unresolved": 0
+   },
+   "witnessShares": {
+    "reorder": 0.0,
+    "exclusion": 0.0,
+    "alike": 1.0,
+    "unresolved": 0.0
+   },
+   "ruleOrderInterval": [
+    0.23306055646481177,
+    0.8445171849427169
+   ]
+  },
+  "atoms-8:one-label:negative-count": {
+   "tasks": 33,
+   "revisits": 1,
+   "tensorsRevisits": 0,
+   "sampled": 0,
+   "sampledByWitness": {
+    "reorder": 0,
+    "exclusion": 0,
+    "alike": 0,
+    "unresolved": 0
+   },
+   "witnessShares": {
+    "reorder": null,
+    "exclusion": null,
+    "alike": null,
+    "unresolved": null
+   },
+   "ruleOrderInterval": null
+  },
+  "atoms-8:two-label:negative-count": {
+   "tasks": 40,
+   "revisits": 8,
+   "tensorsRevisits": 5,
+   "sampled": 1,
+   "sampledByWitness": {
+    "reorder": 0,
+    "exclusion": 0,
+    "alike": 1,
+    "unresolved": 0
+   },
+   "witnessShares": {
+    "reorder": 0.0,
+    "exclusion": 0.0,
+    "alike": 1.0,
+    "unresolved": 0.0
+   },
+   "ruleOrderInterval": [
+    0.0,
+    0.625
+   ]
+  },
+  "atoms-8:unique:negative-count": {
+   "tasks": 40,
+   "revisits": 0,
+   "tensorsRevisits": 0,
+   "sampled": 0,
+   "sampledByWitness": {
+    "reorder": 0,
+    "exclusion": 0,
+    "alike": 0,
+    "unresolved": 0
+   },
+   "witnessShares": {
+    "reorder": null,
+    "exclusion": null,
+    "alike": null,
+    "unresolved": null
+   },
+   "ruleOrderInterval": null
+  }
+ },
+ "byLabelMode": {
+  "unique": {
+   "tasks": 120,
+   "revisits": 3115,
+   "tensorsRevisits": 1894,
+   "sampled": 1894,
+   "sampledByWitness": {
+    "reorder": 25,
+    "exclusion": 0,
+    "alike": 1868,
+    "unresolved": 1
+   },
+   "witnessShares": {
+    "reorder": 0.013199577613516367,
+    "exclusion": 0.0,
+    "alike": 0.986272439281943,
+    "unresolved": 0.0005279831045406547
+   },
+   "ruleOrderInterval": [
+    0.2420545746388443,
+    0.8420545746388443
+   ]
+  },
+  "two-label": {
+   "tasks": 120,
+   "revisits": 88364,
+   "tensorsRevisits": 49428,
+   "sampled": 958,
+   "sampledByWitness": {
+    "reorder": 0,
+    "exclusion": 0,
+    "alike": 958,
+    "unresolved": 0
+   },
+   "witnessShares": {
+    "reorder": 0.0,
+    "exclusion": 0.0,
+    "alike": 1.0,
+    "unresolved": 0.0
+   },
+   "ruleOrderInterval": [
+    0.0764564754877552,
+    0.635824543931918
+   ]
+  },
+  "one-label": {
+   "tasks": 103,
+   "revisits": 65145,
+   "tensorsRevisits": 40927,
+   "sampled": 791,
+   "sampledByWitness": {
+    "reorder": 0,
+    "exclusion": 0,
+    "alike": 791,
+    "unresolved": 0
+   },
+   "witnessShares": {
+    "reorder": 0.0,
+    "exclusion": 0.0,
+    "alike": 1.0,
+    "unresolved": 0.0
+   },
+   "ruleOrderInterval": [
+    0.07156343541330877,
+    0.6998081203469184
+   ]
+  }
+ },
+ "hypotheses": {
+  "H119": {
+   "reorderShare": 0.013199577613516367,
+   "sampled": 1894,
+   "interval": [
+    0.005484460694698354,
+    0.026248941574936496
+   ],
+   "holds": false
+  },
+  "H120": {
+   "exclusionShare": 0.0,
+   "sampled": 1894,
+   "interval": [
+    0.0,
+    0.0
+   ],
+   "holds": true
+  },
+  "H121": {
+   "ruleOrderInterval": [
+    0.23306055646481177,
+    0.8445171849427169
+   ],
+   "tasks": 40,
+   "holds": false
+  }
+ },
+ "checks": {
+  "C51": {
+   "compared": 983,
+   "mismatches": [],
+   "mismatchCount": 0,
+   "holds": true
+  },
+  "C52": {
+   "sampled": 3643,
+   "notRebuilt": [],
+   "notRebuiltCount": 0,
+   "holds": true
+  }
+ }
+}

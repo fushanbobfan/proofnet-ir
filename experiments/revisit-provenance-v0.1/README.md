@@ -43,7 +43,8 @@ up on every task (C36).
 
 - **H94 fails**: 7.8% of the count-preserving negatives' revisits are permutations (bootstrap interval 6.9% to 8.7%),
   against a registered threshold of half.
-- **H95 fails**: with unique labels at 32 atoms, where no two formulas are alike, 23.3%.
+- **H95 fails**: with unique labels at 32 atoms, 23.3%. (The registration says no two formulas are alike there; five of
+  the sixteen atom labels repeat, revisit-witness-v0.1.)
 - **H96 holds**: at 32 atoms the share is lower with one label (7.1%) than with unique labels (23.3%).
 
 By table, permutations are 12.5% of the sequent table's revisits and 0.5% of the focus table's: a reordering met

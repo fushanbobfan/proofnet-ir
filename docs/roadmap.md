@@ -571,7 +571,7 @@ data exists and reported either way.
 - [x] Register step 2, the equal-information matched search: three arms in
   one Lean process, a 640-task held-out corpus with certified negatives.
 - [x] Run step 2 and answer H4 to H6: all three hold; at 32 atoms net-space
-  search wins where the linking is forced (`experiments/matched-search-v0.1`).
+  search wins where the linking is nearly forced (`experiments/matched-search-v0.1`).
 - [x] Register step 3, the representation-as-target model study (sequent
   proof versus proof net as the same model's output, Lean-verified).
 - [x] Run step 3 and answer H7 to H9: H7 holds (7 verified nets, no verified
