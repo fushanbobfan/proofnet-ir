@@ -312,6 +312,10 @@ jobs:
         run: python scripts/run_focused_revisits.py --check-committed
       - name: Check the committed revisit-provenance experiment
         run: python scripts/run_revisit_provenance.py --check-committed
+      - name: Test the revisit-witness classes on hand-made branches
+        run: python scripts/test_revisit_witness.py
+      - name: Check the committed revisit-witness experiment
+        run: python scripts/run_revisit_witness.py --check-committed
       - name: Check the committed independent certification of the matched corpus
         run: python scripts/run_mll_certify.py --check-committed
       - name: Re-verify the committed representation-study proposals

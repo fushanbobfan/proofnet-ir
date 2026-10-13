@@ -1,0 +1,59 @@
+{
+ "budget": {
+  "process": "proofnet_ir_revisit_witness runs the tasks sequentially, on one core",
+  "wallClockMsPerTask": 5000
+ },
+ "checks": {
+  "C51": "the search reproduces focused-revisits-v0.1's outcome and eight counters, and revisit-provenance-v0.1's six class counts, on every task",
+  "C52": "every branch of every sampled revisit, rebuilt from the input sequent rule by rule, reaches the revisited query"
+ },
+ "comparedResults": {
+  "focusedRevisits": "eddb6aa662828e1085dc058761f3a5791d6672741901fcd18ab6f66062352448",
+  "revisitProvenance": "910b4625f791dd28da7186fdec69b54bb66ed99d0f4e07c175ff7c06921c799f"
+ },
+ "corpus": {
+  "path": "experiments/matched-search-v0.2/corpus.jsonl",
+  "sha256": "1af171e0c6272674e211ab50e7bcf494dd60b5ded13f2c74ebc4b70eaa4cc029",
+  "tasks": 983
+ },
+ "definitions": {
+  "alike": "a formula the comparison needs (in the query, a decomposed tensor, or a context a rule splits) occurs more than once among the input's subformulas",
+  "exclusion": "every earlier branch was kept and each sends a tensor both decompose into a different premise, or puts a formula, or a subformula of one, that both meet at the same tensor on different sides",
+  "reorder": "some earlier branch kept for the query decomposes, besides tensors both branches decompose with the same sides and (once tensors only one branch decomposes are folded into the rule that sends their parts away, standing for themselves and what their own rules sent) the same material sent at each rule, only tensors none of whose subformulas is in the revisited query",
+  "unresolved": "any other sampled tensors revisit"
+ },
+ "developmentChecksBeforeRegistration": [
+  "the question, definitions, hypotheses, and checks above were written into this runner before any development run",
+  "ProofNetIRRevisitWitness.lean is revisit-provenance-v0.1's search with its control flow unchanged; branches also keep their rules in full, each query its first four distinct branches, and a seeded draw writes out a share of the tensors revisits; it builds with proofnet-ir's toolchain",
+  "scripts/test_revisit_witness.py checks the rebuild and the classes on hand-made branches whose answer is known: two tensors decomposed in either order (a reordering), a shared tensor entered from different sides (an exclusion), and repeated labels (alike)",
+  "matched-search-v0.2's development set (213 tasks, none in the corpus) through this search, revisit-provenance-v0.1's and focused-revisits-v0.1's: outcomes, counters, and class counts agree on 213 of 213 tasks; 1013 tensors revisits were sampled and 1013 rebuilt; only these counts were printed, and no witness class or share was looked at"
+ ],
+ "experiment": "revisit-witness-v0.1",
+ "hypotheses": {
+  "H119": "on the count-preserving negatives with unique labels (all sizes pooled), at least half of the tensors revisits have a reordering witness",
+  "H120": "on the count-preserving negatives with unique labels (all sizes pooled), fewer than one in ten tensors revisits has an exclusion witness",
+  "H121": "on the 32-atom count-preserving negatives with unique labels, the identification interval for the share of revisits that rule order accounts for (permutations and reordering-witnessed tensors revisits at its low end; all revisits but splits and exclusion-witnessed tensors revisits at its high end) lies entirely on one side of one half"
+ },
+ "implementationSha256": {
+  "runner": "a38c94127e94d7caf873f49dbd4900f21253323adbfd25be49d692e5b03b85b4",
+  "search": "847f429164a17feea7b2475b11996159ddb8593502cea01a542168be0413eaab"
+ },
+ "measures": {
+  "ruleOrderInterval": "from (permutations + tensors revisits x the reorder share) / revisits to (revisits - splits - tensors revisits x the exclusion share) / revisits",
+  "witnessShares": "each class's share of a group's sampled tensors revisits, a task's sample weighted by the inverse of its rate"
+ },
+ "question": "of the focused search's tensors revisits on the count-preserving negatives, how many differ from an earlier branch to the same sub-sequent only by commuting rules, how many contradict every earlier branch, and does rule order then account for most revisits where keys identify formulas",
+ "registeredLocalDate": "2026-10-13 America/Los_Angeles",
+ "resultsAbsentAtRegistration": true,
+ "sample": {
+  "ratesPerMille": {
+   "one-label": 20,
+   "two-label": 20,
+   "unique": 1000
+  },
+  "rule": "a tensors revisit is written out when splitmix64 of the task id's hash xor the mixed rank of the revisit among the task's tensors revisits, modulo 1000, is below the task's rate per mille",
+  "tasks": "the count-preserving negatives only"
+ },
+ "search": "revisit-provenance-v0.1's search, copied into ProofNetIRRevisitWitness.lean with its control flow unchanged; a branch also keeps its rules in full, and a query its first four distinct branches",
+ "tests": "the hypotheses are decided by the rules as stated; shares are reported with percentile bootstrap intervals over tasks (seed 20261013, 2000 resamples), which do not decide"
+}
