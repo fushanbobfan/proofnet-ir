@@ -44,7 +44,7 @@ two and a half hours), which is not deterministic across hardware or server buil
 - **H73 holds**: nets verified 6 positives and labelled derivations none (one-sided p = 0.016). The six are
   depth-2 sequents with unique labels (6 of 10), as in v0.1; none is at depth 3 or 4.
 - **H72 does not hold**: neither derivation format verified any positive (0 against 0).
-- The failure moved with the format. With positions, 138 of 180 proposals apply a tensor rule at a position
+- The failure moved with the format. With positions, 138 of 180 answers apply a tensor rule at a position
   that does not hold a tensor (v0.1: 100). With labels, 167 of 180 fail conversion: 108 split a tensor's
   context with formulas that are not in the sequent at that point, 45 apply a rule to a label that names
   another connective, and 14 to a label no longer in the sequent.

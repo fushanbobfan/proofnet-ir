@@ -44,10 +44,10 @@ task is exact and every cross-checked task agrees.
   corpus is 2 at 8 atoms, 36 at 16 atoms, and 170,734 at 32 atoms; the
   largest complete task has 3,432,145,449 derivations for 6 nets.
 - H3 not supported as registered: strict focusing is strictly smaller than the
-  committed baseline on 27.8% of tasks, because the 8-atom tasks, 700 of the
-  1,000 matched tasks, have no nested tensor under focus and the two counts
-  coincide there. On the 16-atom and 32-atom matched strata the median ratio
-  `dFoc / dWeak` is 0.67 and 0.15.
+  committed baseline on 27.8% of tasks. The two counts coincide on all 700
+  8-atom tasks of the 1,000 matched ones, although 267 of those have a tensor
+  directly under a tensor, where focus persists. On the 16-atom and 32-atom
+  matched strata the median ratio `dFoc / dWeak` is 0.67 and 0.15.
 
 These are properties of the search spaces of three calculi relative to the net
 space. They say nothing about the running time of any search procedure and
