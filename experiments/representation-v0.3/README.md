@@ -13,7 +13,10 @@ tokens. The two conditions share the sampling settings, so they differ only in t
   (`proofnet_ir_representation_verify`);
 - corpus: the 90 positives of `experiments/model-v0.2` (depth 2, 3, and 4; unique, one-label, and two-label
   names; 10 per stratum);
-- model: `Qwen3.8-27B-UD-Q4_K_XL` on llama.cpp build 11193, six requests at a time, temperature 0.6, top-p
+- model: `Qwen3.8-27B-UD-Q4_K_XL.gguf` from `unsloth/Qwen3.8-27B-GGUF` at revision
+  `f1bfb127c64f7072bdd2cad55f258b9c8b2910fe` (SHA-256 `bee238bb…`, as the registration records; the file on that
+  repository's main branch was replaced on 2026-08-19 and has another hash), on llama.cpp build 11193, six requests
+  at a time, temperature 0.6, top-p
   0.95, top-k 20, seed 20260921, 8,192 completion tokens. No grammar constrains the answers: with thinking on,
   the server applies a grammar to the thinking as well, which leaves no room to think (checked before
   registration).
