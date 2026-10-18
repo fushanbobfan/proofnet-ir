@@ -53,14 +53,15 @@ permutations. Flipped negatives fail the edge-count condition at the root and me
 
 ## Interpretation boundary
 
-The classes describe the branch of each revisit. A splits revisit decomposes the same tensors as an earlier branch but
-routes some formula to a different premise, which yields a different linking, so no quotient by rule order removes it:
-at least a third of the revisits are not rule-order redundancy. A permutation revisit is rule-order redundancy. A
-tensors revisit can be either: reordering two foci also re-creates the subproblems of the premises the first rule
-sends material to, and the branches to those subproblems differ in the tensors they decomposed (one decomposed the
-other focus before sending its parts away, the other sent it whole), as do the branches of attempts that are not
-reorderings. So rule order accounts for at least 7.8% and at most 66.7% of the revisits, and the 70.6% revisit share
-is not a measure of the redundancy that proof nets remove: at least a third of it comes from different splits, and
-reorderings along a revisit's own branch account for 7.8%.
+The classes describe each revisit against the earlier branches to its query taken together. A permutation revisit is
+rule-order redundancy. A splits revisit decomposes the same tensors as some earlier branch and routes some formula to
+a different premise; another earlier branch can still differ from it only by rule order, and revisit-witness-v0.2
+finds such a reordering for 2 of the 17 splits revisits of the 16-atom negatives with unique labels, where every
+formula is distinct. A tensors revisit can be either: reordering two foci also re-creates the subproblems of the
+premises the first rule sends material to, and the branches to those subproblems differ in the tensors they decomposed
+(one decomposed the other focus before sending its parts away, the other sent it whole), as do the branches of
+attempts that are not reorderings. So permutations, 7.8% of the revisits, are a lower limit for the share that rule
+order accounts for; examined branch against branch (revisit-witness-v0.1 and v0.2), neither of the other classes gives
+it an upper limit over the corpus, since alike formulas at 32 atoms leave their branches uncompared.
 Formulas are compared by their keys, as the memo tables compare them, so with repeated labels alike formulas are not
 told apart.

@@ -2,8 +2,9 @@
 
 revisit-provenance-v0.1 classed the strictly focused search's revisits by branch signature. On the count-preserving
 negatives, 7.8% are permutations of an earlier branch, 33.3% decompose the same tensors with other splits, and 58.9%
-decompose other tensors, a class that mixes attempts that differ with subproblems a reordering re-creates; rule order
-therefore accounts for between 7.8% and 66.7% of the revisits. This experiment runs the same search with its control
+decompose other tensors, a class that mixes attempts that differ with subproblems a reordering re-creates; with the
+splits class read as excluding rule order, a reading revisit-witness-v0.2 tests, rule order accounts for between 7.8%
+and 66.7% of the revisits. This experiment runs the same search with its control
 flow unchanged (`ProofNetIRRevisitWitness.lean`), keeps each query's first four distinct branches in full, and writes
 out the tensors revisits of every count-preserving negative with unique labels and 2% of those with repeated labels.
 Each sampled revisit is rebuilt rule by rule from the input and compared with the earlier branches: a *reordering
@@ -56,6 +57,9 @@ permutations, rule order accounts for 70.0% to 71.7% of its 60 revisits.
 
 Where the comparison can be made, nearly every tensors revisit is a reordering and none contradicts the earlier
 branches, so on those tasks rule order accounts for most revisits; but that stratum has 60 revisits, and 155,806 of the
-count-preserving negatives' 156,624 lie at 32 atoms, where alike formulas make the question undefined for this search. A
-search that tracks formula occurrences, instead of merging alike formulas, would be needed to attribute them. The
-hypotheses are reported as registered; the 32-atom label repetition was found by this experiment.
+count-preserving negatives' 156,624 lie at 32 atoms, where alike formulas make the question undefined for this search.
+Attributing them would need a search that tracks formula occurrences and keeps alike formulas apart. The intervals
+above count every splits revisit as excluding rule order; revisit-witness-v0.2 examined that class the same way and
+found 2 of the stratum's 17 splits revisits to be reorderings, which puts rule order at 73.3% to 75.0% of the
+stratum's revisits and leaves the corpus share without the upper limit of 66.7%. The hypotheses are reported as
+registered; the 32-atom label repetition was found by this experiment.
