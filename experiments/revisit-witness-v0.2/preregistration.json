@@ -1,0 +1,55 @@
+{
+ "budget": {
+  "process": "proofnet_ir_revisit_witness_splits runs the tasks sequentially, on one core",
+  "wallClockMsPerTask": 5000
+ },
+ "checks": {
+  "C55": "the search reproduces focused-revisits-v0.1's outcome and eight counters, and revisit-provenance-v0.1's six class counts, on every task",
+  "C56": "every branch of every sampled splits revisit, rebuilt from the input sequent rule by rule, reaches the revisited query",
+  "C57": "on the review's constructed sequent, outside the corpus, the search records two permutation, one splits and three tensors revisits, all in the sequent table, and the splits revisit has a reordering witness"
+ },
+ "comparedResults": {
+  "focusedRevisits": "eddb6aa662828e1085dc058761f3a5791d6672741901fcd18ab6f66062352448",
+  "revisitProvenance": "910b4625f791dd28da7186fdec69b54bb66ed99d0f4e07c175ff7c06921c799f",
+  "revisitWitnessV01": "e6d64513369feaa5447df65d36049903bf8f11b9010baf2fe29c5379e1a9077c"
+ },
+ "corpus": {
+  "path": "experiments/matched-search-v0.2/corpus.jsonl",
+  "sha256": "1af171e0c6272674e211ab50e7bcf494dd60b5ded13f2c74ebc4b70eaa4cc029",
+  "tasks": 983
+ },
+ "definitions": "revisit-witness-v0.1's (reorder, exclusion, alike, unresolved), applied by its own code (scripts/run_revisit_witness.py, compare and classify) to each sampled splits revisit",
+ "developmentChecksBeforeRegistration": [
+  "the constructed sequent of the review of 2026-10-18 was run through revisit-witness-v0.1's committed executable (class counts 2, 1, 3) and through this search, whose splits revisit was classed with revisit-witness-v0.1's code (witnesses reorder and exclusion against its two earlier branches, so reorder)",
+  "matched-search-v0.2's development set (213 tasks, none in the corpus) through this search, revisit-provenance-v0.1's and focused-revisits-v0.1's: outcomes, counters, and class counts agree on 213 of 213 tasks; 374 splits revisits were sampled and 374 rebuilt; only these counts were printed, and no witness class of the development set was looked at"
+ ],
+ "experiment": "revisit-witness-v0.2",
+ "hypotheses": {
+  "H125": "on the count-preserving negatives with unique labels (all sizes pooled), at least one sampled splits revisit has a reordering witness",
+  "H126": "on the count-preserving negatives with unique labels (all sizes pooled), at least half of the sampled splits revisits whose branches can be compared (a witness other than alike) have an exclusion witness"
+ },
+ "implementationSha256": {
+  "runner": "99f261c4be9ac40a754b879c888177d003710e73717ff95ad546801dddcb934c",
+  "search": "4e1d7b394ff1860e08d9e3ac03af74dbaaf1c6a87315f19cc919c6b0fefb081e",
+  "witness": "a38c94127e94d7caf873f49dbd4900f21253323adbfd25be49d692e5b03b85b4"
+ },
+ "knownBeforeRegistration": "before registration: revisit-provenance-v0.1's class counts by stratum, revisit-witness-v0.1's summary (its tensors revisits' witnesses), and the constructed sequent's classes; no splits revisit of the corpus had been sampled or classed",
+ "measures": {
+  "ruleOrderInterval": "from (permutations + tensors revisits x their reorder share + splits revisits x their reorder share) / revisits to (revisits - tensors revisits x their exclusion share - splits revisits x their exclusion share) / revisits; the tensors revisits' shares are revisit-witness-v0.1's, over the same tasks",
+  "witnessShares": "each class's share of a group's sampled splits revisits, a task's sample weighted by the inverse of its rate"
+ },
+ "question": "of the focused search's splits revisits on the count-preserving negatives, how many have a reordering witness against some earlier branch to the same sub-sequent and how many contradict every earlier branch, and between which limits does rule order account for the revisits once both classes that are not permutations have been examined branch against branch",
+ "registeredLocalDate": "2026-10-18 America/Los_Angeles",
+ "resultsAbsentAtRegistration": true,
+ "sample": {
+  "ratesPerMille": {
+   "one-label": 20,
+   "two-label": 20,
+   "unique": 1000
+  },
+  "rule": "a splits revisit is written out when splitmix64 of the task id's hash xor the mixed rank of the revisit among the task's splits revisits, modulo 1000, is below the task's rate per mille",
+  "tasks": "the count-preserving negatives only"
+ },
+ "search": "revisit-witness-v0.1's search, copied into ProofNetIRRevisitWitnessSplits.lean with its control flow unchanged; it writes out splits revisits where revisit-witness-v0.1 wrote out tensors revisits",
+ "tests": "the hypotheses are decided by the rules as stated; shares are reported with percentile bootstrap intervals over tasks (seed 20261018, 2000 resamples), which do not decide"
+}

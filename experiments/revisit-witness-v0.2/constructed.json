@@ -1,0 +1,158 @@
+{
+ "sequent": [
+  {
+   "kind": "tensor",
+   "left": {
+    "kind": "atom",
+    "name": "c",
+    "positive": false
+   },
+   "right": {
+    "kind": "atom",
+    "name": "d",
+    "positive": false
+   }
+  },
+  {
+   "kind": "tensor",
+   "left": {
+    "kind": "atom",
+    "name": "a",
+    "positive": false
+   },
+   "right": {
+    "kind": "atom",
+    "name": "b",
+    "positive": false
+   }
+  },
+  {
+   "kind": "tensor",
+   "left": {
+    "kind": "atom",
+    "name": "c",
+    "positive": true
+   },
+   "right": {
+    "kind": "atom",
+    "name": "b",
+    "positive": true
+   }
+  },
+  {
+   "kind": "atom",
+   "name": "a",
+   "positive": true
+  },
+  {
+   "kind": "atom",
+   "name": "d",
+   "positive": true
+  },
+  {
+   "kind": "tensor",
+   "left": {
+    "kind": "atom",
+    "name": "z",
+    "positive": true
+   },
+   "right": {
+    "kind": "atom",
+    "name": "z",
+    "positive": false
+   }
+  }
+ ],
+ "source": "the constructed sequent of the review of 2026-10-18, outside the corpus",
+ "strictMemo": {
+  "cacheHits": 6,
+  "decides": 24,
+  "focusCalls": 16,
+  "focusHits": 0,
+  "focusPermutation": 0,
+  "focusSplits": 0,
+  "focusTensors": 0,
+  "infeasible": 0,
+  "keys": [
+   "{\"kind\":\"atom\",\"name\":\"a\",\"positive\":false}",
+   "{\"kind\":\"atom\",\"name\":\"a\",\"positive\":true}",
+   "{\"kind\":\"atom\",\"name\":\"d\",\"positive\":true}",
+   "{\"kind\":\"tensor\",\"left\":{\"kind\":\"atom\",\"name\":\"c\",\"positive\":false},\"right\":{\"kind\":\"atom\",\"name\":\"d\",\"positive\":false}}",
+   "{\"kind\":\"atom\",\"name\":\"c\",\"positive\":false}",
+   "{\"kind\":\"tensor\",\"left\":{\"kind\":\"atom\",\"name\":\"c\",\"positive\":true},\"right\":{\"kind\":\"atom\",\"name\":\"b\",\"positive\":true}}",
+   "{\"kind\":\"tensor\",\"left\":{\"kind\":\"atom\",\"name\":\"z\",\"positive\":true},\"right\":{\"kind\":\"atom\",\"name\":\"z\",\"positive\":false}}",
+   "{\"kind\":\"tensor\",\"left\":{\"kind\":\"atom\",\"name\":\"a\",\"positive\":false},\"right\":{\"kind\":\"atom\",\"name\":\"b\",\"positive\":false}}"
+  ],
+  "proveCalls": 9,
+  "proveHits": 6,
+  "provePermutation": 2,
+  "proveSplits": 1,
+  "proveTensors": 3,
+  "samples": [
+   {
+    "current": [
+     [
+      3,
+      0,
+      [
+       2
+      ]
+     ],
+     [
+      7,
+      0,
+      [
+       4,
+       5,
+       6
+      ]
+     ]
+    ],
+    "distinctEarlier": 2,
+    "earlier": [
+     [
+      [
+       7,
+       0,
+       [
+        2,
+        3,
+        5,
+        6
+       ]
+      ]
+     ],
+     [
+      [
+       3,
+       0,
+       [
+        2,
+        6
+       ]
+      ],
+      [
+       7,
+       0,
+       [
+        4,
+        5
+       ]
+      ]
+     ]
+    ],
+    "goal": null,
+    "query": [
+     0,
+     1
+    ],
+    "rank": 0,
+    "rebuilt": true,
+    "table": "prove",
+    "witness": "reorder"
+   }
+  ],
+  "splits": 9,
+  "splitsRevisits": 1
+ }
+}

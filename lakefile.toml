@@ -8,6 +8,7 @@ defaultTargets = [
   "proofnet_ir_focused_revisits",
   "proofnet_ir_revisit_provenance",
   "proofnet_ir_revisit_witness",
+  "proofnet_ir_revisit_witness_splits",
   "proofnet_ir_representation_verify",
   "proofnet_ir_tail_law_search",
   "proofnet_ir_tests",
@@ -723,6 +724,10 @@ root = "ProofNetIRRevisitProvenance"
 [[lean_exe]]
 name = "proofnet_ir_revisit_witness"
 root = "ProofNetIRRevisitWitness"
+
+[[lean_exe]]
+name = "proofnet_ir_revisit_witness_splits"
+root = "ProofNetIRRevisitWitnessSplits"
 
 [[lean_exe]]
 name = "proofnet_ir_representation_verify"
