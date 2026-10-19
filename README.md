@@ -28,12 +28,12 @@ v0.10.0 guarantees below. The v0.11 program answered the founding question by
 measurement ([design](docs/v0.11-design.md)): proof nets remove a rule-order
 redundancy that grows factorially (a median 170,734 sequent derivations per
 net at 32 atoms); at 32 atoms net-space search beats a balanced sequent search
-only where unique atom labels force the linking, and once both are pruned,
+only with the bases' own labels, which leave 32 linkings, and once both are pruned,
 strictly focused sequent search decides every task while net search still
-fails where labels repeat; and a local model writes a few verifiable nets, on
-the smallest tasks, and no verifiable sequent proof. The Lean-scale continuation,
+fails where labels repeat; a local model writes a few verifiable nets on the
+smallest tasks, and with thinking verifies derivations about as often. The Lean-scale continuation,
 [proof-graphs](https://github.com/fushanbobfan/proof-graphs), finds that Lean's first-goal convention already
-absorbs that redundancy. The open theorem targets are stated in the
+fixes the schedules of goal-local steps, a different order redundancy. The open theorem targets are stated in the
 [goal ledger](docs/goal-ledger.md): whole-program linearity (D6-linear), with
 the flat-worklist forms and the tail-law hypothesis retired there, unproved.
 [Current status](docs/current-status.md) holds the exact revision,

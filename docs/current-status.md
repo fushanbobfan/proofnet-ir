@@ -352,8 +352,8 @@ positional ones, and 35 nets of 90, no significant difference, against none, non
 so with thinking the nets' lead shrinks to a difference that is not significant. The three preregistered steps of the
 program are complete. Beyond MLL, the question
 was taken to Lean's scale in [proof-graphs](https://github.com/fushanbobfan/proof-graphs): Lean's first-goal
-convention already absorbs rule-order redundancy, and searching over goals
-gains nothing at equal budget. A linear whole-program bound (D6-linear)
+convention already fixes the schedules of goal-local steps, and searching over goals
+shows no reproducible gain at equal budget. A linear whole-program bound (D6-linear)
 stays optional.
 
 ## Navigation
